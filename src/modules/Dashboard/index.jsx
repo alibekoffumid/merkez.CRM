@@ -38,12 +38,12 @@ const Dashboard = () => {
             <div className="p-3 rounded-xl bg-blue-50 mr-4">
               <Activity className="w-6 h-6 text-merkez-blue" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Статистика</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.statistics')}</h3>
           </div>
           <div className="flex-1 flex flex-col justify-center">
             <div className="flex justify-between items-end mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">Клиенты в CRM</p>
+                  <p className="text-sm text-gray-500">{t('dashboard.crmClients')}</p>
                   <h4 className="text-3xl font-bold text-gray-900">{stats.customers}</h4>
                 </div>
                <span className="text-sm font-medium text-merkez-blue flex items-center bg-blue-50 px-2.5 py-1 rounded-lg">

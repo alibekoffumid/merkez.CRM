@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import FloorPlan from './components/FloorPlan';
 import MenuManager from './components/MenuManager';
 import StaffManager from './components/StaffManager';
@@ -7,15 +8,16 @@ import Analytics from './components/Analytics';
 import KitchenDisplay from './components/KitchenDisplay';
 
 const RestaurantModule = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('floor');
 
   const tabs = [
-    { id: 'floor', label: 'Floor Plan' },
-    { id: 'kitchen', label: 'Kitchen Display' },
-    { id: 'menu', label: 'Menu & Dishes' },
-    { id: 'staff', label: 'Staff & Waiters' },
-    { id: 'settings', label: 'Tables & Settings' },
-    { id: 'analytics', label: 'Reports & Analytics' },
+    { id: 'floor', label: t('restaurant.floorPlan') },
+    { id: 'kitchen', label: t('restaurant.kitchenDisplay') },
+    { id: 'menu', label: t('restaurant.menuDishes') },
+    { id: 'staff', label: t('restaurant.staffWaiters') },
+    { id: 'settings', label: t('restaurant.tablesSettings') },
+    { id: 'analytics', label: t('restaurant.reportsAnalytics') },
   ];
 
   return (
@@ -23,8 +25,8 @@ const RestaurantModule = () => {
       {/* Header - never scrolls away */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Restaurant Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Full control over tables, menus, personnel, and statistics.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('restaurant.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('restaurant.subtitle')}</p>
         </div>
       </div>
 

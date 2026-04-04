@@ -29,11 +29,11 @@ const CRMModule = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('sidebar.crm')}</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your clients and leads efficiently.</p>
+          <p className="text-sm text-gray-500 mt-1">{t('crm.subtitle')}</p>
         </div>
         <button className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm">
           <Plus className="w-4 h-4 mr-2" />
-          Add Client
+          {t('crm.addClient')}
         </button>
       </div>
 
@@ -43,7 +43,7 @@ const CRMModule = () => {
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
-            placeholder="Search clients..." 
+            placeholder={t('crm.searchClients')} 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors"
@@ -51,10 +51,10 @@ const CRMModule = () => {
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <select className="bg-gray-50 border border-gray-100 text-gray-700 text-sm rounded-lg px-3 py-2 w-full sm:w-auto focus:outline-none focus:border-merkez-blue">
-            <option>All Statuses</option>
-            <option>Active</option>
-            <option>Lead</option>
-            <option>Inactive</option>
+            <option>{t('crm.allStatuses')}</option>
+            <option>{t('crm.active')}</option>
+            <option>{t('crm.lead')}</option>
+            <option>{t('crm.inactive')}</option>
           </select>
         </div>
       </div>
@@ -65,11 +65,11 @@ const CRMModule = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-                <th className="font-medium p-4">Company</th>
-                <th className="font-medium p-4">Primary Contact</th>
-                <th className="font-medium p-4">Contact Info</th>
-                <th className="font-medium p-4">Status</th>
-                <th className="font-medium p-4 text-right">Actions</th>
+                <th className="font-medium p-4">{t('crm.company')}</th>
+                <th className="font-medium p-4">{t('crm.contact')}</th>
+                <th className="font-medium p-4">{t('crm.contactInfo')}</th>
+                <th className="font-medium p-4">{t('common.status')}</th>
+                <th className="font-medium p-4 text-right">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 overflow-hidden">
