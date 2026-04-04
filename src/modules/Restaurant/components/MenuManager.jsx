@@ -121,7 +121,7 @@ const MenuManager = () => {
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
       
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -176,7 +176,7 @@ const MenuManager = () => {
         </button>
       </div>
 
-      <div className="border border-gray-100 rounded-xl relative">
+      <div className="border border-gray-100 rounded-xl relative overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         {loading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-merkez-blue border-t-transparent rounded-full animate-spin"></div>

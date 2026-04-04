@@ -104,7 +104,7 @@ const StaffManager = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto border border-gray-100 rounded-xl relative">
+      <div className="overflow-x-auto overflow-y-auto border border-gray-100 rounded-xl relative" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
