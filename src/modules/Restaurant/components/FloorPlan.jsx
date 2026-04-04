@@ -3,11 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
-const mockOrders = [
-  { id: '#ORD-0921', table: 'T2', items: 3, status: 'preparing', total: 45.50 },
-  { id: '#ORD-0922', table: 'T4', items: 5, status: 'ready', total: 120.00 },
-  { id: '#ORD-0923', table: 'T6', items: 12, status: 'served', total: 310.00 },
-];
+
 
 const quickMenu = [
   { id: 1, name: 'Margherita Pizza', category: 'Pizza', station: 'Kitchen', price: 12.50 },
@@ -30,13 +26,32 @@ const FloorPlan = () => {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
   const [liveMenu, setLiveMenu] = useState([]);
+  const [liveOrders, setLiveOrders] = useState([]);
   const [tableOrders, setTableOrders] = useState([]);
   const [tableOrdersLoading, setTableOrdersLoading] = useState(false);
 
   useEffect(() => {
     fetchTables();
     fetchLiveMenu();
+    fetchLiveOrders();
   }, []);
+
+  const fetchLiveOrders = async () => {
+    const { data } = await supabase
+      .from('orders')
+      .select('*, restaurant_tables(number), order_items(id, quantity)')
+      .neq('status', 'completed')
+      .order('created_at', { ascending: false });
+    if (data) {
+      setLiveOrders(data.map(o => ({
+        id: '#' + o.id.substring(0, 8).toUpperCase(),
+        table: o.restaurant_tables?.number || '?',
+        items: o.order_items?.length || 0,
+        status: o.status,
+        total: parseFloat(o.total_amount || 0)
+      })));
+    }
+  };
 
   const fetchLiveMenu = async () => {
     const { data } = await supabase
@@ -132,10 +147,10 @@ const FloorPlan = () => {
       
       setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied', amount: newAmount } : t));
       setSelectedTable(prev => ({ ...prev, status: 'occupied', amount: newAmount }));
-      
+      fetchTableOrders(selectedTable.id);
+      fetchLiveOrders();
       setCart([]);
       setIsAddingOrder(false);
-      // alert('Order sent to kitchen!');
     }
   };
 
@@ -301,27 +316,31 @@ const FloorPlan = () => {
                <Receipt className="w-5 h-5 mr-2 text-merkez-blue" />
                Kitchen Queue
              </h3>
-             <span className="bg-blue-50 text-merkez-blue text-xs font-bold px-2 py-1 rounded-full">3 Active</span>
+             <span className="bg-blue-50 text-merkez-blue text-xs font-bold px-2 py-1 rounded-full">{liveOrders.length} Active</span>
            </div>
            
            <div className="flex-1 space-y-3 overflow-auto pr-2">
-             {mockOrders.map(order => (
-               <div key={order.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-gray-50/50 cursor-pointer">
-                 <div className="flex justify-between items-start mb-2">
-                   <div>
-                     <span className="text-sm font-bold text-gray-900">Table {order.table}</span>
-                     <span className="block text-xs text-gray-500">{order.id}</span>
+             {liveOrders.length === 0 ? (
+               <p className="text-sm text-gray-400 text-center py-8">No active orders right now.</p>
+             ) : (
+               liveOrders.map(order => (
+                 <div key={order.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-gray-50/50 cursor-pointer">
+                   <div className="flex justify-between items-start mb-2">
+                     <div>
+                       <span className="text-sm font-bold text-gray-900">Table {order.table}</span>
+                       <span className="block text-xs text-gray-500">{order.id}</span>
+                     </div>
+                     <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wider ${getOrderStatusColor(order.status)}`}>
+                       {order.status}
+                     </span>
                    </div>
-                   <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wider ${getOrderStatusColor(order.status)}`}>
-                     {order.status}
-                   </span>
+                   <div className="flex justify-between items-end mt-3">
+                     <span className="text-sm text-gray-600">{order.items} items</span>
+                     <span className="text-sm font-bold text-gray-900">${order.total.toFixed(2)}</span>
+                   </div>
                  </div>
-                 <div className="flex justify-between items-end mt-3">
-                   <span className="text-sm text-gray-600">{order.items} items</span>
-                   <span className="text-sm font-bold text-gray-900">${order.total.toFixed(2)}</span>
-                 </div>
-               </div>
-             ))}
+               ))
+             )}
            </div>
            <button className="w-full mt-4 py-2 border-2 border-dashed border-gray-200 text-gray-500 rounded-lg text-sm font-medium hover:text-merkez-blue hover:border-merkez-blue transition-colors">
              View All Orders
