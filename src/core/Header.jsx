@@ -13,10 +13,6 @@ const Header = () => {
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10 w-full pl-72 transition-all duration-300">
       <div className="flex items-center space-x-6">
-        <div className="flex items-center pr-6 border-r border-gray-100">
-           <img src="/merkez-logo.gif" alt="Logo" className="w-14 h-14 object-contain" />
-        </div>
-        
         <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 w-80 border border-gray-100 focus-within:border-merkez-blue transition-colors">
           <Search className="w-4 h-4 text-gray-400 mr-2" />
           <input 
