@@ -19,15 +19,17 @@ const RestaurantModule = () => {
   ];
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Header - never scrolls away */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Restaurant Management</h1>
           <p className="text-sm text-gray-500 mt-1">Full control over tables, menus, personnel, and statistics.</p>
         </div>
       </div>
 
-      <div className="flex space-x-2 border-b border-gray-200 pb-px overflow-x-auto">
+      {/* Tabs - sticky, never scrolls away */}
+      <div className="flex space-x-2 border-b border-gray-200 pb-px overflow-x-auto shrink-0 bg-white sticky top-0 z-10">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -43,7 +45,8 @@ const RestaurantModule = () => {
         ))}
       </div>
 
-      <div className="flex-1 mt-6">
+      {/* Content - fills remaining height, overflow managed by each child */}
+      <div className="flex-1 overflow-hidden pt-6">
         {activeTab === 'floor' && <FloorPlan />}
         {activeTab === 'kitchen' && <KitchenDisplay />}
         {activeTab === 'menu' && <MenuManager />}

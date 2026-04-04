@@ -247,7 +247,7 @@ const FloorPlan = () => {
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 h-full flex-1 min-h-[500px]">
+    <div className="flex flex-col xl:flex-row gap-6 h-full overflow-hidden">
       {/* Tables Grid Layout */}
       <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
         <div className="flex justify-between items-center mb-6">
@@ -310,7 +310,7 @@ const FloorPlan = () => {
 
       {/* Active Orders Queue Sidebar */}
       <div className="flex-[1] flex flex-col gap-6">
-         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col h-full">
+       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col h-full overflow-hidden">
            <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                <Receipt className="w-5 h-5 mr-2 text-merkez-blue" />
@@ -319,7 +319,7 @@ const FloorPlan = () => {
              <span className="bg-blue-50 text-merkez-blue text-xs font-bold px-2 py-1 rounded-full">{liveOrders.length} Active</span>
            </div>
            
-           <div className="flex-1 space-y-3 overflow-auto pr-2">
+           <div className="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0">
              {liveOrders.length === 0 ? (
                <p className="text-sm text-gray-400 text-center py-8">No active orders right now.</p>
              ) : (
