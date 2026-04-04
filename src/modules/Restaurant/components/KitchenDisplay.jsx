@@ -51,7 +51,8 @@ const KitchenDisplay = () => {
     try {
       const { data, error } = await supabase
         .from('order_items')
-        .select('*, products(name, categories(name)), orders(restaurant_tables(number))')
+        .select('*, products(name, categories(name)), orders!inner(id, status, restaurant_tables(number))')
+        .neq('orders.status', 'completed')
         .order('created_at', { ascending: true });
       
       if (data && Array.isArray(data)) {
@@ -59,7 +60,6 @@ const KitchenDisplay = () => {
           const orderId = item.order_id;
           if (!orderId) return acc;
 
-          // Handle Supabase join variations (object or array)
           const product = Array.isArray(item.products) ? item.products[0] : item.products;
           const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
           const category = product?.categories;
@@ -100,12 +100,21 @@ const KitchenDisplay = () => {
   };
 
   const moveOrder = async (orderId, newStatus) => {
-    const { error } = await supabase
+    const statusLower = newStatus.toLowerCase();
+
+    // Update all order_items for this order
+    const { error: itemsError } = await supabase
       .from('order_items')
-      .update({ status: newStatus.toLowerCase() })
+      .update({ status: statusLower })
       .eq('order_id', orderId);
-    
-    if (!error) {
+
+    // Also sync the parent order status
+    if (!itemsError) {
+      await supabase
+        .from('orders')
+        .update({ status: statusLower })
+        .eq('id', orderId);
+
       fetchTickets();
     }
   };
@@ -226,7 +235,7 @@ const KitchenDisplay = () => {
               <TicketCard 
                  key={ticket.id} 
                  ticket={ticket} 
-                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'NEW')} text="Archived (Done)" disabled={true} color="bg-gray-300 cursor-not-allowed" />}
+                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'completed')} text="Archived (Done)" color="bg-gray-500 hover:bg-gray-600" />}
               />
             ))}
             {getColumnData('READY').length === 0 && (
