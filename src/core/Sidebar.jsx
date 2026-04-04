@@ -35,7 +35,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
         </button>
       </div>
 
-      <nav className="flex-1 px-4 mt-6 space-y-2 overflow-y-auto custom-scrollbar">
+      <nav className="flex-1 px-4 mt-6 space-y-2 overflow-y-auto no-scrollbar">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
