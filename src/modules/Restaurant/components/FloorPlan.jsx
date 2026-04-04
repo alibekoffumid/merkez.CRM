@@ -30,6 +30,8 @@ const FloorPlan = () => {
   const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
   const [liveMenu, setLiveMenu] = useState([]);
+  const [tableOrders, setTableOrders] = useState([]);
+  const [tableOrdersLoading, setTableOrdersLoading] = useState(false);
 
   useEffect(() => {
     fetchTables();
@@ -53,6 +55,18 @@ const FloorPlan = () => {
         };
       }));
     }
+  };
+
+  const fetchTableOrders = async (tableId) => {
+    if (!tableId) return;
+    setTableOrdersLoading(true);
+    const { data } = await supabase
+      .from('order_items')
+      .select('*, orders!inner(table_id, status), products(name, price)')
+      .eq('orders.table_id', tableId)
+      .order('created_at', { ascending: false });
+    setTableOrders(data || []);
+    setTableOrdersLoading(false);
   };
 
   const addToCart = (product) => {
@@ -165,6 +179,7 @@ const FloorPlan = () => {
     setIsAddingOrder(false);
     setMenuSearch('');
     setCart([]);
+    setTableOrders([]);
   };
 
   const handleSeatGuests = async () => {
@@ -232,7 +247,7 @@ const FloorPlan = () => {
             .map(table => (
             <div 
               key={table.id} 
-              onClick={() => setSelectedTable(table)}
+              onClick={() => { setSelectedTable(table); fetchTableOrders(table.id); }}
               className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${getTableColor(table.status)}`}
             >
               {table.waiter && (
@@ -370,37 +385,42 @@ const FloorPlan = () => {
                       
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex justify-between items-center">
                         Active Order
-                        <span className="text-merkez-blue font-bold px-2 py-0.5 bg-blue-50 rounded-full">10 ITEMS</span>
+                        <span className="text-merkez-blue font-bold px-2 py-0.5 bg-blue-50 rounded-full">{tableOrders.length} ITEMS</span>
                       </h4>
                     </div>
 
-                    {/* Scrollable Order List */}
+                    {/* Scrollable Order List - Live Data */}
                     <div className="flex-1 overflow-y-auto no-scrollbar py-2">
-                      <ul className="space-y-3 pr-2">
-                         {[
-                            { id: 1, qty: 2, name: 'Margherita Pizza', status: 'Preparing', price: 25.00, color: 'text-yellow-700 bg-yellow-100' },
-                            { id: 2, qty: 1, name: 'Caesar Salad', status: 'Served', price: 8.00, color: 'text-gray-600 bg-gray-100' },
-                            { id: 3, qty: 5, name: 'Coca Cola', status: 'Served', price: 12.50, color: 'text-gray-600 bg-gray-100' },
-                            { id: 4, qty: 1, name: 'Beef Steak', status: 'Preparing', price: 32.00, color: 'text-yellow-700 bg-yellow-100' },
-                            { id: 5, qty: 2, name: 'French Fries', status: 'Ready', price: 9.00, color: 'text-green-700 bg-green-100' },
-                            { id: 6, qty: 1, name: 'Tiramisu', status: 'New', price: 6.50, color: 'text-merkez-blue bg-blue-100' },
-                            { id: 7, qty: 3, name: 'Espresso', status: 'New', price: 9.00, color: 'text-merkez-blue bg-blue-100' },
-                            { id: 8, qty: 1, name: 'Grilled Salmon', status: 'Preparing', price: 24.00, color: 'text-yellow-700 bg-yellow-100' },
-                            { id: 9, qty: 2, name: 'Garlic Bread', status: 'Served', price: 7.00, color: 'text-gray-600 bg-gray-100' },
-                            { id: 10, qty: 1, name: 'Sparkling Water', status: 'Served', price: 3.50, color: 'text-gray-600 bg-gray-100' }
-                         ].map(item => (
-                           <li key={item.id} className="flex justify-between items-center text-sm py-1">
-                             <div className="flex gap-2 items-center flex-1 mr-3 min-w-0">
-                               <span className="text-merkez-blue font-bold shrink-0">{item.qty}x</span>
-                               <span className="font-medium text-gray-900 leading-tight truncate">{item.name}</span>
-                               <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${item.color}`}>
-                                 {item.status}
-                               </span>
-                             </div>
-                             <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${item.price.toFixed(2)}</span>
-                           </li>
-                         ))}
-                       </ul>
+                      {tableOrdersLoading ? (
+                        <p className="text-sm text-gray-400 text-center py-4">Loading orders...</p>
+                      ) : tableOrders.length === 0 ? (
+                        <p className="text-sm text-gray-400 text-center py-8">No orders yet for this table.</p>
+                      ) : (
+                        <ul className="space-y-3 pr-2">
+                          {tableOrders.map(item => {
+                            const statusColors = {
+                              'new': 'text-merkez-blue bg-blue-100',
+                              'preparing': 'text-yellow-700 bg-yellow-100',
+                              'ready': 'text-green-700 bg-green-100',
+                              'served': 'text-gray-600 bg-gray-100',
+                            };
+                            const color = statusColors[item.status?.toLowerCase()] || 'text-gray-500 bg-gray-50';
+                            const price = item.products?.price ? parseFloat(item.products.price) * item.quantity : 0;
+                            return (
+                              <li key={item.id} className="flex justify-between items-center text-sm py-1">
+                                <div className="flex gap-2 items-center flex-1 mr-3 min-w-0">
+                                  <span className="text-merkez-blue font-bold shrink-0">{item.quantity}x</span>
+                                  <span className="font-medium text-gray-900 leading-tight truncate">{item.products?.name || 'Item'}</span>
+                                  <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${color}`}>
+                                    {item.status}
+                                  </span>
+                                </div>
+                                <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
                     </div>
                     
                     {/* Fixed Footer Buttons */}
