@@ -3,9 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
+// Helper for initials
 const getInitials = (name) => {
-  if (!name) return '?';
-  return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  if (!name || typeof name !== 'string') return '?';
+  const parts = name.split(' ').filter(p => p.length > 0);
+  if (parts.length === 0) return '?';
+  return parts.map(n => n[0]).join('').toUpperCase();
 };
 
 const FloorPlan = () => {
@@ -24,73 +27,91 @@ const FloorPlan = () => {
   const [tableOrdersLoading, setTableOrdersLoading] = useState(false);
 
   useEffect(() => {
-    fetchTables();
-    fetchLiveMenu();
-    fetchLiveOrders();
+    const init = async () => {
+      try {
+        await Promise.all([
+          fetchTables(),
+          fetchLiveMenu(),
+          fetchLiveOrders()
+        ]);
+      } catch (err) {
+        console.error("Initialization error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
   const fetchLiveOrders = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select('*, restaurant_tables(number), order_items(id, quantity)')
-      .neq('status', 'completed')
-      .order('created_at', { ascending: false });
-    if (data) {
-      setLiveOrders(data.map(o => ({
-        id: '#' + o.id.substring(0, 8).toUpperCase(),
-        table: o.restaurant_tables?.number || '?',
-        items: o.order_items?.length || 0,
-        status: o.status,
-        total: parseFloat(o.total_amount || 0)
-      })));
-    }
+    try {
+      const { data } = await supabase
+        .from('orders')
+        .select('*, restaurant_tables(number), order_items(id, quantity)')
+        .neq('status', 'completed')
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setLiveOrders(data.map(o => ({
+          id: '#' + o.id.substring(0, 8).toUpperCase(),
+          table: o.restaurant_tables?.number || '?',
+          items: o.order_items?.length || 0,
+          status: o.status,
+          total: parseFloat(o.total_amount || 0)
+        })));
+      }
+    } catch (e) {}
   };
 
   const fetchLiveMenu = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('*, categories(name)');
-    if (data && Array.isArray(data)) {
-      setLiveMenu(data.map(p => {
-        const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
-        const categoryName = (category?.name || 'Dish').trim();
-        return {
-          id: p.id,
-          name: p.name,
-          price: parseFloat(p.price),
-          category: categoryName,
-          station: ['Drinks', 'Desserts'].some(s => s.toLowerCase() === categoryName.toLowerCase()) ? 'Bar' : 'Kitchen'
-        };
-      }));
-    }
+    try {
+      const { data } = await supabase
+        .from('products')
+        .select('*, categories(name)');
+      
+      if (data && Array.isArray(data)) {
+        setLiveMenu(data.map(p => {
+          const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
+          const categoryName = (category?.name || 'Dish').trim();
+          return {
+            id: p.id,
+            name: p.name,
+            price: parseFloat(p.price),
+            category: categoryName,
+            station: ['Drinks', 'Desserts'].some(s => s.toLowerCase() === categoryName.toLowerCase()) ? 'Bar' : 'Kitchen'
+          };
+        }));
+      }
+    } catch (e) {}
   };
 
   const fetchTableOrders = async (tableId) => {
     if (!tableId) return;
     setTableOrdersLoading(true);
+    try {
+      const { data: activeOrders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('table_id', tableId)
+        .neq('status', 'completed');
 
-    const { data: activeOrders } = await supabase
-      .from('orders')
-      .select('id')
-      .eq('table_id', tableId)
-      .neq('status', 'completed');
+      if (!activeOrders || activeOrders.length === 0) {
+        setTableOrders([]);
+        return;
+      }
 
-    if (!activeOrders || activeOrders.length === 0) {
-      setTableOrders([]);
+      const orderIds = activeOrders.map(o => o.id);
+      const { data } = await supabase
+        .from('order_items')
+        .select('*, products(name, price)')
+        .in('order_id', orderIds)
+        .order('created_at', { ascending: false });
+
+      setTableOrders(data || []);
+    } catch (e) {
+    } finally {
       setTableOrdersLoading(false);
-      return;
     }
-
-    const orderIds = activeOrders.map(o => o.id);
-
-    const { data } = await supabase
-      .from('order_items')
-      .select('*, products(name, price)')
-      .in('order_id', orderIds)
-      .order('created_at', { ascending: false });
-
-    setTableOrders(data || []);
-    setTableOrdersLoading(false);
   };
 
   const addToCart = (product) => {
@@ -115,53 +136,51 @@ const FloorPlan = () => {
 
   const handleSendToKitchen = async () => {
     if (cart.length === 0) return;
+    try {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert([{
+          table_id: selectedTable.id,
+          status: 'pending',
+          total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        }])
+        .select()
+        .single();
 
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .insert([{
-        table_id: selectedTable.id,
-        status: 'pending',
-        total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-      }])
-      .select()
-      .single();
+      if (orderError) throw orderError;
 
-    if (orderError) {
-      console.error('Order creation error:', orderError);
-      return;
-    }
+      const orderItems = cart.map(item => ({
+        order_id: orderData.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        status: 'new'
+      }));
 
-    const orderItems = cart.map(item => ({
-      order_id: orderData.id,
-      product_id: item.id,
-      quantity: item.quantity,
-      status: 'new'
-    }));
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
 
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
+      if (!itemsError) {
+        await supabase
+          .from('restaurant_tables')
+          .update({ status: 'occupied' }) 
+          .eq('id', selectedTable.id);
 
-    if (!itemsError) {
-      await supabase
-        .from('restaurant_tables')
-        .update({ status: 'occupied' }) 
-        .eq('id', selectedTable.id);
-
-      const newAmount = (selectedTable.amount || 0) + orderData.total_amount;
-      
-      setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied', amount: newAmount } : t));
-      setSelectedTable(prev => ({ ...prev, status: 'occupied', amount: newAmount }));
-      fetchTableOrders(selectedTable.id);
-      fetchLiveOrders();
-      setCart([]);
-      setIsAddingOrder(false);
+        const newAmount = (selectedTable.amount || 0) + orderData.total_amount;
+        setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied', amount: newAmount } : t));
+        setSelectedTable(prev => ({ ...prev, status: 'occupied', amount: newAmount }));
+        fetchTableOrders(selectedTable.id);
+        fetchLiveOrders();
+        setCart([]);
+        setIsAddingOrder(false);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
   const fetchTables = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('restaurant_tables')
       .select('*')
       .order('number', { ascending: true });
@@ -171,10 +190,9 @@ const FloorPlan = () => {
         ...t,
         amount: 0,
         timeSeated: t.status === 'occupied' ? '12:00' : null,
-        waiter: t.status === 'occupied' ? t('restaurant.staff') : null
+        waiter: t.status === 'occupied' ? t('restaurant.staff') || 'Staff' : null
       })));
     }
-    setLoading(false);
   };
 
   const getTableColor = (status) => {
@@ -210,12 +228,13 @@ const FloorPlan = () => {
       .eq('id', selectedTable.id);
 
     if (!error) {
+      const staffLabel = t('restaurant.staff') || 'Staff';
       const updatedTable = {
         ...selectedTable,
         status: 'occupied',
         timeSeated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         amount: 0,
-        waiter: t('restaurant.staff')
+        waiter: staffLabel
       };
       
       setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
@@ -250,9 +269,9 @@ const FloorPlan = () => {
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6">
+    <div className="flex flex-col xl:flex-row gap-6 min-h-[600px]">
       {/* Tables Grid Layout */}
-      <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+      <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col min-h-[500px]">
         <div className="flex justify-between items-center mb-6">
            <h3 className="text-lg font-semibold text-gray-900">{t('restaurant.mainHall')}</h3>
            <div className="flex space-x-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
@@ -268,14 +287,15 @@ const FloorPlan = () => {
            </div>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-auto pr-2" style={{ minHeight: '400px' }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-y-auto pr-2 no-scrollbar" style={{ maxHeight: 'calc(100vh - 280px)', minHeight: '300px' }}>
           {loading ? (
-             <div className="col-span-full h-32 flex items-center justify-center text-gray-400">
-                {t('common.loading')}...
+             <div className="col-span-full h-48 flex flex-col items-center justify-center text-gray-400 gap-2">
+                <Clock className="w-8 h-8 animate-pulse" />
+                <span>{t('common.loading')}...</span>
              </div>
           ) : tables.length === 0 ? (
-             <div className="col-span-full h-32 flex items-center justify-center text-gray-400">
-                No tables found.
+             <div className="col-span-full h-48 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 rounded-2xl">
+                {t('restaurant.noTables')}
              </div>
           ) : (
             tables
@@ -291,7 +311,7 @@ const FloorPlan = () => {
                       className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm flex items-center justify-center text-[10px] font-bold text-current"
                       title={`${t('restaurant.assignedWaiter')}: ${table.waiter}`}
                     >
-                      {table.waiter ? getInitials(table.waiter) : '?'}
+                      {getInitials(table.waiter)}
                     </div>
                   )}
                   <span className="text-2xl font-bold mb-1">{table.number}</span>
@@ -301,7 +321,7 @@ const FloorPlan = () => {
                   {table.status === 'occupied' && (
                     <div className="absolute bottom-3 text-xs font-medium bg-black/20 px-2 py-0.5 rounded-full flex gap-2">
                       <span className="flex items-center"><Clock className="w-3 h-3 mr-1" /> {table.timeSeated}</span>
-                      <span>${table.amount.toFixed(2)}</span>
+                      <span>${(table.amount || 0).toFixed(2)}</span>
                     </div>
                   )}
                   {table.status === 'reserved' && (
@@ -323,7 +343,7 @@ const FloorPlan = () => {
 
       {/* Active Orders Queue Sidebar */}
       <div className="flex-[1] flex flex-col gap-6">
-       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col h-full overflow-hidden">
+       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-[400px] overflow-hidden">
            <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                <Receipt className="w-5 h-5 mr-2 text-merkez-blue" />
@@ -418,7 +438,7 @@ const FloorPlan = () => {
                       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm transition-all">
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-600">{t('restaurant.currentBill')}</span>
-                          <span className="font-bold text-gray-900 text-lg">${selectedTable.amount.toFixed(2)}</span>
+                          <span className="font-bold text-gray-900 text-lg">${(selectedTable.amount || 0).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">{t('restaurant.timeSeated')}</span>
@@ -609,7 +629,7 @@ const FloorPlan = () => {
                                  >
                                    <Plus className="w-3 h-3" />
                                  </button>
-                               </div>
+                                </div>
                              ) : (
                                <button 
                                 onClick={(e) => { e.stopPropagation(); addToCart(item); }}
