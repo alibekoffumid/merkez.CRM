@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
 
 const waiterStats = [
@@ -16,7 +17,7 @@ const tableStats = [
   { id: 5, name: 'T4', type: 'Table', seatings: 4, guestsTotal: 16, revenue: 420.00, avgTurnover: '50m' },
 ];
 
-const monthsList = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthsList = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
 const generateRandomHourlyData = () => {
   const data = [];
@@ -34,18 +35,17 @@ const generateRandomHourlyData = () => {
 };
 
 const Analytics = () => {
+  const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState('Today');
   const [chartData, setChartData] = useState([]);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
-  // Calendar View states
-  const [monthIndex, setMonthIndex] = useState(3); // 3 = April
+  const [monthIndex, setMonthIndex] = useState(3);
   const [year, setYear] = useState(2026);
 
-  // Calendar Selection states
   const [rangeStart, setRangeStart] = useState({ d: 5, m: 3, y: 2026 });
   const [rangeEnd, setRangeEnd] = useState({ d: 25, m: 3, y: 2026 });
-  const [clickStep, setClickStep] = useState(0); // 0 = pick start, 1 = pick end
+  const [clickStep, setClickStep] = useState(0);
 
   useEffect(() => {
     setChartData(generateRandomHourlyData());
@@ -73,7 +73,6 @@ const Analytics = () => {
   };
 
   const handleDateClick = (day) => {
-    // Basic date parsing logic for mock UI
     const clickedTime = new Date(year, monthIndex, day).getTime();
     
     if (clickStep === 0) {
@@ -83,7 +82,6 @@ const Analytics = () => {
     } else {
       const startTime = new Date(rangeStart.y, rangeStart.m, rangeStart.d).getTime();
       if (clickedTime < startTime) {
-        // If they click backwards, make the new click the start
         setRangeStart({ d: day, m: monthIndex, y: year });
         setRangeEnd(null);
         setClickStep(1);
@@ -92,7 +90,6 @@ const Analytics = () => {
         setClickStep(0);
       }
     }
-    // Also change parent select to 'Custom Range' to show correlation
     setTimeRange('Custom Range...');
   };
 
@@ -102,22 +99,20 @@ const Analytics = () => {
   };
   const daysInCurrentMonth = getDaysInMonth(monthIndex, year);
 
-  // Time value references for grid rendering highlight
   const refStart = rangeStart ? new Date(rangeStart.y, rangeStart.m, rangeStart.d).getTime() : null;
   const refEnd = rangeEnd ? new Date(rangeEnd.y, rangeEnd.m, rangeEnd.d).getTime() : null;
 
-  // Format button text
   const formatBtnDate = (dObj) => dObj ? `${monthsList[dObj.m].slice(0,3)} ${String(dObj.d).padStart(2,'0')}` : '';
   const buttonText = rangeEnd 
      ? `${formatBtnDate(rangeStart)} - ${formatBtnDate(rangeEnd)}, ${rangeEnd.y}`
-     : (rangeStart ? `${formatBtnDate(rangeStart)}, ${rangeStart.y} (Select end date)` : 'Select Date Range');
+     : (rangeStart ? `${formatBtnDate(rangeStart)}, ${rangeStart.y} (${t('restaurant.selectEndDate')})` : t('restaurant.selectDateRange'));
 
   return (
     <div className="space-y-6 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
          <div>
-            <h2 className="text-lg font-bold text-gray-900">Performance Dashboard</h2>
-            <p className="text-sm text-gray-500">Track operations, revenue, and staff efficiency.</p>
+            <h2 className="text-lg font-bold text-gray-900">{t('restaurant.performanceDashboard')}</h2>
+            <p className="text-sm text-gray-500">{t('restaurant.performanceDesc')}</p>
          </div>
          <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
@@ -129,21 +124,19 @@ const Analytics = () => {
                  {buttonText}
               </button>
               
-              {/* Calendar Interactive Dropdown */}
               {isCalendarOpen && (
-                <div className="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-[280px] bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 p-4 animate-in fade-in zoom-in-95">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-0 mt-2 w-[310px] sm:w-[320px] bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 p-4 animate-in fade-in zoom-in-95">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm font-bold text-gray-900">{monthsList[monthIndex]} {year}</span>
+                    <span className="text-sm font-bold text-gray-900">{t(`restaurant.${monthsList[monthIndex].toLowerCase()}`)} {year}</span>
                     <div className="flex gap-1">
                       <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors">&lt;</button>
                       <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors">&gt;</button>
                     </div>
                   </div>
                   <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">
-                     <div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div><div>Su</div>
+                     <div>{t('restaurant.mo')}</div><div>{t('restaurant.tu')}</div><div>{t('restaurant.we')}</div><div>{t('restaurant.th')}</div><div>{t('restaurant.fr')}</div><div>{t('restaurant.sa')}</div><div>{t('restaurant.su')}</div>
                   </div>
                   <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                     {/* Empty days for visual offset padding */}
                      <div className="p-1"></div>
                      <div className="p-1"></div>
                      
@@ -158,7 +151,6 @@ const Analytics = () => {
                         
                         let cellClasses = 'hover:bg-gray-100 text-gray-700 font-medium';
                         
-                        // Apply styling based on interactive logic
                         if (isEnds || isSingleSelected) {
                            cellClasses = 'bg-merkez-blue text-white font-bold shadow-md shadow-blue-200';
                         } else if (isSelectedRange) {
@@ -185,13 +177,13 @@ const Analytics = () => {
                        }} 
                        className="px-4 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-50 hover:text-red-500 rounded-lg transition-colors mr-auto"
                      >
-                       Clear
+                       {t('restaurant.clear')}
                      </button>
                      <button 
                        onClick={() => setIsCalendarOpen(false)} 
                        className="px-4 py-1.5 text-xs font-bold bg-merkez-blue text-white rounded-lg shadow-sm hover:bg-blue-600 transition-colors"
                      >
-                       Apply Range
+                       {t('restaurant.applyRange')}
                      </button>
                   </div>
                 </div>
@@ -203,22 +195,21 @@ const Analytics = () => {
                onChange={(e) => setTimeRange(e.target.value)}
                className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-4 py-2 focus:outline-none focus:border-merkez-green font-medium cursor-pointer shadow-sm"
             >
-               <option>Today</option>
-               <option>Yesterday</option>
-               <option>This Week</option>
-               <option>This Month</option>
-               <option>Custom Range...</option>
+               <option>{t('restaurant.today')}</option>
+               <option>{t('restaurant.yesterday')}</option>
+               <option>{t('restaurant.thisWeek')}</option>
+               <option>{t('restaurant.thisMonth')}</option>
+               <option>{t('restaurant.customRange')}</option>
             </select>
          </div>
       </div>
 
-      {/* Top Level KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">Total Revenue</p>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalRevenue')}</p>
                <h3 className="text-2xl font-bold text-gray-900">$5,560.50</h3>
-               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> +14.5% from yesterday</p>
+               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> +14.5% {t('restaurant.fromYesterday')}</p>
             </div>
             <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-merkez-green">
                <DollarSign className="w-6 h-6" />
@@ -226,9 +217,9 @@ const Analytics = () => {
          </div>
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">Total Orders</p>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalOrders')}</p>
                <h3 className="text-2xl font-bold text-gray-900">156</h3>
-               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> +5.2% from yesterday</p>
+               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> +5.2% {t('restaurant.fromYesterday')}</p>
             </div>
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-merkez-blue">
                <TrendingUp className="w-6 h-6" />
@@ -236,9 +227,9 @@ const Analytics = () => {
          </div>
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">Tables Served</p>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.tablesServed')}</p>
                <h3 className="text-2xl font-bold text-gray-900">52</h3>
-               <p className="text-xs text-gray-400 mt-1">Total seatings across all zones</p>
+               <p className="text-xs text-gray-400 mt-1">{t('restaurant.totalSeatingsAcrossAllZones')}</p>
             </div>
             <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center text-merkez-yellow">
                <CheckCircle2 className="w-6 h-6" />
@@ -246,9 +237,9 @@ const Analytics = () => {
          </div>
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">Active Waiters</p>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.activeWaiters')}</p>
                <h3 className="text-2xl font-bold text-gray-900">4</h3>
-               <p className="text-xs text-gray-400 mt-1">Currently taking orders</p>
+               <p className="text-xs text-gray-400 mt-1">{t('restaurant.currentlyTakingOrders')}</p>
             </div>
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
                <Users className="w-6 h-6" />
@@ -256,7 +247,6 @@ const Analytics = () => {
          </div>
       </div>
 
-      {/* Hourly Revenue Chart */}
       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col">
          <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">
@@ -264,19 +254,18 @@ const Analytics = () => {
                  <BarChart3 className="w-4 h-4" />
                </div>
                <div>
-                 <h3 className="font-bold text-gray-900">Revenue by Hour</h3>
-                 <p className="text-xs text-gray-500 mt-0.5">Dynamic hourly sales performance</p>
+                 <h3 className="font-bold text-gray-900">{t('restaurant.revenueByHour')}</h3>
+                 <p className="text-xs text-gray-500 mt-0.5">{t('restaurant.dynamicHourlySalesPerformance')}</p>
                </div>
             </div>
             <div className="text-right">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Peak Hour: {peakHourObj?.time}</p>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('restaurant.peakHour')}: {peakHourObj?.time}</p>
                 <p className="text-xl font-bold text-gray-900 mt-0.5">${(peakHourObj?.revenue || 0).toFixed(2)}</p>
             </div>
          </div>
          
-         {/* Chart visualization bounds */}
-         <div className="w-full overflow-x-auto pt-10 -mt-6">
-            <div className="flex items-end gap-1.5 sm:gap-2 h-52 border-b border-gray-100 pb-2 min-w-[500px]">
+         <div className="w-full overflow-x-auto pt-10 -mt-6 no-scrollbar">
+            <div className="flex items-end gap-1.5 sm:gap-3 h-52 border-b border-gray-100 pb-2 min-w-min sm:min-w-0">
                {chartData.map((d, index) => {
                   const heightPercent = maxRevenue > 0 ? (d.revenue / maxRevenue) * 100 : 0;
                   return (
@@ -308,18 +297,18 @@ const Analytics = () => {
           <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
              <h3 className="font-bold text-gray-900 flex items-center">
                 <Award className="w-5 h-5 mr-2 text-merkez-blue" />
-                Waiter Performance
+                {t('restaurant.waiterPerformance')}
              </h3>
-             <span className="text-xs font-semibold text-merkez-blue bg-blue-50 px-2 py-1 rounded-md">Ranked by Revenue</span>
+             <span className="text-xs font-semibold text-merkez-blue bg-blue-50 px-2 py-1 rounded-md">{t('restaurant.rankedByRevenue')}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
-                  <th className="font-semibold p-4">Waiter</th>
-                  <th className="font-semibold p-4 text-center">Tables</th>
-                  <th className="font-semibold p-4 text-center">Orders</th>
-                  <th className="font-semibold p-4 text-right">Revenue Generated</th>
+                  <th className="font-semibold p-4">{t('restaurant.staff')}</th>
+                  <th className="font-semibold p-4 text-center">{t('restaurant.tables')}</th>
+                  <th className="font-semibold p-4 text-center">{t('restaurant.orders')}</th>
+                  <th className="font-semibold p-4 text-right">{t('restaurant.revenueGenerated')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -331,7 +320,7 @@ const Analytics = () => {
                       </div>
                       <div>
                         {waiter.name}
-                        {idx === 0 && <span className="ml-2 text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-sm uppercase font-bold">Top</span>}
+                        {idx === 0 && <span className="ml-2 text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-sm uppercase font-bold">{t('restaurant.top')}</span>}
                       </div>
                     </td>
                     <td className="p-4 text-sm font-semibold text-gray-700 text-center">{waiter.tablesServed}</td>
@@ -349,18 +338,18 @@ const Analytics = () => {
           <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
              <h3 className="font-bold text-gray-900 flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-merkez-yellow" />
-                Top Zones & Tables
+                {t('restaurant.topZones')}
              </h3>
-             <span className="text-xs font-semibold text-merkez-yellow bg-yellow-50 px-2 py-1 rounded-md">Ranked by Revenue</span>
+             <span className="text-xs font-semibold text-merkez-yellow bg-yellow-50 px-2 py-1 rounded-md">{t('restaurant.rankedByRevenue')}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
-                  <th className="font-semibold p-4">Zone / Table</th>
-                  <th className="font-semibold p-4 text-center">Seatings</th>
-                  <th className="font-semibold p-4 text-center">Avg Time</th>
-                  <th className="font-semibold p-4 text-right">Revenue</th>
+                  <th className="font-semibold p-4">{t('restaurant.zoneTable')}</th>
+                  <th className="font-semibold p-4 text-center">{t('restaurant.seatings')}</th>
+                  <th className="font-semibold p-4 text-center">{t('restaurant.avgTime')}</th>
+                  <th className="font-semibold p-4 text-right">{t('restaurant.revenue')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -371,8 +360,8 @@ const Analytics = () => {
                         {table.name}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold">{table.type}</span>
-                        <span className="text-[11px] text-gray-500 mt-0.5">{table.guestsTotal} guests total</span>
+                        <span className="text-sm font-bold">{table.type === 'VIP Cabin' ? t('restaurant.vipCabin') : t('restaurant.table')}</span>
+                        <span className="text-[11px] text-gray-500 mt-0.5">{table.guestsTotal} {t('restaurant.guestsTotal')}</span>
                       </div>
                     </td>
                     <td className="p-4 text-sm font-semibold text-gray-700 text-center">{table.seatings}x</td>

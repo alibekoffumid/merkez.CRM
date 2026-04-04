@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, UserPlus, Edit2, Trash2, X } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
@@ -7,6 +8,7 @@ const getInitials = (name) => {
 };
 
 const StaffManager = () => {
+  const { t } = useTranslation();
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +80,7 @@ const StaffManager = () => {
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full overflow-hidden relative">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col relative">
       
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -90,7 +92,7 @@ const StaffManager = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block w-full pl-10 p-2.5 transition-colors outline-none" 
-            placeholder="Search staff by name or role..."
+            placeholder={t('restaurant.searchStaff')}
           />
         </div>
         
@@ -98,24 +100,24 @@ const StaffManager = () => {
            onClick={() => setIsAddModalOpen(true)}
            className="px-4 py-2 bg-merkez-yellow text-gray-900 rounded-lg text-sm font-bold hover:bg-yellow-500 flex items-center transition-colors shadow-sm"
         >
-          <UserPlus className="w-4 h-4 mr-2" /> Add Staff Member
+          <UserPlus className="w-4 h-4 mr-2" /> {t('restaurant.addStaff')}
         </button>
       </div>
 
-      <div className="overflow-auto flex-1 border border-gray-100 rounded-xl">
+      <div className="overflow-x-auto border border-gray-100 rounded-xl relative">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
-              <th className="font-semibold p-4">Staff Member</th>
-              <th className="font-semibold p-4">Role</th>
-              <th className="font-semibold p-4">Current Shift</th>
-              <th className="font-semibold p-4">Status</th>
-              <th className="font-semibold p-4 text-right rounded-tr-xl">Actions</th>
+              <th className="font-semibold p-4">{t('restaurant.staffMember')}</th>
+              <th className="font-semibold p-4">{t('restaurant.role')}</th>
+              <th className="font-semibold p-4">{t('restaurant.shift')}</th>
+              <th className="font-semibold p-4">{t('common.status')}</th>
+              <th className="font-semibold p-4 text-right rounded-tr-xl">{t('restaurant.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan="5" className="p-8 text-center text-gray-400">Loading personnel...</td></tr>
+              <tr><td colSpan="5" className="p-8 text-center text-gray-400">{t('restaurant.loadingPersonnel')}</td></tr>
             ) : filteredStaff.length > 0 ? (
               filteredStaff.map((person) => (
                 <tr key={person.id} className="hover:bg-gray-50/50 transition-colors">
@@ -125,13 +127,13 @@ const StaffManager = () => {
                     </div>
                     {person.name}
                   </td>
-                  <td className="p-4 text-sm text-gray-500">{person.role}</td>
-                  <td className="p-4 text-sm font-medium text-gray-700">{person.shift}</td>
+                  <td className="p-4 text-sm text-gray-500">{t('restaurant.' + person.role.toLowerCase().replace(' ', ''))}</td>
+                  <td className="p-4 text-sm font-medium text-gray-700">{t('restaurant.' + person.shift.toLowerCase())}</td>
                   <td className="p-4">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       person.status === 'Active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
                     }`}>
-                      {person.status}
+                      {t('restaurant.' + person.status.toLowerCase().replace(' ', ''))}
                     </span>
                   </td>
                   <td className="p-4 text-right">
@@ -153,7 +155,7 @@ const StaffManager = () => {
             ) : (
                 <tr>
                    <td colSpan="5" className="p-8 text-center text-gray-400 text-sm">
-                     No personnel found matching your search.
+                     {t('restaurant.noPersonnel')}
                    </td>
                 </tr>
             )}
@@ -163,10 +165,10 @@ const StaffManager = () => {
 
       {/* Add Staff Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Add New Staff Member</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.addNewStaff')}</h3>
               <button 
                  onClick={() => setIsAddModalOpen(false)} 
                  className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-200 transition-colors"
@@ -176,7 +178,7 @@ const StaffManager = () => {
             </div>
             <div className="p-5 space-y-4">
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Full Name</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.fullName')}</label>
                   <input 
                     type="text" 
                     value={formData.name}
@@ -189,42 +191,42 @@ const StaffManager = () => {
                <div className="grid grid-cols-2 gap-4">
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
-                    <select 
+                     <select 
                       value={formData.role}
                       onChange={(e) => setFormData({...formData, role: e.target.value})}
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
                     >
-                      <option>Waiter</option>
-                      <option>Head Waiter</option>
-                      <option>Chef</option>
-                      <option>Bartender</option>
-                      <option>Manager</option>
+                      <option value="Waiter">{t('restaurant.waiter')}</option>
+                      <option value="Head Waiter">{t('restaurant.headwaiter')}</option>
+                      <option value="Chef">{t('restaurant.chef')}</option>
+                      <option value="Bartender">{t('restaurant.bartender')}</option>
+                      <option value="Manager">{t('restaurant.manager')}</option>
                     </select>
                  </div>
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Shift</label>
-                    <select 
+                     <select 
                       value={formData.shift}
                       onChange={(e) => setFormData({...formData, shift: e.target.value})}
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
                     >
-                      <option>Morning</option>
-                      <option>Evening</option>
-                      <option>Night</option>
-                      <option>Flexible</option>
+                      <option value="Morning">{t('restaurant.morning')}</option>
+                      <option value="Evening">{t('restaurant.evening')}</option>
+                      <option value="Night">{t('restaurant.night')}</option>
+                      <option value="Flexible">{t('restaurant.flexible')}</option>
                     </select>
                  </div>
                </div>
 
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Status</label>
-                  <select 
+                   <select 
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
                   >
-                    <option>Active</option>
-                    <option>On Leave</option>
+                    <option value="Active">{t('restaurant.active')}</option>
+                    <option value="On Leave">{t('restaurant.onleave')}</option>
                   </select>
                </div>
                
@@ -232,7 +234,7 @@ const StaffManager = () => {
                  onClick={handleAddStaff} 
                  className="w-full bg-merkez-yellow text-gray-900 py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-yellow-500 transition-colors mt-2"
                >
-                 Save Staff Member
+                 {t('restaurant.saveStaff')}
                </button>
             </div>
           </div>
@@ -241,10 +243,10 @@ const StaffManager = () => {
 
       {/* Edit Staff Modal */}
       {editingStaff && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Edit Staff Member</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.editStaff')}</h3>
               <button 
                  onClick={() => setEditingStaff(null)} 
                  className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-200 transition-colors"
@@ -271,11 +273,11 @@ const StaffManager = () => {
                       onChange={(e) => setEditingStaff({...editingStaff, role: e.target.value})}
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
                     >
-                      <option>Waiter</option>
-                      <option>Head Waiter</option>
-                      <option>Chef</option>
-                      <option>Bartender</option>
-                      <option>Manager</option>
+                      <option value="Waiter">{t('restaurant.waiter')}</option>
+                      <option value="Head Waiter">{t('restaurant.headwaiter')}</option>
+                      <option value="Chef">{t('restaurant.chef')}</option>
+                      <option value="Bartender">{t('restaurant.bartender')}</option>
+                      <option value="Manager">{t('restaurant.manager')}</option>
                     </select>
                  </div>
                  <div>
@@ -285,10 +287,10 @@ const StaffManager = () => {
                       onChange={(e) => setEditingStaff({...editingStaff, shift: e.target.value})}
                       className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
                     >
-                      <option>Morning</option>
-                      <option>Evening</option>
-                      <option>Night</option>
-                      <option>Flexible</option>
+                      <option value="Morning">{t('restaurant.morning')}</option>
+                      <option value="Evening">{t('restaurant.evening')}</option>
+                      <option value="Night">{t('restaurant.night')}</option>
+                      <option value="Flexible">{t('restaurant.flexible')}</option>
                     </select>
                  </div>
                </div>
@@ -300,8 +302,8 @@ const StaffManager = () => {
                     onChange={(e) => setEditingStaff({...editingStaff, status: e.target.value})}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
                   >
-                    <option>Active</option>
-                    <option>On Leave</option>
+                    <option value="Active">{t('restaurant.active')}</option>
+                    <option value="On Leave">{t('restaurant.onleave')}</option>
                   </select>
                </div>
                
@@ -309,7 +311,7 @@ const StaffManager = () => {
                  onClick={handleEditStaff} 
                  className="w-full bg-merkez-yellow text-gray-900 py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-yellow-500 transition-colors mt-2"
                >
-                 Save Changes
+                 {t('restaurant.saveChanges')}
                </button>
             </div>
           </div>
@@ -320,20 +322,20 @@ const StaffManager = () => {
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Remove staff member?</h3>
-            <p className="text-gray-500 text-sm mb-6">Are you sure? This will permanently remove this employee from the system record.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.removeStaff')}</h3>
+            <p className="text-gray-500 text-sm mb-6">{t('restaurant.removeStaffConfirm')}</p>
             <div className="flex gap-3">
               <button 
                 onClick={() => setConfirmDeleteId(null)}
                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 onClick={() => handleDeleteStaff(confirmDeleteId)}
                 className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors shadow-sm"
               >
-                Yes, Remove
+                {t('common.delete')}
               </button>
             </div>
           </div>

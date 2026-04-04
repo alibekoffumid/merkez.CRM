@@ -184,7 +184,7 @@ const FloorPlan = () => {
         ...t,
         amount: 0,
         timeSeated: t.status === 'occupied' ? '12:00' : null,
-        waiter: t.status === 'occupied' ? 'Staff' : null
+        waiter: t.status === 'occupied' ? t('restaurant.staff') : null
       })));
     }
     setLoading(false);
@@ -228,7 +228,7 @@ const FloorPlan = () => {
         status: 'occupied',
         timeSeated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         amount: 0,
-        waiter: 'Staff'
+        waiter: t('restaurant.staff')
       };
       
       setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
@@ -277,7 +277,7 @@ const FloorPlan = () => {
                  onClick={() => setFilter(f)}
                  className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors ${filter === f ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
                >
-                 {f === 'all' ? t('restaurant.allTables') : t(`restaurant.${f}`)}
+                 {f === 'all' ? t('restaurant.allTables') : t('restaurant.' + f)}
                </button>
              ))}
            </div>
@@ -295,9 +295,9 @@ const FloorPlan = () => {
               {table.waiter && (
                 <div 
                   className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm flex items-center justify-center text-[10px] font-bold text-current"
-                  title={`Assigned Waiter: ${table.waiter}`}
+                  title={`${t('restaurant.assignedWaiter')}: ${table.waiter}`}
                 >
-                  {table.waiter.split(' ').map(n => n[0]).join('')}
+                  {table.waiter ? getInitials(table.waiter) : '?'}
                 </div>
               )}
               <span className="text-2xl font-bold mb-1">{table.number}</span>
@@ -345,7 +345,7 @@ const FloorPlan = () => {
                  <div key={order.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-gray-50/50 cursor-pointer">
                    <div className="flex justify-between items-start mb-2">
                      <div>
-                       <span className="text-sm font-bold text-gray-900">Table {order.table}</span>
+                       <span className="text-sm font-bold text-gray-900">{t('restaurant.table')} {order.table}</span>
                        <span className="block text-xs text-gray-500">{order.id}</span>
                      </div>
                      <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wider ${getOrderStatusColor(order.status)}`}>
@@ -368,20 +368,22 @@ const FloorPlan = () => {
 
       {/* Table Details & Order Modal */}
       {selectedTable && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className={`bg-white rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-[650px] max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}>
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[650px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}>
             
             <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0">
-              <h3 className="text-xl font-bold text-gray-900">Table {selectedTable.number} {isAddingOrder && '- Menu & Ordering'}</h3>
-              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md hover:bg-gray-100">
-                <X className="w-5 h-5" />
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                {t('restaurant.table')} {selectedTable.number} {isAddingOrder && `- ${t('restaurant.selectItems')}`}
+              </h3>
+              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-md hover:bg-gray-100">
+                <X className="w-6 h-6 sm:w-5 sm:h-5" />
               </button>
             </div>
             
-            <div className="flex flex-col sm:flex-row flex-1 overflow-hidden">
+            <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
               
               {/* Left Column: Table Details */}
-              <div className={`p-5 flex flex-col flex-1 min-h-0 overflow-hidden ${isAddingOrder ? 'w-full sm:w-[40%] border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
+              <div className={`p-5 flex flex-col flex-1 min-h-0 overflow-hidden ${isAddingOrder ? 'w-full lg:w-[40%] lg:border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <p className="text-sm text-gray-500">{t('restaurant.tableStatus')}</p>
@@ -405,7 +407,7 @@ const FloorPlan = () => {
                 {selectedTable.waiter && (
                   <div className="mb-6 flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                      <div className="w-10 h-10 rounded-full bg-blue-100 text-merkez-blue flex items-center justify-center text-sm font-bold mr-3 shadow-sm border border-blue-200">
-                       {selectedTable.waiter.split(' ').map(n => n[0]).join('')}
+                       {getInitials(selectedTable.waiter)}
                      </div>
                      <div>
                        <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">{t('restaurant.assignedWaiter')}</p>
@@ -458,7 +460,7 @@ const FloorPlan = () => {
                                   <span className="text-merkez-blue font-bold shrink-0">{item.quantity}x</span>
                                   <span className="font-medium text-gray-900 leading-tight truncate">{item.products?.name || 'Item'}</span>
                                   <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${color}`}>
-                                    {t('status.' + (item.status?.toLowerCase() || 'new'))}
+                                    {t('status.' + (item.status?.toLowerCase() || 'pending'))}
                                   </span>
                                 </div>
                                 <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>
@@ -472,13 +474,13 @@ const FloorPlan = () => {
                     {/* Fixed Footer Buttons */}
                     <div className="pt-4 mt-auto shrink-0 border-t border-gray-100 bg-white">
                       {!isAddingOrder ? (
-                        <div className="flex gap-3">
-                          <button onClick={() => setIsAddingOrder(true)} className="flex-1 bg-merkez-blue text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <button onClick={() => setIsAddingOrder(true)} className="w-full sm:flex-1 bg-merkez-blue text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center">
                             <Plus className="w-4 h-4 mr-2" /> {t('restaurant.addOrder')}
                           </button>
                           <button 
                              onClick={handleCheckout} 
-                             className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
+                             className="w-full sm:flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
                           >
                             <CreditCard className="w-4 h-4 mr-2" /> {t('restaurant.checkout')}
                           </button>
@@ -514,7 +516,7 @@ const FloorPlan = () => {
                            <Clock className="w-5 h-5" />
                          </div>
                          <div>
-                           <p className="text-xs text-yellow-600 font-bold uppercase tracking-wider">Reserved at 19:00</p>
+                           <p className="text-xs text-yellow-600 font-bold uppercase tracking-wider">{t('restaurant.reserved')} @ 19:00</p>
                            <p className="text-lg font-bold text-yellow-900">John Doe</p>
                          </div>
                       </div>
@@ -530,12 +532,12 @@ const FloorPlan = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-auto pt-4 grid grid-cols-2 gap-3 border-t border-gray-100">
-                      <button className="bg-merkez-yellow text-white py-3 rounded-lg text-sm font-bold hover:bg-yellow-500 transition-all shadow-md flex items-center justify-center">
-                         <UserCheck className="w-4 h-4 mr-2" /> Arrived
+                    <div className="mt-auto pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-gray-100">
+                      <button className="w-full bg-merkez-yellow text-white py-3 rounded-lg text-sm font-bold hover:bg-yellow-500 transition-all shadow-md flex items-center justify-center">
+                         <UserCheck className="w-4 h-4 mr-2" /> {t('status.ready')}
                       </button>
-                      <button className="bg-white border border-gray-200 text-gray-500 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all">
-                         Cancel
+                      <button className="w-full bg-white border border-gray-200 text-gray-500 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all">
+                         {t('common.cancel')}
                       </button>
                     </div>
                   </div>
@@ -544,9 +546,9 @@ const FloorPlan = () => {
 
               {/* Right Column: Menu (Visible only when Add Order is clicked) */}
               {isAddingOrder && (
-                <div className="w-full sm:w-[60%] bg-gray-50 p-6 flex flex-col overflow-hidden">
+                <div className="w-full lg:w-[60%] bg-gray-50 p-4 sm:p-6 flex flex-col overflow-hidden">
                   <div className="flex justify-between items-center mb-4 shrink-0">
-                     <h4 className="font-bold text-gray-900">Select Items</h4>
+                     <h4 className="font-bold text-gray-900">{t('restaurant.selectItems')}</h4>
                      <div className="flex bg-gray-100 p-1 rounded-lg">
                        <button
                          onClick={() => setMenuStation('Kitchen')}
@@ -554,7 +556,7 @@ const FloorPlan = () => {
                            menuStation === 'Kitchen' ? 'bg-white text-merkez-blue' : 'text-gray-500 shadow-none hover:text-gray-700'
                          }`}
                        >
-                         Kitchen
+                         {t('restaurant.kitchen')}
                        </button>
                        <button
                          onClick={() => setMenuStation('Bar')}
@@ -562,7 +564,7 @@ const FloorPlan = () => {
                            menuStation === 'Bar' ? 'bg-white text-purple-600' : 'text-gray-500 shadow-none hover:text-gray-700'
                          }`}
                        >
-                         Bar
+                         {t('restaurant.bar')}
                        </button>
                      </div>
                   </div>
@@ -575,7 +577,7 @@ const FloorPlan = () => {
                       type="text" 
                       value={menuSearch}
                       onChange={(e) => setMenuSearch(e.target.value)}
-                      placeholder="Search items by name..." 
+                      placeholder={t('restaurant.searchDishes')} 
                       className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block pl-9 p-2.5 outline-none transition-colors shadow-sm"
                     />
                   </div>
@@ -632,8 +634,8 @@ const FloorPlan = () => {
                      <div className="flex items-center text-gray-600">
                         <ShoppingCart className="w-5 h-5 mr-3" />
                         <div>
-                           <p className="text-xs font-medium uppercase">New order</p>
-                           <p className="text-sm font-bold text-gray-900">{cart.reduce((sum, i) => sum + i.quantity, 0)} items</p>
+                           <p className="text-xs font-medium uppercase">{t('dashboard.newOrder')}</p>
+                           <p className="text-sm font-bold text-gray-900">{cart.reduce((sum, i) => sum + i.quantity, 0)} {t('restaurant.items')}</p>
                         </div>
                      </div>
                      <button 
@@ -641,7 +643,7 @@ const FloorPlan = () => {
                       disabled={cart.length === 0}
                       className={`px-5 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${cart.length > 0 ? 'bg-merkez-green text-white hover:bg-green-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
                      >
-                        Send to Kitchen
+                        {t('restaurant.sendToKitchen')}
                      </button>
                   </div>
                 </div>

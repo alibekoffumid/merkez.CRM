@@ -22,9 +22,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center space-x-6 mb-8 border-b border-gray-100 pb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8 border-b border-gray-100 pb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.welcome')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t('dashboard.welcome')}</h1>
           <p className="text-gray-500 mt-1">{t('dashboard.overview')}</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ const Dashboard = () => {
             <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
               <div className="bg-merkez-blue h-2 rounded-full" style={{ width: '75%' }}></div>
             </div>
-            <p className="text-xs text-gray-400">{stats.products} позиций в меню</p>
+            <p className="text-xs text-gray-400">{t('dashboard.menuItemsCount', { count: stats.products })}</p>
           </div>
         </div>
 
@@ -63,13 +63,13 @@ const Dashboard = () => {
             <div className="p-3 rounded-xl bg-yellow-50 mr-4">
               <CheckCircle className="w-6 h-6 text-merkez-yellow" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Задачи на сегодня</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.tasksToday')}</h3>
           </div>
           <div className="flex-1 space-y-4 overflow-auto">
             <div className="flex items-start gap-3">
                <div className="mt-0.5 w-5 h-5 rounded-full border-2 border-gray-200 flex items-center justify-center shrink-0 cursor-pointer hover:border-merkez-yellow"></div>
                <div>
-                 <p className="text-sm font-medium text-gray-900">Подготовить отчет для Налоговой</p>
+                 <p className="text-sm font-medium text-gray-900">{t('dashboard.taskReport')}</p>
                  <span className="text-xs text-merkez-yellow font-medium flex items-center mt-1">
                    <Clock className="w-3 h-3 mr-1" /> 14:00
                  </span>
@@ -78,7 +78,7 @@ const Dashboard = () => {
             <div className="flex items-start gap-3">
                <div className="mt-0.5 w-5 h-5 rounded-full border-2 border-gray-200 flex items-center justify-center shrink-0 cursor-pointer hover:border-merkez-yellow"></div>
                <div>
-                 <p className="text-sm font-medium text-gray-900">Встреча с ключевым клиентом</p>
+                 <p className="text-sm font-medium text-gray-900">{t('dashboard.taskMeeting')}</p>
                  <span className="text-xs text-gray-400 font-medium flex items-center mt-1">
                    16:30
                  </span>
@@ -94,7 +94,7 @@ const Dashboard = () => {
               <div className="p-3 rounded-xl bg-green-50 mr-4">
                 <DollarSign className="w-6 h-6 text-merkez-green" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Последние продажи</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('dashboard.recentSales')}</h3>
             </div>
           </div>
           <div className="flex-1 space-y-4">
@@ -104,8 +104,8 @@ const Dashboard = () => {
                   MC
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">ООО "Мега Корп"</p>
-                  <p className="text-xs text-gray-500">10 минут назад</p>
+                  <p className="text-sm font-medium text-gray-900">Mega Corp LLC</p>
+                  <p className="text-xs text-gray-500">{t('dashboard.minutesAgo', { count: 10 })}</p>
                 </div>
               </div>
               <span className="text-sm font-bold text-merkez-green">+$4,500</span>
@@ -116,8 +116,8 @@ const Dashboard = () => {
                   IT
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Иван Иванов</p>
-                  <p className="text-xs text-gray-500">1 час назад</p>
+                  <p className="text-sm font-medium text-gray-900">Ivan Ivanov</p>
+                  <p className="text-xs text-gray-500">{t('dashboard.hoursAgo', { count: 1 })}</p>
                 </div>
               </div>
               <span className="text-sm font-bold text-merkez-green">+$120</span>

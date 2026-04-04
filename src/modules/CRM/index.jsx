@@ -15,11 +15,20 @@ const CRMModule = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'Active': return 'bg-green-100 text-merkez-green';
-      case 'Lead': return 'bg-blue-100 text-merkez-blue';
-      case 'Inactive': return 'bg-gray-100 text-gray-600';
+    switch(status.toLowerCase()) {
+      case 'active': return 'bg-green-100 text-merkez-green';
+      case 'lead': return 'bg-blue-100 text-merkez-blue';
+      case 'inactive': return 'bg-gray-100 text-gray-600';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch(status.toLowerCase()) {
+      case 'active': return t('crm.active');
+      case 'lead': return t('crm.lead');
+      case 'inactive': return t('crm.inactive');
+      default: return status;
     }
   };
 
@@ -91,7 +100,7 @@ const CRMModule = () => {
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(client.status)}`}>
-                      {client.status}
+                      {getStatusText(client.status)}
                     </span>
                   </td>
                   <td className="p-4 text-right">
@@ -106,11 +115,11 @@ const CRMModule = () => {
         </div>
         {/* Pagination placeholder */}
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <span>Showing 1 to 5 of 5 entries</span>
+          <span>{t('crm.showing')}</span>
           <div className="flex gap-1">
-            <button className="px-3 py-1 border border-gray-200 rounded text-gray-400 cursor-not-allowed">Prev</button>
+            <button className="px-3 py-1 border border-gray-200 rounded text-gray-400 cursor-not-allowed">{t('common.prev')}</button>
             <button className="px-3 py-1 bg-merkez-blue text-white rounded">1</button>
-            <button className="px-3 py-1 border border-gray-200 rounded text-gray-400 cursor-not-allowed">Next</button>
+            <button className="px-3 py-1 border border-gray-200 rounded text-gray-400 cursor-not-allowed">{t('common.next')}</button>
           </div>
         </div>
       </div>

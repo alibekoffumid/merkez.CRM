@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Phone, Clock, FileText, CheckCircle2, AlertCircle, Calendar, MessageSquare, ChevronDown, User, MapPin } from 'lucide-react';
 
 const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
+  const { t } = useTranslation();
   const [newComment, setNewComment] = useState('');
 
   if (!ticket) return null;
@@ -27,7 +29,7 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/80 shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-900">Ticket #{ticket.id}</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('common.actions')} #{ticket.id}</h2>
             <span className={`px-2.5 py-1 text-xs font-bold rounded-md uppercase tracking-wider border ${statusColors[ticket.status]}`}>
               {ticket.status}
             </span>
@@ -42,7 +44,7 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
           
           {/* Left Panel: Client Info */}
           <div className="w-full md:w-1/3 border-r border-gray-100 p-6 overflow-y-auto bg-white flex-shrink-0">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Client Details</h3>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">{t('callCenter.clientDetails')}</h3>
             
             <div className="flex items-center gap-4 mb-6">
               <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-merkez-blue text-lg font-bold border border-blue-100 pb-0.5">
@@ -58,33 +60,33 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                 <div className="flex items-start gap-3 text-sm text-gray-700">
                    <MapPin className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
-                   <span>{ticket.address || 'Address not provided'}</span>
+                   <span>{ticket.address || t('callCenter.noAddress')}</span>
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex justify-between items-center">
                  <div className="flex items-center gap-2 text-sm text-gray-700">
                    <User className="w-4 h-4 text-gray-400" />
-                   <span>Customer Type</span>
+                   <span>{t('callCenter.customerType')}</span>
                  </div>
                  <span className="text-xs font-bold bg-white px-2 py-1 rounded border border-gray-200 shadow-sm">
-                   {ticket.type === 'VIP' ? '🌟 VIP' : 'Regular'}
+                   {ticket.type === 'VIP' ? t('callCenter.vip') : t('callCenter.regular')}
                  </span>
               </div>
             </div>
 
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-4">Inquiry / Request Details</h3>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-4">{t('callCenter.inquiryDetails')}</h3>
             <div className="bg-orange-50 rounded-xl p-4 border border-orange-100/50">
                <p className="text-sm text-orange-900 font-medium whitespace-pre-wrap">{ticket.initialRequest}</p>
             </div>
             
             <div className="mt-6 flex justify-between items-center text-xs text-gray-500">
                <div className="flex flex-col gap-1">
-                 <span>Source: <strong>Inbound Web / Call</strong></span>
-                 <span>Industry: <strong>General Service</strong></span>
+                 <span>{t('callCenter.source')}: <strong>Inbound Web / Call</strong></span>
+                 <span>{t('callCenter.industry')}: <strong>General Service</strong></span>
                </div>
                <div className="text-right">
-                 <span>Estimated Value</span>
+                 <span>{t('callCenter.estimatedValue')}</span>
                  <p className="font-bold text-lg text-gray-900">${ticket.estimatedValue.toLocaleString()}</p>
                </div>
             </div>
@@ -94,7 +96,7 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
           <div className="flex-1 bg-gray-50/30 flex flex-col overflow-hidden relative">
             <div className="p-6 pb-2 shrink-0 border-b border-gray-100 bg-white">
                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                 <MessageSquare className="w-4 h-4" /> Activity Log
+                 <MessageSquare className="w-4 h-4" /> {t('callCenter.activityLog')}
                </h3>
             </div>
             
@@ -121,14 +123,14 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-                    placeholder="Log a call or add a note..." 
+                    placeholder={t('callCenter.notePlaceholder')} 
                     className="flex-1 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors"
                  />
                  <button 
                    onClick={handleAddComment}
                    className="bg-merkez-blue text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors"
                  >
-                   Send
+                   {t('callCenter.send')}
                  </button>
                </div>
             </div>
@@ -136,7 +138,7 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
 
           {/* Right Panel: Actions & Reminders */}
           <div className="w-full md:w-1/4 border-l border-gray-100 bg-white flex flex-col p-6 overflow-y-auto shrink-0">
-             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Pipeline Status</h3>
+             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">{t('callCenter.pipelineStatus')}</h3>
              
              <div className="space-y-2 mb-8">
                {Object.keys(statusColors).map(status => (
@@ -155,11 +157,11 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
                ))}
              </div>
 
-             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Call Reminder</h3>
+             <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">{t('callCenter.callReminder')}</h3>
              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col gap-3">
                <div className="flex items-center text-merkez-blue font-bold text-sm">
                  <Calendar className="w-4 h-4 mr-2" />
-                 Set Callback
+                 {t('callCenter.setCallback')}
                </div>
                
                {ticket.reminder ? (
@@ -169,17 +171,17 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
                  </div>
                ) : (
                  <button className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:border-merkez-blue hover:text-merkez-blue transition-colors flex justify-between items-center shadow-sm">
-                   Choose Date/Time <ChevronDown className="w-4 h-4" />
+                   {t('callCenter.chooseDateTime')} <ChevronDown className="w-4 h-4" />
                  </button>
                )}
              </div>
 
              <div className="mt-auto pt-8 flex flex-col gap-3">
                <button className="w-full bg-merkez-green text-white py-3 rounded-xl text-sm font-bold shadow-sm hover:bg-green-600 transition-colors flex items-center justify-center">
-                 <FileText className="w-4 h-4 mr-2" /> Request Quote / Doc
+                 <FileText className="w-4 h-4 mr-2" /> {t('callCenter.requestQuote')}
                </button>
                <button className="w-full bg-gray-50 border border-gray-200 text-gray-700 py-3 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors flex items-center justify-center">
-                 <Phone className="w-4 h-4 mr-2" /> Start Call
+                 <Phone className="w-4 h-4 mr-2" /> {t('callCenter.startCall')}
                </button>
              </div>
           </div>

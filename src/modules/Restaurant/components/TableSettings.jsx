@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, ShieldCheck, DoorOpen, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Edit, Trash2, ShieldCheck, DoorOpen, X, CreditCard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
 const TableSettings = () => {
+  const { t } = useTranslation();
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,15 +75,15 @@ const TableSettings = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col min-h-[500px] relative">
       <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
-           <h2 className="text-lg font-bold text-gray-900">Tables & Cabins configuration</h2>
-           <p className="text-sm text-gray-500 mt-1">Manage physical spaces, seats, and their deposit rules.</p>
+           <h2 className="text-lg font-bold text-gray-900">{t('restaurant.tableConfig')}</h2>
+           <p className="text-sm text-gray-500 mt-1">{t('restaurant.tableConfigDesc')}</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm whitespace-nowrap"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Add Table / Cabin
+          {t('restaurant.addTable')}
         </button>
       </div>
 
@@ -89,16 +91,16 @@ const TableSettings = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-              <th className="font-medium p-4">Type</th>
-              <th className="font-medium p-4">Name/Number</th>
-              <th className="font-medium p-4">Capacity</th>
-              <th className="font-medium p-4">Deposit Required</th>
-              <th className="font-medium p-4 text-right">Actions</th>
+              <th className="font-medium p-4">{t('restaurant.type')}</th>
+              <th className="font-medium p-4">{t('restaurant.nameNumber')}</th>
+              <th className="font-medium p-4">{t('restaurant.capacity')}</th>
+              <th className="font-medium p-4">{t('restaurant.depositRequired')}</th>
+              <th className="font-medium p-4 text-right">{t('restaurant.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
-              <tr><td colSpan="5" className="p-8 text-center text-gray-400">Loading configurations...</td></tr>
+              <tr><td colSpan="5" className="p-8 text-center text-gray-400">{t('common.loading')}</td></tr>
             ) : tables.map(item => (
               <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="p-4 font-medium text-gray-900 flex items-center">
@@ -108,15 +110,15 @@ const TableSettings = () => {
                   {item.type || 'Table'}
                 </td>
                 <td className="p-4 text-sm font-bold text-gray-900">{item.number}</td>
-                <td className="p-4 text-sm text-gray-600">{item.capacity} Persons</td>
+                <td className="p-4 text-sm text-gray-600">{item.capacity} {t('restaurant.persons')}</td>
                 <td className="p-4">
                   {item.has_deposit ? (
                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                       Yes (${item.deposit_amount})
+                       {t('common.yes')} (${item.deposit_amount})
                      </span>
                   ) : (
                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-                       No
+                       {t('common.no')}
                      </span>
                   )}
                 </td>
@@ -142,10 +144,10 @@ const TableSettings = () => {
 
       {/* Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Add New Place/Zone</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.addPlace')}</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors bg-white p-1 rounded-md border border-gray-200 shadow-sm">
                 <X className="w-5 h-5" />
               </button>
@@ -153,7 +155,7 @@ const TableSettings = () => {
             
             <div className="p-6 space-y-5">
               <div className="space-y-1">
-                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Type</label>
+                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.type')}</label>
                  <select 
                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all"
                    value={formData.type}
@@ -166,7 +168,7 @@ const TableSettings = () => {
               </div>
               <div className="flex gap-4">
                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Name / ID</label>
+                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.nameNumber')}</label>
                     <input 
                       type="text" 
                       value={formData.number}
@@ -176,7 +178,7 @@ const TableSettings = () => {
                     />
                  </div>
                  <div className="space-y-1 w-32">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Capacity</label>
+                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.capacity')}</label>
                     <input 
                       type="number" 
                       value={formData.capacity}
@@ -196,12 +198,12 @@ const TableSettings = () => {
                       onChange={(e) => setFormData({...formData, has_deposit: e.target.checked})}
                     />
                     <label htmlFor="hasDepositAdd" className="ml-2 text-sm font-medium text-gray-900 cursor-pointer">
-                      Requires Deposit?
+                      {t('restaurant.requiresDeposit')}
                     </label>
                  </div>
                  {formData.has_deposit && (
                    <div className="space-y-1 pt-2 border-t border-gray-200/50">
-                      <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">Amount ($)</label>
+                      <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">{t('restaurant.amount')}</label>
                       <input 
                         type="number" 
                         value={formData.deposit_amount}
@@ -215,7 +217,7 @@ const TableSettings = () => {
                 onClick={handleAddTable}
                 className="w-full bg-merkez-blue text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm mt-2"
               >
-                 Create Place
+                 {t('restaurant.createPlace')}
               </button>
             </div>
           </div>
@@ -224,10 +226,10 @@ const TableSettings = () => {
 
       {/* Edit Modal */}
       {editingTable && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Edit {editingTable.type} {editingTable.number}</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.editPlace')}</h3>
               <button onClick={() => setEditingTable(null)} className="text-gray-400 hover:text-gray-600 transition-colors bg-white p-1 rounded-md border border-gray-200 shadow-sm">
                 <X className="w-5 h-5" />
               </button>
@@ -235,7 +237,7 @@ const TableSettings = () => {
             
             <div className="p-6 space-y-5">
               <div className="space-y-1">
-                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Type</label>
+                 <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.type')}</label>
                  <select 
                    className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all"
                    value={editingTable.type}
@@ -248,7 +250,7 @@ const TableSettings = () => {
               </div>
               <div className="flex gap-4">
                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Name / ID</label>
+                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.nameNumber')}</label>
                     <input 
                       type="text" 
                       value={editingTable.number}
@@ -257,7 +259,7 @@ const TableSettings = () => {
                     />
                  </div>
                  <div className="space-y-1 w-32">
-                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">Capacity</label>
+                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.capacity')}</label>
                     <input 
                       type="number" 
                       value={editingTable.capacity}
@@ -277,12 +279,12 @@ const TableSettings = () => {
                       onChange={(e) => setEditingTable({...editingTable, has_deposit: e.target.checked})}
                     />
                     <label htmlFor="hasDepositEdit" className="ml-2 text-sm font-medium text-gray-900 cursor-pointer">
-                      Requires Deposit?
+                      {t('restaurant.requiresDeposit')}
                     </label>
                  </div>
                  {editingTable.has_deposit && (
                    <div className="space-y-1 pt-2 border-t border-gray-200/50">
-                      <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">Amount ($)</label>
+                      <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">{t('restaurant.amount')}</label>
                       <input 
                         type="number" 
                         value={editingTable.deposit_amount}
@@ -296,7 +298,7 @@ const TableSettings = () => {
                 onClick={handleEditTable}
                 className="w-full bg-merkez-blue text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm mt-2"
               >
-                 Save Changes
+                 {t('common.saveChanges')}
               </button>
             </div>
           </div>
@@ -307,20 +309,20 @@ const TableSettings = () => {
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete this place?</h3>
-            <p className="text-gray-500 text-sm mb-6">Are you sure? This will permanently remove this table/cabin and its configuration.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.deletePlace')}</h3>
+            <p className="text-gray-500 text-sm mb-6">{t('restaurant.deletePlaceConfirm')}</p>
             <div className="flex gap-3">
               <button 
                 onClick={() => setConfirmDeleteId(null)}
                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 onClick={() => handleDeleteTable(confirmDeleteId)}
                 className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors shadow-sm"
               >
-                Yes, Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>

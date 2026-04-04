@@ -104,16 +104,14 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-      <div className="mb-12 flex flex-col items-center">
-        <img src="/merkez-logo.gif" alt="Merkez Logo" className="w-48 h-48 object-contain" />
-      </div>
 
       <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl shadow-gray-200/60 p-8 md:p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col md:flex-row gap-10 items-stretch">
           
           {/* Left Side: Brand & Social */}
           <div className="flex-1 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-100 pb-8 md:pb-0 md:pr-10">
-            <div className="mb-8">
+            <div className="mb-6">
+              <img src="/merkez-logo.gif" alt="Merkez Logo" className="h-20 w-auto object-contain mb-6" />
               <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
                 {isLogin ? 'Welcome Back.' : 'Join Merkez.'}
               </h1>

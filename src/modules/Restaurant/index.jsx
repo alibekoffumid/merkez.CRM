@@ -21,7 +21,7 @@ const RestaurantModule = () => {
   ];
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col min-h-full">
       {/* Header - never scrolls away */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 shrink-0">
         <div>
@@ -47,8 +47,8 @@ const RestaurantModule = () => {
         ))}
       </div>
 
-      {/* Content - fills remaining height, overflow managed by each child */}
-      <div className="flex-1 overflow-hidden pt-6">
+      {/* Content area */}
+      <div className="flex-1 pt-6">
         {activeTab === 'floor' && <FloorPlan />}
         {activeTab === 'kitchen' && <KitchenDisplay />}
         {activeTab === 'menu' && <MenuManager />}

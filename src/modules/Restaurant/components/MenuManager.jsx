@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
 const MenuManager = () => {
+  const { t } = useTranslation();
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
   
@@ -131,7 +133,7 @@ const MenuManager = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block w-full pl-10 p-2.5 transition-colors outline-none" 
-            placeholder="Search dishes..."
+            placeholder={t('restaurant.searchDishes')}
           />
         </div>
         
@@ -142,7 +144,7 @@ const MenuManager = () => {
              className="px-4 py-2 bg-gray-50 border border-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-100 flex items-center transition-colors outline-none cursor-pointer appearance-none"
              style={{ backgroundImage: 'none' }}
           >
-             <option value="All">All Categories</option>
+             <option value="All">{t('restaurant.allCategories')}</option>
              {categories.map(cat => (
                 <option key={cat.id} value={cat.name}>{cat.name}</option>
              ))}
@@ -155,7 +157,7 @@ const MenuManager = () => {
              style={{ backgroundImage: 'none' }}
           >
              {statuses.map(stat => (
-                <option key={stat} value={stat}>{stat === 'All' ? 'All Statuses' : stat}</option>
+                <option key={stat} value={stat}>{stat === 'All' ? t('restaurant.allStatuses') : t('restaurant.' + stat.toLowerCase().replace(' ', ''))}</option>
              ))}
           </select>
         </div>
@@ -164,17 +166,17 @@ const MenuManager = () => {
            onClick={() => setIsAddCategoryModalOpen(true)}
            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center transition-colors shadow-sm"
         >
-          <FilePlus className="w-4 h-4 mr-2" /> Add Category
+          <FilePlus className="w-4 h-4 mr-2" /> {t('restaurant.addCategory')}
         </button>
         <button 
            onClick={() => setIsAddDishModalOpen(true)}
            className="px-4 py-2 bg-merkez-green text-white rounded-lg text-sm font-medium hover:bg-green-600 flex items-center transition-colors shadow-sm"
         >
-          <Plus className="w-4 h-4 mr-2" /> Add Dish
+          <Plus className="w-4 h-4 mr-2" /> {t('restaurant.addDish')}
         </button>
       </div>
 
-      <div className="overflow-auto flex-1 border border-gray-100 rounded-xl relative">
+      <div className="border border-gray-100 rounded-xl relative">
         {loading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-merkez-blue border-t-transparent rounded-full animate-spin"></div>
@@ -183,11 +185,11 @@ const MenuManager = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
-              <th className="font-semibold p-4">Dish Name</th>
-              <th className="font-semibold p-4">Category</th>
-              <th className="font-semibold p-4">Price</th>
-              <th className="font-semibold p-4">Status</th>
-              <th className="font-semibold p-4 text-right rounded-tr-xl">Actions</th>
+              <th className="font-semibold p-4">{t('restaurant.dishName')}</th>
+              <th className="font-semibold p-4">{t('restaurant.category')}</th>
+              <th className="font-semibold p-4">{t('restaurant.price')}</th>
+              <th className="font-semibold p-4">{t('common.status')}</th>
+              <th className="font-semibold p-4 text-right rounded-tr-xl">{t('restaurant.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -206,7 +208,7 @@ const MenuManager = () => {
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       item.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {item.status}
+                      {t('restaurant.' + item.status.toLowerCase().replace(' ', ''))}
                     </span>
                   </td>
                   <td className="p-4 text-right whitespace-nowrap">
@@ -228,7 +230,7 @@ const MenuManager = () => {
             ) : (
                <tr>
                  <td colSpan="5" className="p-8 text-center text-gray-400 text-sm">
-                   {loading ? 'Loading...' : 'No dishes found matching your criteria.'}
+                   {loading ? t('common.loading') : t('common.noData')}
                  </td>
                </tr>
             )}
@@ -240,17 +242,17 @@ const MenuManager = () => {
 
       {/* Edit Dish Modal */}
       {isEditDishModalOpen && editingDish && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Edit Dish</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.editDish')}</h3>
               <button onClick={() => setIsEditDishModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-200 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
             <div className="p-5 space-y-4">
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Dish Name</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.dishName')}</label>
                   <input 
                     type="text" 
                     value={editingDish.name}
@@ -260,7 +262,7 @@ const MenuManager = () => {
                </div>
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Category</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.category')}</label>
                     <select 
                       value={editingDish.category_id}
                       onChange={(e) => setEditingDish(prev => ({ ...prev, category_id: e.target.value }))}
@@ -272,7 +274,7 @@ const MenuManager = () => {
                     </select>
                  </div>
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Price ($)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.price')}</label>
                     <input 
                       type="number" 
                       value={editingDish.price}
@@ -285,28 +287,28 @@ const MenuManager = () => {
                 onClick={handleEditDish}
                 className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-2"
               >
-                 Save Changes
+                 {t('restaurant.saveChanges')}
                </button>
             </div>
           </div>
         </div>
       )}
       {isAddCategoryModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-sm h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Add Category</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.addCategory')}</h3>
               <button onClick={() => setIsAddCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-200 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
             <div className="p-5 space-y-4">
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Category Name</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.categoryName')}</label>
                   <input type="text" placeholder="e.g. Starters or Soups" className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors" />
                </div>
                <button onClick={() => setIsAddCategoryModalOpen(false)} className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-2">
-                 Create Category
+                 {t('restaurant.createCategory')}
                </button>
             </div>
           </div>
@@ -315,17 +317,17 @@ const MenuManager = () => {
 
       {/* Add Dish Modal */}
       {isAddDishModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-900">Add New Dish</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('restaurant.addNewDish')}</h3>
               <button onClick={() => setIsAddDishModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-200 transition-colors">
                 <X className="w-5 h-5"/>
               </button>
             </div>
             <div className="p-5 space-y-4">
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Dish Name</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.dishName')}</label>
                   <input 
                     type="text" 
                     value={newDish.name}
@@ -336,7 +338,7 @@ const MenuManager = () => {
                </div>
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Category</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.category')}</label>
                     <select 
                       value={newDish.category_id}
                       onChange={(e) => setNewDish(prev => ({ ...prev, category_id: e.target.value }))}
@@ -348,7 +350,7 @@ const MenuManager = () => {
                     </select>
                  </div>
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Price ($)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.price')}</label>
                     <input 
                       type="number" 
                       value={newDish.price}
@@ -359,21 +361,21 @@ const MenuManager = () => {
                  </div>
                </div>
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Status</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
                   <select 
                     value={newDish.status}
                     onChange={(e) => setNewDish(prev => ({ ...prev, status: e.target.value }))}
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-green focus:border-merkez-green block p-2.5 outline-none transition-colors cursor-pointer"
                   >
-                    <option>Available</option>
-                    <option>Out of Stock</option>
+                    <option value="Available">{t('restaurant.available')}</option>
+                    <option value="Out of Stock">{t('restaurant.outofstock')}</option>
                   </select>
                </div>
                <button 
                 onClick={handleAddDish}
                 className="w-full bg-merkez-green text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-green-600 transition-colors mt-2"
               >
-                 Save Dish
+                 {t('restaurant.saveDish')}
                </button>
             </div>
           </div>
@@ -384,20 +386,20 @@ const MenuManager = () => {
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete this dish?</h3>
-            <p className="text-gray-500 text-sm mb-6">Are you sure? This action cannot be undone and will permanently remove this item from the menu.</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.deleteDish')}</h3>
+            <p className="text-gray-500 text-sm mb-6">{t('restaurant.deleteDishConfirm')}</p>
             <div className="flex gap-3">
               <button 
                 onClick={() => setConfirmDeleteId(null)}
                 className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 onClick={() => handleDeleteDish(confirmDeleteId)}
                 className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors shadow-sm"
               >
-                Yes, Delete
+                {t('common.delete')}
               </button>
             </div>
           </div>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PhoneCall, Plus, Clock, Search, Filter } from 'lucide-react';
 import TicketModal from './components/TicketModal';
 import { supabase } from '../../supabaseClient';
 
 const CallCenterModule = () => {
+  const { t } = useTranslation();
   const [tickets, setTickets] = useState([]);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,10 +83,10 @@ const CallCenterModule = () => {
   const selectedTicket = tickets.find(t => t.id === selectedTicketId);
 
   const columns = [
-    { title: 'New Leads', status: 'NEW', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-    { title: 'Contacted', status: 'CONTACTED', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-    { title: 'Requires Follow-Up', status: 'FOLLOW_UP', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-    { title: 'Converted / Ordered', status: 'CONVERTED', color: 'bg-green-100 text-green-700 border-green-200' }
+    { title: t('callCenter.newLeads'), status: 'NEW', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+    { title: t('callCenter.contacted'), status: 'CONTACTED', color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+    { title: t('callCenter.followUp'), status: 'FOLLOW_UP', color: 'bg-purple-100 text-purple-700 border-purple-200' },
+    { title: t('callCenter.converted'), status: 'CONVERTED', color: 'bg-green-100 text-green-700 border-green-200' }
   ];
 
   return (
@@ -94,9 +96,9 @@ const CallCenterModule = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
             <PhoneCall className="w-6 h-6 mr-3 text-merkez-blue" />
-            Unified Sales & Support CRM
+            {t('callCenter.title')}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Manage inbound leads, support tickets, and scheduling across any industry.</p>
+          <p className="text-sm text-gray-500 mt-1">{t('callCenter.subtitle')}</p>
         </div>
         
         <div className="flex gap-3 w-full sm:w-auto">
@@ -109,14 +111,14 @@ const CallCenterModule = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block w-full pl-10 p-2.5 outline-none transition-colors" 
-              placeholder="Search by phone, name or ID..."
+              placeholder={t('callCenter.searchPlaceholder')}
             />
           </div>
           <button className="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
             <Filter className="w-5 h-5" />
           </button>
           <button className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors flex items-center">
-            <Plus className="w-4 h-4 mr-2" /> New Ticket
+            <Plus className="w-4 h-4 mr-2" /> {t('callCenter.newTicket')}
           </button>
         </div>
       </div>
@@ -182,7 +184,7 @@ const CallCenterModule = () => {
                   
                   {columnTickets.length === 0 && (
                     <div className="h-24 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs font-medium text-gray-400 bg-white/40">
-                      Drag ticket here
+                      {t('callCenter.dragTicket')}
                     </div>
                   )}
                 </div>

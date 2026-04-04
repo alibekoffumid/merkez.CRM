@@ -69,9 +69,9 @@ const WarehouseModule = () => {
   };
 
   const getStatusText = (stock) => {
-    if (stock === 0) return 'Out of Stock';
-    if (stock < 15) return 'Low Stock';
-    return 'In Stock';
+    if (stock === 0) return t('warehouse.outOfStock');
+    if (stock < 15) return t('warehouse.lowStock');
+    return t('warehouse.inStock');
   };
 
   const getStatusColor = (stock) => {
@@ -95,14 +95,14 @@ const WarehouseModule = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('sidebar.warehouse')}</h1>
-          <p className="text-sm text-gray-500 mt-1">Full control over inventory, categories, and subcategories.</p>
+          <p className="text-sm text-gray-500 mt-1">{t('warehouse.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-600 border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-            <FolderTree className="w-4 h-4 mr-2" /> Manage Categories
+            <FolderTree className="w-4 h-4 mr-2" /> {t('warehouse.manageCategories')}
           </button>
           <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm">
-            <Plus className="w-4 h-4 mr-2" /> Add Product
+            <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addProduct')}
           </button>
         </div>
       </div>
@@ -110,10 +110,10 @@ const WarehouseModule = () => {
       <div className="flex flex-1 gap-6 overflow-hidden">
         {/* Categories Sidebar */}
         <div className="w-64 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 p-4 flex flex-col">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Categories</h3>
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{t('warehouse.categories')}</h3>
           <div className="space-y-1 overflow-y-auto flex-1">
             <div className={`p-2 rounded-lg cursor-pointer text-sm font-medium transition-colors ${selectedCategory === null ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(null)}>
-              All Categories
+              {t('warehouse.allCategories')}
             </div>
             {categories.map(cat => (
               <div key={cat.id} className={`p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.name ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}>
@@ -128,7 +128,7 @@ const WarehouseModule = () => {
             ))}
           </div>
           <button onClick={() => setShowAddCategory(true)} className="mt-4 w-full py-2 border-2 border-dashed border-gray-200 text-gray-400 rounded-lg text-sm font-medium hover:text-merkez-blue hover:border-merkez-blue transition-colors flex items-center justify-center">
-            <Plus className="w-4 h-4 mr-1.5" /> Add Category
+            <Plus className="w-4 h-4 mr-1.5" /> {t('warehouse.addCategory')}
           </button>
         </div>
 
@@ -137,7 +137,7 @@ const WarehouseModule = () => {
           <div className="p-4 border-b border-gray-100 flex gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input type="text" placeholder="Search products by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" />
+              <input type="text" placeholder={t('warehouse.searchPlaceholder')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" />
             </div>
             <button className="bg-gray-50 border border-gray-100 p-2 rounded-lg text-gray-500 hover:text-gray-700 transition-colors">
               <Filter className="w-5 h-5" />
@@ -147,30 +147,40 @@ const WarehouseModule = () => {
           <div className="flex-1 overflow-auto" ref={menuRef}>
             {loading ? (
               <div className="flex items-center justify-center h-full text-gray-400">
-                <Loader2 className="w-8 h-8 animate-spin mr-3" /><span>Loading inventory...</span>
+                <Loader2 className="w-8 h-8 animate-spin mr-3" /><span>{t('warehouse.loadingInventory')}</span>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                 <FolderTree className="w-12 h-12 text-gray-200" />
-                <p className="font-medium">No products found</p>
+                <p className="font-medium">{t('warehouse.noProductsFound')}</p>
                 <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
-                  <Plus className="w-4 h-4 inline mr-1" /> Add First Product
+                  <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
                 </button>
               </div>
             ) : (
               <table className="w-full text-left border-collapse min-w-[700px]">
                 <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                   <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-                    <th className="font-medium p-4">Product Name</th>
-                    <th className="font-medium p-4">Category</th>
-                    <th className="font-medium p-4">Price</th>
-                    <th className="font-medium p-4">Status</th>
-                    <th className="font-medium p-4 text-right">Actions</th>
+                    <th className="font-medium p-4 w-16"></th>
+                    <th className="font-medium p-4">{t('warehouse.thName')}</th>
+                    <th className="font-medium p-4">{t('warehouse.thCategory')}</th>
+                    <th className="font-medium p-4">{t('warehouse.thPrice')}</th>
+                    <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
+                    <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filteredProducts.map(item => (
                     <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="p-4">
+                        <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-200">
+                          {item.image_url ? (
+                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-gray-300" />
+                          )}
+                        </div>
+                      </td>
                       <td className="p-4">
                         <p className="font-medium text-gray-900">{item.name}</p>
                       </td>
@@ -202,7 +212,7 @@ const WarehouseModule = () => {
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                               >
                                 <Pencil className="w-4 h-4 text-merkez-blue" />
-                                Edit Product
+                                {t('warehouse.editProduct')}
                               </button>
                               <div className="mx-3 my-1 border-t border-gray-100" />
                               <button
@@ -210,7 +220,7 @@ const WarehouseModule = () => {
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium"
                               >
                                 <Trash2 className="w-4 h-4" />
-                                Delete Product
+                                {t('warehouse.deleteProduct')}
                               </button>
                             </div>
                           )}
