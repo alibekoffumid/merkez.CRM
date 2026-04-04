@@ -69,11 +69,9 @@ const MenuManager = () => {
   };
 
   const handleDeleteDish = async (id) => {
-    if (window.confirm('Are you sure you want to delete this dish?')) {
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (!error) {
-        fetchData();
-      }
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (!error) {
+      fetchData();
     }
   };
 
