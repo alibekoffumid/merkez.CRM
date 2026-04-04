@@ -64,6 +64,7 @@ const FloorPlan = () => {
       .from('order_items')
       .select('*, orders!inner(table_id, status), products(name, price)')
       .eq('orders.table_id', tableId)
+      .neq('orders.status', 'completed')
       .order('created_at', { ascending: false });
     setTableOrders(data || []);
     setTableOrdersLoading(false);
@@ -203,6 +204,14 @@ const FloorPlan = () => {
   };
 
   const handleCheckout = async () => {
+    // 1. Mark all active orders for this table as completed
+    await supabase
+      .from('orders')
+      .update({ status: 'completed' })
+      .eq('table_id', selectedTable.id)
+      .neq('status', 'completed');
+
+    // 2. Free the table
     const { error } = await supabase
       .from('restaurant_tables')
       .update({ status: 'free' })
