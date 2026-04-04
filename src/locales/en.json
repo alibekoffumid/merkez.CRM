@@ -101,7 +101,9 @@
     "tableStatus": "Current Status",
     "maxCapacity": "Max Capacity",
     "assignedWaiter": "Assigned Waiter",
-    "noActiveOrders": "No active orders right now."
+    "noActiveOrders": "No active orders right now.",
+    "doneOrdering": "Done Ordering",
+    "allTables": "All"
   },
   "crm": {
     "title": "CRM",

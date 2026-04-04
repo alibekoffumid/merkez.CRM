@@ -101,7 +101,9 @@
     "tableStatus": "Текущий статус",
     "maxCapacity": "Вместимость",
     "assignedWaiter": "Официант",
-    "noActiveOrders": "Активных заказов нет."
+    "noActiveOrders": "Активных заказов нет.",
+    "doneOrdering": "Готово",
+    "allTables": "Все"
   },
   "crm": {
     "title": "CRM",

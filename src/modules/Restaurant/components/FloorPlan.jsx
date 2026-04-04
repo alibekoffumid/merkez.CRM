@@ -17,6 +17,7 @@ const quickMenu = [
 ];
 
 const FloorPlan = () => {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
   const [selectedTable, setSelectedTable] = useState(null);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
@@ -268,7 +269,7 @@ const FloorPlan = () => {
       {/* Tables Grid Layout */}
       <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
         <div className="flex justify-between items-center mb-6">
-           <h3 className="text-lg font-semibold text-gray-900">Floor Plan (Main Hall)</h3>
+           <h3 className="text-lg font-semibold text-gray-900">{t('restaurant.mainHall')}</h3>
            <div className="flex space-x-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
              {['all', 'free', 'occupied', 'reserved'].map(f => (
                <button 
@@ -276,7 +277,7 @@ const FloorPlan = () => {
                  onClick={() => setFilter(f)}
                  className={`px-3 py-1 text-xs font-medium rounded-md capitalize transition-colors ${filter === f ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
                >
-                 {f}
+                 {f === 'all' ? t('restaurant.allTables') : t(`restaurant.${f}`)}
                </button>
              ))}
            </div>
@@ -319,9 +320,9 @@ const FloorPlan = () => {
         </div>
 
         <div className="mt-6 flex justify-center gap-6 text-sm text-gray-500 border-t border-gray-100 pt-4">
-           <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-merkez-green mr-2"></span> Free</div>
-           <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-merkez-blue mr-2"></span> Occupied</div>
-           <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-merkez-yellow mr-2"></span> Reserved</div>
+           <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-merkez-green mr-2"></span> {t('restaurant.free')}</div>
+           <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-merkez-blue mr-2"></span> {t('restaurant.occupied')}</div>
+           <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-merkez-yellow mr-2"></span> {t('restaurant.reserved')}</div>
         </div>
       </div>
 
@@ -331,14 +332,14 @@ const FloorPlan = () => {
            <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                <Receipt className="w-5 h-5 mr-2 text-merkez-blue" />
-               Kitchen Queue
+               {t('restaurant.kitchenQueue')}
              </h3>
-             <span className="bg-blue-50 text-merkez-blue text-xs font-bold px-2 py-1 rounded-full">{liveOrders.length} Active</span>
+             <span className="bg-blue-50 text-merkez-blue text-xs font-bold px-2 py-1 rounded-full">{liveOrders.length} {t('restaurant.active')}</span>
            </div>
            
            <div className="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0">
              {liveOrders.length === 0 ? (
-               <p className="text-sm text-gray-400 text-center py-8">No active orders right now.</p>
+               <p className="text-sm text-gray-400 text-center py-8">{t('restaurant.noActiveOrders')}</p>
              ) : (
                liveOrders.map(order => (
                  <div key={order.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-gray-50/50 cursor-pointer">
@@ -352,7 +353,7 @@ const FloorPlan = () => {
                      </span>
                    </div>
                    <div className="flex justify-between items-end mt-3">
-                     <span className="text-sm text-gray-600">{order.items} items</span>
+                     <span className="text-sm text-gray-600">{order.items} {t('restaurant.items')}</span>
                      <span className="text-sm font-bold text-gray-900">${order.total.toFixed(2)}</span>
                    </div>
                  </div>
@@ -360,7 +361,7 @@ const FloorPlan = () => {
              )}
            </div>
            <button className="w-full mt-4 py-2 border-2 border-dashed border-gray-200 text-gray-500 rounded-lg text-sm font-medium hover:text-merkez-blue hover:border-merkez-blue transition-colors">
-             View All Orders
+             {t('restaurant.viewAllOrders')}
            </button>
          </div>
       </div>
@@ -383,7 +384,7 @@ const FloorPlan = () => {
               <div className={`p-5 flex flex-col flex-1 min-h-0 overflow-hidden ${isAddingOrder ? 'w-full sm:w-[40%] border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <p className="text-sm text-gray-500">Current Status</p>
+                    <p className="text-sm text-gray-500">{t('restaurant.tableStatus')}</p>
                     <span className={`inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider ${
                       selectedTable.status === 'free' ? 'bg-green-100 text-merkez-green' : 
                       selectedTable.status === 'occupied' ? 'bg-blue-100 text-merkez-blue' : 
@@ -393,7 +394,7 @@ const FloorPlan = () => {
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-500">Max Capacity</p>
+                    <p className="text-sm text-gray-500">{t('restaurant.maxCapacity')}</p>
                     <p className="font-semibold text-gray-900 mt-1 flex items-center justify-end">
                       <Users className="w-4 h-4 mr-1.5 text-gray-400" />
                       {selectedTable.capacity}
@@ -407,7 +408,7 @@ const FloorPlan = () => {
                        {selectedTable.waiter.split(' ').map(n => n[0]).join('')}
                      </div>
                      <div>
-                       <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Assigned Waiter</p>
+                       <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">{t('restaurant.assignedWaiter')}</p>
                        <p className="text-sm font-semibold text-gray-900">{selectedTable.waiter}</p>
                      </div>
                   </div>
@@ -419,27 +420,27 @@ const FloorPlan = () => {
                     <div className="space-y-4 shrink-0 pb-4">
                       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm transition-all">
                         <div className="flex justify-between text-sm mb-2">
-                          <span className="text-gray-600">Current Bill</span>
+                          <span className="text-gray-600">{t('restaurant.currentBill')}</span>
                           <span className="font-bold text-gray-900 text-lg">${selectedTable.amount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Time Seated</span>
+                          <span className="text-gray-600">{t('restaurant.timeSeated')}</span>
                           <span className="font-medium text-gray-900">{selectedTable.timeSeated}</span>
                         </div>
                       </div>
                       
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex justify-between items-center">
-                        Active Order
-                        <span className="text-merkez-blue font-bold px-2 py-0.5 bg-blue-50 rounded-full">{tableOrders.length} ITEMS</span>
+                        {t('restaurant.activeOrder')}
+                        <span className="text-merkez-blue font-bold px-2 py-0.5 bg-blue-50 rounded-full">{tableOrders.length} {t('restaurant.items').toUpperCase()}</span>
                       </h4>
                     </div>
 
                     {/* Scrollable Order List - Live Data */}
                     <div className="flex-1 overflow-y-auto no-scrollbar py-2">
                       {tableOrdersLoading ? (
-                        <p className="text-sm text-gray-400 text-center py-4">Loading orders...</p>
+                        <p className="text-sm text-gray-400 text-center py-4">{t('common.loading')}</p>
                       ) : tableOrders.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">No orders yet for this table.</p>
+                        <p className="text-sm text-gray-400 text-center py-8">{t('restaurant.noOrders')}</p>
                       ) : (
                         <ul className="space-y-3 pr-2">
                           {tableOrders.map(item => {
@@ -473,18 +474,18 @@ const FloorPlan = () => {
                       {!isAddingOrder ? (
                         <div className="flex gap-3">
                           <button onClick={() => setIsAddingOrder(true)} className="flex-1 bg-merkez-blue text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center">
-                            <Plus className="w-4 h-4 mr-2" /> Add Order
+                            <Plus className="w-4 h-4 mr-2" /> {t('restaurant.addOrder')}
                           </button>
                           <button 
                              onClick={handleCheckout} 
                              className="flex-1 bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
                           >
-                            <CreditCard className="w-4 h-4 mr-2" /> Checkout
+                            <CreditCard className="w-4 h-4 mr-2" /> {t('restaurant.checkout')}
                           </button>
                         </div>
                       ) : (
                         <button onClick={() => setIsAddingOrder(false)} className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-extrabold hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
-                          Done Ordering
+                          {t('restaurant.doneOrdering')}
                         </button>
                       )}
                     </div>
@@ -493,15 +494,15 @@ const FloorPlan = () => {
                   <div className="flex flex-col flex-1">
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
                        <Users className="w-12 h-12 text-gray-300 mb-4" />
-                       <h4 className="text-lg font-bold text-gray-900">Table is Empty</h4>
-                       <p className="text-sm text-gray-500 max-w-[200px]">Assign guests to this table to start a new order.</p>
+                       <h4 className="text-lg font-bold text-gray-900">{t('restaurant.tableEmpty')}</h4>
+                       <p className="text-sm text-gray-500 max-w-[200px]">{t('restaurant.assignGuests')}</p>
                     </div>
                     <div className="mt-auto pt-4 border-t border-gray-100">
                       <button 
                         onClick={handleSeatGuests}
                         className="w-full bg-merkez-green text-white py-3 rounded-lg text-sm font-bold hover:bg-green-600 transition-all flex items-center justify-center shadow-md"
                       >
-                        <UserPlus className="w-5 h-5 mr-2" /> Seat Guests
+                        <UserPlus className="w-5 h-5 mr-2" /> {t('restaurant.seatGuests')}
                       </button>
                     </div>
                   </div>

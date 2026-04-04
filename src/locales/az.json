@@ -101,7 +101,9 @@
     "tableStatus": "Cari status",
     "maxCapacity": "Maksimum tutum",
     "assignedWaiter": "Ofisiant",
-    "noActiveOrders": "Aktiv sifariş yoxdur."
+    "noActiveOrders": "Aktiv sifariş yoxdur.",
+    "doneOrdering": "Sifariş tamamlandı",
+    "allTables": "Hamısı"
   },
   "crm": {
     "title": "CRM",
