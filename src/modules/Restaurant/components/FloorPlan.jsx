@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, CreditCard, UserPlus, ShoppingCart, Search } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
 
 const mockTables = [
   { id: 1, number: 'T1', capacity: 2, status: 'free', timeSeated: null, amount: 0, waiter: null },
