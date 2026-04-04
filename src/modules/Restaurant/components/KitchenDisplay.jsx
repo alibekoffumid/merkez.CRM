@@ -137,7 +137,7 @@ const KitchenDisplay = () => {
   const [mobileColumn, setMobileColumn] = useState('NEW');
 
   return (
-    <div className="h-full flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900 flex items-center">

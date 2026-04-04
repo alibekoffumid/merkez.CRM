@@ -270,7 +270,7 @@ const FloorPlan = () => {
   };
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 h-full overflow-hidden">
+    <div className="flex flex-col xl:flex-row gap-6">
       {/* Tables Grid Layout */}
       <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
         <div className="flex justify-between items-center mb-6">
