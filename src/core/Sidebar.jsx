@@ -5,12 +5,16 @@ import { supabase } from '../supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { getNavItems } from '../config/navigation';
 
-const Sidebar = () => {
+const Sidebar = ({ onHoverChange }) => {
   const { t } = useTranslation();
   const navItems = getNavItems(t);
 
   return (
-    <div className="w-20 hover:w-64 group h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 overflow-hidden">
+    <div 
+      className="w-20 hover:w-64 group h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 overflow-hidden shadow-2xl shadow-gray-200/50"
+      onMouseEnter={() => onHoverChange && onHoverChange(true)}
+      onMouseLeave={() => onHoverChange && onHoverChange(false)}
+    >
       <div className="h-16 flex items-center justify-center border-b border-gray-50">
         {/* Logo moved to Top Header */}
       </div>
