@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
 const mockOrders = [
@@ -62,6 +62,16 @@ const FloorPlan = () => {
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
       return [...prev, { ...product, quantity: 1 }];
+    });
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === productId);
+      if (existing && existing.quantity > 1) {
+        return prev.map(item => item.id === productId ? { ...item, quantity: item.quantity - 1 } : item);
+      }
+      return prev.filter(item => item.id !== productId);
     });
   };
 
@@ -508,23 +518,47 @@ const FloorPlan = () => {
                     {liveMenu.filter(item => 
                         item.station === menuStation && 
                         item.name.toLowerCase().includes(menuSearch.trim().toLowerCase())
-                    ).map(item => (
-                      <div key={item.id} className="bg-white border border-gray-100 p-3 rounded-xl shadow-sm hover:border-merkez-blue group transition-colors cursor-pointer flex flex-col justify-between h-24">
-                        <div>
-                           <p className="text-xs text-gray-500 font-medium mb-1">{item.category}</p>
-                           <p className="text-sm font-bold text-gray-900 leading-tight">{item.name}</p>
+                    ).map(item => {
+                      const cartItem = cart.find(i => i.id === item.id);
+                      const quantity = cartItem ? cartItem.quantity : 0;
+                      
+                      return (
+                        <div key={item.id} className={`bg-white border p-3 rounded-xl shadow-sm transition-colors cursor-pointer flex flex-col justify-between h-24 ${quantity > 0 ? 'border-merkez-blue ring-1 ring-merkez-blue/20' : 'border-gray-100 hover:border-merkez-blue group'}`}>
+                          <div>
+                             <p className="text-xs text-gray-500 font-medium mb-1">{item.category}</p>
+                             <p className="text-sm font-bold text-gray-900 leading-tight truncate">{item.name}</p>
+                          </div>
+                          <div className="flex justify-between items-center mt-2">
+                             <span className="text-sm font-bold text-merkez-blue">${item.price.toFixed(2)}</span>
+                             
+                             {quantity > 0 ? (
+                               <div className="flex items-center space-x-2 bg-blue-50 rounded-full px-1 py-1">
+                                 <button 
+                                  onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
+                                  className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-merkez-blue shadow-sm hover:bg-gray-50 transition-colors"
+                                 >
+                                   <Minus className="w-3 h-3" />
+                                 </button>
+                                 <span className="text-xs font-bold text-merkez-blue w-3 text-center">{quantity}</span>
+                                 <button 
+                                  onClick={(e) => { e.stopPropagation(); addToCart(item); }}
+                                  className="w-6 h-6 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600 transition-colors"
+                                 >
+                                   <Plus className="w-3 h-3" />
+                                 </button>
+                               </div>
+                             ) : (
+                               <button 
+                                onClick={(e) => { e.stopPropagation(); addToCart(item); }}
+                                className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-merkez-blue group-hover:text-white transition-colors"
+                               >
+                                 <Plus className="w-4 h-4" />
+                               </button>
+                             )}
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center mt-2">
-                           <span className="text-sm font-bold text-merkez-blue">${item.price.toFixed(2)}</span>
-                           <button 
-                            onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                            className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-merkez-blue group-hover:text-white transition-colors"
-                           >
-                             <Plus className="w-4 h-4" />
-                           </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {/* Real cart footer */}
