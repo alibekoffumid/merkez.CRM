@@ -523,7 +523,7 @@ const FloorPlan = () => {
                       const quantity = cartItem ? cartItem.quantity : 0;
                       
                       return (
-                        <div key={item.id} className={`bg-white border p-3 rounded-xl shadow-sm transition-colors cursor-pointer flex flex-col justify-between h-24 ${quantity > 0 ? 'border-merkez-blue ring-1 ring-merkez-blue/20' : 'border-gray-100 hover:border-merkez-blue group'}`}>
+                        <div key={item.id} onClick={() => addToCart(item)} className={`bg-white border p-3 rounded-xl shadow-sm transition-colors cursor-pointer flex flex-col justify-between h-24 ${quantity > 0 ? 'border-merkez-blue ring-1 ring-merkez-blue/20' : 'border-gray-100 hover:border-merkez-blue group'}`}>
                           <div>
                              <p className="text-xs text-gray-500 font-medium mb-1">{item.category}</p>
                              <p className="text-sm font-bold text-gray-900 leading-tight truncate">{item.name}</p>
