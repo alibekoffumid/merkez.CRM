@@ -1,9 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, DollarSign, Activity, CheckCircle, Clock } from 'lucide-react';
+import { supabase } from '../../supabaseClient';
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const [stats, setStats] = useState({ customers: 0, products: 0 });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    const { count: customerCount } = await supabase.from('customers').select('*', { count: 'exact', head: true });
+    const { count: productCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+    setStats({ 
+      customers: customerCount || 0, 
+      products: productCount || 0 
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -27,10 +42,10 @@ const Dashboard = () => {
           </div>
           <div className="flex-1 flex flex-col justify-center">
             <div className="flex justify-between items-end mb-4">
-               <div>
-                  <p className="text-sm text-gray-500">Посетители (сегодня)</p>
-                  <h4 className="text-3xl font-bold text-gray-900">4,281</h4>
-               </div>
+                <div>
+                  <p className="text-sm text-gray-500">Клиенты в CRM</p>
+                  <h4 className="text-3xl font-bold text-gray-900">{stats.customers}</h4>
+                </div>
                <span className="text-sm font-medium text-merkez-blue flex items-center bg-blue-50 px-2.5 py-1 rounded-lg">
                  +12.5% <TrendingUp className="w-4 h-4 ml-1" />
                </span>
@@ -38,7 +53,7 @@ const Dashboard = () => {
             <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
               <div className="bg-merkez-blue h-2 rounded-full" style={{ width: '75%' }}></div>
             </div>
-            <p className="text-xs text-gray-400">75% от плана на месяц</p>
+            <p className="text-xs text-gray-400">{stats.products} позиций в меню</p>
           </div>
         </div>
 
