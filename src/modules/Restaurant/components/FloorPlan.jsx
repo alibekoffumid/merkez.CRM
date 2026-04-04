@@ -16,6 +16,11 @@ const quickMenu = [
   { id: 8, name: 'French Fries', category: 'Sides', station: 'Kitchen', price: 4.50 },
 ];
 
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.split(' ').map(n => n[0]).join('').toUpperCase();
+};
+
 const FloorPlan = () => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState('all');
