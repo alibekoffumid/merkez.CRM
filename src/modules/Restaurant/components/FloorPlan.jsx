@@ -349,7 +349,7 @@ const FloorPlan = () => {
                        <span className="block text-xs text-gray-500">{order.id}</span>
                      </div>
                      <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wider ${getOrderStatusColor(order.status)}`}>
-                       {order.status}
+                       {t('status.' + (order.status?.toLowerCase() || 'pending'))}
                      </span>
                    </div>
                    <div className="flex justify-between items-end mt-3">
@@ -390,7 +390,7 @@ const FloorPlan = () => {
                       selectedTable.status === 'occupied' ? 'bg-blue-100 text-merkez-blue' : 
                       'bg-yellow-100 text-merkez-yellow'
                     }`}>
-                      {selectedTable.status}
+                      {t('status.' + selectedTable.status)}
                     </span>
                   </div>
                   <div className="text-right">
@@ -458,7 +458,7 @@ const FloorPlan = () => {
                                   <span className="text-merkez-blue font-bold shrink-0">{item.quantity}x</span>
                                   <span className="font-medium text-gray-900 leading-tight truncate">{item.products?.name || 'Item'}</span>
                                   <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${color}`}>
-                                    {item.status}
+                                    {t('status.' + (item.status?.toLowerCase() || 'new'))}
                                   </span>
                                 </div>
                                 <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>

@@ -105,6 +105,17 @@
     "doneOrdering": "Done Ordering",
     "allTables": "All"
   },
+  "status": {
+    "new": "New",
+    "pending": "Pending",
+    "preparing": "Preparing",
+    "ready": "Ready",
+    "served": "Served",
+    "completed": "Completed",
+    "free": "Free",
+    "occupied": "Occupied",
+    "reserved": "Reserved"
+  },
   "crm": {
     "title": "CRM",
     "subtitle": "Manage your clients and leads efficiently.",

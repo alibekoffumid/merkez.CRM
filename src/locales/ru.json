@@ -105,6 +105,17 @@
     "doneOrdering": "Готово",
     "allTables": "Все"
   },
+  "status": {
+    "new": "Новый",
+    "pending": "Ожидание",
+    "preparing": "Готовится",
+    "ready": "Готово",
+    "served": "Подано",
+    "completed": "Завершено",
+    "free": "Свободен",
+    "occupied": "Занят",
+    "reserved": "Зарезервирован"
+  },
   "crm": {
     "title": "CRM",
     "subtitle": "Эффективное управление клиентами и лидами.",

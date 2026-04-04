@@ -105,6 +105,17 @@
     "doneOrdering": "Sifariş tamamlandı",
     "allTables": "Hamısı"
   },
+  "status": {
+    "new": "Yeni",
+    "pending": "Gözləyir",
+    "preparing": "Hazırlanır",
+    "ready": "Hazırdır",
+    "served": "Təqdim edildi",
+    "completed": "Tamamlandı",
+    "free": "Boş",
+    "occupied": "Dolu",
+    "reserved": "Rezerv edilib"
+  },
   "crm": {
     "title": "CRM",
     "subtitle": "Müştəriləri və lidləri səmərəli idarə edin.",
