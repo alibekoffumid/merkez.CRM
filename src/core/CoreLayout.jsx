@@ -32,7 +32,7 @@ const CoreLayout = () => {
       }`}>
         <Header onMenuClick={toggleMobileSidebar} />
         <main className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6 lg:p-8 lg:pl-28 transition-all duration-300">
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto no-scrollbar">
             <Outlet />
           </div>
         </main>
