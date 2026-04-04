@@ -57,7 +57,9 @@
     "close": "Bağla",
     "back": "Geri",
     "next": "İrəli",
-    "prev": "Geri"
+    "prev": "Geri",
+    "yes": "Bəli",
+    "no": "Xeyr"
   },
   "restaurant": {
     "title": "Restoran İdarəetməsi",
@@ -186,7 +188,8 @@
     "zoneTable": "Zona / Masa",
     "seatings": "Oturuşlar",
     "vipCabin": "VIP Kabina",
-    "table": "Masa"
+    "table": "Masa",
+    "revenue": "Gəlir"
   },
   "status": {
     "new": "Yeni",

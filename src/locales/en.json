@@ -57,7 +57,9 @@
     "close": "Close",
     "back": "Back",
     "next": "Next",
-    "prev": "Previous"
+    "prev": "Previous",
+    "yes": "Yes",
+    "no": "No"
   },
   "restaurant": {
     "title": "Restaurant Management",
@@ -186,7 +188,8 @@
     "zoneTable": "Zone / Table",
     "seatings": "Seatings",
     "vipCabin": "VIP Cabin",
-    "table": "Table"
+    "table": "Table",
+    "revenue": "Revenue"
   },
   "status": {
     "new": "New",
