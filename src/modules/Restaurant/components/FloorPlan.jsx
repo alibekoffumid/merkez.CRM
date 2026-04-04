@@ -186,11 +186,11 @@ const FloorPlan = () => {
       .order('number', { ascending: true });
     
     if (data) {
-      setTables(data.map(t => ({
-        ...t,
+      setTables(data.map(tableObj => ({
+        ...tableObj,
         amount: 0,
-        timeSeated: t.status === 'occupied' ? '12:00' : null,
-        waiter: t.status === 'occupied' ? t('restaurant.staff') || 'Staff' : null
+        timeSeated: tableObj.status === 'occupied' ? '12:00' : null,
+        waiter: tableObj.status === 'occupied' ? t('restaurant.staff') || 'Staff' : null
       })));
     }
   };
