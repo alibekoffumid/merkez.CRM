@@ -11,9 +11,8 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0">
-      <div className="p-6 flex items-center space-x-3">
-        <img src="/merkez-logo.svg" alt="Merkez Logo" className="w-10 h-10 object-contain" />
-        <span className="text-xl font-bold tracking-tight text-gray-900">Merkez CRM</span>
+      <div className="p-8 flex items-center justify-center border-b border-gray-50">
+        <img src="/merkez-logo.gif" alt="Merkez Logo" className="w-28 h-28 object-contain" />
       </div>
 
       <nav className="flex-1 px-4 mt-6 space-y-2">

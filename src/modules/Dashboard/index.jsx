@@ -22,9 +22,10 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-6 mb-8 border-b border-gray-100 pb-8">
+        <img src="/merkez-logo.gif" alt="Logo" className="w-24 h-24 object-contain" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.welcome')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.welcome')}</h1>
           <p className="text-gray-500 mt-1">{t('dashboard.overview')}</p>
         </div>
       </div>

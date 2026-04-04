@@ -35,19 +35,28 @@ const Profile = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-1">My Profile</h1>
           <p className="text-gray-500">Manage your personal information and account preferences</p>
         </div>
-        <button 
-          onClick={handleSave}
-          className="bg-merkez-blue text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all flex items-center shadow-lg shadow-blue-100 active:scale-95"
-        >
-          {isSaving ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </button>
+        <div className="flex items-center space-x-3">
+          <button 
+            onClick={() => supabase.auth.signOut()}
+            className="bg-white text-red-500 border border-red-100 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 transition-all flex items-center shadow-sm active:scale-95"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </button>
+          <button 
+            onClick={handleSave}
+            className="bg-merkez-blue text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-600 transition-all flex items-center shadow-lg shadow-blue-100 active:scale-95"
+          >
+            {isSaving ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">

@@ -104,9 +104,8 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-      <div className="mb-10 flex flex-col items-center space-y-4">
-        <img src="/merkez-logo.svg" alt="Merkez Logo" className="w-24 h-24 object-contain" />
-        <span className="text-3xl font-black tracking-tighter text-gray-900 uppercase">Merkez CRM</span>
+      <div className="mb-12 flex flex-col items-center">
+        <img src="/merkez-logo.gif" alt="Merkez Logo" className="w-48 h-48 object-contain" />
       </div>
 
       <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl shadow-gray-200/60 p-8 md:p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
