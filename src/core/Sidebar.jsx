@@ -10,7 +10,7 @@ const Sidebar = () => {
   const navItems = getNavItems(t);
 
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0">
+    <div className="w-20 hover:w-64 group h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 overflow-hidden">
       <div className="h-16 flex items-center justify-center border-b border-gray-50">
         {/* Logo moved to Top Header */}
       </div>
@@ -28,8 +28,8 @@ const Sidebar = () => {
               }`
             }
           >
-            <item.icon className="w-5 h-5 mr-3" />
-            <span>{item.name}</span>
+            <item.icon className="w-5 h-5 mr-3 shrink-0" />
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{item.name}</span>
           </NavLink>
         ))}
       </nav>
@@ -39,15 +39,15 @@ const Sidebar = () => {
           to="/settings"
           className="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
         >
-          <Settings className="w-5 h-5 mr-3" />
-          <span>{t('sidebar.settings')}</span>
+          <Settings className="w-5 h-5 mr-3 shrink-0" />
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{t('sidebar.settings')}</span>
         </NavLink>
         <button
           onClick={() => supabase.auth.signOut()}
-          className="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2"
+          className="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2 overflow-hidden w-full text-left"
         >
-          <LogOut className="w-5 h-5 mr-3" />
-          <span>Sign Out</span>
+          <LogOut className="w-5 h-5 mr-3 shrink-0" />
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Sign Out</span>
         </button>
       </div>
     </div>

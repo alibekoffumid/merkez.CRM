@@ -9,7 +9,7 @@ const CoreLayout = () => {
       <Sidebar />
       <div className="flex-[1] flex flex-col min-h-screen max-w-full">
         <Header />
-        <main className="flex-1 p-8 pl-72">
+        <main className="flex-1 p-8 pl-28 transition-all duration-300">
           {/* Outlet renders the nested child routes inside layout */}
           <Outlet />
         </main>
