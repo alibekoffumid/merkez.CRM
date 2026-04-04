@@ -1,76 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PhoneCall, Plus, Clock, Search, Filter } from 'lucide-react';
 import TicketModal from './components/TicketModal';
-
-const initialTickets = [
-  {
-    id: 'CRM-1001',
-    clientName: 'Aleksandr Ivanov',
-    phone: '+1 (555) 0192-334',
-    address: '123 Tech Blvd, Suite 400',
-    status: 'NEW',
-    type: 'B2B',
-    initialRequest: 'Inquiry about enterprise software licensing and potential integration timeline.',
-    estimatedValue: 12000.00,
-    time: '10 mins ago',
-    comments: [
-      { text: 'Incoming web form lead.', time: '10:05 AM' }
-    ],
-    reminder: null
-  },
-  {
-    id: 'CRM-1002',
-    clientName: 'Maria Garcia',
-    phone: '+1 (555) 9931-102',
-    address: '45 Sunset Blvd, Floor 2',
-    status: 'CONTACTED',
-    type: 'VIP',
-    initialRequest: 'Wants to schedule a consultation for ongoing marketing services.',
-    estimatedValue: 3500.00,
-    time: '45 mins ago',
-    comments: [
-      { text: 'Called and outlined our service packages. Requested a detailed proposal via email.', time: '09:30 AM' }
-    ],
-    reminder: 'Today, 14:00'
-  },
-  {
-    id: 'CRM-1003',
-    clientName: 'David Smith',
-    phone: '+1 (555) 4432-000',
-    address: '88 Oak Lane, House 3',
-    status: 'FOLLOW_UP',
-    type: 'Regular',
-    initialRequest: 'Requires technical support for the hardware purchased last week.',
-    estimatedValue: 0.00,
-    time: '2 hours ago',
-    comments: [
-      { text: 'Apologized for the delay and directed to the specialized tech team.', time: '08:15 AM' },
-      { text: 'Needs follow up to ensure the issue is completely resolved.', time: '08:16 AM' }
-    ],
-    reminder: 'Tomorrow, 10:00'
-  },
-  {
-    id: 'CRM-1004',
-    clientName: 'Elena Rostova',
-    phone: '+1 (555) 7761-221',
-    address: 'Silicon Valley Tech Park, Bldg A',
-    status: 'CONVERTED',
-    type: 'VIP',
-    initialRequest: 'Looking for a premium partnership plan.',
-    estimatedValue: 45000.00,
-    time: '4 hours ago',
-    comments: [
-      { text: 'Initial scoping call went great.', time: 'Yesterday, 16:00' },
-      { text: 'Contract signed for annual commitment.', time: 'Today, 09:00 AM' }
-    ],
-    reminder: null
-  }
-];
+import { supabase } from '../../supabaseClient';
 
 const CallCenterModule = () => {
-  const [tickets, setTickets] = useState(initialTickets);
+  const [tickets, setTickets] = useState([]);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) {
+      setTickets(data.map((c, idx) => ({
+        id: `CRM-${c.id.slice(0, 4).toUpperCase()}`,
+        clientName: c.name,
+        phone: c.phone || 'N/A',
+        address: c.address || 'N/A',
+        status: c.status || 'NEW',
+        type: c.type || 'Regular',
+        initialRequest: c.initial_request || 'New inquiry.',
+        estimatedValue: c.estimated_value || 0,
+        time: idx === 0 ? 'Just now' : `${idx * 15} mins ago`,
+        comments: [
+          { text: 'Lead imported from system.', time: 'System' }
+        ],
+        reminder: idx % 3 === 0 ? 'Today, 17:00' : null
+      })));
+    }
+    setLoading(false);
+  };
 
   const handleUpdateStatus = (id, newStatus) => {
     setTickets(tickets.map(t => t.id === id ? { ...t, status: newStatus } : t));

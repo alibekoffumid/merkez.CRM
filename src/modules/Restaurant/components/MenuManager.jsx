@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X } from 'lucide-react';
-
-const mockMenu = [
-  { id: 1, name: 'Margherita Pizza', category: 'Main Course', price: 12.50, status: 'Available' },
-  { id: 2, name: 'Caesar Salad', category: 'Starters', price: 8.00, status: 'Available' },
-  { id: 3, name: 'Tiramisu', category: 'Desserts', price: 6.50, status: 'Out of Stock' },
-  { id: 4, name: 'Espresso', category: 'Beverages', price: 3.00, status: 'Available' },
-  { id: 5, name: 'Grilled Salmon', category: 'Main Course', price: 24.00, status: 'Available' },
-];
+import { supabase } from '../../../supabaseClient';
 
 const MenuManager = () => {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
   
+  // Data states
+  const [menu, setMenu] = useState([]);
+  const [categories, setCategories] = useState(['All']);
+  const [loading, setLoading] = useState(true);
+
   // Filtering states
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const categories = ['All', ...new Set(mockMenu.map(d => d.category))];
   const statuses = ['All', 'Available', 'Out of Stock'];
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    const { data: catData } = await supabase.from('categories').select('name');
+    const { data: prodData } = await supabase
+      .from('products')
+      .select('*, categories(name)');
+    
+    if (catData) {
+      setCategories(['All', ...catData.map(c => c.name)]);
+    }
+    
+    if (prodData) {
+      setMenu(prodData.map(p => ({
+        ...p,
+        category: p.categories?.name || 'Uncategorized',
+        status: 'Available'
+      })));
+    }
+    setLoading(false);
+  };
+
   // Apply filters
-  const filteredMenu = mockMenu.filter(item => {
+  const filteredMenu = menu.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === 'All' || item.category === categoryFilter;
     const matchesStatus = statusFilter === 'All' || item.status === statusFilter;

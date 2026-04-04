@@ -1,17 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
-
-const mockTables = [
-  { id: 1, number: 'T1', capacity: 2, status: 'free', timeSeated: null, amount: 0, waiter: null },
-  { id: 2, number: 'T2', capacity: 4, status: 'occupied', timeSeated: '10:45', amount: 45.50, waiter: 'Alice Walker' },
-  { id: 3, number: 'T3', capacity: 4, status: 'reserved', timeSeated: null, amount: 0, waiter: null },
-  { id: 4, number: 'T4', capacity: 6, status: 'occupied', timeSeated: '11:15', amount: 120.00, waiter: 'Bob Harris' },
-  { id: 5, number: 'T5', capacity: 2, status: 'free', timeSeated: null, amount: 0, waiter: null },
-  { id: 6, number: 'T6', capacity: 8, status: 'occupied', timeSeated: '09:30', amount: 310.00, waiter: 'Charlie Dean' },
-  { id: 7, number: 'V1', capacity: 4, status: 'reserved', timeSeated: null, amount: 0, waiter: 'Alice Walker' },
-  { id: 8, number: 'V2', capacity: 2, status: 'free', timeSeated: null, amount: 0, waiter: null },
-];
+import { supabase } from '../../../supabaseClient';
 
 const mockOrders = [
   { id: '#ORD-0921', table: 'T2', items: 3, status: 'preparing', total: 45.50 },
@@ -34,9 +24,33 @@ const FloorPlan = () => {
   const [filter, setFilter] = useState('all');
   const [selectedTable, setSelectedTable] = useState(null);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
-  const [tables, setTables] = useState(mockTables);
+  const [tables, setTables] = useState([]);
   const [menuStation, setMenuStation] = useState('Kitchen');
   const [menuSearch, setMenuSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTables();
+  }, []);
+
+  const fetchTables = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('restaurant_tables')
+      .select('*')
+      .order('number', { ascending: true });
+    
+    if (data) {
+      // Mapping database fields to component expectations if necessary
+      setTables(data.map(t => ({
+        ...t,
+        amount: 0, // Mock for now until orders table is fully integrated
+        timeSeated: t.status === 'occupied' ? '12:00' : null,
+        waiter: t.status === 'occupied' ? 'Staff' : null
+      })));
+    }
+    setLoading(false);
+  };
 
   const getTableColor = (status) => {
     switch(status) {
