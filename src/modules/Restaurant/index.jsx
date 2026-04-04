@@ -31,7 +31,7 @@ const RestaurantModule = () => {
       </div>
 
       {/* Tabs - sticky, never scrolls away */}
-      <div className="flex space-x-2 border-b border-gray-200 pb-px overflow-x-auto shrink-0 bg-white sticky top-0 z-20 shadow-sm">
+      <div className="flex space-x-2 border-b border-gray-200 pb-px overflow-x-auto shrink-0 bg-white sticky top-0 z-10 shadow-sm" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
         {tabs.map(tab => (
           <button
             key={tab.id}
