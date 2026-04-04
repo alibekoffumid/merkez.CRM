@@ -76,30 +76,44 @@ const FloorPlan = () => {
     setMenuSearch('');
   };
 
-  const handleSeatGuests = () => {
-    const updatedTable = {
-      ...selectedTable,
-      status: 'occupied',
-      timeSeated: '17:30', // Mock time
-      amount: 0,
-      waiter: 'Evan Cole'
-    };
+  const handleSeatGuests = async () => {
+    const { error } = await supabase
+      .from('restaurant_tables')
+      .update({ status: 'occupied' })
+      .eq('id', selectedTable.id);
     
-    setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
-    setSelectedTable(updatedTable);
+    if (!error) {
+      const updatedTable = {
+        ...selectedTable,
+        status: 'occupied',
+        timeSeated: '17:30', // Mock time
+        amount: 0,
+        waiter: 'Staff'
+      };
+      
+      setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
+      setSelectedTable(updatedTable);
+    }
   };
 
-  const handleCheckout = () => {
-    const updatedTable = {
-      ...selectedTable,
-      status: 'free',
-      timeSeated: null,
-      amount: 0,
-      waiter: null
-    };
-    
-    setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
-    setSelectedTable(updatedTable);
+  const handleCheckout = async () => {
+    const { error } = await supabase
+      .from('restaurant_tables')
+      .update({ status: 'free' })
+      .eq('id', selectedTable.id);
+
+    if (!error) {
+      const updatedTable = {
+        ...selectedTable,
+        status: 'free',
+        timeSeated: null,
+        amount: 0,
+        waiter: null
+      };
+      
+      setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
+      setSelectedTable(updatedTable);
+    }
   };
 
   return (

@@ -22,6 +22,7 @@ const CallCenterModule = () => {
     
     if (data) {
       setTickets(data.map((c, idx) => ({
+        uuid: c.id, // Keep real ID for updates
         id: `CRM-${c.id.slice(0, 4).toUpperCase()}`,
         clientName: c.name,
         phone: c.phone || 'N/A',
@@ -40,15 +41,36 @@ const CallCenterModule = () => {
     setLoading(false);
   };
 
-  const handleUpdateStatus = (id, newStatus) => {
-    setTickets(tickets.map(t => t.id === id ? { ...t, status: newStatus } : t));
+  const handleUpdateStatus = async (id, newStatus) => {
+    const ticket = tickets.find(t => t.id === id);
+    if (!ticket) return;
+
+    const { error } = await supabase
+      .from('customers')
+      .update({ status: newStatus })
+      .eq('id', ticket.uuid);
+    
+    if (!error) {
+      setTickets(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+    }
   };
 
-  const handleAddComment = (id, text) => {
-    setTickets(tickets.map(t => {
+  const handleAddComment = async (id, text) => {
+    // For now, we'll just update local state for comments as we don't have a comments table
+    // But we could update a 'last_note' field in customers
+    const ticket = tickets.find(t => t.id === id);
+    if (!ticket) return;
+
+    await supabase
+      .from('customers')
+      .update({ initial_request: text }) // Reusing initial_request as a simple note field for demo
+      .eq('id', ticket.uuid);
+
+    setTickets(prev => prev.map(t => {
       if (t.id === id) {
         return {
           ...t,
+          initialRequest: text,
           comments: [...t.comments, { text, time: 'Just now' }]
         };
       }
