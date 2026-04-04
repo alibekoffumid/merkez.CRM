@@ -283,7 +283,7 @@ const FloorPlan = () => {
            </div>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-auto pr-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-auto pr-2" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           {tables
             .filter(table => filter === 'all' || table.status === filter)
             .map(table => (
@@ -337,7 +337,7 @@ const FloorPlan = () => {
              <span className="bg-blue-50 text-merkez-blue text-xs font-bold px-2 py-1 rounded-full">{liveOrders.length} {t('restaurant.active')}</span>
            </div>
            
-           <div className="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0">
+           <div className="flex-1 space-y-3 overflow-y-auto pr-2 min-h-0 no-scrollbar" style={{ maxHeight: 'calc(100vh - 280px)' }}>
              {liveOrders.length === 0 ? (
                <p className="text-sm text-gray-400 text-center py-8">{t('restaurant.noActiveOrders')}</p>
              ) : (

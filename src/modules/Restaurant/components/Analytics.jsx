@@ -301,7 +301,7 @@ const Analytics = () => {
              </h3>
              <span className="text-xs font-semibold text-merkez-blue bg-blue-50 px-2 py-1 rounded-md">{t('restaurant.rankedByRevenue')}</span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '400px' }}>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
@@ -342,7 +342,7 @@ const Analytics = () => {
              </h3>
              <span className="text-xs font-semibold text-merkez-yellow bg-yellow-50 px-2 py-1 rounded-md">{t('restaurant.rankedByRevenue')}</span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '400px' }}>
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">

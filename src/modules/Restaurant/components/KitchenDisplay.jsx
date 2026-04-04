@@ -202,7 +202,7 @@ const KitchenDisplay = () => {
         </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden relative">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden relative" style={{ height: 'calc(100vh - 210px)' }}>
         
         {/* NEW COLUMN */}
         <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${
