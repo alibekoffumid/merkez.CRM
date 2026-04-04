@@ -1,99 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Clock, ChefHat, CheckCircle2, ArrowRight, Martini } from 'lucide-react';
+import { supabase } from '../../../supabaseClient';
 
-// Mock initial data split by station (Kitchen vs Bar)
-const initialTickets = [
-  {
-    id: 'K-0921',
-    table: 'Table T2',
-    timeElapsed: '12m',
-    status: 'NEW', // NEW, PREPARING, READY
-    station: 'kitchen',
-    items: [
-      { name: 'Margherita Pizza', qty: 2, notes: 'No extra cheese' },
-      { name: 'Caesar Salad', qty: 1, notes: '' }
-    ]
-  },
-  {
-    id: 'B-0921',
-    table: 'Table T2',
-    timeElapsed: '12m',
-    status: 'NEW',
-    station: 'bar',
-    items: [
-      { name: 'Mojito', qty: 2, notes: 'Less ice' }
-    ]
-  },
-  {
-    id: 'K-0922',
-    table: 'Table T5',
-    timeElapsed: '5m',
-    status: 'NEW',
-    station: 'kitchen',
-    items: [
-      { name: 'Grilled Salmon', qty: 1, notes: 'Well done' }
-    ]
-  },
-  {
-    id: 'B-0922',
-    table: 'Table T5',
-    timeElapsed: '6m',
-    status: 'NEW',
-    station: 'bar',
-    items: [
-      { name: 'Espresso', qty: 2, notes: '' },
-      { name: 'Sparkling Water', qty: 1, notes: '' }
-    ]
-  },
-  {
-    id: 'K-0918',
-    table: 'VIP Cabin V1',
-    timeElapsed: '18m',
-    status: 'PREPARING',
-    station: 'kitchen',
-    items: [
-      { name: 'Tiramisu', qty: 4, notes: '' }
-    ]
-  },
-  {
-    id: 'B-0918',
-    table: 'VIP Cabin V1',
-    timeElapsed: '19m',
-    status: 'READY',
-    station: 'bar',
-    items: [
-      { name: 'Black Coffee', qty: 4, notes: '' },
-      { name: 'Fresh Orange Juice', qty: 2, notes: '' }
-    ]
-  },
-  {
-    id: 'K-0915',
-    table: 'Table T6',
-    timeElapsed: '25m',
-    status: 'READY',
-    station: 'kitchen',
-    items: [
-      { name: 'Steak Frites', qty: 2, notes: 'Medium Rare' }
-    ]
-  },
-  {
-    id: 'B-0915',
-    table: 'Table T6',
-    timeElapsed: '26m',
-    status: 'READY',
-    station: 'bar',
-    items: [
-      { name: 'Coca Cola', qty: 2, notes: 'No ice' }
-    ]
-  }
-];
+const TicketCard = ({ ticket, actionBtn }) => (
+  <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+    <div className="flex justify-between items-start mb-3">
+      <div>
+        <h3 className="font-bold text-gray-900">{ticket.table}</h3>
+        <p className="text-xs text-gray-500">ID: {ticket.displayId}</p>
+      </div>
+      <div className="flex items-center text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">
+        <Clock className="w-3 h-3 mr-1" />
+        {ticket.timeElapsed}
+      </div>
+    </div>
+    <div className="space-y-2 mb-4">
+      {ticket.items.map((item, idx) => (
+        <div key={idx} className="flex justify-between text-sm">
+          <span className="text-gray-700">{item.qty}x {item.name}</span>
+          {item.notes && <span className="text-gray-400 italic text-xs">({item.notes})</span>}
+        </div>
+      ))}
+    </div>
+    {actionBtn}
+  </div>
+);
+
+const ActionBtn = ({ onClick, text, color, disabled }) => (
+  <button 
+    onClick={onClick}
+    disabled={disabled}
+    className={`w-full py-2 rounded-lg text-white text-sm font-bold transition-colors ${color}`}
+  >
+    {text}
+  </button>
+);
 
 const KitchenDisplay = () => {
-  const [tickets, setTickets] = useState(initialTickets);
-  const [activeStation, setActiveStation] = useState('kitchen'); // 'kitchen' or 'bar'
+  const [tickets, setTickets] = useState([]);
+  const [activeStation, setActiveStation] = useState('kitchen'); 
+  const [loading, setLoading] = useState(true);
 
-  const moveOrder = (id, newStatus) => {
-    setTickets(tickets.map(t => t.id === id ? { ...t, status: newStatus } : t));
+  useEffect(() => {
+    fetchTickets();
+    const interval = setInterval(fetchTickets, 5000); 
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchTickets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('order_items')
+        .select('*, products(name, categories(name)), orders(restaurant_tables(number))')
+        .order('created_at', { ascending: true });
+      
+      if (data && Array.isArray(data)) {
+        const grouped = data.reduce((acc, item) => {
+          const orderId = item.order_id;
+          if (!orderId) return acc;
+
+          // Handle Supabase join variations (object or array)
+          const product = Array.isArray(item.products) ? item.products[0] : item.products;
+          const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
+          const category = product?.categories;
+          const categoryName = Array.isArray(category) ? category[0]?.name : category?.name;
+          const table = order?.restaurant_tables;
+          const tableNumber = Array.isArray(table) ? table[0]?.number : table?.number;
+
+          if (!acc[orderId]) {
+            acc[orderId] = {
+              id: orderId,
+              displayId: orderId.slice(0, 8).toUpperCase(),
+              table: tableNumber || 'Unknown',
+              status: (item.status || 'new').toUpperCase(),
+              station: ['Drinks', 'Desserts'].includes(categoryName) ? 'bar' : 'kitchen',
+              items: [],
+              created_at: new Date(item.created_at)
+            };
+          }
+          acc[orderId].items.push({
+            id: item.id,
+            name: product?.name || 'Unknown Item',
+            qty: item.quantity,
+            notes: item.notes
+          });
+          
+          return acc;
+        }, {});
+
+        setTickets(Object.values(grouped).map(t => ({
+          ...t,
+          timeElapsed: Math.floor((new Date() - t.created_at) / 60000) + 'm'
+        })));
+      }
+    } catch (err) {
+      console.error('Fetch tickets error:', err);
+    }
+    setLoading(false);
+  };
+
+  const moveOrder = async (orderId, newStatus) => {
+    const { error } = await supabase
+      .from('order_items')
+      .update({ status: newStatus.toLowerCase() })
+      .eq('order_id', orderId);
+    
+    if (!error) {
+      fetchTickets();
+    }
   };
 
   const getStationParams = () => {
@@ -105,8 +119,8 @@ const KitchenDisplay = () => {
   const { icon, title } = getStationParams();
 
   // Filter based on currently active station
-  const stationTickets = tickets.filter(t => t.station === activeStation);
-  const getColumnData = (status) => stationTickets.filter(t => t.status === status);
+  const stationTickets = (tickets || []).filter(t => t && t.station === activeStation);
+  const getColumnData = (status) => stationTickets.filter(t => t && t.status === status);
 
   return (
     <div className="h-full flex flex-col space-y-4">
@@ -225,53 +239,5 @@ const KitchenDisplay = () => {
     </div>
   );
 };
-
-const TicketCard = ({ ticket, actionBtn }) => {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-        <div>
-          <span className="font-bold text-gray-900 text-sm block">{ticket.table}</span>
-          <span className="text-[10px] text-gray-500 font-medium tracking-wide">#{ticket.id}</span>
-        </div>
-        <div className="flex items-center text-red-500 font-bold text-xs bg-red-50 px-2 py-1 rounded-md">
-          <Clock className="w-3 h-3 mr-1" /> {ticket.timeElapsed}
-        </div>
-      </div>
-      <div className="p-4">
-        <ul className="space-y-3">
-          {ticket.items.map((item, i) => (
-            <li key={i} className="flex justify-between items-start">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900 leading-tight">
-                  <span className={`${ticket.station === 'kitchen' ? 'text-merkez-blue' : 'text-purple-600'} mr-1.5`}>{item.qty}x</span> 
-                  {item.name}
-                </p>
-                {item.notes && (
-                  <p className="text-[11px] text-orange-600 font-medium mt-0.5 bg-orange-50 px-1 py-0.5 rounded inline-block">
-                    Note: {item.notes}
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="p-3 pt-0">
-        {actionBtn}
-      </div>
-    </div>
-  );
-};
-
-const ActionBtn = ({ onClick, text, color, disabled }) => (
-  <button 
-    onClick={disabled ? undefined : onClick}
-    disabled={disabled}
-    className={`w-full py-2 rounded-lg text-sm font-bold text-white shadow-sm flex items-center justify-center transition-colors ${color}`}
-  >
-    {text} {disabled ? <CheckCircle2 className="w-4 h-4 ml-2" /> : <ArrowRight className="w-4 h-4 ml-2" />}
-  </button>
-);
 
 export default KitchenDisplay;

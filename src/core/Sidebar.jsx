@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Settings } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { getNavItems } from '../config/navigation';
 
@@ -10,15 +11,9 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 h-screen bg-white border-r border-gray-100 flex flex-col fixed left-0 top-0">
-      <div className="p-6 flex items-center space-x-2">
-        {/* Simple geometric logo representation using Merkez colors */}
-        <div className="flex space-x-1">
-          <div className="w-3 h-3 rounded-full bg-merkez-blue"></div>
-          <div className="w-3 h-3 rounded-full bg-merkez-red"></div>
-          <div className="w-3 h-3 rounded-full bg-merkez-yellow"></div>
-          <div className="w-3 h-3 rounded-full bg-merkez-green"></div>
-        </div>
-        <span className="text-xl font-bold tracking-tight text-gray-900">Merkez</span>
+      <div className="p-6 flex items-center space-x-3">
+        <img src="/merkez-logo.svg" alt="Merkez Logo" className="w-10 h-10 object-contain" />
+        <span className="text-xl font-bold tracking-tight text-gray-900">Merkez CRM</span>
       </div>
 
       <nav className="flex-1 px-4 mt-6 space-y-2">
@@ -48,6 +43,13 @@ const Sidebar = () => {
           <Settings className="w-5 h-5 mr-3" />
           <span>{t('sidebar.settings')}</span>
         </NavLink>
+        <button
+          onClick={() => supabase.auth.signOut()}
+          className="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          <span>Sign Out</span>
+        </button>
       </div>
     </div>
   );

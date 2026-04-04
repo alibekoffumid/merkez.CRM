@@ -28,10 +28,91 @@ const FloorPlan = () => {
   const [menuStation, setMenuStation] = useState('Kitchen');
   const [menuSearch, setMenuSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [cart, setCart] = useState([]);
+  const [liveMenu, setLiveMenu] = useState([]);
 
   useEffect(() => {
     fetchTables();
+    fetchLiveMenu();
   }, []);
+
+  const fetchLiveMenu = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*, categories(name)');
+    if (data && Array.isArray(data)) {
+      setLiveMenu(data.map(p => {
+        const category = Array.isArray(p.categories) ? p.categories[0] : p.categories;
+        const categoryName = (category?.name || 'Dish').trim();
+        return {
+          id: p.id,
+          name: p.name,
+          price: parseFloat(p.price),
+          category: categoryName,
+          station: ['Drinks', 'Desserts'].some(s => s.toLowerCase() === categoryName.toLowerCase()) ? 'Bar' : 'Kitchen'
+        };
+      }));
+    }
+  };
+
+  const addToCart = (product) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+  };
+
+  const handleSendToKitchen = async () => {
+    if (cart.length === 0) return;
+
+    // 1. Create Order
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .insert([{
+        table_id: selectedTable.id,
+        status: 'pending',
+        total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      }])
+      .select()
+      .single();
+
+    if (orderError) {
+      console.error('Order creation error:', orderError);
+      return;
+    }
+
+    // 2. Create Order Items
+    const orderItems = cart.map(item => ({
+      order_id: orderData.id,
+      product_id: item.id,
+      quantity: item.quantity,
+      status: 'new'
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+
+    if (!itemsError) {
+      // 3. Update Table logic
+      await supabase
+        .from('restaurant_tables')
+        .update({ status: 'occupied' }) 
+        .eq('id', selectedTable.id);
+
+      const newAmount = (selectedTable.amount || 0) + orderData.total_amount;
+      
+      setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied', amount: newAmount } : t));
+      setSelectedTable(prev => ({ ...prev, status: 'occupied', amount: newAmount }));
+      
+      setCart([]);
+      setIsAddingOrder(false);
+      // alert('Order sent to kitchen!');
+    }
+  };
 
   const fetchTables = async () => {
     setLoading(true);
@@ -41,10 +122,9 @@ const FloorPlan = () => {
       .order('number', { ascending: true });
     
     if (data) {
-      // Mapping database fields to component expectations if necessary
       setTables(data.map(t => ({
         ...t,
-        amount: 0, // Mock for now until orders table is fully integrated
+        amount: 0,
         timeSeated: t.status === 'occupied' ? '12:00' : null,
         waiter: t.status === 'occupied' ? 'Staff' : null
       })));
@@ -74,6 +154,7 @@ const FloorPlan = () => {
     setSelectedTable(null);
     setIsAddingOrder(false);
     setMenuSearch('');
+    setCart([]);
   };
 
   const handleSeatGuests = async () => {
@@ -81,12 +162,12 @@ const FloorPlan = () => {
       .from('restaurant_tables')
       .update({ status: 'occupied' })
       .eq('id', selectedTable.id);
-    
+
     if (!error) {
       const updatedTable = {
         ...selectedTable,
         status: 'occupied',
-        timeSeated: '17:30', // Mock time
+        timeSeated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         amount: 0,
         waiter: 'Staff'
       };
@@ -424,9 +505,9 @@ const FloorPlan = () => {
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 overflow-y-auto no-scrollbar pr-2 pb-4">
-                    {quickMenu.filter(item => 
+                    {liveMenu.filter(item => 
                         item.station === menuStation && 
-                        item.name.toLowerCase().includes(menuSearch.toLowerCase())
+                        item.name.toLowerCase().includes(menuSearch.trim().toLowerCase())
                     ).map(item => (
                       <div key={item.id} className="bg-white border border-gray-100 p-3 rounded-xl shadow-sm hover:border-merkez-blue group transition-colors cursor-pointer flex flex-col justify-between h-24">
                         <div>
@@ -435,7 +516,10 @@ const FloorPlan = () => {
                         </div>
                         <div className="flex justify-between items-center mt-2">
                            <span className="text-sm font-bold text-merkez-blue">${item.price.toFixed(2)}</span>
-                           <button className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-merkez-blue group-hover:text-white transition-colors">
+                           <button 
+                            onClick={(e) => { e.stopPropagation(); addToCart(item); }}
+                            className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-merkez-blue group-hover:text-white transition-colors"
+                           >
                              <Plus className="w-4 h-4" />
                            </button>
                         </div>
@@ -443,16 +527,20 @@ const FloorPlan = () => {
                     ))}
                   </div>
 
-                  {/* Mock cart footer */}
+                  {/* Real cart footer */}
                   <div className="mt-auto bg-white p-4 rounded-xl shadow-sm border border-gray-200 shrink-0 flex justify-between items-center">
                      <div className="flex items-center text-gray-600">
                         <ShoppingCart className="w-5 h-5 mr-3" />
                         <div>
                            <p className="text-xs font-medium uppercase">New order</p>
-                           <p className="text-sm font-bold text-gray-900">0 items</p>
+                           <p className="text-sm font-bold text-gray-900">{cart.reduce((sum, i) => sum + i.quantity, 0)} items</p>
                         </div>
                      </div>
-                     <button className="bg-merkez-green text-white px-5 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-green-600 transition-colors">
+                     <button 
+                      onClick={handleSendToKitchen}
+                      disabled={cart.length === 0}
+                      className={`px-5 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${cart.length > 0 ? 'bg-merkez-green text-white hover:bg-green-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+                     >
                         Send to Kitchen
                      </button>
                   </div>

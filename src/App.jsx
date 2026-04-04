@@ -6,15 +6,23 @@ import CRMModule from './modules/CRM';
 import WarehouseModule from './modules/Warehouse';
 import RestaurantModule from './modules/Restaurant';
 import CallCenterModule from './modules/CallCenter';
-import Register from './modules/Auth/Register';
+import Auth from './modules/Auth/Auth';
+import AuthGuard from './components/Auth/AuthGuard';
 import Profile from './modules/Profile';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<CoreLayout />}>
+        <Route path="/auth" element={<Auth />} />
+        <Route 
+          path="/" 
+          element={
+            <AuthGuard>
+              <CoreLayout />
+            </AuthGuard>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="crm" element={<CRMModule />} />
           <Route path="warehouse" element={<WarehouseModule />} />

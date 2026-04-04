@@ -21,6 +21,10 @@ const MenuManager = () => {
 
   const statuses = ['All', 'Available', 'Out of Stock'];
 
+  const [editingDish, setEditingDish] = useState(null);
+  const [isEditDishModalOpen, setIsEditDishModalOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -68,11 +72,42 @@ const MenuManager = () => {
     }
   };
 
+  const handleEditDish = async () => {
+    if (!editingDish.name || !editingDish.price) return;
+    
+    const { error } = await supabase
+      .from('products')
+      .update({
+        name: editingDish.name,
+        price: parseFloat(editingDish.price),
+        category_id: editingDish.category_id
+      })
+      .eq('id', editingDish.id);
+    
+    if (!error) {
+      setIsEditDishModalOpen(false);
+      setEditingDish(null);
+      fetchData();
+    }
+  };
+
   const handleDeleteDish = async (id) => {
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (!error) {
+      setConfirmDeleteId(null);
       fetchData();
     }
+  };
+
+  const openEditModal = (dish) => {
+    setEditingDish({
+      id: dish.id,
+      name: dish.name,
+      price: dish.price,
+      category_id: categories.find(c => c.name === dish.category)?.id || categories[0]?.id,
+      status: dish.status
+    });
+    setIsEditDishModalOpen(true);
   };
 
   // Apply filters
@@ -174,12 +209,15 @@ const MenuManager = () => {
                       {item.status}
                     </span>
                   </td>
-                  <td className="p-4 text-right">
-                    <button className="text-gray-400 hover:text-merkez-blue p-1.5 transition-colors mr-1">
+                  <td className="p-4 text-right whitespace-nowrap">
+                    <button 
+                      onClick={() => openEditModal(item)}
+                      className="text-gray-400 hover:text-merkez-blue p-1.5 transition-colors mr-1"
+                    >
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={() => handleDeleteDish(item.id)}
+                      onClick={() => setConfirmDeleteId(item.id)}
                       className="text-gray-400 hover:text-red-500 p-1.5 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -200,7 +238,59 @@ const MenuManager = () => {
 
       {/* MODALS */}
 
-      {/* Add Category Modal */}
+      {/* Edit Dish Modal */}
+      {isEditDishModalOpen && editingDish && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
+              <h3 className="text-xl font-bold text-gray-900">Edit Dish</h3>
+              <button onClick={() => setIsEditDishModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-200 transition-colors">
+                <X className="w-5 h-5"/>
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Dish Name</label>
+                  <input 
+                    type="text" 
+                    value={editingDish.name}
+                    onChange={(e) => setEditingDish(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors" 
+                  />
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Category</label>
+                    <select 
+                      value={editingDish.category_id}
+                      onChange={(e) => setEditingDish(prev => ({ ...prev, category_id: e.target.value }))}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors cursor-pointer"
+                    >
+                      {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Price ($)</label>
+                    <input 
+                      type="number" 
+                      value={editingDish.price}
+                      onChange={(e) => setEditingDish(prev => ({ ...prev, price: e.target.value }))}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors" 
+                    />
+                 </div>
+               </div>
+               <button 
+                onClick={handleEditDish}
+                className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-2"
+              >
+                 Save Changes
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
       {isAddCategoryModalOpen && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -285,6 +375,30 @@ const MenuManager = () => {
               >
                  Save Dish
                </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Delete this dish?</h3>
+            <p className="text-gray-500 text-sm mb-6">Are you sure? This action cannot be undone and will permanently remove this item from the menu.</p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => handleDeleteDish(confirmDeleteId)}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors shadow-sm"
+              >
+                Yes, Delete
+              </button>
             </div>
           </div>
         </div>

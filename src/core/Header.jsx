@@ -12,13 +12,20 @@ const Header = () => {
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10 w-full pl-72 transition-all duration-300">
-      <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 w-96 border border-gray-100 focus-within:border-merkez-blue focus-within:ring-1 focus-within:ring-merkez-blue transition-colors">
-        <Search className="w-4 h-4 text-gray-400 mr-2" />
-        <input 
-          type="text" 
-          placeholder={t('header.search')} 
-          className="bg-transparent border-none outline-none text-sm w-full text-gray-700 placeholder-gray-400"
-        />
+      <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-3 pr-6 border-r border-gray-100">
+           <img src="/merkez-logo.svg" alt="Logo" className="w-8 h-8 object-contain" />
+           <span className="text-sm font-black text-gray-900 uppercase tracking-widest">Merkez CRM</span>
+        </div>
+        
+        <div className="flex items-center bg-gray-50 rounded-lg px-3 py-2 w-80 border border-gray-100 focus-within:border-merkez-blue transition-colors">
+          <Search className="w-4 h-4 text-gray-400 mr-2" />
+          <input 
+            type="text" 
+            placeholder={t('header.search')} 
+            className="bg-transparent border-none outline-none text-sm w-full text-gray-700 placeholder-gray-400"
+          />
+        </div>
       </div>
 
       <div className="flex items-center space-x-6">
