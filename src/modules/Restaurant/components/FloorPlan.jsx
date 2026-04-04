@@ -75,12 +75,29 @@ const FloorPlan = () => {
   const fetchTableOrders = async (tableId) => {
     if (!tableId) return;
     setTableOrdersLoading(true);
+
+    // Step 1: Get only ACTIVE (non-completed) order IDs for this table
+    const { data: activeOrders } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('table_id', tableId)
+      .neq('status', 'completed');
+
+    if (!activeOrders || activeOrders.length === 0) {
+      setTableOrders([]);
+      setTableOrdersLoading(false);
+      return;
+    }
+
+    const orderIds = activeOrders.map(o => o.id);
+
+    // Step 2: Get order_items for those active orders only
     const { data } = await supabase
       .from('order_items')
-      .select('*, orders!inner(table_id, status), products(name, price)')
-      .eq('orders.table_id', tableId)
-      .neq('orders.status', 'completed')
+      .select('*, products(name, price)')
+      .in('order_id', orderIds)
       .order('created_at', { ascending: false });
+
     setTableOrders(data || []);
     setTableOrdersLoading(false);
   };
