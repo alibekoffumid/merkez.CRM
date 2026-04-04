@@ -72,7 +72,7 @@ const TableSettings = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col min-h-[500px] relative">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
       <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
            <h2 className="text-lg font-bold text-gray-900">{t('restaurant.tableConfig')}</h2>
@@ -87,7 +87,7 @@ const TableSettings = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto flex-1">
+      <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/50 border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
