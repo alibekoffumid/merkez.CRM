@@ -3,19 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
-
-
-const quickMenu = [
-  { id: 1, name: 'Margherita Pizza', category: 'Pizza', station: 'Kitchen', price: 12.50 },
-  { id: 2, name: 'Caesar Salad', category: 'Salads', station: 'Kitchen', price: 8.00 },
-  { id: 3, name: 'Tiramisu', category: 'Desserts', station: 'Kitchen', price: 6.50 },
-  { id: 4, name: 'Espresso', category: 'Drinks', station: 'Bar', price: 3.00 },
-  { id: 5, name: 'Grilled Salmon', category: 'Mains', station: 'Kitchen', price: 24.00 },
-  { id: 6, name: 'Coca Cola', category: 'Drinks', station: 'Bar', price: 2.50 },
-  { id: 7, name: 'Beef Steak', category: 'Mains', station: 'Kitchen', price: 32.00 },
-  { id: 8, name: 'French Fries', category: 'Sides', station: 'Kitchen', price: 4.50 },
-];
-
 const getInitials = (name) => {
   if (!name) return '?';
   return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -82,7 +69,6 @@ const FloorPlan = () => {
     if (!tableId) return;
     setTableOrdersLoading(true);
 
-    // Step 1: Get only ACTIVE (non-completed) order IDs for this table
     const { data: activeOrders } = await supabase
       .from('orders')
       .select('id')
@@ -97,7 +83,6 @@ const FloorPlan = () => {
 
     const orderIds = activeOrders.map(o => o.id);
 
-    // Step 2: Get order_items for those active orders only
     const { data } = await supabase
       .from('order_items')
       .select('*, products(name, price)')
@@ -131,7 +116,6 @@ const FloorPlan = () => {
   const handleSendToKitchen = async () => {
     if (cart.length === 0) return;
 
-    // 1. Create Order
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert([{
@@ -147,7 +131,6 @@ const FloorPlan = () => {
       return;
     }
 
-    // 2. Create Order Items
     const orderItems = cart.map(item => ({
       order_id: orderData.id,
       product_id: item.id,
@@ -160,7 +143,6 @@ const FloorPlan = () => {
       .insert(orderItems);
 
     if (!itemsError) {
-      // 3. Update Table logic
       await supabase
         .from('restaurant_tables')
         .update({ status: 'occupied' }) 
@@ -242,14 +224,12 @@ const FloorPlan = () => {
   };
 
   const handleCheckout = async () => {
-    // 1. Mark all active orders for this table as completed
     await supabase
       .from('orders')
       .update({ status: 'completed' })
       .eq('table_id', selectedTable.id)
       .neq('status', 'completed');
 
-    // 2. Free the table
     const { error } = await supabase
       .from('restaurant_tables')
       .update({ status: 'free' })
@@ -288,40 +268,50 @@ const FloorPlan = () => {
            </div>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-auto pr-2" style={{ maxHeight: 'calc(100vh - 280px)' }}>
-          {tables
-            .filter(table => filter === 'all' || table.status === filter)
-            .map(table => (
-            <div 
-              key={table.id} 
-              onClick={() => { setSelectedTable(table); fetchTableOrders(table.id); }}
-              className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${getTableColor(table.status)}`}
-            >
-              {table.waiter && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-auto pr-2" style={{ minHeight: '400px' }}>
+          {loading ? (
+             <div className="col-span-full h-32 flex items-center justify-center text-gray-400">
+                {t('common.loading')}...
+             </div>
+          ) : tables.length === 0 ? (
+             <div className="col-span-full h-32 flex items-center justify-center text-gray-400">
+                No tables found.
+             </div>
+          ) : (
+            tables
+              .filter(table => filter === 'all' || table.status === filter)
+              .map(table => (
                 <div 
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm flex items-center justify-center text-[10px] font-bold text-current"
-                  title={`${t('restaurant.assignedWaiter')}: ${table.waiter}`}
+                  key={table.id} 
+                  onClick={() => { setSelectedTable(table); fetchTableOrders(table.id); }}
+                  className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${getTableColor(table.status)}`}
                 >
-                  {table.waiter ? getInitials(table.waiter) : '?'}
+                  {table.waiter && (
+                    <div 
+                      className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm flex items-center justify-center text-[10px] font-bold text-current"
+                      title={`${t('restaurant.assignedWaiter')}: ${table.waiter}`}
+                    >
+                      {table.waiter ? getInitials(table.waiter) : '?'}
+                    </div>
+                  )}
+                  <span className="text-2xl font-bold mb-1">{table.number}</span>
+                  <div className="flex items-center text-xs opacity-90 mb-2">
+                    <Users className="w-4 h-4 mr-1" /> {table.capacity}
+                  </div>
+                  {table.status === 'occupied' && (
+                    <div className="absolute bottom-3 text-xs font-medium bg-black/20 px-2 py-0.5 rounded-full flex gap-2">
+                      <span className="flex items-center"><Clock className="w-3 h-3 mr-1" /> {table.timeSeated}</span>
+                      <span>${table.amount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {table.status === 'reserved' && (
+                    <div className="absolute bottom-3 text-xs font-medium px-2 py-0.5 rounded-full text-gray-600 bg-black/5">
+                      <span>19:00</span>
+                    </div>
+                  )}
                 </div>
-              )}
-              <span className="text-2xl font-bold mb-1">{table.number}</span>
-              <div className="flex items-center text-xs opacity-90 mb-2">
-                <Users className="w-3 h-3 mr-1" /> {table.capacity}
-              </div>
-              {table.status === 'occupied' && (
-                <div className="absolute bottom-3 text-xs font-medium bg-black/20 px-2 py-0.5 rounded-full flex gap-2">
-                  <span className="flex items-center"><Clock className="w-3 h-3 mr-1" /> {table.timeSeated}</span>
-                  <span>${table.amount.toFixed(2)}</span>
-                </div>
-              )}
-              {table.status === 'reserved' && (
-                <div className="absolute bottom-3 text-xs font-medium px-2 py-0.5 rounded-full text-gray-600 bg-black/5">
-                  <span>19:00</span>
-                </div>
-              )}
-            </div>
-          ))}
+              ))
+          )}
         </div>
 
         <div className="mt-6 flex justify-center gap-6 text-sm text-gray-500 border-t border-gray-100 pt-4">
