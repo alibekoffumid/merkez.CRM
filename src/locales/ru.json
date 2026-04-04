@@ -1,0 +1,19 @@
+{
+  "sidebar": {
+    "dashboard": "Контроль Merkez",
+    "crm": "CRM",
+    "warehouse": "Склад и Товары",
+    "restaurant": "Рестораны и Кафе",
+    "callCenter": "Колл-Центр",
+    "finance": "Финансы",
+    "settings": "Настройки"
+  },
+  "header": {
+    "search": "Поиск...",
+    "profile": "Профиль"
+  },
+  "dashboard": {
+    "welcome": "Добро пожаловать в Merkez",
+    "overview": "Обзор"
+  }
+}

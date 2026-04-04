@@ -1,0 +1,19 @@
+{
+  "sidebar": {
+    "dashboard": "Control Merkez",
+    "crm": "CRM",
+    "warehouse": "Warehouse & Stock",
+    "restaurant": "Restaurant & Cafe",
+    "callCenter": "Call Center",
+    "finance": "Finance",
+    "settings": "Settings"
+  },
+  "header": {
+    "search": "Search...",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "welcome": "Welcome to Merkez",
+    "overview": "Overview"
+  }
+}

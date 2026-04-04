@@ -1,0 +1,19 @@
+{
+  "sidebar": {
+    "dashboard": "İdarə Merkez",
+    "crm": "CRM",
+    "warehouse": "Anbar",
+    "restaurant": "Restoran və Kafe",
+    "callCenter": "Zəng Mərkəzi",
+    "finance": "Maliyyə",
+    "settings": "Tənzimləmələr"
+  },
+  "header": {
+    "search": "Axtarış...",
+    "profile": "Profil"
+  },
+  "dashboard": {
+    "welcome": "Merkez'ə xoş gəlmisiniz",
+    "overview": "İcmal"
+  }
+}
