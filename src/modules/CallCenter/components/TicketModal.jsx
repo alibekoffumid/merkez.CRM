@@ -23,15 +23,18 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/80 shrink-0">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-bold text-gray-900">{t('common.actions')} #{ticket.id}</h2>
             <span className={`px-2.5 py-1 text-xs font-bold rounded-md uppercase tracking-wider border ${statusColors[ticket.status]}`}>
-              {ticket.status}
+              {t(`status.${ticket.status.toLowerCase()}`)}
             </span>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-900 transition-colors p-1.5 rounded-lg hover:bg-gray-200">
@@ -82,8 +85,8 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
             
             <div className="mt-6 flex justify-between items-center text-xs text-gray-500">
                <div className="flex flex-col gap-1">
-                 <span>{t('callCenter.source')}: <strong>Inbound Web / Call</strong></span>
-                 <span>{t('callCenter.industry')}: <strong>General Service</strong></span>
+                 <span>{t('callCenter.source')}: <strong>{t('callCenter.inboundWeb')}</strong></span>
+                 <span>{t('callCenter.industry')}: <strong>{t('callCenter.generalService')}</strong></span>
                </div>
                <div className="text-right">
                  <span>{t('callCenter.estimatedValue')}</span>
@@ -151,7 +154,7 @@ const TicketModal = ({ ticket, onClose, onUpdateStatus, onAddComment }) => {
                        : 'border-transparent text-gray-500 hover:bg-gray-50'
                    }`}
                  >
-                   {status.replace('_', ' ')}
+                   {t(`status.${status.toLowerCase()}`)}
                    {ticket.status === status && <CheckCircle2 className="w-4 h-4 float-right" />}
                  </button>
                ))}

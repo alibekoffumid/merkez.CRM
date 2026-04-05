@@ -213,7 +213,7 @@ const InventoryManager = () => {
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 bg-green-100 text-green-700 text-[10px] font-black uppercase rounded-full w-fit">
-                           OK
+                           {t('status.free')}
                         </span>
                       )}
                     </td>
@@ -243,8 +243,11 @@ const InventoryManager = () => {
 
       {/* Modal for Add/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
+          <div 
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-gray-100">
               <h3 className="text-xl font-bold text-gray-900">
                 {editingIngredient ? t('common.edit') : t('common.add')} {t('restaurant.ingredient')}
@@ -269,11 +272,11 @@ const InventoryManager = () => {
                     value={formData.unit}
                     onChange={(e) => setFormData({...formData, unit: e.target.value})}
                   >
-                    <option value="kg">kg</option>
-                    <option value="liter">liter</option>
-                    <option value="pcs">pcs</option>
-                    <option value="pack">pack</option>
-                    <option value="gram">gram</option>
+                    <option value="kg">{t('restaurant.kg')}</option>
+                    <option value="liter">{t('restaurant.liter')}</option>
+                    <option value="pcs">{t('restaurant.pcs')}</option>
+                    <option value="pack">{t('restaurant.pack')}</option>
+                    <option value="gram">{t('restaurant.gram')}</option>
                   </select>
                 </div>
                 <div className="space-y-1">

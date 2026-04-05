@@ -301,6 +301,7 @@ const FloorPlan = () => {
   };
 
   const handleCloseModal = () => {
+    setSelectedTable(null);
     setTableOrders([]);
     setSelectedCustomer(null);
     setUseBonuses(false);
@@ -657,8 +658,11 @@ const FloorPlan = () => {
 
       {/* Table Details & Order Modal */}
       {selectedTable && !mergeMode && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-          <div className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[650px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}>
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={handleCloseModal}>
+          <div 
+            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[650px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
+            onClick={(e) => e.stopPropagation()}
+          >
             
             <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0">
               <h3 className="text-lg sm:text-xl font-bold text-gray-900">

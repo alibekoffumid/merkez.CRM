@@ -165,8 +165,11 @@ const StaffManager = () => {
 
       {/* Add Staff Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={() => setIsAddModalOpen(false)}>
+          <div 
+            className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
               <h3 className="text-xl font-bold text-gray-900">{t('restaurant.addNewStaff')}</h3>
               <button 
@@ -183,14 +186,14 @@ const StaffManager = () => {
                     type="text" 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="e.g. John Doe" 
+                    placeholder={t('restaurant.staffPlaceholder')} 
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors" 
                   />
                </div>
                
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.role')}</label>
                      <select 
                       value={formData.role}
                       onChange={(e) => setFormData({...formData, role: e.target.value})}
@@ -204,7 +207,7 @@ const StaffManager = () => {
                     </select>
                  </div>
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Shift</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.shift')}</label>
                      <select 
                       value={formData.shift}
                       onChange={(e) => setFormData({...formData, shift: e.target.value})}
@@ -219,7 +222,7 @@ const StaffManager = () => {
                </div>
 
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Status</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
                    <select 
                     value={formData.status}
                     onChange={(e) => setFormData({...formData, status: e.target.value})}
@@ -243,8 +246,11 @@ const StaffManager = () => {
 
       {/* Edit Staff Modal */}
       {editingStaff && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={() => setEditingStaff(null)}>
+          <div 
+            className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
               <h3 className="text-xl font-bold text-gray-900">{t('restaurant.editStaff')}</h3>
               <button 
@@ -256,7 +262,7 @@ const StaffManager = () => {
             </div>
             <div className="p-5 space-y-4">
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Full Name</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.fullName')}</label>
                   <input 
                     type="text" 
                     value={editingStaff.name}
@@ -267,7 +273,7 @@ const StaffManager = () => {
                
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Role</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.role')}</label>
                     <select 
                       value={editingStaff.role}
                       onChange={(e) => setEditingStaff({...editingStaff, role: e.target.value})}
@@ -281,7 +287,7 @@ const StaffManager = () => {
                     </select>
                  </div>
                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Shift</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.shift')}</label>
                     <select 
                       value={editingStaff.shift}
                       onChange={(e) => setEditingStaff({...editingStaff, shift: e.target.value})}
@@ -296,7 +302,7 @@ const StaffManager = () => {
                </div>
 
                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Status</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
                   <select 
                     value={editingStaff.status}
                     onChange={(e) => setEditingStaff({...editingStaff, status: e.target.value})}
@@ -320,8 +326,11 @@ const StaffManager = () => {
 
       {/* Confirmation Modal */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeleteId(null)}>
+          <div 
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.removeStaff')}</h3>
             <p className="text-gray-500 text-sm mb-6">{t('restaurant.removeStaffConfirm')}</p>
             <div className="flex gap-3">

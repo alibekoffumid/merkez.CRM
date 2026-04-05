@@ -144,8 +144,11 @@ const TableSettings = () => {
 
       {/* Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={() => setIsModalOpen(false)}>
+          <div 
+            className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
               <h3 className="text-xl font-bold text-gray-900">{t('restaurant.addPlace')}</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors bg-white p-1 rounded-md border border-gray-200 shadow-sm">
@@ -161,9 +164,9 @@ const TableSettings = () => {
                    value={formData.type}
                    onChange={(e) => setFormData({...formData, type: e.target.value})}
                  >
-                    <option>Table</option>
-                    <option>VIP Cabin</option>
-                    <option>Bar Stool</option>
+                    <option value="Table">{t('restaurant.table')}</option>
+                    <option value="VIP Cabin">{t('restaurant.vipCabin')}</option>
+                    <option value="Bar Stool">{t('restaurant.barStool')}</option>
                  </select>
               </div>
               <div className="flex gap-4">
@@ -173,7 +176,7 @@ const TableSettings = () => {
                       type="text" 
                       value={formData.number}
                       onChange={(e) => setFormData({...formData, number: e.target.value})}
-                      placeholder="e.g. T7"
+                      placeholder={t('restaurant.tablePlaceholder')}
                       className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all"
                     />
                  </div>
@@ -226,8 +229,11 @@ const TableSettings = () => {
 
       {/* Edit Modal */}
       {editingTable && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
-          <div className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={() => setEditingTable(null)}>
+          <div 
+            className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
               <h3 className="text-xl font-bold text-gray-900">{t('restaurant.editPlace')}</h3>
               <button onClick={() => setEditingTable(null)} className="text-gray-400 hover:text-gray-600 transition-colors bg-white p-1 rounded-md border border-gray-200 shadow-sm">
@@ -243,9 +249,9 @@ const TableSettings = () => {
                    value={editingTable.type}
                    onChange={(e) => setEditingTable({...editingTable, type: e.target.value})}
                  >
-                    <option>Table</option>
-                    <option>VIP Cabin</option>
-                    <option>Bar Stool</option>
+                    <option value="Table">{t('restaurant.table')}</option>
+                    <option value="VIP Cabin">{t('restaurant.vipCabin')}</option>
+                    <option value="Bar Stool">{t('restaurant.barStool')}</option>
                  </select>
               </div>
               <div className="flex gap-4">
@@ -307,8 +313,11 @@ const TableSettings = () => {
 
       {/* Confirmation Modal */}
       {confirmDeleteId && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100">
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeleteId(null)}>
+          <div 
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.deletePlace')}</h3>
             <p className="text-gray-500 text-sm mb-6">{t('restaurant.deletePlaceConfirm')}</p>
             <div className="flex gap-3">

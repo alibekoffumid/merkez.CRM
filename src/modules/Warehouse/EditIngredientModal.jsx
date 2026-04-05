@@ -64,8 +64,11 @@ const EditIngredientModal = ({ isOpen, ingredient, onClose, onIngredientUpdated 
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
           <h3 className="text-xl font-bold text-gray-900 flex items-center">
             <Box className="w-5 h-5 mr-2 text-merkez-green" />
@@ -97,7 +100,7 @@ const EditIngredientModal = ({ isOpen, ingredient, onClose, onIngredientUpdated 
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
               >
-                {units.map(u => <option key={u} value={u}>{u}</option>)}
+                {units.map(u => <option key={u} value={u}>{t('restaurant.' + u)}</option>)}
               </select>
             </div>
             <div>

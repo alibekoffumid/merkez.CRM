@@ -89,8 +89,11 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div 
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
           <h3 className="text-xl font-bold text-gray-900">{t('warehouse.addProduct')}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-md hover:bg-gray-200">
@@ -141,7 +144,7 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
               value={formData.name}
               onChange={e => setFormData({...formData, name: e.target.value})}
               className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
-              placeholder="e.g. Premium Beef Steak"
+              placeholder={t('warehouse.productNamePlaceholder')}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
