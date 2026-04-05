@@ -767,8 +767,12 @@ const FloorPlan = () => {
                     <div className="pt-4 mt-auto shrink-0 border-t border-gray-100 bg-white">
                       {!isAddingOrder ? (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <button onClick={() => setIsAddingOrder(true)} className="w-full bg-merkez-blue text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center">
-                            <Plus className="w-4 h-4 mr-2" /> {t('restaurant.addOrder')}
+                          <button 
+                            onClick={() => setIsAddingOrder(true)} 
+                            className="w-full bg-merkez-blue text-white py-3 px-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center group"
+                          >
+                            <Plus className="w-4 h-4 mr-1.5 shrink-0 transition-transform group-hover:scale-110" />
+                            <span className="leading-tight">{t('restaurant.addOrder')}</span>
                           </button>
                           <button 
                              onClick={handleCheckout} 
