@@ -26,6 +26,8 @@ const FloorPlan = () => {
   const [liveOrders, setLiveOrders] = useState([]);
   const [tableOrders, setTableOrders] = useState([]);
   const [tableOrdersLoading, setTableOrdersLoading] = useState(false);
+  const [mergeMode, setMergeMode] = useState(false);
+  const [selectedForMerge, setSelectedForMerge] = useState([]);
 
   useEffect(() => {
     const init = async () => {
@@ -93,7 +95,7 @@ const FloorPlan = () => {
       const { data: activeOrders } = await supabase
         .from('orders')
         .select('id')
-        .eq('table_id', tableId)
+        .eq('table_id', selectedTable.merged_id || tableId) // Use master table ID if merged
         .neq('status', 'completed');
 
       if (!activeOrders || activeOrders.length === 0) {
@@ -148,7 +150,7 @@ const FloorPlan = () => {
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          table_id: selectedTable.id,
+          table_id: selectedTable.merged_id || selectedTable.id, // Deduct from master
           status: 'pending',
           total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
         }])
@@ -172,12 +174,12 @@ const FloorPlan = () => {
         await supabase
           .from('restaurant_tables')
           .update({ status: 'occupied' }) 
-          .eq('id', selectedTable.id);
+          .eq('id', selectedTable.merged_id || selectedTable.id);
 
         const newAmount = (selectedTable.amount || 0) + orderData.total_amount;
         setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied', amount: newAmount } : t));
         setSelectedTable(prev => ({ ...prev, status: 'occupied', amount: newAmount }));
-        fetchTableOrders(selectedTable.id);
+        fetchTableOrders(selectedTable.merged_id || selectedTable.id);
         fetchLiveOrders();
         setCart([]);
         setIsAddingOrder(false);
@@ -208,6 +210,7 @@ const FloorPlan = () => {
       case 'free': return 'bg-white border-merkez-green text-merkez-green shadow-[0_2px_10px_-4px_rgba(52,168,83,0.3)] hover:bg-green-50';
       case 'occupied': return 'bg-merkez-blue border-merkez-blue text-white shadow-[0_2px_10px_-4px_rgba(66,133,244,0.4)] hover:bg-blue-600';
       case 'reserved': return 'bg-white border-merkez-yellow text-merkez-yellow shadow-[0_2px_10px_-4px_rgba(251,188,5,0.3)] hover:bg-yellow-50';
+      case 'selected': return 'bg-merkez-green/20 border-merkez-green text-merkez-green ring-2 ring-merkez-green ring-offset-2';
       default: return 'bg-gray-100 border-gray-200 text-gray-400';
     }
   };
@@ -250,20 +253,75 @@ const FloorPlan = () => {
     }
   };
 
+  const handleStartMerge = () => {
+    setMergeMode(true);
+    setSelectedForMerge([]);
+    handleCloseModal();
+  };
+
+  const toggleTableMergeSelection = (id) => {
+    setSelectedForMerge(prev => 
+      prev.includes(id) ? prev.filter(mid => mid !== id) : [...prev, id]
+    );
+  };
+
+  const confirmMerge = async () => {
+    if (selectedForMerge.length === 0) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('restaurant_tables')
+        .update({ merged_id: selectedTable.id })
+        .in('id', selectedForMerge);
+
+      if (!error) {
+        setMergeMode(false);
+        setSelectedForMerge([]);
+        fetchTables();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnmerge = async (table) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('restaurant_tables')
+        .update({ merged_id: null })
+        .eq('id', table.id);
+
+      if (!error) {
+        fetchTables();
+        handleCloseModal();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCheckout = async () => {
     // 1. Get all active orders for this table first to deduct ingredients
     try {
+      const masterId = selectedTable.merged_id || selectedTable.id;
+
       const { data: activeOrders } = await supabase
         .from('orders')
         .select('id')
-        .eq('table_id', selectedTable.id)
+        .eq('table_id', masterId)
         .neq('status', 'completed');
 
       // 2. Mark orders as completed
       await supabase
         .from('orders')
         .update({ status: 'completed' })
-        .eq('table_id', selectedTable.id)
+        .eq('table_id', masterId)
         .neq('status', 'completed');
 
       // 3. Deduct ingredients for each order
@@ -272,34 +330,46 @@ const FloorPlan = () => {
           await InventoryService.deductIngredientsFromOrder(order.id);
         }
       }
+
+      // 4. Free all tables in the group
+      await supabase
+        .from('restaurant_tables')
+        .update({ status: 'free', merged_id: null })
+        .or(`id.eq.${masterId},merged_id.eq.${masterId}`);
+
+      fetchTables();
+      handleCloseModal();
     } catch (invErr) {
       console.error('Inventory deduction failed during checkout:', invErr);
-    }
-
-    const { error } = await supabase
-      .from('restaurant_tables')
-      .update({ status: 'free' })
-      .eq('id', selectedTable.id);
-
-    if (!error) {
-      const updatedTable = {
-        ...selectedTable,
-        status: 'free',
-        timeSeated: null,
-        amount: 0,
-        waiter: null
-      };
-      
-      setTables(prev => prev.map(t => t.id === selectedTable.id ? updatedTable : t));
-      setSelectedTable(updatedTable);
     }
   };
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 min-h-[600px]">
       {/* Tables Grid Layout */}
-      <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col min-h-[500px]">
-        <div className="flex justify-between items-center mb-6">
+      <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col min-h-[500px] relative">
+        {mergeMode && (
+          <div className="absolute top-0 left-0 right-0 z-20 bg-merkez-green text-white px-6 py-4 rounded-t-xl flex justify-between items-center animate-in slide-in-from-top-4">
+            <div className="flex items-center">
+              <ShoppingCart className="w-5 h-5 mr-3" />
+              <span className="font-bold">{t('restaurant.selectToMerge')} {selectedTable.number}</span>
+              <span className="ml-4 bg-white/20 px-3 py-1 rounded-full text-xs font-black">{selectedForMerge.length} {t('restaurant.items').toUpperCase()}</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setMergeMode(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold transition-all">
+                {t('restaurant.cancelMerge')}
+              </button>
+              <button 
+                onClick={confirmMerge}
+                disabled={selectedForMerge.length === 0}
+                className="px-4 py-2 bg-white text-merkez-green hover:bg-gray-50 rounded-lg text-sm font-black transition-all shadow-md disabled:opacity-50"
+              >
+                {t('restaurant.confirmMerge')}
+              </button>
+            </div>
+          </div>
+        )}
+        <div className={`flex justify-between items-center mb-6 ${mergeMode ? 'mt-16' : ''}`}>
            <h3 className="text-lg font-semibold text-gray-900">{t('restaurant.mainHall')}</h3>
            <div className="flex space-x-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
              {['all', 'free', 'occupied', 'reserved'].map(f => (
@@ -330,9 +400,25 @@ const FloorPlan = () => {
               .map(table => (
                 <div 
                   key={table.id} 
-                  onClick={() => { setSelectedTable(table); fetchTableOrders(table.id); }}
-                  className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${getTableColor(table.status)}`}
+                  onClick={() => { 
+                    if (mergeMode) {
+                      if (table.id !== selectedTable.id && table.status === 'free') {
+                        toggleTableMergeSelection(table.id);
+                      }
+                    } else {
+                      setSelectedTable(table); 
+                      fetchTableOrders(table.id); 
+                    }
+                  }}
+                  className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${
+                    getTableColor(mergeMode && selectedForMerge.includes(table.id) ? 'selected' : table.status)
+                  } ${mergeMode && table.id === selectedTable.id ? 'ring-4 ring-merkez-blue ring-offset-4' : ''}`}
                 >
+                  {table.merged_id && !mergeMode && (
+                    <div className="absolute -top-1 -left-1 bg-merkez-blue text-white p-1 rounded-full shadow-lg z-10">
+                      <ShoppingCart className="w-3 h-3" />
+                    </div>
+                  )}
                   {table.waiter && (
                     <div 
                       className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 backdrop-blur-md border border-white/30 shadow-sm flex items-center justify-center text-[10px] font-bold text-current"
@@ -544,10 +630,24 @@ const FloorPlan = () => {
                     <div className="mt-auto pt-4 border-t border-gray-100">
                       <button 
                         onClick={handleSeatGuests}
-                        className="w-full bg-merkez-green text-white py-3 rounded-lg text-sm font-bold hover:bg-green-600 transition-all flex items-center justify-center shadow-md"
+                        className="w-full bg-merkez-green text-white py-3 rounded-lg text-sm font-bold hover:bg-green-600 transition-all flex items-center justify-center shadow-md mb-3"
                       >
                         <UserPlus className="w-5 h-5 mr-2" /> {t('restaurant.seatGuests')}
                       </button>
+                      <button 
+                        onClick={handleStartMerge}
+                        className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm"
+                      >
+                        <ShoppingCart className="w-5 h-5 mr-2 text-merkez-blue" /> {t('restaurant.mergeTables')}
+                      </button>
+                      {selectedTable.merged_id && (
+                        <button 
+                          onClick={() => handleUnmerge(selectedTable)}
+                          className="w-full mt-3 bg-red-50 text-red-600 py-3 rounded-lg text-sm font-bold hover:bg-red-100 transition-all flex items-center justify-center"
+                        >
+                          <X className="w-5 h-5 mr-2" /> {t('restaurant.unmerge')}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (

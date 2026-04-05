@@ -210,7 +210,16 @@
     "inventoryTitle": "Склад сырья и ингредиенты",
     "inventorySubtitle": "Управляйте остатками продуктов и их стоимостью в реальном времени.",
     "lowStockWarning": "Внимание: низкий остаток!",
-    "addIngredientBtn": "Добавить продукт"
+    "addIngredientBtn": "Добавить продукт",
+    "mergeTables": "Объединить столы",
+    "unmerge": "Разъединить",
+    "selectToMerge": "Выберите столы для объединения с №",
+    "mergeWith": "Объединено с №",
+    "confirmMerge": "Объединить столы?",
+    "mergeSuccess": "Столы успешно объединены.",
+    "isMaster": "Основной стол группы",
+    "partOfGroup": "Входит в группу №",
+    "cancelMerge": "Отменить выбор"
   },
   "status": {
     "new": "Новый",

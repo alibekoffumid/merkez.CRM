@@ -210,7 +210,16 @@
     "inventoryTitle": "Raw Materials & Ingredients",
     "inventorySubtitle": "Manage product remains and costs in real-time.",
     "lowStockWarning": "Warning: Low Stock!",
-    "addIngredientBtn": "Add Ingredient"
+    "addIngredientBtn": "Add Ingredient",
+    "mergeTables": "Merge Tables",
+    "unmerge": "Unmerge",
+    "selectToMerge": "Select tables to merge with #",
+    "mergeWith": "Merged with #",
+    "confirmMerge": "Merge tables?",
+    "mergeSuccess": "Tables successfully merged.",
+    "isMaster": "Group Master Table",
+    "partOfGroup": "Part of group #",
+    "cancelMerge": "Cancel Selection"
   },
   "status": {
     "new": "New",
