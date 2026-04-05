@@ -205,8 +205,9 @@ const MenuManager = () => {
             <div className="w-8 h-8 border-4 border-merkez-blue border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
-        <table className="w-full text-left border-collapse">
-          <thead className="sticky top-[112px] z-10 bg-gray-50 border-b border-gray-100 uppercase text-gray-500 tracking-wider">
+        <div className="overflow-x-auto overflow-y-auto scrollbar-hide" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+          <table className="w-full text-left border-collapse">
+            <thead className="sticky top-0 z-10 bg-gray-50 border-b border-gray-100 uppercase text-gray-500 tracking-wider">
             <tr className="text-[11px]">
               <th className="font-semibold p-4">{t('restaurant.dishName')}</th>
               <th className="font-semibold p-4">{t('restaurant.category')}</th>
@@ -272,6 +273,7 @@ const MenuManager = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <RecipeEditorModal 
