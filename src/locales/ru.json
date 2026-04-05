@@ -293,7 +293,20 @@
     "saveProduct": "Сохранить товар",
     "saveChanges": "Сохранить изменения",
     "searchProducts": "Поиск товаров по названию...",
-    "confirmDelete": "Вы уверены, что хотите удалить этот товар?"
+    "confirmDelete": "Вы уверены, что хотите удалить этот товар?",
+    "finishedGoods": "Товары",
+    "ingredients": "Ингредиенты",
+    "searchIngredients": "Поиск ингредиентов...",
+    "thUnit": "Ед. изм.",
+    "thStock": "Остаток",
+    "thCostPrice": "Себестоимость",
+    "addIngredient": "Добавить ингредиент",
+    "editIngredient": "Изменить ингредиент",
+    "deleteIngredient": "Удалить ингредиент",
+    "confirmDeleteProduct": "Удалить этот товар?",
+    "confirmDeleteIngredient": "Удалить этот ингредиент?",
+    "noIngredientsFound": "Ингредиенты не найдены",
+    "addFirstIngredient": "Добавить первый ингредиент"
   },
   "crm": {
     "title": "CRM",

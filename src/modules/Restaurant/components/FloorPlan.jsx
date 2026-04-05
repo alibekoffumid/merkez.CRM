@@ -301,14 +301,11 @@ const FloorPlan = () => {
   };
 
   const handleCloseModal = () => {
-    setSelectedTable(null);
-    setIsAddingOrder(false);
-    setMenuSearch('');
-    setCart([]);
     setTableOrders([]);
     setSelectedCustomer(null);
     setUseBonuses(false);
     setSearchCustomerQuery('');
+    setMoveMode(false);
   };
 
   const handleSeatGuests = async () => {
@@ -391,7 +388,7 @@ const FloorPlan = () => {
 
   const handleStartMove = () => {
     setMoveMode(true);
-    handleCloseModal();
+    setIsAddingOrder(false);
   };
 
   const confirmMoveTable = async (newTable) => {

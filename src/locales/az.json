@@ -189,7 +189,18 @@
     "seatings": "Oturuşlar",
     "vipCabin": "VIP Kabina",
     "table": "Masa",
-    "revenue": "Gəlir"
+    "revenue": "Gəlir",
+    "moveTable": "Yerin dəyiş",
+    "selectNewTable": "№ üçün yeni masa seçin",
+    "moveSuccess": "Masa uğurla dəyişdirildi.",
+    "selectCustomer": "Müştəri seçin",
+    "searchCustomer": "Müştəri axtarışı (ad/tel)...",
+    "bonusBalance": "Bonus balansı",
+    "birthdayToday": "Bugün ad günüdür!",
+    "applyBonuses": "Bonusları istifadə et",
+    "bonusesUsed": "Bonuslar silindi",
+    "loyaltyDiscount": "Sadiqlik güzəşti",
+    "cancelMove": "Ləğv et"
   },
   "status": {
     "new": "Yeni",
@@ -252,7 +263,20 @@
     "saveProduct": "Məhsulu Saxla",
     "saveChanges": "Dəyişiklikləri Saxla",
     "searchProducts": "Məhsulları adına görə axtarın...",
-    "confirmDelete": "Bu məhsulu silmək istədiyinizə əminsiniz?"
+    "confirmDelete": "Bu məhsulu silmək istədiyinizə əminsiniz?",
+    "finishedGoods": "Hazır Məhsullar",
+    "ingredients": "İnqrediyentlər",
+    "searchIngredients": "İnqrediyentləri axtarın...",
+    "thUnit": "Ölçü v.",
+    "thStock": "Stok",
+    "thCostPrice": "Maya d.",
+    "addIngredient": "İnqrediyent Əlavə Et",
+    "editIngredient": "İnqrediyenti Dəyiş",
+    "deleteIngredient": "İnqrediyenti Sil",
+    "confirmDeleteProduct": "Bu məhsulu silmək istədiyinizə əminsiniz?",
+    "confirmDeleteIngredient": "Bu inqrediyenti silmək istədiyinizə əminsiniz?",
+    "noIngredientsFound": "İnqrediyent tapılmadı",
+    "addFirstIngredient": "İlk İnqrediyenti Əlavə Et"
   },
   "crm": {
     "title": "CRM",
