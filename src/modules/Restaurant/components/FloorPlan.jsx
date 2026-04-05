@@ -256,7 +256,6 @@ const FloorPlan = () => {
   const handleStartMerge = () => {
     setMergeMode(true);
     setSelectedForMerge([]);
-    handleCloseModal();
   };
 
   const toggleTableMergeSelection = (id) => {
@@ -495,7 +494,7 @@ const FloorPlan = () => {
       </div>
 
       {/* Table Details & Order Modal */}
-      {selectedTable && (
+      {selectedTable && !mergeMode && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4">
           <div className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[650px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}>
             
