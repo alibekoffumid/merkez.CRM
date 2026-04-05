@@ -431,8 +431,15 @@ const FloorPlan = () => {
                   } ${mergeMode && table.id === selectedTable.id ? 'ring-4 ring-merkez-blue ring-offset-4' : ''}`}
                 >
                   {table.merged_id && !mergeMode && (
-                    <div className="absolute -top-1 -left-1 bg-merkez-blue text-white p-1 rounded-full shadow-lg z-10">
-                      <ShoppingCart className="w-3 h-3" />
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-merkez-blue text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg z-10 flex items-center whitespace-nowrap">
+                      <ShoppingCart className="w-3 h-3 mr-1" />
+                      {tables.find(t => t.id === table.merged_id)?.number || '?'}
+                    </div>
+                  )}
+                  {!table.merged_id && tables.some(t => t.merged_id === table.id) && !mergeMode && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-merkez-green text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg z-10 flex items-center whitespace-nowrap">
+                      <Users className="w-3 h-3 mr-1" />
+                      {t('restaurant.isMaster').toUpperCase()}
                     </div>
                   )}
                   {table.waiter && (
