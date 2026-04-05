@@ -106,7 +106,7 @@ const InventoryManager = () => {
   return (
     <div className="animate-in fade-in duration-500">
       {/* Header Actions - Now sticky to stay visible during scroll */}
-      <div className="sticky top-[40px] bg-white z-20 pt-6 pb-4 -mx-6 px-6 shadow-sm border-b border-gray-100 transition-all duration-300">
+      <div className="sticky top-[48px] bg-white z-20 py-3 -mx-6 px-6 border-b border-gray-100 shadow-sm transition-all duration-300">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="relative w-full md:w-96">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -167,7 +167,7 @@ const InventoryManager = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden mt-6">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="sticky top-[96px] z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100">
+            <thead className="sticky top-[104px] z-10 bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('common.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.stock')}</th>

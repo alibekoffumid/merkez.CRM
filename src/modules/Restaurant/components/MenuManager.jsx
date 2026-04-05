@@ -143,7 +143,7 @@ const MenuManager = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
       
       {/* Menu Actions - Sticky header */}
-      <div className="sticky top-[40px] bg-white z-20 pt-6 pb-4 -mx-6 px-6 shadow-sm border-b border-gray-100 transition-all duration-300">
+      <div className="sticky top-[48px] bg-white z-20 py-3 -mx-6 px-6 border-b border-gray-100 transition-all duration-300 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4 mb-2">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
