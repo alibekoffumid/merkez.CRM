@@ -167,7 +167,7 @@ const InventoryManager = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden mt-6">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="sticky top-[138px] z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100">
+            <thead className="sticky top-[112px] z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('common.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.stock')}</th>
