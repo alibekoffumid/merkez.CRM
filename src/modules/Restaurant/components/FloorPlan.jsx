@@ -383,7 +383,7 @@ const FloorPlan = () => {
            </div>
         </div>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-y-auto pr-2 no-scrollbar" style={{ maxHeight: 'calc(100vh - 280px)', minHeight: '300px' }}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-y-auto p-4 no-scrollbar" style={{ maxHeight: 'calc(100vh - 280px)', minHeight: '300px' }}>
           {loading ? (
              <div className="col-span-full h-48 flex flex-col items-center justify-center text-gray-400 gap-2">
                 <Clock className="w-8 h-8 animate-pulse" />
