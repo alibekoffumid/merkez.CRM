@@ -26,6 +26,7 @@ const FloorPlan = () => {
   const [liveOrders, setLiveOrders] = useState([]);
   const [tableOrders, setTableOrders] = useState([]);
   const [tableOrdersLoading, setTableOrdersLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [mergeMode, setMergeMode] = useState(false);
   const [selectedForMerge, setSelectedForMerge] = useState([]);
 
@@ -267,41 +268,46 @@ const FloorPlan = () => {
   const confirmMerge = async () => {
     if (selectedForMerge.length === 0) return;
     
-    setLoading(true);
+    setIsProcessing(true);
     try {
       const { error } = await supabase
         .from('restaurant_tables')
         .update({ merged_id: selectedTable.id })
         .in('id', selectedForMerge);
 
-      if (!error) {
+      if (error) {
+        window.alert(`Merge Error: ${error.message}`);
+      } else {
         setMergeMode(false);
         setSelectedForMerge([]);
         fetchTables();
       }
     } catch (e) {
       console.error(e);
+      window.alert(`Unexpected Error: ${e.message}`);
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
   const handleUnmerge = async (table) => {
-    setLoading(true);
+    setIsProcessing(true);
     try {
       const { error } = await supabase
         .from('restaurant_tables')
         .update({ merged_id: null })
         .eq('id', table.id);
 
-      if (!error) {
+      if (error) {
+        window.alert(`Unmerge Error: ${error.message}`);
+      } else {
         fetchTables();
         handleCloseModal();
       }
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
@@ -360,9 +366,12 @@ const FloorPlan = () => {
               </button>
               <button 
                 onClick={confirmMerge}
-                disabled={selectedForMerge.length === 0}
-                className="px-4 py-2 bg-white text-merkez-green hover:bg-gray-50 rounded-lg text-sm font-black transition-all shadow-md disabled:opacity-50"
+                disabled={selectedForMerge.length === 0 || isProcessing}
+                className="px-4 py-2 bg-white text-merkez-green hover:bg-gray-50 rounded-lg text-sm font-black transition-all shadow-md disabled:opacity-50 flex items-center"
               >
+                {isProcessing ? (
+                  <div className="w-4 h-4 border-2 border-merkez-green border-t-transparent rounded-full animate-spin mr-2" />
+                ) : null}
                 {t('restaurant.confirmMerge')}
               </button>
             </div>
