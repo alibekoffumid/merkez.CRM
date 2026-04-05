@@ -90,13 +90,21 @@ const FloorPlan = () => {
   };
 
   const fetchTableOrders = async (tableId) => {
-    if (!tableId) return;
+    if (!tableId) {
+      setTableOrders([]);
+      return;
+    }
     setTableOrdersLoading(true);
+
+    // Find table in the latest list to resolve merging
+    const tableMetadata = tables.find(t => t.id === tableId);
+    const targetTableId = tableMetadata?.merged_id || tableId;
+
     try {
       const { data: activeOrders } = await supabase
         .from('orders')
         .select('id')
-        .eq('table_id', selectedTable.merged_id || tableId) // Use master table ID if merged
+        .eq('table_id', targetTableId)
         .neq('status', 'completed');
 
       if (!activeOrders || activeOrders.length === 0) {
