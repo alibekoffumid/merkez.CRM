@@ -142,9 +142,9 @@ const MenuManager = () => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
       
-      {/* Menu Actions - Sticky header */}
-      <div className="sticky top-[48px] bg-white z-20 py-4 -mx-6 px-6 border-b border-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4">
+      {/* Menu Actions - Fixed height for precise sticky calculation */}
+      <div className="sticky top-[48px] bg-white z-20 h-16 flex items-center -mx-6 px-6 border-b border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center w-full gap-4">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search className="w-4 h-4 text-gray-400" />
@@ -206,7 +206,7 @@ const MenuManager = () => {
           </div>
         )}
         <table className="w-full text-left border-collapse">
-          <thead className="sticky top-[120px] z-10 bg-gray-50 border-b border-gray-100 uppercase text-gray-500 tracking-wider">
+          <thead className="sticky top-[112px] z-10 bg-gray-50 border-b border-gray-100 uppercase text-gray-500 tracking-wider">
             <tr className="text-[11px]">
               <th className="font-semibold p-4">{t('restaurant.dishName')}</th>
               <th className="font-semibold p-4">{t('restaurant.category')}</th>

@@ -105,9 +105,9 @@ const InventoryManager = () => {
 
   return (
     <div className="flex flex-col">
-      {/* Header Actions - Sticky at 48px (exactly under tabs) */}
-      <div className="sticky top-[48px] bg-white z-20 py-4 -mx-6 px-6 border-b border-gray-100 shadow-sm">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Header Actions - Fixed height and sticky for precise calculations */}
+      <div className="sticky top-[48px] bg-white z-20 h-16 flex items-center -mx-6 px-6 border-b border-gray-100 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-center w-full gap-4">
         <div className="relative w-full md:w-96">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -167,7 +167,7 @@ const InventoryManager = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-xl mt-6">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="sticky top-[120px] z-10 bg-gray-50 border-b border-gray-100">
+            <thead className="sticky top-[112px] z-10 bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('common.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.stock')}</th>
