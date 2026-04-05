@@ -105,14 +105,14 @@ const InventoryManager = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header Actions */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Header Actions - Now sticky to stay visible during scroll */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-[48px] bg-white/95 backdrop-blur-md z-20 py-4 -mx-2 px-2 rounded-xl transition-all duration-300">
         <div className="relative w-full md:w-96">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder={t('restaurant.searchIngredientsPlaceholder')}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -165,8 +165,8 @@ const InventoryManager = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
+            <thead className="sticky top-[138px] z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100">
+              <tr>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('common.name')}</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.stock')}</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.unit')}</th>

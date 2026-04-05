@@ -140,9 +140,10 @@ const MenuManager = () => {
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col pt-2">
       
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Menu Actions - Sticky header */}
+      <div className="flex flex-col sm:flex-row gap-4 sticky top-[48px] bg-white/95 backdrop-blur-md z-20 py-4 mb-2 -mx-6 px-6 transition-all duration-300">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search className="w-4 h-4 text-gray-400" />
@@ -157,6 +158,7 @@ const MenuManager = () => {
         </div>
         
         <div className="flex items-center gap-2">
+          {/* ... (selects) ... */}
           <select 
              value={categoryFilter}
              onChange={(e) => setCategoryFilter(e.target.value)}
@@ -195,15 +197,15 @@ const MenuManager = () => {
         </button>
       </div>
 
-      <div className="border border-gray-100 rounded-xl relative overflow-y-auto" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+      <div className="border border-gray-100 rounded-xl relative overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 280px)' }}>
         {loading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-merkez-blue border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
+          <thead className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100 uppercase text-gray-500 tracking-wider">
+            <tr className="text-[11px]">
               <th className="font-semibold p-4">{t('restaurant.dishName')}</th>
               <th className="font-semibold p-4">{t('restaurant.category')}</th>
               <th className="font-semibold p-4">{t('restaurant.price')}</th>
