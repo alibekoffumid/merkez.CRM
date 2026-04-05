@@ -106,7 +106,8 @@ const InventoryManager = () => {
   return (
     <div className="animate-in fade-in duration-500">
       {/* Header Actions - Now sticky to stay visible during scroll */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-[48px] bg-white z-20 py-4 -mx-2 px-2 transition-all duration-300 border-b border-transparent">
+      <div className="sticky top-[40px] bg-white z-20 pt-6 pb-4 -mx-6 px-6 shadow-sm border-b border-gray-100 transition-all duration-300">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="relative w-full md:w-96">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -125,6 +126,7 @@ const InventoryManager = () => {
           {t('restaurant.addIngredientBtn')}
         </button>
       </div>
+    </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">

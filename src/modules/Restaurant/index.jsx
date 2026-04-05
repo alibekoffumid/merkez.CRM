@@ -50,14 +50,14 @@ const RestaurantModule = () => {
       </div>
 
       {/* Content area */}
-      <div className="flex-1 pt-6">
-        {activeTab === 'floor' && <FloorPlan />}
-        {activeTab === 'kitchen' && <KitchenDisplay />}
+      <div className="flex-1">
+        {activeTab === 'floor' && <div className="pt-6"><FloorPlan /></div>}
+        {activeTab === 'kitchen' && <div className="pt-6"><KitchenDisplay /></div>}
         {activeTab === 'menu' && <MenuManager />}
-        {activeTab === 'staff' && <StaffManager />}
-        {activeTab === 'settings' && <TableSettings />}
+        {activeTab === 'staff' && <div className="pt-6"><StaffManager /></div>}
+        {activeTab === 'settings' && <div className="pt-6"><TableSettings /></div>}
         {activeTab === 'inventory' && <InventoryManager />}
-        {activeTab === 'analytics' && <Analytics />}
+        {activeTab === 'analytics' && <div className="pt-6"><Analytics /></div>}
       </div>
     </div>
   );
