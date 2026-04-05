@@ -143,8 +143,8 @@ const MenuManager = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
       
       {/* Menu Actions - Sticky header */}
-      <div className="sticky top-[48px] bg-white z-20 py-3 -mx-6 px-6 border-b border-gray-100 transition-all duration-300 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4 mb-2">
+      <div className="sticky top-[48px] bg-white z-20 py-4 -mx-6 px-6 border-b border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search className="w-4 h-4 text-gray-400" />
@@ -199,14 +199,14 @@ const MenuManager = () => {
       </div>
     </div>
 
-      <div className="border border-gray-100 rounded-xl relative overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+      <div className="border border-gray-100 rounded-xl mt-6 relative">
         {loading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-merkez-blue border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         <table className="w-full text-left border-collapse">
-          <thead className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100 uppercase text-gray-500 tracking-wider">
+          <thead className="sticky top-[120px] z-10 bg-gray-50 border-b border-gray-100 uppercase text-gray-500 tracking-wider">
             <tr className="text-[11px]">
               <th className="font-semibold p-4">{t('restaurant.dishName')}</th>
               <th className="font-semibold p-4">{t('restaurant.category')}</th>
