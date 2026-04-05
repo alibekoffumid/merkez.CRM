@@ -219,7 +219,18 @@
     "mergeSuccess": "Tables successfully merged.",
     "isMaster": "Group Master Table",
     "partOfGroup": "Part of group #",
-    "cancelMerge": "Cancel Selection"
+    "cancelMerge": "Cancel Selection",
+    "moveTable": "Move Table",
+    "selectNewTable": "Select new table for #",
+    "moveSuccess": "Table moved successfully.",
+    "selectCustomer": "Select Customer",
+    "searchCustomer": "Search by name or phone...",
+    "bonusBalance": "Bonus Balance",
+    "birthdayToday": "Birthday Today!",
+    "applyBonuses": "Apply Bonuses",
+    "bonusesUsed": "Bonuses Applied",
+    "loyaltyDiscount": "Loyalty Discount",
+    "cancelMove": "Cancel Move"
   },
   "status": {
     "new": "New",

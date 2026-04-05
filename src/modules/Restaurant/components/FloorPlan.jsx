@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
 
@@ -28,7 +28,12 @@ const FloorPlan = () => {
   const [tableOrdersLoading, setTableOrdersLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [mergeMode, setMergeMode] = useState(false);
+  const [moveMode, setMoveMode] = useState(false);
   const [selectedForMerge, setSelectedForMerge] = useState([]);
+  const [searchCustomerQuery, setSearchCustomerQuery] = useState('');
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [useBonuses, setUseBonuses] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -146,29 +151,82 @@ const FloorPlan = () => {
     });
   };
 
+  const searchCustomers = async (query) => {
+    if (!query) {
+      setCustomers([]);
+      return;
+    }
+    const { data } = await supabase
+      .from('customers')
+      .select('*')
+      .or(`name.ilike.%${query}%,phone.ilike.%${query}%`)
+      .limit(5);
+    setCustomers(data || []);
+  };
+
   const handleSendToKitchen = async () => {
     if (cart.length === 0) return;
+    
+    setIsProcessing(true);
     try {
-      // Check stock before sending (WARN but allow)
+      // 1. Stock check
       const stockWarnings = await InventoryService.checkStockAvailability(cart);
       if (stockWarnings.length > 0) {
-        const confirmMsg = t('restaurant.stockWarningPrefix') || 'Attention: Some ingredients are low/empty. Proceed anyway?\n\n' + stockWarnings.join('\n');
+        const confirmMsg = (t('restaurant.stockWarningPrefix') || 'Attention: Some ingredients are low/empty. Proceed anyway?\n\n') + stockWarnings.join('\n');
         if (!window.confirm(confirmMsg)) return;
       }
+
+      const orderTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      let finalDiscount = 0;
+      
+      // 2. Calculate Birthday Discount (15%)
+      if (selectedCustomer?.birthday) {
+        const today = new Date();
+        const bday = new Date(selectedCustomer.birthday);
+        if (today.getDate() === bday.getDate() && today.getMonth() === bday.getMonth()) {
+          finalDiscount = orderTotal * 0.15;
+        }
+      }
+
+      // 3. Handle Bonuses
+      let bonusesUsed = 0;
+      if (useBonuses && selectedCustomer) {
+        bonusesUsed = Math.min(selectedCustomer.bonus_balance || 0, orderTotal - finalDiscount);
+      }
+
+      // 4. Calculate Points to Earn (5% of paid amount)
+      const pointsEarned = (orderTotal - finalDiscount - bonusesUsed) * 0.05;
 
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          table_id: selectedTable.merged_id || selectedTable.id, // Deduct from master
+          table_id: selectedTable.merged_id || selectedTable.id,
           status: 'pending',
-          total_amount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+          total_amount: orderTotal - finalDiscount - bonusesUsed,
+          customer_id: selectedCustomer?.id,
+          discount_amount: finalDiscount + bonusesUsed,
+          points_earned: pointsEarned
         }])
         .select()
         .single();
 
       if (orderError) throw orderError;
 
-      const orderItems = cart.map(item => ({
+      // 5. Update customer stats if linked
+      if (selectedCustomer) {
+        const { error: custError } = await supabase
+          .from('customers')
+          .update({
+            bonus_balance: (selectedCustomer.bonus_balance || 0) - bonusesUsed + pointsEarned,
+            total_spent: (selectedCustomer.total_spent || 0) + (orderTotal - finalDiscount - bonusesUsed)
+          })
+          .eq('id', selectedCustomer.id);
+        
+        if (custError) console.error('Customer update failed:', custError);
+      }
+
+      // 6. Add order items
+      const itemsToInsert = cart.map(item => ({
         order_id: orderData.id,
         product_id: item.id,
         quantity: item.quantity,
@@ -177,24 +235,33 @@ const FloorPlan = () => {
 
       const { error: itemsError } = await supabase
         .from('order_items')
-        .insert(orderItems);
+        .insert(itemsToInsert);
 
-      if (!itemsError) {
+      if (itemsError) throw itemsError;
+
+      // 7. Update table status if not already occupied
+      if (selectedTable.status !== 'occupied') {
         await supabase
           .from('restaurant_tables')
-          .update({ status: 'occupied' }) 
+          .update({ 
+            status: 'occupied', 
+            waiter: t('restaurant.staff') || 'Staff' 
+          }) 
           .eq('id', selectedTable.merged_id || selectedTable.id);
-
-        const newAmount = (selectedTable.amount || 0) + orderData.total_amount;
-        setTables(prev => prev.map(t => t.id === selectedTable.id ? { ...t, status: 'occupied', amount: newAmount } : t));
-        setSelectedTable(prev => ({ ...prev, status: 'occupied', amount: newAmount }));
-        fetchTableOrders(selectedTable.merged_id || selectedTable.id);
-        fetchLiveOrders();
-        setCart([]);
-        setIsAddingOrder(false);
       }
+
+      fetchTables();
+      fetchTableOrders(selectedTable.id);
+      fetchLiveOrders();
+      setCart([]);
+      setIsAddingOrder(false);
+      setSelectedCustomer(null);
+      setUseBonuses(false);
     } catch (e) {
       console.error(e);
+      window.alert(`Order Error: ${e.message}`);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -239,6 +306,9 @@ const FloorPlan = () => {
     setMenuSearch('');
     setCart([]);
     setTableOrders([]);
+    setSelectedCustomer(null);
+    setUseBonuses(false);
+    setSearchCustomerQuery('');
   };
 
   const handleSeatGuests = async () => {
@@ -319,6 +389,62 @@ const FloorPlan = () => {
     }
   };
 
+  const handleStartMove = () => {
+    setMoveMode(true);
+    handleCloseModal();
+  };
+
+  const confirmMoveTable = async (newTable) => {
+    if (!newTable || newTable.status !== 'free') return;
+    
+    setIsProcessing(true);
+    try {
+      const oldTableId = selectedTable.id;
+      const newTableId = newTable.id;
+
+      // 1. Move all active orders
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ table_id: newTableId })
+        .eq('table_id', oldTableId)
+        .neq('status', 'completed');
+
+      if (orderError) throw orderError;
+
+      // 2. Update table statuses
+      await supabase
+        .from('restaurant_tables')
+        .update({ 
+          status: 'occupied',
+          waiter: selectedTable.waiter,
+          // Move merged_id relationships if any? 
+          // For now, let's just move the 'master' status if old was master
+        })
+        .eq('id', newTableId);
+
+      await supabase
+        .from('restaurant_tables')
+        .update({ status: 'free', waiter: null, merged_id: null })
+        .eq('id', oldTableId);
+
+      // 3. Move children if old was master
+      await supabase
+        .from('restaurant_tables')
+        .update({ merged_id: newTableId })
+        .eq('merged_id', oldTableId);
+
+      setMoveMode(false);
+      setSelectedTable(null);
+      fetchTables();
+      window.alert(t('restaurant.moveSuccess'));
+    } catch (e) {
+      console.error(e);
+      window.alert(`Move Error: ${e.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleCheckout = async () => {
     // 1. Get all active orders for this table first to deduct ingredients
     try {
@@ -385,7 +511,18 @@ const FloorPlan = () => {
             </div>
           </div>
         )}
-        <div className={`flex justify-between items-center mb-6 ${mergeMode ? 'mt-16' : ''}`}>
+        {moveMode && (
+          <div className="absolute top-0 left-0 right-0 z-20 bg-merkez-blue text-white px-6 py-4 rounded-t-xl flex justify-between items-center animate-in slide-in-from-top-4">
+            <div className="flex items-center">
+              <Move className="w-5 h-5 mr-3" />
+              <span className="font-bold">{t('restaurant.selectNewTable')} {selectedTable.number}</span>
+            </div>
+            <button onClick={() => setMoveMode(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold transition-all">
+              {t('restaurant.cancelMove')}
+            </button>
+          </div>
+        )}
+        <div className={`flex justify-between items-center mb-6 ${mergeMode || moveMode ? 'mt-16' : ''}`}>
            <h3 className="text-lg font-semibold text-gray-900">{t('restaurant.mainHall')}</h3>
            <div className="flex space-x-2 bg-gray-50 p-1 rounded-lg border border-gray-100">
              {['all', 'free', 'occupied', 'reserved'].map(f => (
@@ -420,6 +557,10 @@ const FloorPlan = () => {
                     if (mergeMode) {
                       if (table.id !== selectedTable.id && table.status === 'free') {
                         toggleTableMergeSelection(table.id);
+                      }
+                    } else if (moveMode) {
+                      if (table.id !== selectedTable.id && table.status === 'free') {
+                        confirmMoveTable(table);
                       }
                     } else {
                       setSelectedTable(table); 
@@ -671,6 +812,13 @@ const FloorPlan = () => {
                           <X className="w-5 h-5 mr-2" /> {t('restaurant.unmerge')}
                         </button>
                       )}
+                      
+                      <button 
+                        onClick={handleStartMove}
+                        className="w-full mt-3 bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm"
+                      >
+                        <Repeat className="w-5 h-5 mr-2 text-merkez-yellow" /> {t('restaurant.moveTable')}
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -794,22 +942,134 @@ const FloorPlan = () => {
                     })}
                   </div>
 
-                  {/* Real cart footer */}
-                  <div className="mt-auto bg-white p-4 rounded-xl shadow-sm border border-gray-200 shrink-0 flex justify-between items-center">
-                     <div className="flex items-center text-gray-600">
-                        <ShoppingCart className="w-5 h-5 mr-3" />
-                        <div>
-                           <p className="text-xs font-medium uppercase">{t('dashboard.newOrder')}</p>
-                           <p className="text-sm font-bold text-gray-900">{cart.reduce((sum, i) => sum + i.quantity, 0)} {t('restaurant.items')}</p>
-                        </div>
+                  {/* Real cart footer with Loyalty integration */}
+                  <div className="mt-auto bg-white p-4 rounded-xl shadow-xl border border-gray-100 shrink-0 space-y-4 animate-in slide-in-from-bottom-4">
+                     {/* Customer Linking Section */}
+                     <div className="flex flex-col gap-2">
+                        {!selectedCustomer ? (
+                          <div className="relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-merkez-blue transition-colors" />
+                            <input 
+                              type="text" 
+                              value={searchCustomerQuery}
+                              onChange={(e) => {
+                                setSearchCustomerQuery(e.target.value);
+                                searchCustomers(e.target.value);
+                              }}
+                              placeholder={t('restaurant.searchCustomer')} 
+                              className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-merkez-blue/20 focus:border-merkez-blue block pl-9 p-2.5 outline-none transition-all"
+                            />
+                            {customers.length > 0 && (
+                              <div className="absolute bottom-full left-0 right-0 bg-white border border-gray-200 shadow-2xl rounded-xl mb-2 z-50 overflow-hidden divide-y divide-gray-50">
+                                {customers.map(c => (
+                                  <div 
+                                    key={c.id} 
+                                    onClick={() => {
+                                      setSelectedCustomer(c);
+                                      setCustomers([]);
+                                      setSearchCustomerQuery('');
+                                    }}
+                                    className="p-3 hover:bg-blue-50/50 cursor-pointer flex items-center justify-between transition-colors"
+                                  >
+                                    <div className="flex items-center">
+                                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3 font-bold text-gray-500 text-xs">
+                                        {getInitials(c.name)}
+                                      </div>
+                                      <div>
+                                        <div className="text-sm font-bold text-gray-900">{c.name}</div>
+                                        <div className="text-[10px] text-gray-500 font-medium">{c.phone}</div>
+                                      </div>
+                                    </div>
+                                    {c.type === 'VIP' && <Star className="w-4 h-4 text-merkez-yellow fill-merkez-yellow" />}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between bg-blue-50/50 border border-merkez-blue/20 p-2.5 rounded-xl">
+                            <div className="flex items-center min-w-0">
+                              <div className="w-9 h-9 rounded-full bg-merkez-blue text-white flex items-center justify-center font-bold mr-3 shadow-md border-2 border-white">
+                                {getInitials(selectedCustomer.name)}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-sm font-bold text-gray-900 truncate">{selectedCustomer.name}</div>
+                                <div className="flex items-center text-[10px] text-merkez-blue font-bold uppercase tracking-wider">
+                                  <Star className="w-3 h-3 mr-1" />
+                                  {selectedCustomer.bonus_balance?.toFixed(2)} pts
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {/* Birthday Badge */}
+                              {(selectedCustomer.birthday && 
+                                new Date(selectedCustomer.birthday).getDate() === new Date().getDate() && 
+                                new Date(selectedCustomer.birthday).getMonth() === new Date().getMonth()) && (
+                                <div className="bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-black flex items-center shadow-sm animate-bounce">
+                                  <Gift className="w-3 h-3 mr-1" /> BD -15%
+                                </div>
+                              )}
+                              <button 
+                                onClick={() => {
+                                  setSelectedCustomer(null);
+                                  setUseBonuses(false);
+                                }}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-all"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Bonus Toggle */}
+                        {selectedCustomer && selectedCustomer.bonus_balance > 0 && (
+                          <div 
+                            onClick={() => setUseBonuses(!useBonuses)}
+                            className={`flex items-center justify-between p-2.5 rounded-xl border-2 cursor-pointer transition-all ${useBonuses ? 'border-merkez-green bg-green-50 shadow-sm' : 'border-gray-50 bg-gray-50/30'}`}
+                          >
+                            <div className="flex items-center text-xs font-bold text-gray-600">
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 ${useBonuses ? 'bg-merkez-green text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                <CreditCard className="w-4 h-4" />
+                              </div>
+                              {t('restaurant.applyBonuses')}
+                            </div>
+                            <span className={`text-sm font-black ${useBonuses ? 'text-merkez-green' : 'text-gray-400'}`}>
+                              -${Math.min(selectedCustomer.bonus_balance, cart.reduce((s, i) => s + (i.price * i.quantity), 0)).toFixed(2)}
+                            </span>
+                          </div>
+                        )}
                      </div>
-                     <button 
-                      onClick={handleSendToKitchen}
-                      disabled={cart.length === 0}
-                      className={`px-5 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors ${cart.length > 0 ? 'bg-merkez-green text-white hover:bg-green-600' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-                     >
-                        {t('restaurant.sendToKitchen')}
-                     </button>
+
+                     {/* Total and Submit */}
+                     <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-col">
+                           <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('restaurant.total')}</span>
+                           <span className="text-2xl font-black text-gray-900">
+                             ${(
+                               cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) - 
+                               (selectedCustomer && new Date(selectedCustomer.birthday).getDate() === new Date().getDate() && new Date(selectedCustomer.birthday).getMonth() === new Date().getMonth() ? cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.15 : 0) -
+                               (useBonuses ? Math.min(selectedCustomer?.bonus_balance || 0, cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)) : 0)
+                             ).toFixed(2)}
+                           </span>
+                        </div>
+                        <button 
+                          onClick={handleSendToKitchen}
+                          disabled={cart.length === 0 || isProcessing}
+                          className={`group relative flex items-center px-8 py-3 rounded-xl font-black text-sm uppercase tracking-tighter transition-all shadow-lg active:scale-95 ${
+                            cart.length > 0 
+                              ? 'bg-merkez-blue text-white hover:bg-blue-600' 
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                          }`}
+                        >
+                          {isProcessing ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 mr-1 group-hover:translate-x-1 transition-transform" />
+                          )}
+                          {t('restaurant.sendToKitchen')}
+                        </button>
+                     </div>
                   </div>
                 </div>
               )}

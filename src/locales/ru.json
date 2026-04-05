@@ -219,7 +219,18 @@
     "mergeSuccess": "Столы успешно объединены.",
     "isMaster": "Основной стол группы",
     "partOfGroup": "Входит в группу №",
-    "cancelMerge": "Отменить выбор"
+    "cancelMerge": "Отменить выбор",
+    "moveTable": "Пересадить",
+    "selectNewTable": "Выберите новый стол для №",
+    "moveSuccess": "Пересадка выполнена успешно.",
+    "selectCustomer": "Выбрать клиента",
+    "searchCustomer": "Поиск клиента по имени или телефону...",
+    "bonusBalance": "Баланс бонусов",
+    "birthdayToday": "Сегодня день рождения!",
+    "applyBonuses": "Списать бонусы",
+    "bonusesUsed": "Бонусы списаны",
+    "loyaltyDiscount": "Скидка лояльности",
+    "cancelMove": "Отменить перенос"
   },
   "status": {
     "new": "Новый",
