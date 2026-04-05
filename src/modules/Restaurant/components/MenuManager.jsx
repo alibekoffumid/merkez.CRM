@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X } from 'lucide-react';
+import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X, Utensils } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import RecipeEditorModal from './RecipeEditorModal';
 
 const MenuManager = () => {
   const { t } = useTranslation();
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+  const [selectedProductForRecipe, setSelectedProductForRecipe] = useState(null);
   
   // Data states
   const [menu, setMenu] = useState([]);
@@ -34,10 +37,25 @@ const MenuManager = () => {
   const fetchData = async () => {
     setLoading(true);
     const { data: catData } = await supabase.from('categories').select('*');
+    
+    // Fetch products with their categories
     const { data: prodData } = await supabase
       .from('products')
       .select('*, categories(name)');
     
+    // Fetch all recipes and ingredient costs to calculate food cost in JS
+    const { data: recipeData } = await supabase
+      .from('product_recipes')
+      .select('product_id, quantity, ingredients(cost_price)');
+    
+    const foodCosts = {};
+    if (recipeData) {
+      recipeData.forEach(item => {
+        if (!foodCosts[item.product_id]) foodCosts[item.product_id] = 0;
+        foodCosts[item.product_id] += (item.quantity * (item.ingredients?.cost_price || 0));
+      });
+    }
+
     if (catData) {
       setCategories(catData);
       if (catData.length > 0 && !newDish.category_id) {
@@ -49,7 +67,8 @@ const MenuManager = () => {
       setMenu(prodData.map(p => ({
         ...p,
         category: p.categories?.name || 'Uncategorized',
-        status: 'Available'
+        status: 'Available',
+        foodCost: foodCosts[p.id] || 0
       })));
     }
     setLoading(false);
@@ -188,6 +207,8 @@ const MenuManager = () => {
               <th className="font-semibold p-4">{t('restaurant.dishName')}</th>
               <th className="font-semibold p-4">{t('restaurant.category')}</th>
               <th className="font-semibold p-4">{t('restaurant.price')}</th>
+              <th className="font-semibold p-4">{t('restaurant.foodCost')}</th>
+              <th className="font-semibold p-4">{t('restaurant.margin')}</th>
               <th className="font-semibold p-4">{t('common.status')}</th>
               <th className="font-semibold p-4 text-right rounded-tr-xl">{t('restaurant.actions')}</th>
             </tr>
@@ -204,6 +225,10 @@ const MenuManager = () => {
                   </td>
                   <td className="p-4 text-sm text-gray-500">{item.category}</td>
                   <td className="p-4 text-sm font-bold text-gray-900">${item.price.toFixed(2)}</td>
+                  <td className="p-4 text-sm font-medium text-merkez-blue">${item.foodCost?.toFixed(2) || '0.00'}</td>
+                  <td className={`p-4 text-sm font-bold ${((item.price - item.foodCost) / item.price) < 0.3 ? 'text-red-500' : 'text-merkez-green'}`}>
+                    {(((item.price - (item.foodCost || 0)) / item.price) * 100).toFixed(1)}%
+                  </td>
                   <td className="p-4">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       item.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
@@ -212,6 +237,13 @@ const MenuManager = () => {
                     </span>
                   </td>
                   <td className="p-4 text-right whitespace-nowrap">
+                    <button 
+                      onClick={() => { setSelectedProductForRecipe(item); setIsRecipeModalOpen(true); }}
+                      className="text-gray-400 hover:text-merkez-blue p-1.5 transition-colors mr-1"
+                      title={t('restaurant.editRecipe')}
+                    >
+                      <Utensils className="w-4 h-4" />
+                    </button>
                     <button 
                       onClick={() => openEditModal(item)}
                       className="text-gray-400 hover:text-merkez-blue p-1.5 transition-colors mr-1"
@@ -229,7 +261,7 @@ const MenuManager = () => {
               ))
             ) : (
                <tr>
-                 <td colSpan="5" className="p-8 text-center text-gray-400 text-sm">
+                 <td colSpan="7" className="p-8 text-center text-gray-400 text-sm">
                    {loading ? t('common.loading') : t('common.noData')}
                  </td>
                </tr>
@@ -237,6 +269,13 @@ const MenuManager = () => {
           </tbody>
         </table>
       </div>
+
+      <RecipeEditorModal 
+        isOpen={isRecipeModalOpen}
+        product={selectedProductForRecipe}
+        onClose={() => { setIsRecipeModalOpen(false); setSelectedProductForRecipe(null); }}
+        onRecipeUpdated={fetchData}
+      />
 
       {/* MODALS */}
 

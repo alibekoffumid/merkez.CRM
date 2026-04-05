@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import { InventoryService } from '../../../services/InventoryService';
 
 // Helper for initials
 const getInitials = (name) => {
@@ -137,6 +138,13 @@ const FloorPlan = () => {
   const handleSendToKitchen = async () => {
     if (cart.length === 0) return;
     try {
+      // Check stock before sending (WARN but allow)
+      const stockWarnings = await InventoryService.checkStockAvailability(cart);
+      if (stockWarnings.length > 0) {
+        const confirmMsg = t('restaurant.stockWarningPrefix') || 'Attention: Some ingredients are low/empty. Proceed anyway?\n\n' + stockWarnings.join('\n');
+        if (!window.confirm(confirmMsg)) return;
+      }
+
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -243,11 +251,30 @@ const FloorPlan = () => {
   };
 
   const handleCheckout = async () => {
-    await supabase
-      .from('orders')
-      .update({ status: 'completed' })
-      .eq('table_id', selectedTable.id)
-      .neq('status', 'completed');
+    // 1. Get all active orders for this table first to deduct ingredients
+    try {
+      const { data: activeOrders } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('table_id', selectedTable.id)
+        .neq('status', 'completed');
+
+      // 2. Mark orders as completed
+      await supabase
+        .from('orders')
+        .update({ status: 'completed' })
+        .eq('table_id', selectedTable.id)
+        .neq('status', 'completed');
+
+      // 3. Deduct ingredients for each order
+      if (activeOrders && activeOrders.length > 0) {
+        for (const order of activeOrders) {
+          await InventoryService.deductIngredientsFromOrder(order.id);
+        }
+      }
+    } catch (invErr) {
+      console.error('Inventory deduction failed during checkout:', invErr);
+    }
 
     const { error } = await supabase
       .from('restaurant_tables')

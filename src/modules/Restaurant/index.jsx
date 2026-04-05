@@ -6,6 +6,7 @@ import StaffManager from './components/StaffManager';
 import TableSettings from './components/TableSettings';
 import Analytics from './components/Analytics';
 import KitchenDisplay from './components/KitchenDisplay';
+import InventoryManager from './components/InventoryManager';
 
 const RestaurantModule = () => {
   const { t } = useTranslation();
@@ -17,6 +18,7 @@ const RestaurantModule = () => {
     { id: 'menu', label: t('restaurant.menuDishes') },
     { id: 'staff', label: t('restaurant.staffWaiters') },
     { id: 'settings', label: t('restaurant.tablesSettings') },
+    { id: 'inventory', label: t('restaurant.inventory') },
     { id: 'analytics', label: t('restaurant.reportsAnalytics') },
   ];
 
@@ -54,6 +56,7 @@ const RestaurantModule = () => {
         {activeTab === 'menu' && <MenuManager />}
         {activeTab === 'staff' && <StaffManager />}
         {activeTab === 'settings' && <TableSettings />}
+        {activeTab === 'inventory' && <InventoryManager />}
         {activeTab === 'analytics' && <Analytics />}
       </div>
     </div>
