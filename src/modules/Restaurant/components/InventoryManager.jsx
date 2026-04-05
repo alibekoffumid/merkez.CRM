@@ -104,9 +104,9 @@ const InventoryManager = () => {
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-500">
       {/* Header Actions - Now sticky to stay visible during scroll */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-[48px] bg-white/95 backdrop-blur-md z-20 py-4 -mx-2 px-2 rounded-xl transition-all duration-300">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sticky top-[48px] bg-white z-20 py-4 -mx-2 px-2 transition-all duration-300 border-b border-transparent">
         <div className="relative w-full md:w-96">
           <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -127,7 +127,7 @@ const InventoryManager = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4">
           <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-merkez-blue">
             <Package className="w-6 h-6" />
@@ -162,7 +162,7 @@ const InventoryManager = () => {
       </div>
 
       {/* Inventory Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden mt-6">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-[138px] z-10 bg-gray-50/90 backdrop-blur-sm border-b border-gray-100">
