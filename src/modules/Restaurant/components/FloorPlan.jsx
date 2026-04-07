@@ -983,65 +983,6 @@ const FloorPlan = () => {
                       )}
                     </div>
 
-                    {/* NEW CART SECTION (While adding) - Takes more space */}
-                    {isAddingOrder && cart.length > 0 && (
-                      <div className="flex-none flex flex-col min-h-0 py-4 border-t-2 border-dashed border-blue-50 mt-4 bg-blue-50/20 rounded-2xl p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h5 className="text-[11px] font-black text-merkez-blue uppercase tracking-widest flex items-center">
-                            <ShoppingCart className="w-4 h-4 mr-2" />
-                            {t('restaurant.newItems').toUpperCase()}
-                          </h5>
-                          <span className="bg-merkez-blue text-white text-[10px] px-2 py-0.5 rounded-full font-black">
-                            {cart.length} ITEMS
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-4 pr-1">
-                          {cart.map(item => (
-                            <div key={item.id} className="bg-white border border-merkez-blue/20 p-5 rounded-xl shadow-sm">
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-lg font-black text-gray-900 truncate mb-1 leading-tight">{item.name}</p>
-                                  <p className="text-sm font-bold text-merkez-blue">${(item.price * item.quantity).toFixed(2)}</p>
-                                </div>
-                                <div className="flex items-center space-x-3 bg-blue-50 rounded-full px-2 py-1.5 border border-blue-100 shadow-inner">
-                                   <button 
-                                    onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
-                                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-merkez-blue hover:text-red-500 shadow-sm transition-transform active:scale-95"
-                                   >
-                                     <Minus className="w-3.5 h-3.5" />
-                                   </button>
-                                   <span className="text-base font-black text-merkez-blue w-4 text-center">{item.quantity}</span>
-                                   <button 
-                                    onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                                    className="w-7 h-7 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600 transition-transform active:scale-95"
-                                   >
-                                     <Plus className="w-3.5 h-3.5" />
-                                   </button>
-                                </div>
-                              </div>
-                              
-                              {/* Prominent Chef Note Section */}
-                              <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100 focus-within:border-amber-300 focus-within:ring-2 focus-within:ring-amber-50 transition-all">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <ChefHat className="w-4 h-4 text-amber-600" />
-                                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">
-                                    {t('restaurant.addNote') || "Chef Note"}
-                                  </span>
-                                </div>
-                                <textarea 
-                                  rows="3"
-                                  placeholder="..."
-                                  value={item.notes || ''}
-                                  onChange={(e) => updateCartItemNote(item.id, e.target.value)}
-                                  className="w-full bg-white/50 border border-amber-200/50 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-sm italic font-medium outline-none transition-all placeholder:text-amber-200 resize-none min-h-[80px]"
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                     
                     {/* Fixed Footer Buttons */}
                     <div className="pt-4 mt-auto shrink-0 border-t border-gray-100 bg-white">
