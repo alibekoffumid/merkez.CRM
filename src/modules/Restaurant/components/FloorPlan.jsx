@@ -849,6 +849,12 @@ const FloorPlan = () => {
                       ) : (
                         <ul className="space-y-3 pr-2">
                           {tableOrders.map(item => {
+                            const statusColors = {
+                              'new': 'text-merkez-blue bg-blue-100',
+                              'preparing': 'text-yellow-700 bg-yellow-100',
+                              'ready': 'text-green-700 bg-green-100',
+                              'served': 'text-gray-600 bg-gray-100',
+                            };
                             const color = statusColors[item.status?.toLowerCase()] || 'text-gray-500 bg-gray-50';
                             const price = item.products?.price ? parseFloat(item.products.price) * item.quantity : 0;
                             const isCancellable = (new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 60) <= 5;
