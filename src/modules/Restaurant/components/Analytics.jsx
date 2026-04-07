@@ -1,57 +1,166 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
-
-const waiterStats = [
-  { id: 1, name: 'Alice Walker', tablesServed: 14, ordersTaken: 42, revenue: 1450.00, rating: 4.9 },
-  { id: 2, name: 'Bob Harris', tablesServed: 12, ordersTaken: 38, revenue: 1120.50, rating: 4.7 },
-  { id: 3, name: 'Charlie Dean', tablesServed: 18, ordersTaken: 55, revenue: 2100.00, rating: 4.8 },
-  { id: 4, name: 'Diana King', tablesServed: 8, ordersTaken: 21, revenue: 890.00, rating: 4.6 },
-];
-
-const tableStats = [
-  { id: 1, name: 'V1', type: 'VIP Cabin', seatings: 3, guestsTotal: 12, revenue: 850.00, avgTurnover: '1h 45m' },
-  { id: 2, name: 'V2', type: 'VIP Cabin', seatings: 2, guestsTotal: 8, revenue: 640.00, avgTurnover: '2h 10m' },
-  { id: 3, name: 'T6', type: 'Table', seatings: 5, guestsTotal: 34, revenue: 1250.00, avgTurnover: '45m' },
-  { id: 4, name: 'T2', type: 'Table', seatings: 6, guestsTotal: 22, revenue: 810.50, avgTurnover: '55m' },
-  { id: 5, name: 'T4', type: 'Table', seatings: 4, guestsTotal: 16, revenue: 420.00, avgTurnover: '50m' },
-];
+import { supabase } from '../../../supabaseClient';
 
 const monthsList = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-
-const generateRandomHourlyData = () => {
-  const data = [];
-  const startHour = 10;
-  for(let i=0; i<13; i++) {
-    const hour = startHour + i;
-    const base = (hour >= 18 && hour <= 21) ? 1200 : 200;
-    const random = Math.floor(Math.random() * 1500);
-    data.push({
-      time: `${hour}:00`,
-      revenue: base + random
-    });
-  }
-  return data;
-};
 
 const Analytics = () => {
   const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState('Today');
   const [chartData, setChartData] = useState([]);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  
-  const [monthIndex, setMonthIndex] = useState(3);
-  const [year, setYear] = useState(2026);
+  const [loading, setLoading] = useState(true);
 
-  const [rangeStart, setRangeStart] = useState({ d: 5, m: 3, y: 2026 });
-  const [rangeEnd, setRangeEnd] = useState({ d: 25, m: 3, y: 2026 });
+  // Real stats state
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    tablesServed: 0,
+    activeWaiters: 0,
+    revenueGrowth: 0,
+    orderGrowth: 0
+  });
+
+  const [waiterStats, setWaiterStats] = useState([]);
+  const [tableStats, setTableStats] = useState([]);
+  
+  const [monthIndex, setMonthIndex] = useState(new Date().getMonth());
+  const [year, setYear] = useState(new Date().getFullYear());
+
+  const [rangeStart, setRangeStart] = useState(null);
+  const [rangeEnd, setRangeEnd] = useState(null);
   const [clickStep, setClickStep] = useState(0);
 
   useEffect(() => {
-    setChartData(generateRandomHourlyData());
+    fetchDashboardData();
   }, [timeRange, rangeStart, rangeEnd]);
 
-  const maxRevenue = chartData.length ? Math.max(...chartData.map(d => d.revenue)) : 1;
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // 1. Calculate time filters
+      let startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      let endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+
+      if (timeRange === t('restaurant.yesterday')) {
+        startDate.setDate(startDate.getDate() - 1);
+        endDate.setDate(endDate.getDate() - 1);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (timeRange === t('restaurant.thisWeek')) {
+        const day = startDate.getDay();
+        const diff = startDate.getDate() - day + (day === 0 ? -6 : 1);
+        startDate.setDate(diff);
+      } else if (timeRange === t('restaurant.thisMonth')) {
+        startDate.setDate(1);
+      } else if (timeRange === t('restaurant.customRange') && rangeStart && rangeEnd) {
+        startDate = new Date(rangeStart.y, rangeStart.m, rangeStart.d, 0, 0, 0);
+        endDate = new Date(rangeEnd.y, rangeEnd.m, rangeEnd.d, 23, 59, 59);
+      }
+
+      // 2. Fetch Orders
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('*, restaurant_tables(number, type)')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+
+      // 3. Fetch Staff
+      const { count: staffCount } = await supabase
+        .from('staff')
+        .select('*', { count: 'exact', head: true });
+
+      if (!orders) {
+        setStats({ totalRevenue: 0, totalOrders: 0, tablesServed: 0, activeWaiters: staffCount || 0, revenueGrowth: 0, orderGrowth: 0 });
+        setChartData(generateHourlyBuckets([]));
+        setWaiterStats([]);
+        setTableStats([]);
+        return;
+      }
+
+      // 4. Process Stats
+      const totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
+      const totalOrders = orders.length;
+      const uniqueTables = new Set(orders.map(o => o.table_id)).size;
+
+      setStats({
+        totalRevenue,
+        totalOrders,
+        tablesServed: uniqueTables,
+        activeWaiters: staffCount || 0,
+        revenueGrowth: 0, // Simplified for now
+        orderGrowth: 0
+      });
+
+      // 5. Process Hourly Chart
+      setChartData(generateHourlyBuckets(orders));
+
+      // 6. Process Waiter Leaderboard (using 'waiter' string from table if no direct staff link)
+      const waiterMap = {};
+      orders.forEach(o => {
+        const waiterName = o.waiter_name || 'Staff'; // Fallback if we add waiter_name to orders
+        if (!waiterMap[waiterName]) waiterMap[waiterName] = { name: waiterName, tables: new Set(), orders: 0, revenue: 0 };
+        waiterMap[waiterName].orders += 1;
+        waiterMap[waiterName].revenue += parseFloat(o.total_amount || 0);
+        waiterMap[waiterName].tables.add(o.table_id);
+      });
+
+      setWaiterStats(Object.values(waiterMap).map(w => ({
+        id: w.name,
+        name: w.name,
+        tablesServed: w.tables.size,
+        ordersTaken: w.orders,
+        revenue: w.revenue
+      })));
+
+      // 7. Process Table Leaderboard
+      const tableMap = {};
+      orders.forEach(o => {
+        const tableName = o.restaurant_tables?.number || 'Unknown';
+        const type = o.restaurant_tables?.type || 'Table';
+        if (!tableMap[tableName]) tableMap[tableName] = { name: tableName, type, seatings: 0, guests: 0, revenue: 0 };
+        tableMap[tableName].seatings += 1;
+        tableMap[tableName].revenue += parseFloat(o.total_amount || 0);
+        // We could fetch guests from customers count or order metadata if available
+      });
+
+      setTableStats(Object.values(tableMap).map(t => ({
+        id: t.name,
+        name: t.name,
+        type: t.type,
+        seatings: t.seatings,
+        guestsTotal: 0, // Placeholder
+        revenue: t.revenue,
+        avgTurnover: '---'
+      })));
+
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateHourlyBuckets = (orders) => {
+    const buckets = {};
+    for (let i = 10; i <= 22; i++) {
+      buckets[`${i}:00`] = 0;
+    }
+
+    orders.forEach(o => {
+      const hour = new Date(o.created_at).getHours();
+      const bucketKey = `${hour}:00`;
+      if (buckets.hasOwnProperty(bucketKey)) {
+        buckets[bucketKey] += parseFloat(o.total_amount || 0);
+      }
+    });
+
+    return Object.entries(buckets).map(([time, revenue]) => ({ time, revenue }));
+  };
+
+  const maxRevenue = chartData.length ? Math.max(...chartData.map(d => d.revenue)) : 0;
   const peakHourObj = chartData.find(d => d.revenue === maxRevenue);
 
   const prevMonth = () => {
@@ -90,7 +199,7 @@ const Analytics = () => {
         setClickStep(0);
       }
     }
-    setTimeRange('Custom Range...');
+    setTimeRange(t('restaurant.customRange'));
   };
 
   const getDaysInMonth = (m, y) => {
@@ -127,7 +236,9 @@ const Analytics = () => {
               {isCalendarOpen && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-0 mt-2 w-[310px] sm:w-[320px] bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 p-4 animate-in fade-in zoom-in-95">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm font-bold text-gray-900">{t(`restaurant.${monthsList[monthIndex].toLowerCase()}`)} {year}</span>
+                    <span className="text-sm font-bold text-gray-900">
+                      {t(`restaurant.${monthsList[monthIndex].toLowerCase()}`)} {year}
+                    </span>
                     <div className="flex gap-1">
                       <button onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors">&lt;</button>
                       <button onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 text-gray-500 transition-colors">&gt;</button>
@@ -195,11 +306,11 @@ const Analytics = () => {
                onChange={(e) => setTimeRange(e.target.value)}
                className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-4 py-2 focus:outline-none focus:border-merkez-green font-medium cursor-pointer shadow-sm"
             >
-               <option>{t('restaurant.today')}</option>
-               <option>{t('restaurant.yesterday')}</option>
-               <option>{t('restaurant.thisWeek')}</option>
-               <option>{t('restaurant.thisMonth')}</option>
-               <option>{t('restaurant.customRange')}</option>
+               <option value="Today">{t('restaurant.today')}</option>
+               <option value="Yesterday">{t('restaurant.yesterday')}</option>
+               <option value="This Week">{t('restaurant.thisWeek')}</option>
+               <option value="This Month">{t('restaurant.thisMonth')}</option>
+               <option value="Custom Range...">{t('restaurant.customRange')}</option>
             </select>
          </div>
       </div>
@@ -208,8 +319,8 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalRevenue')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">$5,560.50</h3>
-               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> +14.5% {t('restaurant.fromYesterday')}</p>
+               <h3 className="text-2xl font-bold text-gray-900">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> {stats.revenueGrowth}% {t('restaurant.fromYesterday')}</p>
             </div>
             <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-merkez-green">
                <DollarSign className="w-6 h-6" />
@@ -218,8 +329,8 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalOrders')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">156</h3>
-               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> +5.2% {t('restaurant.fromYesterday')}</p>
+               <h3 className="text-2xl font-bold text-gray-900">{stats.totalOrders}</h3>
+               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> {stats.orderGrowth}% {t('restaurant.fromYesterday')}</p>
             </div>
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-merkez-blue">
                <TrendingUp className="w-6 h-6" />
@@ -228,7 +339,7 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.tablesServed')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">52</h3>
+               <h3 className="text-2xl font-bold text-gray-900">{stats.tablesServed}</h3>
                <p className="text-xs text-gray-400 mt-1">{t('restaurant.totalSeatingsAcrossAllZones')}</p>
             </div>
             <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center text-merkez-yellow">
@@ -238,7 +349,7 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.activeWaiters')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">4</h3>
+               <h3 className="text-2xl font-bold text-gray-900">{stats.activeWaiters}</h3>
                <p className="text-xs text-gray-400 mt-1">{t('restaurant.currentlyTakingOrders')}</p>
             </div>
             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
@@ -259,7 +370,9 @@ const Analytics = () => {
                </div>
             </div>
             <div className="text-right">
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{t('restaurant.peakHour')}: {peakHourObj?.time}</p>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                  {t('restaurant.peakHour')}: {peakHourObj?.revenue > 0 ? peakHourObj.time : '---'}
+                </p>
                 <p className="text-xl font-bold text-gray-900 mt-0.5">${(peakHourObj?.revenue || 0).toFixed(2)}</p>
             </div>
          </div>
@@ -312,7 +425,9 @@ const Analytics = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {waiterStats.sort((a,b) => b.revenue - a.revenue).map((waiter, idx) => (
+                {waiterStats.length === 0 ? (
+                  <tr><td colSpan="4" className="p-8 text-center text-gray-400 text-sm">{t('common.noData')}</td></tr>
+                ) : waiterStats.sort((a,b) => b.revenue - a.revenue).map((waiter, idx) => (
                   <tr key={waiter.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 font-medium text-gray-900 flex items-center">
                       <div className="w-8 h-8 rounded-full bg-blue-100 text-merkez-blue flex items-center justify-center text-xs font-bold mr-3 border border-blue-200">
@@ -353,7 +468,9 @@ const Analytics = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {tableStats.sort((a,b) => b.revenue - a.revenue).map((table, idx) => (
+                {tableStats.length === 0 ? (
+                  <tr><td colSpan="4" className="p-8 text-center text-gray-400 text-sm">{t('common.noData')}</td></tr>
+                ) : tableStats.sort((a,b) => b.revenue - a.revenue).map((table, idx) => (
                   <tr key={table.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 font-medium text-gray-900 flex items-center">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mr-3 ${table.type === 'VIP Cabin' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>
