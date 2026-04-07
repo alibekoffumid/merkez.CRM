@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon, Download, PieChart, Activity, Plus, X } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import { ReportService } from '../../../services/ReportService';
 
 const monthsList = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
@@ -10,17 +11,23 @@ const Analytics = () => {
   const [timeRange, setTimeRange] = useState('Today');
   const [chartData, setChartData] = useState([]);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Real stats state
   const [stats, setStats] = useState({
     totalRevenue: 0,
+    totalExpenses: 0,
+    totalSalaries: 0,
+    netProfit: 0,
     totalOrders: 0,
     tablesServed: 0,
     activeWaiters: 0,
     revenueGrowth: 0,
     orderGrowth: 0
   });
+
+  const [reportData, setReportData] = useState([]); // Raw items for PDF
 
   const [waiterStats, setWaiterStats] = useState([]);
   const [tableStats, setTableStats] = useState([]);
@@ -31,6 +38,13 @@ const Analytics = () => {
   const [rangeStart, setRangeStart] = useState(null);
   const [rangeEnd, setRangeEnd] = useState(null);
   const [clickStep, setClickStep] = useState(0);
+
+  const [expenseForm, setExpenseForm] = useState({
+    category: 'Rent',
+    amount: '',
+    description: '',
+    expense_date: new Date().toISOString().split('T')[0]
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -136,11 +150,99 @@ const Analytics = () => {
         avgTurnover: '---'
       })));
 
+      // 8. Fetch Business Expenses
+      const { data: businessExpenses } = await supabase
+        .from('business_expenses')
+        .select('*')
+        .gte('expense_date', startDate.toISOString().split('T')[0])
+        .lte('expense_date', endDate.toISOString().split('T')[0]);
+
+      // 9. Fetch Staff Payments
+      const { data: staffPayments } = await supabase
+        .from('staff_payments')
+        .select('*')
+        .gte('payment_date', startDate.toISOString().split('T')[0])
+        .lte('payment_date', endDate.toISOString().split('T')[0]);
+
+      const totalExp = (businessExpenses || []).reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+      const totalSalaries = (staffPayments || []).reduce((sum, s) => sum + parseFloat(s.amount || 0), 0);
+      const totalRevenueValue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
+  const handleAddExpense = async () => {
+    if (!expenseForm.amount) return;
+    const { error } = await supabase.from('business_expenses').insert([expenseForm]);
+    if (!error) {
+       setIsExpenseModalOpen(false);
+       setExpenseForm({ category: 'Rent', amount: '', description: '', expense_date: new Date().toISOString().split('T')[0] });
+       fetchDashboardData();
+    }
+  };
+
+      setStats(prev => ({
+        ...prev,
+        totalRevenue: totalRevenueValue,
+        totalExpenses: totalExp,
+        totalSalaries: totalSalaries,
+        netProfit: totalRevenueValue - (totalExp + totalSalaries),
+        totalOrders: orders.length,
+        tablesServed: new Set(orders.map(o => o.table_id)).size,
+        activeWaiters: staffCount || 0
+      }));
+
+      // 10. Prepare raw items for PDF report
+      const allItems = [
+        ...orders.map(o => ({
+          date: new Date(o.created_at).toLocaleDateString(),
+          category: 'Order Income',
+          description: `Table ${o.restaurant_tables?.number || '?'}, Waiter: ${o.waiter_name || 'Staff'}`,
+          amount: parseFloat(o.total_amount || 0),
+          type: 'income'
+        })),
+        ...(businessExpenses || []).map(e => ({
+          date: e.expense_date,
+          category: e.category,
+          description: e.description || 'Operating Expense',
+          amount: parseFloat(e.amount || 0),
+          type: 'expense'
+        })),
+        ...(staffPayments || []).map(s => ({
+          date: s.payment_date,
+          category: 'Salary',
+          description: 'Staff Payout',
+          amount: parseFloat(s.amount || 0),
+          type: 'expense'
+        }))
+      ].sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      setReportData(allItems);
+
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadPDF = async () => {
+    // 1. Fetch Profile info for branding
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('business_name, address')
+      .eq('id', (await supabase.auth.getUser()).data.user.id)
+      .single();
+
+    const data = {
+      totalIncome: stats.totalRevenue,
+      totalExpenses: stats.totalExpenses,
+      totalSalaries: stats.totalSalaries,
+      netProfit: stats.netProfit,
+      items: reportData
+    };
+
+    const dateStr = timeRange === t('restaurant.customRange') ? buttonText : timeRange;
+    ReportService.generateFinancialReport(data, dateStr, {
+      businessName: profile?.business_name || 'Merkez CRM Member',
+      address: profile?.address || ''
+    });
   };
 
   const generateHourlyBuckets = (orders) => {
@@ -301,6 +403,22 @@ const Analytics = () => {
               )}
             </div>
 
+            <button 
+               onClick={() => setIsExpenseModalOpen(true)}
+               className="flex items-center bg-white border border-gray-200 text-gray-700 text-sm rounded-lg px-4 py-2 hover:bg-gray-50 transition-all font-bold shadow-sm active:scale-95"
+            >
+               <Plus className="w-4 h-4 mr-2 text-merkez-blue" />
+               {t('common.add')} {t('finance.expenses')}
+            </button>
+
+            <button 
+               onClick={handleDownloadPDF}
+               className="flex items-center bg-gray-900 border border-gray-800 text-white text-sm rounded-lg px-4 py-2 hover:bg-black transition-all font-bold shadow-lg active:scale-95"
+            >
+               <Download className="w-4 h-4 mr-2" />
+               {t('restaurant.downloadReport')}
+            </button>
+
             <select 
                value={timeRange}
                onChange={(e) => setTimeRange(e.target.value)}
@@ -326,33 +444,35 @@ const Analytics = () => {
                <DollarSign className="w-6 h-6" />
             </div>
          </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalExpenses')}</p>
+               <h3 className="text-2xl font-bold text-gray-900">${stats.totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+               <p className="text-xs text-red-500 flex items-center mt-1 font-medium">{t('restaurant.businessExpenses')}</p>
+            </div>
+            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500">
+               <PieChart className="w-6 h-6" />
+            </div>
+         </div>
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalOrders')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">{stats.totalOrders}</h3>
-               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> {stats.orderGrowth}% {t('restaurant.fromYesterday')}</p>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.netProfit')}</p>
+               <h3 className={`text-2xl font-bold ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                 ${stats.netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+               </h3>
+               <p className="text-xs text-gray-400 mt-1 font-medium italic">{t('dashboard.overview')}</p>
+            </div>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${stats.netProfit >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-500'}`}>
+               <Activity className="w-6 h-6" />
+            </div>
+         </div>
+         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.salariesPaid')}</p>
+               <h3 className="text-2xl font-bold text-gray-900">${stats.totalSalaries.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+               <p className="text-xs text-gray-400 mt-1">{t('restaurant.rankedByRevenue')}</p>
             </div>
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-merkez-blue">
-               <TrendingUp className="w-6 h-6" />
-            </div>
-         </div>
-         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
-            <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.tablesServed')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">{stats.tablesServed}</h3>
-               <p className="text-xs text-gray-400 mt-1">{t('restaurant.totalSeatingsAcrossAllZones')}</p>
-            </div>
-            <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center text-merkez-yellow">
-               <CheckCircle2 className="w-6 h-6" />
-            </div>
-         </div>
-         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
-            <div>
-               <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.activeWaiters')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">{stats.activeWaiters}</h3>
-               <p className="text-xs text-gray-400 mt-1">{t('restaurant.currentlyTakingOrders')}</p>
-            </div>
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500">
                <Users className="w-6 h-6" />
             </div>
          </div>
@@ -492,6 +612,61 @@ const Analytics = () => {
         </div>
 
       </div>
+
+      {/* Expense Modal */}
+      {isExpenseModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsExpenseModalOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+               <h3 className="text-xl font-bold text-gray-900">{t('finance.addTransaction')}</h3>
+               <button onClick={() => setIsExpenseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="p-6 space-y-4">
+               <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('common.category')}</label>
+                    <select 
+                      value={expenseForm.category}
+                      onChange={e => setExpenseForm({...expenseForm, category: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue"
+                    >
+                      <option value="Rent">Rent</option>
+                      <option value="Utilities">Utilities</option>
+                      <option value="Supplies">Supplies</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('common.price')}</label>
+                    <input 
+                      type="number"
+                      value={expenseForm.amount}
+                      onChange={e => setExpenseForm({...expenseForm, amount: parseFloat(e.target.value) || ''})}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue"
+                      placeholder="0.00"
+                    />
+                  </div>
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('finance.thDesc')}</label>
+                  <textarea 
+                    value={expenseForm.description}
+                    onChange={e => setExpenseForm({...expenseForm, description: e.target.value})}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue h-24 resize-none"
+                    placeholder="E.g. Electricity bill for March"
+                  />
+               </div>
+               <button 
+                 onClick={handleAddExpense}
+                 className="w-full bg-merkez-blue text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-95"
+               >
+                 {t('common.save')}
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

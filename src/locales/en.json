@@ -251,7 +251,13 @@
     "applyBonuses": "Apply Bonuses",
     "bonusesUsed": "Bonuses Applied",
     "loyaltyDiscount": "Loyalty Discount",
-    "cancelMove": "Cancel Move"
+    "cancelMove": "Cancel Move",
+    "totalExpenses": "Total Expenses",
+    "netProfit": "Net Profit",
+    "downloadReport": "Download PDF Report",
+    "salariesPaid": "Salaries Paid",
+    "businessExpenses": "Operating Expenses",
+    "salary": "Salary"
   },
   "status": {
     "new": "New",

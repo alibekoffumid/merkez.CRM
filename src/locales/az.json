@@ -224,7 +224,13 @@
     "applyBonuses": "Bonusları istifadə et",
     "bonusesUsed": "Bonuslar silindi",
     "loyaltyDiscount": "Sadiqlik güzəşti",
-    "cancelMove": "Ləğv et"
+    "cancelMove": "Ləğv et",
+    "totalExpenses": "Ümumi Xərclər",
+    "netProfit": "Xalis Mənfəət",
+    "downloadReport": "PDF Hesabatı Yüklə",
+    "salariesPaid": "Maaş Ödənişləri",
+    "businessExpenses": "Operasiya Xərcləri",
+    "salary": "Maaş"
   },
   "status": {
     "new": "Yeni",

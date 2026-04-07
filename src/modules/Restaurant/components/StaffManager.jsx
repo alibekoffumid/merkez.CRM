@@ -20,7 +20,8 @@ const StaffManager = () => {
     name: '',
     role: 'Waiter',
     shift: 'Morning',
-    status: 'Active'
+    status: 'Active',
+    salary_amount: 0
   });
 
   useEffect(() => {
@@ -63,6 +64,28 @@ const StaffManager = () => {
     if (!error) {
       setEditingStaff(null);
       fetchStaff();
+    }
+  };
+
+  const handlePaySalary = async (person) => {
+    const amount = person.salary_amount || 0;
+    if (amount <= 0) {
+      window.alert('Please set a salary amount for this staff member first.');
+      return;
+    }
+
+    if (!window.confirm(`Confirm salary payment of $${amount} to ${person.name}?`)) return;
+
+    const { error } = await supabase.from('staff_payments').insert([{
+      staff_id: person.id,
+      amount: amount,
+      payment_date: new Date().toISOString().split('T')[0]
+    }]);
+
+    if (error) {
+      window.alert('Error processing payment: ' + error.message);
+    } else {
+      window.alert(`Payment of $${amount} for ${person.name} recorded successfully.`);
     }
   };
 
@@ -111,6 +134,7 @@ const StaffManager = () => {
               <th className="font-semibold p-4">{t('restaurant.staffMember')}</th>
               <th className="font-semibold p-4">{t('restaurant.role')}</th>
               <th className="font-semibold p-4">{t('restaurant.shift')}</th>
+              <th className="font-semibold p-4">{t('restaurant.salary')}</th>
               <th className="font-semibold p-4">{t('common.status')}</th>
               <th className="font-semibold p-4 text-right rounded-tr-xl">{t('restaurant.actions')}</th>
             </tr>
@@ -129,6 +153,7 @@ const StaffManager = () => {
                   </td>
                   <td className="p-4 text-sm text-gray-500">{t('restaurant.' + person.role.toLowerCase().replace(' ', ''))}</td>
                   <td className="p-4 text-sm font-medium text-gray-700">{t('restaurant.' + person.shift.toLowerCase())}</td>
+                  <td className="p-4 text-sm font-bold text-gray-900">${(person.salary_amount || 0).toLocaleString()}</td>
                   <td className="p-4">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       person.status === 'Active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
@@ -137,6 +162,12 @@ const StaffManager = () => {
                     </span>
                   </td>
                   <td className="p-4 text-right">
+                    <button 
+                      onClick={() => handlePaySalary(person)}
+                      className="text-merkez-blue hover:text-blue-700 p-1.5 transition-colors mr-1 font-bold text-[10px] uppercase border border-blue-100 rounded bg-blue-50"
+                    >
+                      {t('restaurant.checkout')}
+                    </button>
                     <button 
                       onClick={() => setEditingStaff({...person})}
                       className="text-gray-400 hover:text-merkez-yellow p-1.5 transition-colors mr-1"
@@ -221,6 +252,19 @@ const StaffManager = () => {
                  </div>
                </div>
 
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.salary')}</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                    <input 
+                      type="number" 
+                      value={formData.salary_amount}
+                      onChange={(e) => setFormData({...formData, salary_amount: parseFloat(e.target.value) || 0})}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block pl-8 p-2.5 outline-none transition-colors" 
+                    />
+                  </div>
+               </div>
+
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
                    <select 
@@ -299,6 +343,19 @@ const StaffManager = () => {
                       <option value="Flexible">{t('restaurant.flexible')}</option>
                     </select>
                  </div>
+               </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.salary')}</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                    <input 
+                      type="number" 
+                      value={editingStaff.salary_amount}
+                      onChange={(e) => setEditingStaff({...editingStaff, salary_amount: parseFloat(e.target.value) || 0})}
+                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block pl-8 p-2.5 outline-none transition-colors" 
+                    />
+                  </div>
                </div>
 
                <div>

@@ -251,7 +251,13 @@
     "applyBonuses": "Списать бонусы",
     "bonusesUsed": "Бонусы списаны",
     "loyaltyDiscount": "Скидка лояльности",
-    "cancelMove": "Отменить перенос"
+    "cancelMove": "Отменить перенос",
+    "totalExpenses": "Общие расходы",
+    "netProfit": "Чистая прибыль",
+    "downloadReport": "Скачать отчет PDF",
+    "salariesPaid": "Выплачено зарплат",
+    "businessExpenses": "Операционные расходы",
+    "salary": "Оклад"
   },
   "status": {
     "new": "Новый",
