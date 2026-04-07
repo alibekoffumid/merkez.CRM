@@ -254,7 +254,10 @@
     "incorrectPattern": "Səhv açar! Yenidən cəhd edin",
     "ontime": "Vaxtında",
     "late": "Gecikib",
-    "attendance": "Davamiyyət"
+    "attendance": "Davamiyyət",
+    "time": "Vaxt",
+    "date": "Tarix",
+    "noData": "Məlumat yoxdur"
   },
   "status": {
     "new": "Yeni",

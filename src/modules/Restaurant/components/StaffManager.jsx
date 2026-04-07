@@ -63,10 +63,27 @@ const StaffManager = () => {
 
   const handleAddStaff = async () => {
     if (!formData.name) return;
-    const { error } = await supabase.from('staff').insert([formData]);
-    if (!error) {
+    setLoading(true);
+    const { error } = await supabase.from('staff').insert([{
+      ...formData,
+      user_id: (await supabase.auth.getUser()).data.user?.id
+    }]);
+    
+    if (error) {
+      alert("Error adding staff: " + error.message);
+      setLoading(false);
+    } else {
       setIsAddModalOpen(false);
-      setFormData({ name: '', role: 'Waiter', shift: 'Morning', status: 'Active' });
+      setFormData({ 
+        name: '', 
+        role: 'Waiter', 
+        shift: 'Morning', 
+        status: 'Active',
+        salary_amount: 0,
+        shift_start_time: '09:00',
+        pin_pattern: ''
+      });
+      setLoading(false);
       fetchStaff();
     }
   };
@@ -334,7 +351,7 @@ const StaffManager = () => {
                   </div>
                </div>
 
-               <div>
+                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
                    <select 
                     value={formData.status}
@@ -345,10 +362,35 @@ const StaffManager = () => {
                     <option value="On Leave">{t('restaurant.onleave')}</option>
                   </select>
                </div>
+
+                <div className="pt-4 border-t border-gray-100 mt-2">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.securityAttendance')}</label>
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.shiftStartTime')}</label>
+                            <input 
+                                type="time"
+                                value={formData.shift_start_time || '09:00'}
+                                onChange={(e) => setFormData({...formData, shift_start_time: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.patternPassword')}</label>
+                            <button 
+                                onClick={() => setIsPatternModalOpen(true)}
+                                className={`w-full py-2.5 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 ${formData.pin_pattern ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-merkez-blue/10 text-merkez-blue border border-blue-100'}`}
+                            >
+                                <Lock className="w-3 h-3" />
+                                {formData.pin_pattern ? t('restaurant.changePattern') : t('restaurant.setPattern')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
                
                <button 
                  onClick={handleAddStaff} 
-                 className="w-full bg-merkez-yellow text-gray-900 py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-yellow-500 transition-colors mt-2"
+                 className="w-full bg-merkez-yellow text-gray-900 py-3 rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500 transition-colors mt-2"
                >
                  {t('restaurant.saveStaff')}
                </button>

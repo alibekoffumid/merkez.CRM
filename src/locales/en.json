@@ -262,7 +262,10 @@
     "downloadReport": "Download PDF Report",
     "salariesPaid": "Salaries Paid",
     "businessExpenses": "Operating Expenses",
-    "salary": "Salary"
+    "salary": "Salary",
+    "time": "Time",
+    "date": "Date",
+    "noData": "No data available"
   },
   "status": {
     "new": "New",
