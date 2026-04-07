@@ -18,6 +18,7 @@ const MenuManager = () => {
 
   // New Dish Form State
   const [newDish, setNewDish] = useState({ name: '', price: '', category_id: '', status: 'Available' });
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   // Filtering states
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,16 +75,43 @@ const MenuManager = () => {
     setLoading(false);
   };
 
+  const handleAddCategory = async () => {
+    if (!newCategoryName) return;
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('categories')
+      .insert([{ 
+        name: newCategoryName,
+        user_id: user.id 
+      }]);
+    
+    if (!error) {
+      setIsAddCategoryModalOpen(false);
+      setNewCategoryName('');
+      fetchData();
+    } else {
+      console.error('Error adding category:', error);
+      alert('Error adding category: ' + error.message);
+    }
+  };
+
   const handleAddDish = async () => {
     if (!newDish.name || !newDish.price) return;
     
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { error } = await supabase
       .from('products')
       .insert([{
         name: newDish.name,
         price: parseFloat(newDish.price),
         category_id: newDish.category_id,
-        description: 'Added via UI'
+        description: 'Added via UI',
+        user_id: user.id
       }]);
     
     if (!error) {
@@ -356,9 +384,15 @@ const MenuManager = () => {
             <div className="p-5 space-y-4">
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.categoryName')}</label>
-                  <input type="text" placeholder={t('restaurant.categoryPlaceholder')} className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors" />
+                  <input 
+                    type="text" 
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder={t('restaurant.categoryPlaceholder')} 
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors" 
+                  />
                </div>
-               <button onClick={() => setIsAddCategoryModalOpen(false)} className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-2">
+               <button onClick={handleAddCategory} className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-2">
                  {t('restaurant.createCategory')}
                </button>
             </div>
