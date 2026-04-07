@@ -53,7 +53,7 @@ const Header = ({ onMenuClick }) => {
         </button>
 
         <div className="flex items-center pr-2 sm:pr-6 mr-0 sm:mr-2 border-r border-gray-100 h-10">
-           <img src="/merkez-logo.gif" alt="Logo" className="h-8 sm:h-10 w-auto object-contain" />
+           <img src="/merkez-new-logo.svg" alt="Logo" className="h-8 sm:h-10 w-auto object-contain" />
            {profile?.business_name && (
              <div className="ml-4 hidden xl:flex flex-col">
                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Workspace</span>
