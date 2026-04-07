@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
 import WaiterAuthOverlay from './WaiterAuthOverlay';
@@ -163,8 +163,12 @@ const FloorPlan = () => {
       if (existing) {
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, notes: '' }];
     });
+  };
+
+  const updateCartItemNote = (productId, notes) => {
+    setCart(prev => prev.map(item => item.id === productId ? { ...item, notes } : item));
   };
 
   const removeFromCart = (productId) => {
@@ -271,6 +275,7 @@ const FloorPlan = () => {
         order_id: orderData.id,
         product_id: item.id,
         quantity: item.quantity,
+        notes: item.notes || '',
         status: 'new'
       }));
 
@@ -334,11 +339,25 @@ const FloorPlan = () => {
 
   const getOrderStatusColor = (status) => {
     switch(status) {
-      case 'preparing': return 'bg-yellow-100 text-merkez-yellow';
-      case 'ready': return 'bg-green-100 text-merkez-green';
-      case 'served': return 'bg-gray-100 text-gray-500';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'preparing': return 'bg-yellow-100 text-merkez-yellow border-yellow-200';
+      case 'ready': return 'bg-green-500 text-white border-green-600 animate-pulse-gentle shadow-[0_0_15px_rgba(52,168,83,0.4)]';
+      case 'served': return 'bg-gray-100 text-gray-500 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const handleServeOrder = async (orderId) => {
+     setIsProcessing(true);
+     try {
+       // Update all order_items and the order itself to 'served'
+       await supabase.from('order_items').update({ status: 'served' }).eq('order_id', orderId.replace('#', ''));
+       await supabase.from('orders').update({ status: 'served' }).eq('id', orderId.replace('#', ''));
+       fetchLiveOrders();
+     } catch (e) {
+       console.error(err);
+     } finally {
+       setIsProcessing(false);
+     }
   };
 
   const handleCloseModal = () => {
@@ -794,20 +813,36 @@ const FloorPlan = () => {
                <p className="text-sm text-gray-400 text-center py-8">{t('restaurant.noActiveOrders')}</p>
              ) : (
                liveOrders.map(order => (
-                 <div key={order.id} className="p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all bg-gray-50/50 cursor-pointer">
-                   <div className="flex justify-between items-start mb-2">
+                 <div 
+                   key={order.id} 
+                   className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                     order.status === 'ready' 
+                       ? 'bg-green-50 border-green-200 shadow-md ring-2 ring-green-100' 
+                       : 'border-gray-100 hover:border-gray-200 hover:shadow-sm bg-gray-50/50'
+                   }`}
+                 >
+                   <div className="flex justify-between items-start">
                      <div>
                        <span className="text-sm font-bold text-gray-900">{t('restaurant.table')} {order.table}</span>
-                       <span className="block text-xs text-gray-500">{order.id}</span>
+                       <span className="block text-[10px] text-gray-400 font-mono tracking-tight">{order.id}</span>
                      </div>
-                     <span className={`text-xs font-semibold px-2 py-1 rounded-full uppercase tracking-wider ${getOrderStatusColor(order.status)}`}>
+                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter border ${getOrderStatusColor(order.status)}`}>
                        {t('status.' + (order.status?.toLowerCase() || 'pending'))}
                      </span>
                    </div>
-                   <div className="flex justify-between items-end mt-3">
-                     <span className="text-sm text-gray-600">{order.items} {t('restaurant.items')}</span>
-                     <span className="text-sm font-bold text-gray-900">${order.total.toFixed(2)}</span>
+                   <div className="flex justify-between items-end">
+                     <span className="text-xs font-medium text-gray-500">{order.items} {t('restaurant.items')}</span>
+                     <span className="text-sm font-black text-gray-900">${order.total.toFixed(2)}</span>
                    </div>
+                   
+                   {order.status === 'ready' && (
+                     <button 
+                        onClick={(e) => { e.stopPropagation(); handleServeOrder(order.id); }}
+                        className="mt-2 w-full bg-merkez-green text-white py-1.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center shadow-lg active:scale-95"
+                     >
+                        <CheckCircle2 className="w-3 h-3 mr-2" /> {t('status.served').toUpperCase()}
+                     </button>
+                   )}
                  </div>
                ))
              )}
@@ -913,32 +948,86 @@ const FloorPlan = () => {
                             const isCancellable = Math.abs(new Date().getTime() - new Date(item.created_at).getTime()) <= 300000;
                             
                             return (
-                              <li key={item.id} className="group flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
-                                <div className="flex gap-2 items-center flex-1 mr-3 min-w-0">
-                                  <span className="text-merkez-blue font-bold shrink-0">{item.quantity}x</span>
-                                  <span className="font-medium text-gray-900 leading-tight truncate">{item.products?.name || 'Item'}</span>
-                                  <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${color}`}>
-                                    {t('status.' + (item.status?.toLowerCase() || 'pending'))}
-                                  </span>
+                              <li key={item.id} className="group flex flex-col items-stretch text-sm py-2 border-b border-gray-50 last:border-0 overflow-hidden">
+                                <div className="flex justify-between items-center">
+                                  <div className="flex gap-2 items-center flex-1 mr-3 min-w-0">
+                                    <span className="text-merkez-blue font-bold shrink-0">{item.quantity}x</span>
+                                    <span className="font-medium text-gray-900 leading-tight truncate">{item.products?.name || 'Item'}</span>
+                                    <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded uppercase font-bold tracking-wide ${color}`}>
+                                      {t('status.' + (item.status?.toLowerCase() || 'pending'))}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>
+                                    {isCancellable && (
+                                      <button 
+                                        onClick={() => authenticatedAction(() => handleCancelItem(item), t('restaurant.cancelOrder'))}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-all shadow-sm border border-red-50 active:scale-90"
+                                        title={t('restaurant.cancelOrder')}
+                                      >
+                                        <X className="w-4 h-4 stroke-[3px]" />
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>
-                                  {isCancellable && (
-                                    <button 
-                                      onClick={() => authenticatedAction(() => handleCancelItem(item), t('restaurant.cancelOrder'))}
-                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-all shadow-sm border border-red-50 active:scale-90"
-                                      title={t('restaurant.cancelOrder')}
-                                    >
-                                      <X className="w-4 h-4 stroke-[3px]" />
-                                    </button>
-                                  )}
-                                </div>
+                                {item.notes && (
+                                  <div className="mt-1 flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-md border border-gray-100 self-start">
+                                    <ChefHat className="w-3 h-3 text-gray-400" />
+                                    <span className="text-[10px] italic text-gray-600 font-medium">"{item.notes}"</span>
+                                  </div>
+                                )}
                               </li>
                             );
                           })}
                         </ul>
                       )}
                     </div>
+
+                    {/* NEW CART SECTION (While adding) */}
+                    {isAddingOrder && cart.length > 0 && (
+                      <div className="flex-1 overflow-y-auto no-scrollbar py-2 border-t-2 border-dashed border-blue-50 mt-2 bg-blue-50/10 rounded-xl p-3">
+                        <h5 className="text-[10px] font-black text-merkez-blue uppercase tracking-widest mb-3 flex items-center">
+                          <ShoppingCart className="w-3 h-3 mr-2" />
+                          {t('restaurant.newItems').toUpperCase()}
+                        </h5>
+                        <div className="space-y-3">
+                          {cart.map(item => (
+                            <div key={item.id} className="bg-white border border-merkez-blue/20 p-2.5 rounded-xl shadow-sm animate-in slide-in-from-left-2">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-black text-gray-900 truncate leading-tight">{item.name}</p>
+                                  <p className="text-xs font-bold text-merkez-blue">${(item.price * item.quantity).toFixed(2)}</p>
+                                </div>
+                                <div className="flex items-center space-x-2 bg-blue-50 rounded-full px-1 py-1 border border-blue-100">
+                                   <button 
+                                    onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
+                                    className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-merkez-blue hover:text-red-500 shadow-sm"
+                                   >
+                                     <Minus className="w-2.5 h-2.5" />
+                                   </button>
+                                   <span className="text-xs font-black text-merkez-blue w-3 text-center">{item.quantity}</span>
+                                   <button 
+                                    onClick={(e) => { e.stopPropagation(); addToCart(item); }}
+                                    className="w-5 h-5 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600"
+                                   >
+                                     <Plus className="w-2.5 h-2.5" />
+                                   </button>
+                                </div>
+                              </div>
+                              <div className="relative">
+                                <input 
+                                  type="text" 
+                                  placeholder={t('restaurant.addNote') || "Note for chef..."}
+                                  value={item.notes || ''}
+                                  onChange={(e) => updateCartItemNote(item.id, e.target.value)}
+                                  className="w-full bg-gray-50 border border-transparent focus:border-merkez-blue focus:bg-white rounded-lg px-2 py-1.5 text-[10px] italic outline-none transition-all placeholder:text-gray-300"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Fixed Footer Buttons */}
                     <div className="pt-4 mt-auto shrink-0 border-t border-gray-100 bg-white">
