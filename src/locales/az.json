@@ -247,7 +247,7 @@
     "setPattern": "Açar təyin et",
     "setStaffPattern": "Açarın quraşdırılması",
     "drawPatternInstructions": "Bu əməkdaş üçün qrafik açarı çəkin",
-    "authorizeAction": "Avtorizasiya",
+    "authorizeAction": "Profilə Giriş",
     "drawPatternToVerify": "Təsdiqləmək üçün naxışı çəkin",
     "selectStaffToBegin": "Başlamaq üçün əməkdaşı seçin",
     "changeWaiter": "Ofisiantı dəyiş",
@@ -255,6 +255,9 @@
     "ontime": "Vaxtında",
     "late": "Gecikib",
     "attendance": "Davamiyyət",
+    "cancelOrder": "Sifarişi ləğv et",
+    "cancelConfirm": "Bütün sifarişi ləğv etmək və masanı boşaltmaq istədiyinizə əminsiniz?",
+    "tooLateToCancel": "Sifariş yalnız verildikdən sonra 5 dəqiqə ərzində ləğv edilə bilər",
     "time": "Vaxt",
     "date": "Tarix",
     "noData": "Məlumat yoxdur"

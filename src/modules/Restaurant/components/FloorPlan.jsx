@@ -41,6 +41,8 @@ const FloorPlan = () => {
   const [authActionTitle, setAuthActionTitle] = useState('');
   const [pendingAction, setPendingAction] = useState(null);
   const [activeWaiter, setActiveWaiter] = useState(null);
+  const [activeOrderId, setActiveOrderId] = useState(null);
+  const [activeOrderCreatedAt, setActiveOrderCreatedAt] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -115,20 +117,26 @@ const FloorPlan = () => {
     try {
       const { data: activeOrders } = await supabase
         .from('orders')
-        .select('id')
+        .select('id, created_at')
         .eq('table_id', targetTableId)
-        .neq('status', 'completed');
+        .neq('status', 'completed')
+        .limit(1);
 
       if (!activeOrders || activeOrders.length === 0) {
         setTableOrders([]);
+        setActiveOrderId(null);
+        setActiveOrderCreatedAt(null);
         return;
       }
 
-      const orderIds = activeOrders.map(o => o.id);
+      const orderId = activeOrders[0].id;
+      setActiveOrderId(orderId);
+      setActiveOrderCreatedAt(activeOrders[0].created_at);
+
       const { data } = await supabase
         .from('order_items')
         .select('*, products(name, price)')
-        .in('order_id', orderIds)
+        .eq('order_id', orderId)
         .order('created_at', { ascending: false });
 
       setTableOrders(data || []);
@@ -404,6 +412,46 @@ const FloorPlan = () => {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!activeOrderId || !activeOrderCreatedAt) return;
+    
+    // Safety check: 5 minutes limit
+    const orderTime = new Date(activeOrderCreatedAt).getTime();
+    const now = new Date().getTime();
+    const diffMins = (now - orderTime) / (1000 * 60);
+    
+    if (diffMins > 5) {
+      window.alert(t('restaurant.tooLateToCancel'));
+      return;
+    }
+
+    if (!window.confirm(t('restaurant.cancelConfirm'))) return;
+
+    setIsProcessing(true);
+    try {
+      // 1. Delete items (cascade might handle this, but let's be safe if defined)
+      await supabase.from('order_items').delete().eq('order_id', activeOrderId);
+      
+      // 2. Delete order
+      await supabase.from('orders').delete().eq('id', activeOrderId);
+      
+      // 3. Reset table
+      await supabase
+        .from('restaurant_tables')
+        .update({ status: 'free', waiter: null, customer_id: null })
+        .eq('id', selectedTable.id);
+
+      window.alert(t('common.success'));
+      handleCloseModal();
+      fetchTables();
+    } catch (err) {
+      console.error(err);
+      window.alert(t('common.error'));
     } finally {
       setIsProcessing(false);
     }
@@ -793,7 +841,7 @@ const FloorPlan = () => {
                       {!isAddingOrder ? (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <button 
-                            onClick={() => authenticatedAction(() => setIsAddingOrder(true), t('restaurant.addOrder'))} 
+                            onClick={() => setIsAddingOrder(true)} 
                             className="w-full bg-merkez-blue text-white py-3 px-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center group"
                           >
                             <Plus className="w-4 h-4 mr-1.5 shrink-0 transition-transform group-hover:scale-110" />
@@ -811,6 +859,15 @@ const FloorPlan = () => {
                           >
                             <Repeat className="w-4 h-4 mr-2 text-merkez-yellow" /> {t('restaurant.moveTable')}
                           </button>
+
+                          {(activeOrderId && activeOrderCreatedAt && ((new Date().getTime() - new Date(activeOrderCreatedAt).getTime()) / (1000 * 60) <= 5)) && (
+                            <button 
+                              onClick={() => authenticatedAction(handleCancelOrder, t('restaurant.cancelOrder'))}
+                              className="w-full sm:col-span-3 mt-1 bg-red-50 text-red-600 py-3 rounded-lg text-sm font-bold hover:bg-red-100 transition-all flex items-center justify-center border border-red-100"
+                            >
+                              <X className="w-4 h-4 mr-2" /> {t('restaurant.cancelOrder')}
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <button onClick={() => setIsAddingOrder(false)} className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-extrabold hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
@@ -1083,7 +1140,7 @@ const FloorPlan = () => {
                            </span>
                         </div>
                         <button 
-                          onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
+                          onClick={handleSendToKitchen}
                           disabled={cart.length === 0 || isProcessing}
                           className={`group relative flex items-center px-8 py-3 rounded-xl font-black text-sm uppercase tracking-tighter transition-all shadow-lg active:scale-95 ${
                             cart.length > 0 

@@ -278,6 +278,9 @@
     "ontime": "On Time",
     "late": "Late",
     "attendance": "Attendance",
+    "cancelOrder": "Cancel Order",
+    "cancelConfirm": "Are you sure you want to cancel the entire order and free the table?",
+    "tooLateToCancel": "Order can only be cancelled within 5 minutes of placement.",
     "time": "Time",
     "date": "Date",
     "noData": "No data available"
