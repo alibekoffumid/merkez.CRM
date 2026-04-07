@@ -168,15 +168,6 @@ const Analytics = () => {
       const totalExp = (businessExpenses || []).reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
       const totalSalaries = (staffPayments || []).reduce((sum, s) => sum + parseFloat(s.amount || 0), 0);
       const totalRevenueValue = orders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
-  const handleAddExpense = async () => {
-    if (!expenseForm.amount) return;
-    const { error } = await supabase.from('business_expenses').insert([expenseForm]);
-    if (!error) {
-       setIsExpenseModalOpen(false);
-       setExpenseForm({ category: 'Rent', amount: '', description: '', expense_date: new Date().toISOString().split('T')[0] });
-       fetchDashboardData();
-    }
-  };
 
       setStats(prev => ({
         ...prev,
@@ -220,6 +211,35 @@ const Analytics = () => {
       console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddExpense = async () => {
+    if (!expenseForm.amount) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase.from('business_expenses').insert([{
+        ...expenseForm,
+        user_id: user.id
+      }]);
+
+      if (!error) {
+        setIsExpenseModalOpen(false);
+        setExpenseForm({ 
+          category: 'Rent', 
+          amount: '', 
+          description: '', 
+          expense_date: new Date().toISOString().split('T')[0] 
+        });
+        fetchDashboardData();
+      } else {
+        console.error('Error adding expense:', error);
+        alert('Error: ' + error.message);
+      }
+    } catch (err) {
+      console.error('Add expense error:', err);
     }
   };
 
