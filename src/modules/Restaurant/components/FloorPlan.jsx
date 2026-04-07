@@ -1018,8 +1018,12 @@ const FloorPlan = () => {
                           )}
                         </div>
                       ) : (
-                        <button onClick={() => setIsAddingOrder(false)} className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-extrabold hover:bg-gray-50 transition-all flex items-center justify-center shadow-sm">
-                          {t('restaurant.doneOrdering')}
+                        <button 
+                          onClick={() => setIsAddingOrder(false)} 
+                          className="w-full bg-merkez-blue/10 text-merkez-blue py-4 rounded-2xl text-xs font-black hover:bg-merkez-blue/20 transition-all uppercase tracking-widest flex items-center justify-center shadow-sm"
+                        >
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          {t('restaurant.doneOrdering') || 'DONE ORDERING'}
                         </button>
                       )}
                     </div>
