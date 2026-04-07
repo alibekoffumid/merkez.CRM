@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
 import WaiterAuthOverlay from './WaiterAuthOverlay';
@@ -1125,12 +1125,12 @@ const FloorPlan = () => {
 
                   {/* Product Grid */}
                   <div className="flex-1 overflow-y-auto p-4 no-scrollbar h-full">
-                    {loadingProducts ? (
-                      <div className="flex justify-center py-20 text-gray-400 font-bold animate-pulse">{t('common.loading')}</div>
+                    {loading ? (
+                      <div className="flex justify-center py-20 text-gray-400 font-bold animate-pulse uppercase tracking-widest">{t('common.loading')}</div>
                     ) : (
                       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-32">
-                        {products
-                          .filter(p => p.station === menuStation && (!menuSearch || p.name.toLowerCase().includes(menuSearch.toLowerCase())))
+                        {liveMenu
+                          .filter(item => item.station === menuStation && (!menuSearch || item.name.toLowerCase().includes(menuSearch.toLowerCase())))
                           .map(product => (
                             <button
                               key={product.id}
@@ -1178,14 +1178,20 @@ const FloorPlan = () => {
                            </div>
                         </div>
                         
-                        <button 
-                          onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
-                          disabled={isProcessing}
-                          className="bg-merkez-blue text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
-                        >
-                          {isProcessing ? t('common.loading') : t('restaurant.sendToKitchen')} 
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className="text-right mr-3 hidden sm:block">
+                               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">TOTAL</p>
+                               <p className="text-lg font-black text-merkez-blue leading-none">${(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)).toFixed(2)}</p>
+                            </div>
+                            <button 
+                              onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
+                              disabled={isProcessing}
+                              className="bg-merkez-blue text-white px-6 py-4 rounded-2xl font-black text-sm flex items-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+                            >
+                              {isProcessing ? t('common.loading') : t('restaurant.sendToKitchen')} 
+                              <ArrowRight className="ml-2 w-4 h-4" />
+                            </button>
+                        </div>
                       </div>
 
                       {/* Stretchy Items List */}
@@ -1208,12 +1214,14 @@ const FloorPlan = () => {
                                 {/* STRETCHY CHEF NOTE */}
                                 <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 focus-within:border-merkez-blue/30 transition-all shadow-inner">
                                   <div className="flex items-center gap-2 mb-3">
-                                    <ChefHat className="w-4 h-4 text-amber-600" />
-                                    <span className="text-[10px] font-black uppercase text-gray-400">{t('restaurant.addNote')}</span>
+                                    <div className="p-1.5 bg-amber-50 rounded-lg">
+                                       <ChefHat className="w-4 h-4 text-amber-600" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase text-gray-400">{t('restaurant.addNote') || "Chef Note"}</span>
                                   </div>
                                   <textarea 
                                     rows="3"
-                                    placeholder="Add instructions..."
+                                    placeholder="..."
                                     value={item.notes || ''}
                                     onChange={(e) => updateCartItemNote(item.id, e.target.value)}
                                     className="w-full bg-transparent border-none focus:ring-0 p-0 text-base font-bold text-gray-800 resize-none min-h-[90px]"
