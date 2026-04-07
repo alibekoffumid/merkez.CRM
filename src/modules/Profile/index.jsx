@@ -191,9 +191,8 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Right Column: Settings Tabs */}
         <div className="flex-1 space-y-6">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-2 flex space-x-1 sticky top-4 z-10 backdrop-blur-md bg-white/90">
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-2 flex space-x-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
