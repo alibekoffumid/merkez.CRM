@@ -1014,16 +1014,20 @@ const FloorPlan = () => {
                                    </button>
                                 </div>
                               </div>
-                              <div className="relative mt-2">
-                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-merkez-blue/60">
-                                  <ChefHat className="w-3.5 h-3.5" />
+                              {/* Chef Note Section */}
+                              <div className="mt-3 p-2 bg-amber-50/50 rounded-lg border border-amber-100/50 group-focus-within:border-amber-200 transition-colors">
+                                <div className="flex items-center gap-1.5 mb-1">
+                                  <ChefHat className="w-3 h-3 text-amber-600" />
+                                  <span className="text-[9px] font-black uppercase tracking-wider text-amber-700">
+                                    {t('restaurant.addNote') || "Chef Note"}
+                                  </span>
                                 </div>
-                                <input 
-                                  type="text" 
-                                  placeholder={t('restaurant.addNote') || "Note for chef..."}
+                                <textarea 
+                                  rows="1"
+                                  placeholder="..."
                                   value={item.notes || ''}
                                   onChange={(e) => updateCartItemNote(item.id, e.target.value)}
-                                  className="w-full bg-blue-50/50 border border-blue-100 focus:border-merkez-blue focus:bg-white rounded-lg pl-8 pr-2 py-1.5 text-xs italic outline-none transition-all placeholder:text-gray-400 shadow-inner"
+                                  className="w-full bg-white/80 border border-amber-100 focus:border-amber-400 focus:bg-white rounded px-2 py-1 text-[11px] italic outline-none transition-all placeholder:text-amber-200 resize-none min-h-[32px]"
                                 />
                               </div>
                             </div>
