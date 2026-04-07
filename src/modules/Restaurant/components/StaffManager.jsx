@@ -90,6 +90,7 @@ const StaffManager = () => {
 
   const handleEditStaff = async () => {
     if (!editingStaff.name) return;
+    setLoading(true);
     const { error } = await supabase
       .from('staff')
       .update({
@@ -103,8 +104,12 @@ const StaffManager = () => {
       })
       .eq('id', editingStaff.id);
     
-    if (!error) {
+    if (error) {
+      alert("Error updating staff: " + error.message);
+      setLoading(false);
+    } else {
       setEditingStaff(null);
+      setLoading(false);
       fetchStaff();
     }
   };
@@ -132,9 +137,14 @@ const StaffManager = () => {
   };
 
   const handleDeleteStaff = async (id) => {
+    setLoading(true);
     const { error } = await supabase.from('staff').delete().eq('id', id);
-    if (!error) {
+    if (error) {
+      alert("Error deleting staff: " + error.message);
+      setLoading(false);
+    } else {
       setConfirmDeleteId(null);
+      setLoading(false);
       fetchStaff();
     }
   };
