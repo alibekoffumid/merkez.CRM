@@ -64,7 +64,9 @@
     "saving": "Saving...",
     "saveChanges": "Save Changes",
     "period": "Period",
-    "generated": "Generated"
+    "generated": "Generated",
+    "success": "Success",
+    "error": "Error"
   },
   "restaurant": {
     "title": "Restaurant Management",

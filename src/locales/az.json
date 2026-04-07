@@ -64,7 +64,9 @@
     "saving": "Yadda saxlanılır...",
     "saveChanges": "Dəyişiklikləri yadda saxla",
     "period": "Dövr",
-    "generated": "Yaradılıb"
+    "generated": "Yaradılıb",
+    "success": "Uğurlu",
+    "error": "Xəta"
   },
   "restaurant": {
     "title": "Restoran İdarəetməsi",
