@@ -857,7 +857,7 @@ const FloorPlan = () => {
       {selectedTable && !mergeMode && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={handleCloseModal}>
           <div 
-            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[650px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
+            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[750px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -927,8 +927,8 @@ const FloorPlan = () => {
                       </h4>
                     </div>
 
-                    {/* Scrollable Order List - Live Data */}
-                    <div className="flex-1 overflow-y-auto no-scrollbar py-2">
+                    {/* Active Order List - Height restricted when adding new items */}
+                    <div className={`${isAddingOrder && cart.length > 0 ? 'h-[160px]' : 'flex-1'} overflow-y-auto no-scrollbar py-2 border-b border-transparent`}>
                       {tableOrdersLoading ? (
                         <p className="text-sm text-gray-400 text-center py-4">{t('common.loading')}</p>
                       ) : tableOrders.length === 0 ? (
@@ -983,51 +983,58 @@ const FloorPlan = () => {
                       )}
                     </div>
 
-                    {/* NEW CART SECTION (While adding) */}
+                    {/* NEW CART SECTION (While adding) - Takes more space */}
                     {isAddingOrder && cart.length > 0 && (
-                      <div className="flex-1 overflow-y-auto no-scrollbar py-2 border-t-2 border-dashed border-blue-50 mt-2 bg-blue-50/10 rounded-xl p-3">
-                        <h5 className="text-[10px] font-black text-merkez-blue uppercase tracking-widest mb-3 flex items-center">
-                          <ShoppingCart className="w-3 h-3 mr-2" />
-                          {t('restaurant.newItems').toUpperCase()}
-                        </h5>
-                        <div className="space-y-3">
+                      <div className="flex-[3] flex flex-col min-h-0 overflow-hidden py-4 border-t-2 border-dashed border-blue-50 mt-4 bg-blue-50/20 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h5 className="text-[11px] font-black text-merkez-blue uppercase tracking-widest flex items-center">
+                            <ShoppingCart className="w-4 h-4 mr-2" />
+                            {t('restaurant.newItems').toUpperCase()}
+                          </h5>
+                          <span className="bg-merkez-blue text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+                            {cart.length} ITEMS
+                          </span>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
                           {cart.map(item => (
-                            <div key={item.id} className="bg-white border border-merkez-blue/20 p-2.5 rounded-xl shadow-sm animate-in slide-in-from-left-2">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="min-w-0">
-                                  <p className="text-sm font-black text-gray-900 truncate leading-tight">{item.name}</p>
-                                  <p className="text-xs font-bold text-merkez-blue">${(item.price * item.quantity).toFixed(2)}</p>
+                            <div key={item.id} className="bg-white border border-merkez-blue/20 p-4 rounded-xl shadow-sm animate-in slide-in-from-bottom-2">
+                              <div className="flex justify-between items-start mb-3">
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-base font-black text-gray-900 truncate mb-1 leading-tight">{item.name}</p>
+                                  <p className="text-sm font-bold text-merkez-blue">${(item.price * item.quantity).toFixed(2)}</p>
                                 </div>
-                                <div className="flex items-center space-x-2 bg-blue-50 rounded-full px-1 py-1 border border-blue-100">
+                                <div className="flex items-center space-x-3 bg-blue-50 rounded-full px-2 py-1.5 border border-blue-100 shadow-inner">
                                    <button 
                                     onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
-                                    className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-merkez-blue hover:text-red-500 shadow-sm"
+                                    className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-merkez-blue hover:text-red-500 shadow-sm transition-transform active:scale-95"
                                    >
-                                     <Minus className="w-2.5 h-2.5" />
+                                     <Minus className="w-3.5 h-3.5" />
                                    </button>
-                                   <span className="text-xs font-black text-merkez-blue w-3 text-center">{item.quantity}</span>
+                                   <span className="text-sm font-black text-merkez-blue w-4 text-center">{item.quantity}</span>
                                    <button 
                                     onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                                    className="w-5 h-5 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600"
+                                    className="w-6 h-6 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600 transition-transform active:scale-95"
                                    >
-                                     <Plus className="w-2.5 h-2.5" />
+                                     <Plus className="w-3.5 h-3.5" />
                                    </button>
                                 </div>
                               </div>
-                              {/* Chef Note Section */}
-                              <div className="mt-3 p-2 bg-amber-50/50 rounded-lg border border-amber-100/50 group-focus-within:border-amber-200 transition-colors">
-                                <div className="flex items-center gap-1.5 mb-1">
-                                  <ChefHat className="w-3 h-3 text-amber-600" />
-                                  <span className="text-[9px] font-black uppercase tracking-wider text-amber-700">
+                              
+                              {/* Prominent Chef Note Section */}
+                              <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100 focus-within:border-amber-300 focus-within:ring-2 focus-within:ring-amber-50 transition-all">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <ChefHat className="w-4 h-4 text-amber-600" />
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">
                                     {t('restaurant.addNote') || "Chef Note"}
                                   </span>
                                 </div>
                                 <textarea 
-                                  rows="1"
+                                  rows="2"
                                   placeholder="..."
                                   value={item.notes || ''}
                                   onChange={(e) => updateCartItemNote(item.id, e.target.value)}
-                                  className="w-full bg-white/80 border border-amber-100 focus:border-amber-400 focus:bg-white rounded px-2 py-1 text-[11px] italic outline-none transition-all placeholder:text-amber-200 resize-none min-h-[32px]"
+                                  className="w-full bg-white/50 border border-amber-200/50 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs italic outline-none transition-all placeholder:text-amber-200 resize-none min-h-[48px]"
                                 />
                               </div>
                             </div>
