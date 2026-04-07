@@ -89,8 +89,14 @@ const StaffManager = () => {
   };
 
   const handleEditStaff = async () => {
-    if (!editingStaff.name) return;
+    if (!editingStaff.name) {
+      console.error("Cannot edit staff: name is empty", editingStaff);
+      return;
+    }
+    
     setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase
       .from('staff')
       .update({
@@ -100,11 +106,13 @@ const StaffManager = () => {
         status: editingStaff.status,
         salary_amount: editingStaff.salary_amount,
         shift_start_time: editingStaff.shift_start_time,
-        pin_pattern: editingStaff.pin_pattern
+        pin_pattern: editingStaff.pin_pattern,
+        user_id: user?.id // Explicitly set user_id to ensure RLS compliance
       })
       .eq('id', editingStaff.id);
     
     if (error) {
+      console.error("Error updating staff:", error);
       alert("Error updating staff: " + error.message);
       setLoading(false);
     } else {
