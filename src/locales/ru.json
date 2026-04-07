@@ -61,7 +61,8 @@
     "yes": "Да",
     "no": "Нет",
     "update": "Обновить",
-    "saving": "Сохранение..."
+    "saving": "Сохранение...",
+    "saveChanges": "Сохранить изменения"
   },
   "restaurant": {
     "title": "Управление рестораном",
@@ -155,7 +156,9 @@
     "depositRequired": "Депозит",
     "persons": "чел.",
     "addPlace": "Новая зона",
+    "editPlace": "Редактировать место",
     "requiresDeposit": "Нужен депозит?",
+    "amount": "Сумма",
     "createPlace": "Создать место",
     "deletePlace": "Удалить место?",
     "deletePlaceConfirm": "Вы уверены? Это удалит стол/кабину и её настройки.",

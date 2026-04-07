@@ -61,7 +61,8 @@
     "yes": "Bəli",
     "no": "Xeyr",
     "update": "Yenilə",
-    "saving": "Yadda saxlanılır..."
+    "saving": "Yadda saxlanılır...",
+    "saveChanges": "Dəyişiklikləri yadda saxla"
   },
   "restaurant": {
     "title": "Restoran İdarəetməsi",
@@ -155,7 +156,9 @@
     "depositRequired": "Depozit tələbi",
     "persons": "nəfər",
     "addPlace": "Yeni zona",
+    "editPlace": "Yeri redaktə et",
     "requiresDeposit": "Depozit tələb olunur?",
+    "amount": "Məbləğ",
     "createPlace": "Yer yarat",
     "deletePlace": "Bu yeri silmək istəyirsiniz?",
     "deletePlaceConfirm": "Əminsiniz? Bu masanı/kabini və onun parametrlərini siləcək.",

@@ -61,7 +61,8 @@
     "yes": "Yes",
     "no": "No",
     "update": "Update",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "saveChanges": "Save Changes"
   },
   "restaurant": {
     "title": "Restaurant Management",
@@ -155,7 +156,9 @@
     "depositRequired": "Deposit Required",
     "persons": "Persons",
     "addPlace": "Add New Place/Zone",
+    "editPlace": "Edit Place",
     "requiresDeposit": "Requires Deposit?",
+    "amount": "Amount",
     "createPlace": "Create Place",
     "deletePlace": "Delete this place?",
     "deletePlaceConfirm": "Are you sure? This will remove this table/cabin.",
