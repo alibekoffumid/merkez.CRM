@@ -215,7 +215,7 @@ const InventoryManager = () => {
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 bg-green-100 text-green-700 text-[10px] font-black uppercase rounded-full w-fit">
-                           {t('status.free')}
+                           {t('restaurant.free')}
                         </span>
                       )}
                     </td>
