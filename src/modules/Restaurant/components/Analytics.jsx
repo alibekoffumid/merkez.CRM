@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon, Download, PieChart, Activity, Plus, X } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon, Download, PieChart, Activity, Plus, X, Loader2 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { ReportService } from '../../../services/ReportService';
 
@@ -13,6 +13,7 @@ const Analytics = () => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   // Real stats state
   const [stats, setStats] = useState({
@@ -223,26 +224,44 @@ const Analytics = () => {
   };
 
   const handleDownloadPDF = async () => {
-    // 1. Fetch Profile info for branding
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('business_name, address')
-      .eq('id', (await supabase.auth.getUser()).data.user.id)
-      .single();
+    setGeneratingPDF(true);
+    try {
+      // 1. Fetch Profile info for branding
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert(t('auth.sessionExpired'));
+        return;
+      }
 
-    const data = {
-      totalIncome: stats.totalRevenue,
-      totalExpenses: stats.totalExpenses,
-      totalSalaries: stats.totalSalaries,
-      netProfit: stats.netProfit,
-      items: reportData
-    };
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('business_name, address')
+        .eq('id', user.id)
+        .single();
 
-    const dateStr = timeRange === t('restaurant.customRange') ? buttonText : timeRange;
-    ReportService.generateFinancialReport(data, dateStr, {
-      businessName: profile?.business_name || 'Merkez CRM Member',
-      address: profile?.address || ''
-    });
+      const data = {
+        totalIncome: stats?.totalRevenue || 0,
+        totalExpenses: stats?.totalExpenses || 0,
+        totalSalaries: stats?.totalSalaries || 0,
+        netProfit: stats?.netProfit || 0,
+        items: reportData || []
+      };
+
+      const dateStr = timeRange === t('restaurant.customRange') ? buttonText : timeRange;
+      const success = ReportService.generateFinancialReport(data, dateStr, {
+        businessName: profile?.business_name || 'Merkez CRM Member',
+        address: profile?.address || ''
+      });
+      
+      if (!success) {
+        console.error('Failed to generate report via Service');
+      }
+    } catch (err) {
+      console.error('Report Generation Error:', err);
+      alert('Could not download report: ' + err.message);
+    } finally {
+      setGeneratingPDF(false);
+    }
   };
 
   const generateHourlyBuckets = (orders) => {
