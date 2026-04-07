@@ -437,8 +437,8 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalRevenue')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
-               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> {stats.revenueGrowth}% {t('restaurant.fromYesterday')}</p>
+               <h3 className="text-2xl font-bold text-gray-900">${(stats?.totalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+               <p className="text-xs text-green-600 flex items-center mt-1 font-medium"><ArrowUpRight className="w-3 h-3 mr-1"/> {stats?.revenueGrowth || 0}% {t('restaurant.fromYesterday')}</p>
             </div>
             <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-merkez-green">
                <DollarSign className="w-6 h-6" />
@@ -447,7 +447,7 @@ const Analytics = () => {
           <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalExpenses')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">${stats.totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+               <h3 className="text-2xl font-bold text-gray-900">${(stats?.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
                <p className="text-xs text-red-500 flex items-center mt-1 font-medium">{t('restaurant.businessExpenses')}</p>
             </div>
             <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center text-red-500">
@@ -457,8 +457,8 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.netProfit')}</p>
-               <h3 className={`text-2xl font-bold ${stats.netProfit >= 0 ? 'text-green-600' : 'text-red-500'}`}>
-                 ${stats.netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+               <h3 className={`text-2xl font-bold ${(stats?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                 ${(stats?.netProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                </h3>
                <p className="text-xs text-gray-400 mt-1 font-medium italic">{t('dashboard.overview')}</p>
             </div>
@@ -469,7 +469,7 @@ const Analytics = () => {
          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.salariesPaid')}</p>
-               <h3 className="text-2xl font-bold text-gray-900">${stats.totalSalaries.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+               <h3 className="text-2xl font-bold text-gray-900">${(stats?.totalSalaries || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
                <p className="text-xs text-gray-400 mt-1">{t('restaurant.rankedByRevenue')}</p>
             </div>
             <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-merkez-blue">
