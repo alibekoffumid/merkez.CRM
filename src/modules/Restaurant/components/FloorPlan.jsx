@@ -857,7 +857,7 @@ const FloorPlan = () => {
       {selectedTable && !mergeMode && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={handleCloseModal}>
           <div 
-            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[850px] sm:max-h-[95vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
+            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 flex flex-col h-fit max-h-[95vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -873,7 +873,7 @@ const FloorPlan = () => {
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
               
               {/* Left Column: Table Details */}
-              <div className={`p-5 flex flex-col flex-1 min-h-0 overflow-hidden ${isAddingOrder ? 'w-full lg:w-[40%] lg:border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
+              <div className={`p-5 flex flex-col h-fit min-h-0 ${isAddingOrder ? 'w-full lg:w-[40%] lg:border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <p className="text-sm text-gray-500">{t('restaurant.tableStatus')}</p>
@@ -928,7 +928,7 @@ const FloorPlan = () => {
                     </div>
 
                     {/* Active Order List - Height restricted when adding new items */}
-                    <div className={`${isAddingOrder && cart.length > 0 ? 'max-h-[120px]' : 'flex-1'} overflow-y-auto no-scrollbar py-2 border-b border-transparent`}>
+                    <div className={`${isAddingOrder && cart.length > 0 ? 'max-h-[100px]' : 'flex-1'} overflow-y-auto no-scrollbar py-2 border-b border-transparent transition-all`}>
                       {tableOrdersLoading ? (
                         <p className="text-sm text-gray-400 text-center py-4">{t('common.loading')}</p>
                       ) : tableOrders.length === 0 ? (
@@ -985,7 +985,7 @@ const FloorPlan = () => {
 
                     {/* NEW CART SECTION (While adding) - Takes more space */}
                     {isAddingOrder && cart.length > 0 && (
-                      <div className="flex-1 flex flex-col min-h-0 overflow-hidden py-4 border-t-2 border-dashed border-blue-50 mt-4 bg-blue-50/20 rounded-2xl p-4">
+                      <div className="flex-none flex flex-col min-h-0 py-4 border-t-2 border-dashed border-blue-50 mt-4 bg-blue-50/20 rounded-2xl p-4">
                         <div className="flex items-center justify-between mb-4">
                           <h5 className="text-[11px] font-black text-merkez-blue uppercase tracking-widest flex items-center">
                             <ShoppingCart className="w-4 h-4 mr-2" />
@@ -996,7 +996,7 @@ const FloorPlan = () => {
                           </span>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
+                        <div className="space-y-4 pr-1">
                           {cart.map(item => (
                             <div key={item.id} className="bg-white border border-merkez-blue/20 p-5 rounded-xl shadow-sm">
                               <div className="flex justify-between items-start mb-4">
@@ -1030,11 +1030,11 @@ const FloorPlan = () => {
                                   </span>
                                 </div>
                                 <textarea 
-                                  rows="2"
+                                  rows="3"
                                   placeholder="..."
                                   value={item.notes || ''}
                                   onChange={(e) => updateCartItemNote(item.id, e.target.value)}
-                                  className="w-full bg-white/50 border border-amber-200/50 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-sm italic font-medium outline-none transition-all placeholder:text-amber-200 resize-none min-h-[60px]"
+                                  className="w-full bg-white/50 border border-amber-200/50 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-sm italic font-medium outline-none transition-all placeholder:text-amber-200 resize-none min-h-[80px]"
                                 />
                               </div>
                             </div>
