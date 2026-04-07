@@ -857,7 +857,7 @@ const FloorPlan = () => {
       {selectedTable && !mergeMode && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={handleCloseModal}>
           <div 
-            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[750px] sm:max-h-[90vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
+            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 overflow-hidden flex flex-col h-full sm:h-[850px] sm:max-h-[95vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -928,7 +928,7 @@ const FloorPlan = () => {
                     </div>
 
                     {/* Active Order List - Height restricted when adding new items */}
-                    <div className={`${isAddingOrder && cart.length > 0 ? 'h-[160px]' : 'flex-1'} overflow-y-auto no-scrollbar py-2 border-b border-transparent`}>
+                    <div className={`${isAddingOrder && cart.length > 0 ? 'max-h-[120px]' : 'flex-1'} overflow-y-auto no-scrollbar py-2 border-b border-transparent`}>
                       {tableOrdersLoading ? (
                         <p className="text-sm text-gray-400 text-center py-4">{t('common.loading')}</p>
                       ) : tableOrders.length === 0 ? (
@@ -985,7 +985,7 @@ const FloorPlan = () => {
 
                     {/* NEW CART SECTION (While adding) - Takes more space */}
                     {isAddingOrder && cart.length > 0 && (
-                      <div className="flex-[3] flex flex-col min-h-0 overflow-hidden py-4 border-t-2 border-dashed border-blue-50 mt-4 bg-blue-50/20 rounded-2xl p-4">
+                      <div className="flex-1 flex flex-col min-h-0 overflow-hidden py-4 border-t-2 border-dashed border-blue-50 mt-4 bg-blue-50/20 rounded-2xl p-4">
                         <div className="flex items-center justify-between mb-4">
                           <h5 className="text-[11px] font-black text-merkez-blue uppercase tracking-widest flex items-center">
                             <ShoppingCart className="w-4 h-4 mr-2" />
@@ -998,23 +998,23 @@ const FloorPlan = () => {
                         
                         <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pr-1">
                           {cart.map(item => (
-                            <div key={item.id} className="bg-white border border-merkez-blue/20 p-4 rounded-xl shadow-sm animate-in slide-in-from-bottom-2">
-                              <div className="flex justify-between items-start mb-3">
+                            <div key={item.id} className="bg-white border border-merkez-blue/20 p-5 rounded-xl shadow-sm">
+                              <div className="flex justify-between items-start mb-4">
                                 <div className="min-w-0 flex-1">
-                                  <p className="text-base font-black text-gray-900 truncate mb-1 leading-tight">{item.name}</p>
+                                  <p className="text-lg font-black text-gray-900 truncate mb-1 leading-tight">{item.name}</p>
                                   <p className="text-sm font-bold text-merkez-blue">${(item.price * item.quantity).toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center space-x-3 bg-blue-50 rounded-full px-2 py-1.5 border border-blue-100 shadow-inner">
                                    <button 
                                     onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }}
-                                    className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-merkez-blue hover:text-red-500 shadow-sm transition-transform active:scale-95"
+                                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-merkez-blue hover:text-red-500 shadow-sm transition-transform active:scale-95"
                                    >
                                      <Minus className="w-3.5 h-3.5" />
                                    </button>
-                                   <span className="text-sm font-black text-merkez-blue w-4 text-center">{item.quantity}</span>
+                                   <span className="text-base font-black text-merkez-blue w-4 text-center">{item.quantity}</span>
                                    <button 
                                     onClick={(e) => { e.stopPropagation(); addToCart(item); }}
-                                    className="w-6 h-6 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600 transition-transform active:scale-95"
+                                    className="w-7 h-7 rounded-full bg-merkez-blue flex items-center justify-center text-white shadow-sm hover:bg-blue-600 transition-transform active:scale-95"
                                    >
                                      <Plus className="w-3.5 h-3.5" />
                                    </button>
@@ -1025,7 +1025,7 @@ const FloorPlan = () => {
                               <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100 focus-within:border-amber-300 focus-within:ring-2 focus-within:ring-amber-50 transition-all">
                                 <div className="flex items-center gap-2 mb-2">
                                   <ChefHat className="w-4 h-4 text-amber-600" />
-                                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">
+                                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">
                                     {t('restaurant.addNote') || "Chef Note"}
                                   </span>
                                 </div>
@@ -1034,7 +1034,7 @@ const FloorPlan = () => {
                                   placeholder="..."
                                   value={item.notes || ''}
                                   onChange={(e) => updateCartItemNote(item.id, e.target.value)}
-                                  className="w-full bg-white/50 border border-amber-200/50 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-xs italic outline-none transition-all placeholder:text-amber-200 resize-none min-h-[48px]"
+                                  className="w-full bg-white/50 border border-amber-200/50 focus:border-amber-500 focus:bg-white rounded-lg px-3 py-2 text-sm italic font-medium outline-none transition-all placeholder:text-amber-200 resize-none min-h-[60px]"
                                 />
                               </div>
                             </div>
