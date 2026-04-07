@@ -119,8 +119,7 @@ const FloorPlan = () => {
         .from('orders')
         .select('id, created_at')
         .eq('table_id', targetTableId)
-        .neq('status', 'completed')
-        .limit(1);
+        .neq('status', 'completed');
 
       if (!activeOrders || activeOrders.length === 0) {
         setTableOrders([]);
@@ -129,14 +128,18 @@ const FloorPlan = () => {
         return;
       }
 
-      const orderId = activeOrders[0].id;
-      setActiveOrderId(orderId);
+      // Track all active order IDs for this table
+      const orderIds = activeOrders.map(o => o.id);
+      setActiveOrderId(orderIds); // Store as array
+      
+      // Use the earliest created_at for the "Entire Order" window? 
+      // Or just let individual items handle their own window.
       setActiveOrderCreatedAt(activeOrders[0].created_at);
 
       const { data } = await supabase
         .from('order_items')
         .select('*, products(name, price)')
-        .eq('order_id', orderId)
+        .in('order_id', orderIds)
         .order('created_at', { ascending: false });
 
       setTableOrders(data || []);
@@ -420,10 +423,13 @@ const FloorPlan = () => {
   const handleCancelOrder = async () => {
     if (!activeOrderId || !activeOrderCreatedAt) return;
     
-    // Safety check: 5 minutes limit
+    // Group delete for all active orders of this table session
+    const idsToDelete = Array.isArray(activeOrderId) ? activeOrderId : [activeOrderId];
+
+    // Safety check: 5 minutes limit from first order
     const orderTime = new Date(activeOrderCreatedAt).getTime();
     const now = new Date().getTime();
-    const diffMins = (now - orderTime) / (1000 * 60);
+    const diffMins = Math.abs(now - orderTime) / (1000 * 60);
     
     if (diffMins > 5) {
       window.alert(t('restaurant.tooLateToCancel'));
@@ -434,11 +440,11 @@ const FloorPlan = () => {
 
     setIsProcessing(true);
     try {
-      // 1. Delete items (cascade might handle this, but let's be safe if defined)
-      await supabase.from('order_items').delete().eq('order_id', activeOrderId);
+      // 1. Delete items for all active orders
+      await supabase.from('order_items').delete().in('order_id', idsToDelete);
       
-      // 2. Delete order
-      await supabase.from('orders').delete().eq('id', activeOrderId);
+      // 2. Delete orders
+      await supabase.from('orders').delete().in('id', idsToDelete);
       
       // 3. Reset table
       await supabase
@@ -857,7 +863,8 @@ const FloorPlan = () => {
                             };
                             const color = statusColors[item.status?.toLowerCase()] || 'text-gray-500 bg-gray-50';
                             const price = item.products?.price ? parseFloat(item.products.price) * item.quantity : 0;
-                            const isCancellable = (new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 60) <= 5;
+                            // Timezone-safe 5 min check (diff in ms < 300,000)
+                            const isCancellable = Math.abs(new Date().getTime() - new Date(item.created_at).getTime()) <= 300000;
                             
                             return (
                               <li key={item.id} className="group flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
@@ -873,10 +880,10 @@ const FloorPlan = () => {
                                   {isCancellable && (
                                     <button 
                                       onClick={() => authenticatedAction(() => handleCancelItem(item), t('restaurant.cancelOrder'))}
-                                      className="text-gray-300 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors"
+                                      className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-all shadow-sm border border-red-50 active:scale-90"
                                       title={t('restaurant.cancelOrder')}
                                     >
-                                      <X className="w-3.5 h-3.5" />
+                                      <X className="w-4 h-4 stroke-[3px]" />
                                     </button>
                                   )}
                                 </div>
