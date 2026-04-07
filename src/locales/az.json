@@ -257,6 +257,8 @@
     "attendance": "Davamiyyət",
     "cancelOrder": "Sifarişi ləğv et",
     "cancelConfirm": "Bütün sifarişi ləğv etmək və masanı boşaltmaq istədiyinizə əminsiniz?",
+    "cancelItemConfirm": "Bu məhsulu ləğv etmək istədiyinizə əminsiniz?",
+    "itemCancelled": "Məhsul uğurla silindi",
     "tooLateToCancel": "Sifariş yalnız verildikdən sonra 5 dəqiqə ərzində ləğv edilə bilər",
     "time": "Vaxt",
     "date": "Tarix",

@@ -280,6 +280,8 @@
     "attendance": "Attendance",
     "cancelOrder": "Cancel Order",
     "cancelConfirm": "Are you sure you want to cancel the entire order and free the table?",
+    "cancelItemConfirm": "Are you sure you want to cancel this item?",
+    "itemCancelled": "Item has been successfully removed",
     "tooLateToCancel": "Order can only be cancelled within 5 minutes of placement.",
     "time": "Time",
     "date": "Date",

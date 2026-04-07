@@ -457,6 +457,44 @@ const FloorPlan = () => {
     }
   };
 
+  const handleCancelItem = async (item) => {
+    if (!item || !window.confirm(t('restaurant.cancelItemConfirm'))) return;
+
+    setIsProcessing(true);
+    try {
+      // 1. Delete the item
+      const { error: deleteError } = await supabase
+        .from('order_items')
+        .delete()
+        .eq('id', item.id);
+
+      if (deleteError) throw deleteError;
+
+      // 2. Clear table if no items left, otherwise update total
+      const remainingItems = tableOrders.filter(o => o.id !== item.id);
+      
+      if (remainingItems.length === 0) {
+        await supabase
+          .from('restaurant_tables')
+          .update({ status: 'free', waiter: null, customer_id: null })
+          .eq('id', selectedTable.id);
+        handleCloseModal();
+        fetchTables();
+      } else {
+        fetchTableOrders(selectedTable.id);
+        // Table total is handled by active_orders view or will be refreshed in next load
+        fetchTables();
+      }
+      
+      window.alert(t('restaurant.itemCancelled'));
+    } catch (err) {
+      console.error(err);
+      window.alert(t('common.error'));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleStartMove = () => {
     setMoveMode(true);
     setIsAddingOrder(false);
@@ -817,10 +855,10 @@ const FloorPlan = () => {
                               'ready': 'text-green-700 bg-green-100',
                               'served': 'text-gray-600 bg-gray-100',
                             };
-                            const color = statusColors[item.status?.toLowerCase()] || 'text-gray-500 bg-gray-50';
-                            const price = item.products?.price ? parseFloat(item.products.price) * item.quantity : 0;
+                            const isCancellable = (new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 60) <= 5;
+                            
                             return (
-                              <li key={item.id} className="flex justify-between items-center text-sm py-1">
+                              <li key={item.id} className="group flex justify-between items-center text-sm py-1.5 border-b border-gray-50 last:border-0">
                                 <div className="flex gap-2 items-center flex-1 mr-3 min-w-0">
                                   <span className="text-merkez-blue font-bold shrink-0">{item.quantity}x</span>
                                   <span className="font-medium text-gray-900 leading-tight truncate">{item.products?.name || 'Item'}</span>
@@ -828,7 +866,18 @@ const FloorPlan = () => {
                                     {t('status.' + (item.status?.toLowerCase() || 'pending'))}
                                   </span>
                                 </div>
-                                <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="font-bold text-gray-900 shrink-0 whitespace-nowrap">${price.toFixed(2)}</span>
+                                  {isCancellable && (
+                                    <button 
+                                      onClick={() => authenticatedAction(() => handleCancelItem(item), t('restaurant.cancelOrder'))}
+                                      className="text-gray-300 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-colors"
+                                      title={t('restaurant.cancelOrder')}
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
                               </li>
                             );
                           })}
