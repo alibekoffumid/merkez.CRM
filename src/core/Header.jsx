@@ -1,13 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Bell, User, Menu, X } from 'lucide-react';
+import { Search, Bell, User, Menu, X, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (data) setProfile(data);
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
+  };
+
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   };
 
   return (
@@ -23,6 +54,12 @@ const Header = ({ onMenuClick }) => {
 
         <div className="flex items-center pr-2 sm:pr-6 mr-0 sm:mr-2 border-r border-gray-100 h-10">
            <img src="/merkez-logo.gif" alt="Logo" className="h-8 sm:h-10 w-auto object-contain" />
+           {profile?.business_name && (
+             <div className="ml-4 hidden xl:flex flex-col">
+               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Workspace</span>
+               <span className="text-sm font-bold text-gray-900 leading-none">{profile.business_name}</span>
+             </div>
+           )}
         </div>
         
         <div className="hidden md:flex items-center bg-gray-50 rounded-lg px-3 py-2 w-64 lg:w-80 border border-gray-100 focus-within:border-merkez-blue transition-colors">
@@ -60,10 +97,12 @@ const Header = ({ onMenuClick }) => {
           </button>
           
           <Link to="/profile" className="flex items-center space-x-2 cursor-pointer p-1 rounded-full border border-gray-100 hover:bg-gray-50 transition-colors no-underline">
-            <div className="w-8 h-8 rounded-full bg-merkez-blue flex items-center justify-center text-white font-medium text-sm">
-              AA
+            <div className="w-8 h-8 rounded-full bg-merkez-blue flex items-center justify-center text-white font-medium text-sm shadow-sm">
+              {loading ? '...' : getInitials(profile?.full_name)}
             </div>
-            <span className="hidden sm:block text-sm font-medium text-gray-700 mr-2">{t('header.profile')}</span>
+            <span className="hidden sm:block text-sm font-bold text-gray-700 mr-2">
+              {loading ? 'Loading...' : (profile?.full_name || t('header.profile'))}
+            </span>
           </Link>
         </div>
       </div>
@@ -72,3 +111,4 @@ const Header = ({ onMenuClick }) => {
 };
 
 export default Header;
+
