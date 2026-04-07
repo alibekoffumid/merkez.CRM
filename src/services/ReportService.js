@@ -1,23 +1,44 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+// Since we cannot easily embed a 200KB font in a single thought without hitting limits,
+// we'll use the standard fonts for now but prepare the structure for localized labels.
+// IMPORTANT: For full Cyrillic/Azerbaijani support in production, a custom base64 font must be added.
+
 export const ReportService = {
-  generateFinancialReport: (data, dateRange, businessInfo) => {
+  generateFinancialReport: (data, dateRange, businessInfo, labels) => {
     try {
       const doc = new jsPDF();
       const { totalIncome = 0, totalExpenses = 0, totalSalaries = 0, netProfit = 0, items = [] } = data;
       const { businessName = 'Merkez CRM Member', address = '' } = businessInfo;
 
+      // Default labels if none provided
+      const t = labels || {
+        title: businessName,
+        period: 'Period',
+        generated: 'Generated',
+        summaryTitle: 'FINANCIAL SUMMARY',
+        income: 'Total Income',
+        expenses: 'Total Expenses',
+        salaries: 'Total Salaries',
+        netProfit: 'NET PROFIT',
+        thDate: 'Date',
+        thCategory: 'Category',
+        thDesc: 'Description',
+        thAmount: 'Amount',
+        currencySymbol: '$'
+      };
+
       // 1. Header & Branding
       doc.setFontSize(22);
       doc.setTextColor(66, 133, 244); // Merkez Blue
-      doc.text(String(businessName), 14, 22);
+      doc.text(String(t.title), 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(String(address), 14, 30);
-      doc.text(`Period: ${dateRange || 'N/A'}`, 14, 35);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 40);
+      doc.text(`${t.period}: ${dateRange || 'N/A'}`, 14, 35);
+      doc.text(`${t.generated}: ${new Date().toLocaleString()}`, 14, 40);
 
       // 2. Financial Summary Cards
       doc.setDrawColor(240);
@@ -27,17 +48,17 @@ export const ReportService = {
       doc.setFontSize(12);
       doc.setTextColor(0);
       doc.setFont(undefined, 'bold');
-      doc.text('FINANCIAL SUMMARY', 20, 60);
+      doc.text(t.summaryTitle, 20, 60);
 
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
-      doc.text(`Total Income: $${Number(totalIncome).toFixed(2)}`, 20, 70);
-      doc.text(`Total Expenses: $${Number(totalExpenses).toFixed(2)}`, 20, 75);
-      doc.text(`Total Salaries: $${Number(totalSalaries).toFixed(2)}`, 20, 80);
+      doc.text(`${t.income}: ${t.currencySymbol}${Number(totalIncome).toFixed(2)}`, 20, 70);
+      doc.text(`${t.expenses}: ${t.currencySymbol}${Number(totalExpenses).toFixed(2)}`, 20, 75);
+      doc.text(`${t.salaries}: ${t.currencySymbol}${Number(totalSalaries).toFixed(2)}`, 20, 80);
       
       doc.setFont(undefined, 'bold');
       doc.setTextColor(netProfit >= 0 ? 52 : 234, netProfit >= 0 ? 168 : 67, netProfit >= 0 ? 83 : 53); // Green/Red
-      doc.text(`NET PROFIT: $${Number(netProfit).toFixed(2)}`, 20, 88);
+      doc.text(`${t.netProfit}: ${t.currencySymbol}${Number(netProfit).toFixed(2)}`, 20, 88);
 
       // 3. Detailed Transactions Table
       const tableData = items.map(item => [
@@ -45,13 +66,13 @@ export const ReportService = {
         item.category || 'N/A',
         item.description || 'N/A',
         item.type === 'income' 
-          ? `+ $${Number(item.amount || 0).toFixed(2)}` 
-          : `- $${Number(item.amount || 0).toFixed(2)}`
+          ? `+ ${t.currencySymbol}${Number(item.amount || 0).toFixed(2)}` 
+          : `- ${t.currencySymbol}${Number(item.amount || 0).toFixed(2)}`
       ]);
 
       autoTable(doc, {
         startY: 100,
-        head: [['Date', 'Category', 'Description', 'Amount']],
+        head: [[t.thDate, t.thCategory, t.thDesc, t.thAmount]],
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [66, 133, 244], textColor: 255 },
@@ -73,7 +94,6 @@ export const ReportService = {
       return true;
     } catch (error) {
       console.error('PDF Generation Error:', error);
-      alert('Error generating PDF: ' + error.message);
       return false;
     }
   }

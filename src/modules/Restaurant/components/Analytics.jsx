@@ -267,11 +267,30 @@ const Analytics = () => {
         items: reportData || []
       };
 
+      const reportTranslations = {
+        title: profile?.business_name || 'Merkez CRM Report',
+        period: t('common.period') || 'Period',
+        generated: t('common.generated') || 'Generated',
+        summaryTitle: t('restaurant.performanceDashboard').toUpperCase(),
+        income: t('restaurant.totalRevenue'),
+        expenses: t('restaurant.totalExpenses'),
+        salaries: t('restaurant.salariesPaid'),
+        netProfit: t('restaurant.netProfit'),
+        thDate: t('finance.thDate'),
+        thCategory: t('common.category'),
+        thDesc: t('finance.thDesc'),
+        thAmount: t('common.price'),
+        currencySymbol: '$',
+        incomeType: t('restaurant.revenue'),
+        expenseType: t('finance.expenses'),
+        salaryType: t('restaurant.salariesPaid')
+      };
+
       const dateStr = timeRange === t('restaurant.customRange') ? buttonText : timeRange;
       const success = ReportService.generateFinancialReport(data, dateStr, {
         businessName: profile?.business_name || 'Merkez CRM Member',
         address: profile?.address || ''
-      });
+      }, reportTranslations);
       
       if (!success) {
         console.error('Failed to generate report via Service');
