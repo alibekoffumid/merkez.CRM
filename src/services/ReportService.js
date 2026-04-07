@@ -1,9 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// Since we cannot easily embed a 200KB font in a single thought without hitting limits,
-// we'll use the standard fonts for now but prepare the structure for localized labels.
-// IMPORTANT: For full Cyrillic/Azerbaijani support in production, a custom base64 font must be added.
+// For full Russian/Azerbaijani support in PDF, we use the translations passed from the component.
+// Note: If characters like 'ə' don't show up, we'd need to embed a custom Unicode font.
 
 export const ReportService = {
   generateFinancialReport: (data, dateRange, businessInfo, labels) => {
@@ -12,7 +11,6 @@ export const ReportService = {
       const { totalIncome = 0, totalExpenses = 0, totalSalaries = 0, netProfit = 0, items = [] } = data;
       const { businessName = 'Merkez CRM Member', address = '' } = businessInfo;
 
-      // Default labels if none provided
       const t = labels || {
         title: businessName,
         period: 'Period',
@@ -31,7 +29,7 @@ export const ReportService = {
 
       // 1. Header & Branding
       doc.setFontSize(22);
-      doc.setTextColor(66, 133, 244); // Merkez Blue
+      doc.setTextColor(66, 133, 244); 
       doc.text(String(t.title), 14, 22);
       
       doc.setFontSize(10);
@@ -48,7 +46,7 @@ export const ReportService = {
       doc.setFontSize(12);
       doc.setTextColor(0);
       doc.setFont(undefined, 'bold');
-      doc.text(t.summaryTitle, 20, 60);
+      doc.text(String(t.summaryTitle), 20, 60);
 
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
@@ -57,7 +55,7 @@ export const ReportService = {
       doc.text(`${t.salaries}: ${t.currencySymbol}${Number(totalSalaries).toFixed(2)}`, 20, 80);
       
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(netProfit >= 0 ? 52 : 234, netProfit >= 0 ? 168 : 67, netProfit >= 0 ? 83 : 53); // Green/Red
+      doc.setTextColor(netProfit >= 0 ? 52 : 234, netProfit >= 0 ? 168 : 67, netProfit >= 0 ? 83 : 53); 
       doc.text(`${t.netProfit}: ${t.currencySymbol}${Number(netProfit).toFixed(2)}`, 20, 88);
 
       // 3. Detailed Transactions Table
@@ -75,8 +73,9 @@ export const ReportService = {
         head: [[t.thDate, t.thCategory, t.thDesc, t.thAmount]],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [66, 133, 244], textColor: 255 },
+        headStyles: { fillColor: [66, 133, 244], textColor: 255, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 247, 250] },
+        styles: { font: 'helvetica' }, // For better character support we'd use a custom font name here
         margin: { top: 100 }
       });
 

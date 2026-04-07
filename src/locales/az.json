@@ -62,7 +62,9 @@
     "no": "Xeyr",
     "update": "Yenilə",
     "saving": "Yadda saxlanılır...",
-    "saveChanges": "Dəyişiklikləri yadda saxla"
+    "saveChanges": "Dəyişiklikləri yadda saxla",
+    "period": "Dövr",
+    "generated": "Yaradılıb"
   },
   "restaurant": {
     "title": "Restoran İdarəetməsi",
