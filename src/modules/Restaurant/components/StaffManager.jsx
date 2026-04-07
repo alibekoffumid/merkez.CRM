@@ -547,7 +547,11 @@ const StaffManager = () => {
                 
                 <PatternLock 
                     onComplete={(p) => {
-                        setEditingStaff({...editingStaff, pin_pattern: p});
+                        if (editingStaff) {
+                            setEditingStaff({...editingStaff, pin_pattern: p});
+                        } else {
+                            setFormData({...formData, pin_pattern: p});
+                        }
                         setTimeout(() => setIsPatternModalOpen(false), 500);
                     }}
                 />
