@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
+import WaiterAuthOverlay from './WaiterAuthOverlay';
 
 // Helper for initials
 const getInitials = (name) => {
@@ -34,6 +35,12 @@ const FloorPlan = () => {
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [useBonuses, setUseBonuses] = useState(false);
+
+  // Authentication & Attendance
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authActionTitle, setAuthActionTitle] = useState('');
+  const [pendingAction, setPendingAction] = useState(null);
+  const [activeWaiter, setActiveWaiter] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -162,6 +169,21 @@ const FloorPlan = () => {
       .or(`name.ilike.%${query}%,phone.ilike.%${query}%`)
       .limit(5);
     setCustomers(data || []);
+  };
+
+  const authenticatedAction = (action, title) => {
+    setAuthActionTitle(title || t('restaurant.authorizeAction'));
+    setPendingAction(() => action);
+    setIsAuthOpen(true);
+  };
+
+  const handleAuthSuccess = (waiter) => {
+    setActiveWaiter(waiter);
+    if (pendingAction) {
+      pendingAction(waiter);
+      setPendingAction(null);
+    }
+    setIsAuthOpen(false);
   };
 
   const handleSendToKitchen = async () => {
@@ -561,8 +583,10 @@ const FloorPlan = () => {
                         confirmMoveTable(table);
                       }
                     } else {
-                      setSelectedTable(table); 
-                      fetchTableOrders(table.id); 
+                      authenticatedAction(() => {
+                        setSelectedTable(table); 
+                        fetchTableOrders(table.id); 
+                      }, t('restaurant.authorizeAction'));
                     }
                   }}
                   className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${
@@ -769,20 +793,20 @@ const FloorPlan = () => {
                       {!isAddingOrder ? (
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <button 
-                            onClick={() => setIsAddingOrder(true)} 
+                            onClick={() => authenticatedAction(() => setIsAddingOrder(true), t('restaurant.addOrder'))} 
                             className="w-full bg-merkez-blue text-white py-3 px-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md flex items-center justify-center group"
                           >
                             <Plus className="w-4 h-4 mr-1.5 shrink-0 transition-transform group-hover:scale-110" />
                             <span className="leading-tight">{t('restaurant.addOrder')}</span>
                           </button>
                           <button 
-                             onClick={handleCheckout} 
+                             onClick={() => authenticatedAction(handleCheckout, t('restaurant.checkout'))} 
                              className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
                           >
                             <CreditCard className="w-4 h-4 mr-2" /> {t('restaurant.checkout')}
                           </button>
                           <button 
-                             onClick={handleStartMove}
+                             onClick={() => authenticatedAction(handleStartMove, t('restaurant.moveTable'))}
                              className="w-full bg-white border border-gray-200 text-gray-700 py-3 rounded-lg text-sm font-bold hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center"
                           >
                             <Repeat className="w-4 h-4 mr-2 text-merkez-yellow" /> {t('restaurant.moveTable')}
@@ -1059,7 +1083,7 @@ const FloorPlan = () => {
                            </span>
                         </div>
                         <button 
-                          onClick={handleSendToKitchen}
+                          onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
                           disabled={cart.length === 0 || isProcessing}
                           className={`group relative flex items-center px-8 py-3 rounded-xl font-black text-sm uppercase tracking-tighter transition-all shadow-lg active:scale-95 ${
                             cart.length > 0 
@@ -1083,6 +1107,13 @@ const FloorPlan = () => {
           </div>
         </div>
       )}
+      {/* Auth Overlay */}
+      <WaiterAuthOverlay 
+        isOpen={isAuthOpen}
+        onClose={() => { setIsAuthOpen(false); setPendingAction(null); }}
+        onSuccess={handleAuthSuccess}
+        actionTitle={authActionTitle}
+      />
     </div>
   );
 };

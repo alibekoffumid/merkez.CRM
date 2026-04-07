@@ -1,13 +1,18 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
-// For full Russian/Azerbaijani support in PDF, we use the translations passed from the component.
-// Note: If characters like 'ə' don't show up, we'd need to embed a custom Unicode font.
+import { robotoBase64 } from './FontData';
 
 export const ReportService = {
   generateFinancialReport: (data, dateRange, businessInfo, labels) => {
     try {
       const doc = new jsPDF();
+      
+      // 0. Register & Set Unicode Font (Roboto)
+      // This is crucial for RU and AZ (letter 'ə') support.
+      doc.addFileToVFS('Roboto-Regular.ttf', robotoBase64);
+      doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+      doc.setFont('Roboto');
+
       const { totalIncome = 0, totalExpenses = 0, totalSalaries = 0, netProfit = 0, items = [] } = data;
       const { businessName = 'Merkez CRM Member', address = '' } = businessInfo;
 
@@ -45,16 +50,16 @@ export const ReportService = {
 
       doc.setFontSize(12);
       doc.setTextColor(0);
-      doc.setFont(undefined, 'bold');
+      doc.setFont('Roboto', 'bold');
       doc.text(String(t.summaryTitle), 20, 60);
 
-      doc.setFont(undefined, 'normal');
+      doc.setFont('Roboto', 'normal');
       doc.setFontSize(10);
       doc.text(`${t.income}: ${t.currencySymbol}${Number(totalIncome).toFixed(2)}`, 20, 70);
       doc.text(`${t.expenses}: ${t.currencySymbol}${Number(totalExpenses).toFixed(2)}`, 20, 75);
       doc.text(`${t.salaries}: ${t.currencySymbol}${Number(totalSalaries).toFixed(2)}`, 20, 80);
       
-      doc.setFont(undefined, 'bold');
+      doc.setFont('Roboto', 'bold');
       doc.setTextColor(netProfit >= 0 ? 52 : 234, netProfit >= 0 ? 168 : 67, netProfit >= 0 ? 83 : 53); 
       doc.text(`${t.netProfit}: ${t.currencySymbol}${Number(netProfit).toFixed(2)}`, 20, 88);
 
@@ -73,9 +78,9 @@ export const ReportService = {
         head: [[t.thDate, t.thCategory, t.thDesc, t.thAmount]],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [66, 133, 244], textColor: 255, fontStyle: 'bold' },
+        headStyles: { fillColor: [66, 133, 244], textColor: 255, font: 'Roboto', fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 247, 250] },
-        styles: { font: 'helvetica' }, // For better character support we'd use a custom font name here
+        styles: { font: 'Roboto' },
         margin: { top: 100 }
       });
 

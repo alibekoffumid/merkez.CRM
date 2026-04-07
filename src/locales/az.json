@@ -239,7 +239,22 @@
     "downloadReport": "PDF Hesabatı Yüklə",
     "salariesPaid": "Maaş Ödənişləri",
     "businessExpenses": "Operasiya Xərcləri",
-    "salary": "Maaş"
+    "salary": "Maaş",
+    "securityAttendance": "Təhlükəsizlik və Davamiyyət",
+    "shiftStartTime": "Növbənin başlanğıcı",
+    "patternPassword": "Qrafik açar",
+    "changePattern": "Açarı dəyiş",
+    "setPattern": "Açar təyin et",
+    "setStaffPattern": "Açarın quraşdırılması",
+    "drawPatternInstructions": "Bu əməkdaş üçün qrafik açarı çəkin",
+    "authorizeAction": "Avtorizasiya",
+    "drawPatternToVerify": "Təsdiqləmək üçün naxışı çəkin",
+    "selectStaffToBegin": "Başlamaq üçün əməkdaşı seçin",
+    "changeWaiter": "Ofisiantı dəyiş",
+    "incorrectPattern": "Səhv açar! Yenidən cəhd edin",
+    "ontime": "Vaxtında",
+    "late": "Gecikib",
+    "attendance": "Davamiyyət"
   },
   "status": {
     "new": "Yeni",

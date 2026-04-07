@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, UserPlus, Edit2, Trash2, X } from 'lucide-react';
+import { Search, UserPlus, Edit2, Trash2, X, Lock, Clock, Calendar } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import PatternLock from '../../../components/PatternLock/PatternLock';
 
 const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('') : '?';
@@ -21,8 +22,15 @@ const StaffManager = () => {
     role: 'Waiter',
     shift: 'Morning',
     status: 'Active',
-    salary_amount: 0
+    salary_amount: 0,
+    shift_start_time: '09:00',
+    pin_pattern: ''
   });
+
+  const [activeTab, setActiveTab] = useState('list'); // 'list' or 'attendance'
+  const [attendance, setAttendance] = useState([]);
+  const [isPatternModalOpen, setIsPatternModalOpen] = useState(false);
+  const [tempPattern, setTempPattern] = useState('');
 
   useEffect(() => {
     fetchStaff();
@@ -37,6 +45,20 @@ const StaffManager = () => {
     
     if (data) setStaff(data);
     setLoading(false);
+    if (activeTab === 'attendance') fetchAttendance();
+  };
+
+  const fetchAttendance = async () => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+    
+    const { data } = await supabase
+      .from('attendance_logs')
+      .select('*, staff(name, role)')
+      .gte('date', firstDay.split('T')[0])
+      .order('date', { ascending: false });
+    
+    if (data) setAttendance(data);
   };
 
   const handleAddStaff = async () => {
@@ -57,7 +79,10 @@ const StaffManager = () => {
         name: editingStaff.name,
         role: editingStaff.role,
         shift: editingStaff.shift,
-        status: editingStaff.status
+        status: editingStaff.status,
+        salary_amount: editingStaff.salary_amount,
+        shift_start_time: editingStaff.shift_start_time,
+        pin_pattern: editingStaff.pin_pattern
       })
       .eq('id', editingStaff.id);
     
@@ -127,7 +152,23 @@ const StaffManager = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto overflow-y-auto border border-gray-100 rounded-xl relative" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+      <div className="flex gap-4 mb-4 border-b border-gray-100">
+        <button 
+          onClick={() => { setActiveTab('list'); fetchStaff(); }}
+          className={`pb-2 px-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'list' ? 'border-merkez-yellow text-gray-900' : 'border-transparent text-gray-400'}`}
+        >
+          {t('restaurant.staff')}
+        </button>
+        <button 
+          onClick={() => { setActiveTab('attendance'); fetchAttendance(); }}
+          className={`pb-2 px-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'attendance' ? 'border-merkez-yellow text-gray-900' : 'border-transparent text-gray-400'}`}
+        >
+          {t('restaurant.attendance')}
+        </button>
+      </div>
+
+      <div className="overflow-x-auto overflow-y-auto border border-gray-100 rounded-xl relative" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+        {activeTab === 'list' ? (
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
@@ -192,6 +233,34 @@ const StaffManager = () => {
             )}
           </tbody>
         </table>
+        ) : (
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100 text-[11px] uppercase text-gray-500 tracking-wider">
+                <th className="font-semibold p-4">{t('common.name')}</th>
+                <th className="font-semibold p-4">{t('common.status')}</th>
+                <th className="font-semibold p-4">{t('restaurant.time')}</th>
+                <th className="font-semibold p-4">{t('restaurant.date')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {attendance.length === 0 ? (
+                <tr><td colSpan="4" className="p-8 text-center text-gray-400">{t('restaurant.noData')}</td></tr>
+              ) : attendance.map(log => (
+                <tr key={log.id}>
+                  <td className="p-4 font-bold text-gray-900">{log.staff?.name}</td>
+                  <td className="p-4">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-black uppercase ${log.is_late ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-500'}`}>
+                      {log.is_late ? t('restaurant.late') : t('restaurant.ontime')}
+                    </span>
+                  </td>
+                  <td className="p-4 font-mono text-xs">{new Date(log.clock_in_time).toLocaleTimeString()}</td>
+                  <td className="p-4 text-xs text-gray-500">{log.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Add Staff Modal */}
@@ -358,7 +427,7 @@ const StaffManager = () => {
                   </div>
                </div>
 
-               <div>
+                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
                   <select 
                     value={editingStaff.status}
@@ -369,15 +438,67 @@ const StaffManager = () => {
                     <option value="On Leave">{t('restaurant.onleave')}</option>
                   </select>
                </div>
+
+                <div className="pt-4 border-t border-gray-100 mt-2">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.securityAttendance')}</label>
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.shiftStartTime')}</label>
+                            <input 
+                                type="time"
+                                value={editingStaff.shift_start_time || '09:00'}
+                                onChange={(e) => setEditingStaff({...editingStaff, shift_start_time: e.target.value})}
+                                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.patternPassword')}</label>
+                            <button 
+                                onClick={() => setIsPatternModalOpen(true)}
+                                className={`w-full py-2.5 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 ${editingStaff.pin_pattern ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-merkez-blue/10 text-merkez-blue border border-blue-100'}`}
+                            >
+                                <Lock className="w-3 h-3" />
+                                {editingStaff.pin_pattern ? t('restaurant.changePattern') : t('restaurant.setPattern')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
                
                <button 
                  onClick={handleEditStaff} 
-                 className="w-full bg-merkez-yellow text-gray-900 py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-yellow-500 transition-colors mt-2"
+                 className="w-full bg-merkez-yellow text-gray-900 py-3 rounded-lg text-sm font-bold shadow-md hover:bg-yellow-500 transition-colors mt-2"
                >
                  {t('restaurant.saveChanges')}
                </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Pattern Set Modal */}
+      {isPatternModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[40px] p-8 w-full max-w-sm flex flex-col items-center">
+                <div className="w-16 h-16 bg-blue-50 text-merkez-blue rounded-2xl flex items-center justify-center mb-6">
+                    <Lock className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-black text-gray-900 mb-2">{t('restaurant.setStaffPattern')}</h3>
+                <p className="text-gray-500 text-sm text-center mb-8">{t('restaurant.drawPatternInstructions')}</p>
+                
+                <PatternLock 
+                    onComplete={(p) => {
+                        setEditingStaff({...editingStaff, pin_pattern: p});
+                        setTimeout(() => setIsPatternModalOpen(false), 500);
+                    }}
+                />
+
+                <button 
+                    onClick={() => setIsPatternModalOpen(false)}
+                    className="mt-8 text-gray-400 text-sm font-bold hover:text-gray-600"
+                >
+                    {t('common.cancel')}
+                </button>
+            </div>
         </div>
       )}
 

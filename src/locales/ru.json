@@ -262,7 +262,22 @@
     "downloadReport": "Скачать отчет PDF",
     "salariesPaid": "Выплачено зарплат",
     "businessExpenses": "Операционные расходы",
-    "salary": "Оклад"
+    "salary": "Оклад",
+    "securityAttendance": "Безопасность и Посещаемость",
+    "shiftStartTime": "Начало смены",
+    "patternPassword": "Графический ключ",
+    "changePattern": "Изменить ключ",
+    "setPattern": "Задать ключ",
+    "setStaffPattern": "Установка ключа",
+    "drawPatternInstructions": "Нарисуйте графический ключ для этого сотрудника",
+    "authorizeAction": "Авторизация",
+    "drawPatternToVerify": "Нарисуйте ключ для подтверждения",
+    "selectStaffToBegin": "Выберите сотрудника для начала",
+    "changeWaiter": "Сменить официанта",
+    "incorrectPattern": "Неверный ключ! Попробуйте снова",
+    "ontime": "Вовремя",
+    "late": "Опоздал",
+    "attendance": "Посещаемость"
   },
   "status": {
     "new": "Новый",
