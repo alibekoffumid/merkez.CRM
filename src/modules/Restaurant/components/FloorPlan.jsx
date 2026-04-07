@@ -43,6 +43,14 @@ const FloorPlan = () => {
   const [activeWaiter, setActiveWaiter] = useState(null);
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [activeOrderCreatedAt, setActiveOrderCreatedAt] = useState(null);
+  const [modalConfig, setModalConfig] = useState({
+     isOpen: false,
+     type: 'confirm', // 'confirm' | 'success' | 'error'
+     title: '',
+     message: '',
+     onConfirm: null,
+     onCancel: null
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -432,73 +440,111 @@ const FloorPlan = () => {
     const diffMins = Math.abs(now - orderTime) / (1000 * 60);
     
     if (diffMins > 5) {
-      window.alert(t('restaurant.tooLateToCancel'));
+      setModalConfig({
+        isOpen: true,
+        type: 'error',
+        title: t('common.error'),
+        message: t('restaurant.tooLateToCancel'),
+      });
       return;
     }
 
-    if (!window.confirm(t('restaurant.cancelConfirm'))) return;
+    setModalConfig({
+      isOpen: true,
+      type: 'confirm',
+      title: t('restaurant.cancelOrder'),
+      message: t('restaurant.cancelConfirm'),
+      onConfirm: async () => {
+        setIsProcessing(true);
+        try {
+          // 1. Delete items for all active orders
+          await supabase.from('order_items').delete().in('order_id', idsToDelete);
+          
+          // 2. Delete orders
+          await supabase.from('orders').delete().in('id', idsToDelete);
+          
+          // 3. Reset table
+          await supabase
+            .from('restaurant_tables')
+            .update({ status: 'free', waiter: null, customer_id: null })
+            .eq('id', selectedTable.id);
 
-    setIsProcessing(true);
-    try {
-      // 1. Delete items for all active orders
-      await supabase.from('order_items').delete().in('order_id', idsToDelete);
-      
-      // 2. Delete orders
-      await supabase.from('orders').delete().in('id', idsToDelete);
-      
-      // 3. Reset table
-      await supabase
-        .from('restaurant_tables')
-        .update({ status: 'free', waiter: null, customer_id: null })
-        .eq('id', selectedTable.id);
-
-      window.alert(t('common.success'));
-      handleCloseModal();
-      fetchTables();
-    } catch (err) {
-      console.error(err);
-      window.alert(t('common.error'));
-    } finally {
-      setIsProcessing(false);
-    }
+          setModalConfig({
+            isOpen: true,
+            type: 'success',
+            title: t('common.success'),
+            message: t('common.success'),
+          });
+          handleCloseModal();
+          fetchTables();
+        } catch (err) {
+          console.error(err);
+          setModalConfig({
+            isOpen: true,
+            type: 'error',
+            title: t('common.error'),
+            message: t('common.error'),
+          });
+        } finally {
+          setIsProcessing(false);
+        }
+      }
+    });
   };
 
   const handleCancelItem = async (item) => {
-    if (!item || !window.confirm(t('restaurant.cancelItemConfirm'))) return;
+    if (!item) return;
+    
+    setModalConfig({
+      isOpen: true,
+      type: 'confirm',
+      title: t('restaurant.cancelOrder'),
+      message: t('restaurant.cancelItemConfirm'),
+      onConfirm: async () => {
+        setIsProcessing(true);
+        try {
+          // 1. Delete the item
+          const { error: deleteError } = await supabase
+            .from('order_items')
+            .delete()
+            .eq('id', item.id);
 
-    setIsProcessing(true);
-    try {
-      // 1. Delete the item
-      const { error: deleteError } = await supabase
-        .from('order_items')
-        .delete()
-        .eq('id', item.id);
+          if (deleteError) throw deleteError;
 
-      if (deleteError) throw deleteError;
-
-      // 2. Clear table if no items left, otherwise update total
-      const remainingItems = tableOrders.filter(o => o.id !== item.id);
-      
-      if (remainingItems.length === 0) {
-        await supabase
-          .from('restaurant_tables')
-          .update({ status: 'free', waiter: null, customer_id: null })
-          .eq('id', selectedTable.id);
-        handleCloseModal();
-        fetchTables();
-      } else {
-        fetchTableOrders(selectedTable.id);
-        // Table total is handled by active_orders view or will be refreshed in next load
-        fetchTables();
+          // 2. Clear table if no items left, otherwise update total
+          const remainingItems = tableOrders.filter(o => o.id !== item.id);
+          
+          if (remainingItems.length === 0) {
+            await supabase
+              .from('restaurant_tables')
+              .update({ status: 'free', waiter: null, customer_id: null })
+              .eq('id', selectedTable.id);
+            handleCloseModal();
+            fetchTables();
+          } else {
+            fetchTableOrders(selectedTable.id);
+            fetchTables();
+          }
+          
+          setModalConfig({
+            isOpen: true,
+            type: 'success',
+            title: t('common.success'),
+            message: t('restaurant.itemCancelled'),
+          });
+        } catch (err) {
+          console.error(err);
+          setModalConfig({
+            isOpen: true,
+            type: 'error',
+            title: t('common.error'),
+            message: t('common.error'),
+          });
+        } finally {
+          setIsProcessing(false);
+        }
       }
-      
-      window.alert(t('restaurant.itemCancelled'));
-    } catch (err) {
-      console.error(err);
-      window.alert(t('common.error'));
-    } finally {
-      setIsProcessing(false);
-    }
+    });
   };
 
   const handleStartMove = () => {
@@ -1229,6 +1275,54 @@ const FloorPlan = () => {
         onSuccess={handleAuthSuccess}
         actionTitle={authActionTitle}
       />
+       {/* Custom Status Modal */}
+       {modalConfig.isOpen && (
+         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}></div>
+           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col items-center">
+             <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-sm border ${
+               modalConfig.type === 'success' ? 'bg-green-50 text-merkez-green border-green-100' :
+               modalConfig.type === 'error' ? 'bg-red-50 text-red-500 border-red-100' :
+               'bg-blue-50 text-merkez-blue border-blue-100'
+             }`}>
+               {modalConfig.type === 'success' ? <UserCheck className="w-10 h-10" /> :
+                modalConfig.type === 'error' ? <AlertTriangle className="w-10 h-10" /> :
+                <Move className="w-10 h-10" />}
+             </div>
+             <h3 className="text-xl font-black text-gray-900 mb-2 text-center">{modalConfig.title}</h3>
+             <p className="text-sm text-gray-500 mb-8 text-center font-medium leading-relaxed">{modalConfig.message}</p>
+             
+             <div className="flex gap-3 w-full">
+               {modalConfig.type === 'confirm' ? (
+                 <>
+                   <button 
+                     onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                     className="flex-1 px-6 py-4 rounded-2xl bg-gray-50 text-gray-500 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95 border border-gray-100"
+                   >
+                     {t('common.cancel')}
+                   </button>
+                   <button 
+                     onClick={() => {
+                        setModalConfig(prev => ({ ...prev, isOpen: false }));
+                        if (modalConfig.onConfirm) modalConfig.onConfirm();
+                     }}
+                     className="flex-[1.5] px-6 py-4 rounded-2xl bg-merkez-blue text-white text-sm font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
+                   >
+                     {t('common.confirm')}
+                   </button>
+                 </>
+               ) : (
+                 <button 
+                   onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                   className="w-full px-6 py-4 rounded-2xl bg-merkez-blue text-white text-sm font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
+                 >
+                   OK
+                 </button>
+               )}
+             </div>
+           </div>
+         </div>
+       )}
     </div>
   );
 };
