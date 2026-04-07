@@ -1014,13 +1014,16 @@ const FloorPlan = () => {
                                    </button>
                                 </div>
                               </div>
-                              <div className="relative">
+                              <div className="relative mt-2">
+                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-merkez-blue/60">
+                                  <ChefHat className="w-3.5 h-3.5" />
+                                </div>
                                 <input 
                                   type="text" 
                                   placeholder={t('restaurant.addNote') || "Note for chef..."}
                                   value={item.notes || ''}
                                   onChange={(e) => updateCartItemNote(item.id, e.target.value)}
-                                  className="w-full bg-gray-50 border border-transparent focus:border-merkez-blue focus:bg-white rounded-lg px-2 py-1.5 text-[10px] italic outline-none transition-all placeholder:text-gray-300"
+                                  className="w-full bg-blue-50/50 border border-blue-100 focus:border-merkez-blue focus:bg-white rounded-lg pl-8 pr-2 py-1.5 text-xs italic outline-none transition-all placeholder:text-gray-400 shadow-inner"
                                 />
                               </div>
                             </div>
