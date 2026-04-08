@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
+import { useUser } from '../../core/UserContext';
 
 const AuthGuard = ({ children }) => {
+  const { profile, loading: profileLoading } = useUser();
   const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
     // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
+      setAuthLoading(false);
     });
 
     // Listen for auth changes
@@ -22,7 +24,7 @@ const AuthGuard = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center">
@@ -34,7 +36,6 @@ const AuthGuard = ({ children }) => {
   }
 
   if (!session) {
-    // Redirect to auth page but save the current location they were trying to access
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 

@@ -7,11 +7,13 @@
     "callCenter": "Колл-Центр",
     "finance": "Финансы",
     "settings": "Настройки",
-    "signOut": "Выйти"
+    "signOut": "Выйти",
+    "etaxes": "Налоги"
   },
   "header": {
     "search": "Поиск...",
-    "profile": "Профиль"
+    "profile": "Профиль",
+    "etaxes": "Налоги"
   },
   "dashboard": {
     "welcome": "Добро пожаловать в Merkez",

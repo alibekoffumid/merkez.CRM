@@ -7,11 +7,13 @@
     "callCenter": "Call Center",
     "finance": "Finance",
     "settings": "Settings",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "etaxes": "E-taxes"
   },
   "header": {
     "search": "Search...",
-    "profile": "Profile"
+    "profile": "Profile",
+    "etaxes": "E-taxes"
   },
   "dashboard": {
     "welcome": "Welcome to Merkez",

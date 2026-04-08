@@ -4,10 +4,18 @@ import { Settings, LogOut, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { getNavItems } from '../config/navigation';
+import { useUser } from './UserContext';
 
 const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
   const { t, i18n } = useTranslation();
-  const navItems = getNavItems(t);
+  const { profile } = useUser();
+  const rawNavItems = getNavItems(t);
+
+  // Filter items based on user role
+  const navItems = rawNavItems.filter(item => {
+    if (!item.roles) return true;
+    return item.roles.includes(profile?.role?.toLowerCase());
+  });
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);

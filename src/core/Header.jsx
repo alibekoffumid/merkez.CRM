@@ -3,34 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Search, Bell, User, Menu, X, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { useUser } from './UserContext';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (data) setProfile(data);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { profile, loading } = useUser();
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);

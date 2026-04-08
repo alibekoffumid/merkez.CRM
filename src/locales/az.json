@@ -7,11 +7,13 @@
     "callCenter": "Zəng Mərkəzi",
     "finance": "Maliyyə",
     "settings": "Tənzimləmələr",
-    "signOut": "Çıxış"
+    "signOut": "Çıxış",
+    "etaxes": "Vergi"
   },
   "header": {
     "search": "Axtarış...",
-    "profile": "Profil"
+    "profile": "Profil",
+    "etaxes": "Vergilər"
   },
   "dashboard": {
     "welcome": "Merkez'ə xoş gəlmisiniz",

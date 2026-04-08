@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
+import { ETaxesService } from '../../ETaxes/services/etaxesService';
 import WaiterAuthOverlay from './WaiterAuthOverlay';
 
 // Helper for initials
@@ -624,6 +625,7 @@ const FloorPlan = () => {
 
   const handleCheckout = async () => {
     // 1. Get all active orders for this table first to deduct ingredients
+    setIsProcessing(true);
     try {
       const masterId = selectedTable.merged_id || selectedTable.id;
 
@@ -640,10 +642,13 @@ const FloorPlan = () => {
         .eq('table_id', masterId)
         .neq('status', 'completed');
 
-      // 3. Deduct ingredients for each order
+      // 3. Deduct ingredients & Fiscalize each order
       if (activeOrders && activeOrders.length > 0) {
         for (const order of activeOrders) {
+          // Deduct from inventory
           await InventoryService.deductIngredientsFromOrder(order.id);
+          // Send to E-taxes
+          await ETaxesService.fiscalizeOrder(order.id);
         }
       }
 
@@ -655,8 +660,11 @@ const FloorPlan = () => {
 
       fetchTables();
       handleCloseModal();
-    } catch (invErr) {
-      console.error('Inventory deduction failed during checkout:', invErr);
+    } catch (err) {
+      console.error('Checkout failed:', err);
+      window.alert(`Checkout Error: ${err.message}`);
+    } finally {
+      setIsProcessing(false);
     }
   };
 

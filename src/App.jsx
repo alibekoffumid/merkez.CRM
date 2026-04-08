@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CoreLayout from './core/CoreLayout';
+import { UserProvider } from './core/UserContext';
 import Dashboard from './modules/Dashboard';
+import ETaxesModule from './modules/ETaxes';
 import CRMModule from './modules/CRM';
 import WarehouseModule from './modules/Warehouse';
 import RestaurantModule from './modules/Restaurant';
@@ -12,7 +14,8 @@ import Profile from './modules/Profile';
 
 function App() {
   return (
-    <BrowserRouter>
+    <UserProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route 
@@ -24,6 +27,10 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="dashboard">
+            <Route index element={<Dashboard />} />
+            <Route path="e-taxes" element={<ETaxesModule />} />
+          </Route>
           <Route path="crm" element={<CRMModule />} />
           <Route path="warehouse" element={<WarehouseModule />} />
           <Route path="restaurant" element={<RestaurantModule />} />
@@ -37,6 +44,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </UserProvider>
   );
 }
 

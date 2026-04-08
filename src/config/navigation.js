@@ -1,4 +1,5 @@
-import { LayoutDashboard, Users, Package, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt } from 'lucide-react';
+import { BankOutlined } from '@ant-design/icons';
 
 export const getNavItems = (t) => [
   { 
@@ -35,5 +36,13 @@ export const getNavItems = (t) => [
     icon: Users, 
     path: '/call-center', 
     color: 'hover:text-merkez-blue hover:bg-blue-50' 
+  },
+  { 
+    id: 'eTaxes',
+    name: t('sidebar.etaxes') || 'E-taxes', 
+    icon: BankOutlined, 
+    path: '/dashboard/e-taxes', 
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    roles: ['admin', 'owner']
   },
 ];
