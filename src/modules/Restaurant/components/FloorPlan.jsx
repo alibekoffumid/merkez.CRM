@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
 import { etaxesService } from '../../ETaxes/services/etaxesService';
@@ -16,6 +16,7 @@ const getInitials = (name) => {
 
 const FloorPlan = () => {
   const { t } = useTranslation();
+  const [isCartMinimized, setIsCartMinimized] = useState(false);
   const [filter, setFilter] = useState('all');
   const [selectedTable, setSelectedTable] = useState(null);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
@@ -168,6 +169,7 @@ const FloorPlan = () => {
   };
 
   const addToCart = (product) => {
+    setIsCartMinimized(false);
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -1180,22 +1182,28 @@ const FloorPlan = () => {
                   {/* SLIDE-UP STRETCHY DRAWER */}
                   {cart.length > 0 && (
                     <div 
-                      className="absolute inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur-xl shadow-[0_-20px_50px_rgba(0,0,0,0.15)] border-t border-gray-100 rounded-t-[32px] transition-all duration-300 ease-out"
-                      style={{ height: 'fit-content', maxHeight: '85%' }}
+                      className={`absolute inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur-xl shadow-[0_-20px_50px_rgba(0,0,0,0.15)] border-t border-gray-100 rounded-t-[32px] transition-all duration-300 ease-out ${
+                        isCartMinimized ? 'h-24' : 'h-fit max-h-[85%]'
+                      }`}
                     >
-                      {/* Interaction Bar */}
-                      <div className="flex justify-center py-2">
-                        <div className="w-10 h-1 bg-gray-200 rounded-full"></div>
-                      </div>
+                      {/* Interaction Bar / Toggle */}
+                      <button 
+                        onClick={() => setIsCartMinimized(!isCartMinimized)}
+                        className="w-full flex justify-center py-2 group cursor-pointer"
+                      >
+                        <div className="w-10 h-1 bg-gray-200 rounded-full group-hover:bg-merkez-blue transition-colors"></div>
+                      </button>
 
                       {/* Drawer Header */}
-                      <div className="px-6 py-4 flex items-center justify-between bg-white border-b border-gray-50 sticky top-0 z-10 rounded-t-[32px]">
+                      <div className="px-6 py-2 flex items-center justify-between bg-white border-b border-gray-50 sticky top-0 z-10 rounded-t-[32px]">
                         <div className="flex items-center gap-3">
-                           <div className="bg-merkez-blue text-white p-2 rounded-xl shadow-lg">
+                           <div className="bg-merkez-blue text-white p-2 rounded-xl shadow-lg cursor-pointer" onClick={() => setIsCartMinimized(!isCartMinimized)}>
                              <ShoppingCart className="w-5 h-5" />
                            </div>
                            <div>
-                             <h4 className="text-sm font-black text-gray-900 leading-none mb-1">{t('restaurant.newItems')} ({cart.length})</h4>
+                             <h4 className="text-sm font-black text-gray-900 leading-none mb-1">
+                               {t('restaurant.newItems')} ({cart.length})
+                             </h4>
                              <p className="text-xs font-bold text-merkez-blue opacity-70">
                                Total: ${(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)).toFixed(2)}
                              </p>
@@ -1203,24 +1211,35 @@ const FloorPlan = () => {
                         </div>
                         
                         <div className="flex items-center gap-3">
-                            <div className="text-right mr-3 hidden sm:block">
-                               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">TOTAL</p>
-                               <p className="text-lg font-black text-merkez-blue leading-none">${(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)).toFixed(2)}</p>
+                            {!isCartMinimized && (
+                              <div className="text-right mr-3 hidden sm:block">
+                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">TOTAL</p>
+                                 <p className="text-lg font-black text-merkez-blue leading-none">${(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)).toFixed(2)}</p>
+                              </div>
+                            )}
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => setIsCartMinimized(!isCartMinimized)}
+                                className="p-3 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all font-black text-xs uppercase"
+                              >
+                                {isCartMinimized ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </button>
+                              <button 
+                                onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
+                                disabled={isProcessing}
+                                className="bg-merkez-blue text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+                              >
+                                {isProcessing ? t('common.loading') : t('restaurant.sendToKitchen')} 
+                                <ArrowRight className="ml-2 w-4 h-4" />
+                              </button>
                             </div>
-                            <button 
-                              onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
-                              disabled={isProcessing}
-                              className="bg-merkez-blue text-white px-6 py-4 rounded-2xl font-black text-sm flex items-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
-                            >
-                              {isProcessing ? t('common.loading') : t('restaurant.sendToKitchen')} 
-                              <ArrowRight className="ml-2 w-4 h-4" />
-                            </button>
                         </div>
                       </div>
 
-                      {/* Stretchy Items List */}
-                      <div className="px-6 py-4 overflow-y-auto no-scrollbar max-h-[60vh]">
-                         <div className="space-y-4 pb-10">
+                      {/* Stretchy Items List - Only visible when not minimized */}
+                      {!isCartMinimized && (
+                        <div className="px-6 py-4 overflow-y-auto no-scrollbar max-h-[60vh]">
+                          <div className="space-y-4 pb-10">
                             {cart.map(item => (
                               <div key={item.id} className="bg-gray-50 border border-gray-100 p-6 rounded-[24px] flex flex-col gap-4">
                                 <div className="flex justify-between items-start">
@@ -1235,7 +1254,6 @@ const FloorPlan = () => {
                                   </div>
                                 </div>
                                 
-                                {/* STRETCHY CHEF NOTE */}
                                 <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 focus-within:border-merkez-blue/30 transition-all shadow-inner">
                                   <div className="flex items-center gap-2 mb-3">
                                     <div className="p-1.5 bg-amber-50 rounded-lg">
@@ -1253,8 +1271,9 @@ const FloorPlan = () => {
                                 </div>
                               </div>
                             ))}
-                         </div>
-                      </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
