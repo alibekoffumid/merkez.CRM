@@ -301,7 +301,8 @@
     "noReady": "Gözləyən bilet yoxdur.",
     "columnNew": "Yeni Biletlər",
     "columnPreparing": "Hazırlanır",
-    "columnReady": "Təhvil üçün hazırdır"
+    "columnReady": "Təhvil üçün hazırdır",
+    "markAsDone": "Tamamla"
   },
   "warehouse": {
     "title": "Anbar və Stok",

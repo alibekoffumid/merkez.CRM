@@ -324,7 +324,8 @@
     "noReady": "Нет заказов на выдачу.",
     "columnNew": "Новые заказы",
     "columnPreparing": "Готовятся",
-    "columnReady": "Готовы к выдаче"
+    "columnReady": "Готовы к выдаче",
+    "markAsDone": "Готово"
   },
   "warehouse": {
     "title": "Склад и Запасы",
