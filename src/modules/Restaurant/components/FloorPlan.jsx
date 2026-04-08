@@ -1250,7 +1250,7 @@ const FloorPlan = () => {
                                   <div className="flex items-center space-x-4 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
                                      <button onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-xl flex items-center justify-center text-merkez-blue hover:bg-gray-50"><Minus className="w-4 h-4" /></button>
                                      <span className="text-lg font-black text-merkez-blue w-4 text-center">{item.quantity}</span>
-                                     <button onClick={() => addToCart(item)} className="w-8 h-8 rounded-xl bg-merkez-blue text-white"><Plus className="w-4 h-4" /></button>
+                                     <button onClick={() => addToCart(item)} className="w-8 h-8 rounded-xl bg-merkez-blue text-white grid place-items-center p-0 hover:bg-blue-700 transition-all"><Plus className="w-5 h-5" /></button>
                                   </div>
                                 </div>
                                 
