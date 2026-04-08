@@ -198,10 +198,10 @@ const KitchenDisplay = () => {
         </div>
         
         <div className="flex flex-col xl:flex-row gap-4 items-center w-full sm:w-auto">
-          <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
+          <div className="flex bg-gray-100 p-1 rounded-md w-full sm:w-auto">
              <button
                onClick={() => setActiveStation('kitchen')}
-               className={`flex-1 sm:flex-none px-4 sm:px-6 py-1.5 rounded-md text-sm font-bold transition-all shadow-sm flex items-center justify-center ${
+               className={`flex-1 sm:flex-none px-4 sm:px-6 py-1.5 rounded-sm text-sm font-bold transition-all shadow-sm flex items-center justify-center ${
                  activeStation === 'kitchen' ? 'bg-white text-merkez-blue' : 'text-gray-500 shadow-none hover:text-gray-700'
                }`}
              >
@@ -210,7 +210,7 @@ const KitchenDisplay = () => {
              </button>
              <button
                onClick={() => setActiveStation('bar')}
-               className={`flex-1 sm:flex-none px-4 sm:px-6 py-1.5 rounded-md text-sm font-bold transition-all shadow-sm flex items-center justify-center ${
+               className={`flex-1 sm:flex-none px-4 sm:px-6 py-1.5 rounded-sm text-sm font-bold transition-all shadow-sm flex items-center justify-center ${
                  activeStation === 'bar' ? 'bg-white text-purple-600' : 'text-gray-500 shadow-none hover:text-gray-700'
                }`}
              >
@@ -224,7 +224,7 @@ const KitchenDisplay = () => {
               <div 
                 key={s}
                 onClick={() => setMobileColumn(s)}
-                className={`text-center px-3 sm:px-4 py-1.5 rounded-lg border min-w-[60px] sm:min-w-[70px] cursor-pointer transition-all lg:cursor-default ${
+                className={`text-center px-3 sm:px-4 py-1.5 rounded-md border min-w-[60px] sm:min-w-[70px] cursor-pointer transition-all lg:cursor-default ${
                   mobileColumn === s 
                     ? (s === 'NEW' ? 'bg-red-50 border-red-200' : s === 'PREPARING' ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200') 
                     : 'bg-gray-50 border-gray-100 opacity-60'
