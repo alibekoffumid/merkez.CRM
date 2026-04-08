@@ -11,6 +11,7 @@ import CallCenterModule from './modules/CallCenter';
 import Auth from './modules/Auth/Auth';
 import AuthGuard from './components/Auth/AuthGuard';
 import Profile from './modules/Profile';
+import FinanceModule from './modules/Finance';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           </Route>
           <Route path="crm" element={<CRMModule />} />
           <Route path="warehouse" element={<WarehouseModule />} />
+          <Route path="finance" element={<FinanceModule />} />
           <Route path="restaurant" element={<RestaurantModule />} />
           <Route path="call-center" element={<CallCenterModule />} />
           <Route path="profile" element={<Profile />} />
