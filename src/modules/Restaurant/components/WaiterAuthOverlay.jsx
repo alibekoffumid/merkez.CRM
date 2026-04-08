@@ -129,7 +129,7 @@ const WaiterAuthOverlay = ({ isOpen, onClose, onSuccess, actionTitle }) => {
                 </div>
                 <div className="min-w-0">
                   <p className="font-bold text-gray-900 truncate">{person.name}</p>
-                  <p className="text-[10px] text-gray-400 uppercase font-black">{t('restaurant.' + person.role.toLowerCase())}</p>
+                  <p className="text-[10px] text-gray-400 uppercase font-black">{t('restaurant.' + (person.role?.toLowerCase() || 'staff'))}</p>
                 </div>
               </button>
             ))}

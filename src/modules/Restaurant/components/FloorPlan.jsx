@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
-import { ETaxesService } from '../../ETaxes/services/etaxesService';
+import { etaxesService } from '../../ETaxes/services/etaxesService';
 import WaiterAuthOverlay from './WaiterAuthOverlay';
 
 // Helper for initials
@@ -648,7 +648,7 @@ const FloorPlan = () => {
           // Deduct from inventory
           await InventoryService.deductIngredientsFromOrder(order.id);
           // Send to E-taxes
-          await ETaxesService.fiscalizeOrder(order.id);
+          await etaxesService.fiscalizeOrder(order.id, 'cash');
         }
       }
 
