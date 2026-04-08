@@ -77,35 +77,62 @@ const KitchenDisplay = () => {
       if (ordersError) throw ordersError;
 
       if (activeOrders) {
-        const processedTickets = activeOrders.map(order => {
-          const items = order.order_items || [];
-          if (items.length === 0) return null;
+        console.log('Active Orders from DB:', activeOrders);
+        const processedTickets = [];
 
-          // Ticket status is based on the least progressed item
-          // Map 'pending' or 'new' to 'NEW' column
-          let ticketStatus = (order.status || 'NEW').toUpperCase();
-          if (ticketStatus === 'PENDING') ticketStatus = 'NEW';
-          
-          return {
+        activeOrders.forEach(order => {
+          const items = order.order_items || [];
+          if (items.length === 0) return;
+
+          // Helper to check if item belongs to Bar
+          const isBarItem = (item) => {
+            const catName = (item.products?.categories?.name || '').toLowerCase();
+            return ['drinks', 'desserts', 'напитки', 'десерты', 'bar', 'бар', 'çəki'].some(keyword => 
+              catName.includes(keyword)
+            );
+          };
+
+          // Split order items into kitchen and bar tickets if necessary
+          const kitchenItems = items.filter(item => !isBarItem(item));
+          const barItems = items.filter(item => isBarItem(item));
+
+          // Base ticket data
+          const baseTicket = {
             id: order.id,
             displayId: order.id.slice(0, 8).toUpperCase(),
             table: order.restaurant_tables?.number || '?',
-            status: ticketStatus,
-            // If any item is bar-related, we might want to split or just tag. 
-            // For now, let's keep the station logic based on items.
-            station: items.some(item => {
-              const catName = item.products?.categories?.name || '';
-              return ['Drinks', 'Desserts'].includes(catName);
-            }) ? 'bar' : 'kitchen',
-            items: items.map(item => ({
-              id: item.id,
-              name: item.products?.name || 'Unknown',
-              qty: item.quantity,
-              notes: item.notes
-            })),
+            status: order.status?.toUpperCase() === 'PENDING' ? 'NEW' : (order.status || 'NEW').toUpperCase(),
             created_at: new Date(order.created_at)
           };
-        }).filter(Boolean);
+
+          if (kitchenItems.length > 0) {
+            processedTickets.push({
+              ...baseTicket,
+              id: `${order.id}-kitchen`,
+              station: 'kitchen',
+              items: kitchenItems.map(item => ({
+                id: item.id,
+                name: item.products?.name || 'Unknown',
+                qty: item.quantity,
+                notes: item.notes
+              }))
+            });
+          }
+
+          if (barItems.length > 0) {
+            processedTickets.push({
+              ...baseTicket,
+              id: `${order.id}-bar`,
+              station: 'bar',
+              items: barItems.map(item => ({
+                id: item.id,
+                name: item.products?.name || 'Unknown',
+                qty: item.quantity,
+                notes: item.notes
+              }))
+            });
+          }
+        });
 
         setTickets(processedTickets.map(t => ({
           ...t,
@@ -118,7 +145,9 @@ const KitchenDisplay = () => {
     setLoading(false);
   };
 
-  const moveOrder = async (orderId, newStatus) => {
+  const moveOrder = async (ticketId, newStatus) => {
+    // ticketId might have suffix like -kitchen or -bar
+    const orderId = ticketId.split('-')[0];
     const statusLower = newStatus.toLowerCase();
 
     try {
