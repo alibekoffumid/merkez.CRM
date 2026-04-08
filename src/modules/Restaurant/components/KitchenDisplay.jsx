@@ -51,46 +51,62 @@ const KitchenDisplay = () => {
 
   const fetchTickets = async () => {
     try {
-      const { data, error } = await supabase
-        .from('order_items')
-        .select('*, products(name, categories(name)), orders!inner(id, status, restaurant_tables(number))')
-        .neq('orders.status', 'completed')
+      // 1. Fetch active orders
+      const { data: activeOrders, error: ordersError } = await supabase
+        .from('orders')
+        .select(`
+          id, 
+          status, 
+          created_at,
+          restaurant_tables(number),
+          order_items (
+            id,
+            product_id,
+            quantity,
+            notes,
+            status,
+            products (
+              name,
+              categories (name)
+            )
+          )
+        `)
+        .neq('status', 'completed')
         .order('created_at', { ascending: true });
-      
-      if (data && Array.isArray(data)) {
-        const grouped = data.reduce((acc, item) => {
-          const orderId = item.order_id;
-          if (!orderId) return acc;
 
-          const product = Array.isArray(item.products) ? item.products[0] : item.products;
-          const order = Array.isArray(item.orders) ? item.orders[0] : item.orders;
-          const category = product?.categories;
-          const categoryName = Array.isArray(category) ? category[0]?.name : category?.name;
-          const table = order?.restaurant_tables;
-          const tableNumber = Array.isArray(table) ? table[0]?.number : table?.number;
+      if (ordersError) throw ordersError;
 
-          if (!acc[orderId]) {
-            acc[orderId] = {
-              id: orderId,
-              displayId: orderId.slice(0, 8).toUpperCase(),
-              table: tableNumber || 'Unknown',
-              status: (item.status || 'new').toUpperCase(),
-              station: ['Drinks', 'Desserts'].includes(categoryName) ? 'bar' : 'kitchen',
-              items: [],
-              created_at: new Date(item.created_at)
-            };
-          }
-          acc[orderId].items.push({
-            id: item.id,
-            name: product?.name || 'Unknown Item',
-            qty: item.quantity,
-            notes: item.notes
-          });
+      if (activeOrders) {
+        const processedTickets = activeOrders.map(order => {
+          const items = order.order_items || [];
+          if (items.length === 0) return null;
+
+          // Ticket status is based on the least progressed item
+          // For simplicity, we use the order's own status or 'NEW'
+          const ticketStatus = (order.status || 'NEW').toUpperCase();
           
-          return acc;
-        }, {});
+          return {
+            id: order.id,
+            displayId: order.id.slice(0, 8).toUpperCase(),
+            table: order.restaurant_tables?.number || '?',
+            status: ticketStatus,
+            // If any item is bar-related, we might want to split or just tag. 
+            // For now, let's keep the station logic based on items.
+            station: items.some(item => {
+              const catName = item.products?.categories?.name || '';
+              return ['Drinks', 'Desserts'].includes(catName);
+            }) ? 'bar' : 'kitchen',
+            items: items.map(item => ({
+              id: item.id,
+              name: item.products?.name || 'Unknown',
+              qty: item.quantity,
+              notes: item.notes
+            })),
+            created_at: new Date(order.created_at)
+          };
+        }).filter(Boolean);
 
-        setTickets(Object.values(grouped).map(t => ({
+        setTickets(processedTickets.map(t => ({
           ...t,
           timeElapsed: Math.floor((new Date() - t.created_at) / 60000) + 'm'
         })));
@@ -104,20 +120,26 @@ const KitchenDisplay = () => {
   const moveOrder = async (orderId, newStatus) => {
     const statusLower = newStatus.toLowerCase();
 
-    // Update all order_items for this order
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .update({ status: statusLower })
-      .eq('order_id', orderId);
+    try {
+      // 1. Update all order_items for this order
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .update({ status: statusLower })
+        .eq('order_id', orderId);
 
-    // Also sync the parent order status
-    if (!itemsError) {
-      await supabase
+      if (itemsError) throw itemsError;
+
+      // 2. Also sync the parent order status
+      const { error: orderError } = await supabase
         .from('orders')
         .update({ status: statusLower })
         .eq('id', orderId);
 
-      fetchTickets();
+      if (orderError) throw orderError;
+
+      await fetchTickets();
+    } catch (err) {
+      console.error('Move order error:', err);
     }
   };
 
@@ -264,7 +286,7 @@ const KitchenDisplay = () => {
                  key={ticket.id} 
                  ticket={ticket} 
                  t={t}
-                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'completed')} text={t('kitchen.archivedDone')} color="bg-gray-500 hover:bg-gray-600" />}
+                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'served')} text={t('kitchen.archivedDone')} color="bg-gray-500 hover:bg-gray-600" />}
               />
             ))}
             {getColumnData('READY').length === 0 && (

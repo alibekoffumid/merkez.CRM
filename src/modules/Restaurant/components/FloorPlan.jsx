@@ -68,7 +68,18 @@ const FloorPlan = () => {
       }
     };
     init();
-  }, []);
+
+    // Auto-refresh tables and orders every 10 seconds
+    const interval = setInterval(() => {
+      fetchTables();
+      fetchLiveOrders();
+      if (selectedTable) {
+        fetchTableOrders(selectedTable.id);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [selectedTable?.id]);
 
   const fetchLiveOrders = async () => {
     try {
@@ -112,18 +123,19 @@ const FloorPlan = () => {
     } catch (e) {}
   };
 
-  const fetchTableOrders = async (tableId) => {
+  const fetchTableOrders = async (tableId, currentTables = null) => {
     if (!tableId) {
       setTableOrders([]);
       return;
     }
     setTableOrdersLoading(true);
 
-    // Find table in the latest list to resolve merging
-    const tableMetadata = tables.find(t => t.id === tableId);
-    const targetTableId = tableMetadata?.merged_id || tableId;
-
     try {
+      // Use provided tables or current state
+      const tablesList = currentTables || tables;
+      const tableMetadata = tablesList.find(t => t.id === tableId);
+      const targetTableId = tableMetadata?.merged_id || tableId;
+
       const { data: activeOrders } = await supabase
         .from('orders')
         .select('id, created_at')
@@ -137,12 +149,8 @@ const FloorPlan = () => {
         return;
       }
 
-      // Track all active order IDs for this table
       const orderIds = activeOrders.map(o => o.id);
-      setActiveOrderId(orderIds); // Store as array
-      
-      // Use the earliest created_at for the "Entire Order" window? 
-      // Or just let individual items handle their own window.
+      setActiveOrderId(orderIds);
       setActiveOrderCreatedAt(activeOrders[0].created_at);
 
       const { data } = await supabase
@@ -153,6 +161,7 @@ const FloorPlan = () => {
 
       setTableOrders(data || []);
     } catch (e) {
+      console.error('Fetch table orders error:', e);
     } finally {
       setTableOrdersLoading(false);
     }
@@ -297,8 +306,8 @@ const FloorPlan = () => {
           .eq('id', selectedTable.merged_id || selectedTable.id);
       }
 
-      fetchTables();
-      fetchTableOrders(selectedTable.id);
+      const updatedTables = await fetchTables();
+      fetchTableOrders(selectedTable.id, updatedTables);
       fetchLiveOrders();
       setCart([]);
       setIsAddingOrder(false);
@@ -319,13 +328,16 @@ const FloorPlan = () => {
       .order('number', { ascending: true });
     
     if (data) {
-      setTables(data.map(tableObj => ({
+      const mapped = data.map(tableObj => ({
         ...tableObj,
         amount: 0,
         timeSeated: tableObj.status === 'occupied' ? '12:00' : null,
         waiter: tableObj.status === 'occupied' ? t('restaurant.staff') || 'Staff' : null
-      })));
+      }));
+      setTables(mapped);
+      return mapped;
     }
+    return [];
   };
 
   const getTableColor = (status) => {
