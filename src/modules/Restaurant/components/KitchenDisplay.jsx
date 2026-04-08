@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, ChefHat, CheckCircle2, ArrowRight, Martini } from 'lucide-react';
+import { Clock, ChefHat, CheckCircle2, ArrowRight, Martini, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
 const TicketCard = ({ ticket, actionBtn, t }) => (
@@ -8,7 +8,7 @@ const TicketCard = ({ ticket, actionBtn, t }) => (
     <div className="flex justify-between items-start mb-3">
       <div>
         <h3 className="font-bold text-gray-900">{ticket.table}</h3>
-        <p className="text-xs text-gray-500">{t('kitchen.ticketId')}: {ticket.displayId}</p>
+        <p className="text-xs text-gray-500">{t('kitchen.ticketId') || 'ID'}: {ticket.displayId}</p>
       </div>
       <div className="flex items-center text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">
         <Clock className="w-3 h-3 mr-1" />
@@ -51,7 +51,6 @@ const KitchenDisplay = () => {
 
   const fetchTickets = async () => {
     try {
-      // 1. Fetch active orders
       const { data: activeOrders, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -77,26 +76,22 @@ const KitchenDisplay = () => {
       if (ordersError) throw ordersError;
 
       if (activeOrders) {
-        console.log('Active Orders from DB:', activeOrders);
         const processedTickets = [];
 
         activeOrders.forEach(order => {
           const items = order.order_items || [];
           if (items.length === 0) return;
 
-          // Helper to check if item belongs to Bar
           const isBarItem = (item) => {
             const catName = (item.products?.categories?.name || '').toLowerCase();
-            return ['drinks', 'desserts', 'напитки', 'десерты', 'bar', 'бар', 'çəki'].some(keyword => 
+            return ['drinks', 'desserts', 'напитки', 'десерты', 'bar', 'бар', 'çəki', 'su', 'şirə'].some(keyword => 
               catName.includes(keyword)
             );
           };
 
-          // Split order items into kitchen and bar tickets if necessary
           const kitchenItems = items.filter(item => !isBarItem(item));
           const barItems = items.filter(item => isBarItem(item));
 
-          // Base ticket data
           const baseTicket = {
             id: order.id,
             displayId: order.id.slice(0, 8).toUpperCase(),
@@ -146,24 +141,28 @@ const KitchenDisplay = () => {
   };
 
   const moveOrder = async (ticketId, newStatus) => {
-    // ticketId has suffix like -kitchen or -bar. 
-    // UUIDs contain hyphens, so split('-')[0] was wrong.
     const orderId = ticketId.replace(/-kitchen$|-bar$/, '');
     const statusLower = newStatus.toLowerCase();
+    
+    // UI mapping: When kitchen finishes, it should move to 'ready' 
+    // so waiter can see it and mark as 'served'.
+    // If we mark as 'done' from 'ready' column, it goes to 'served'.
+    let targetStatus = statusLower;
+    if (statusLower === 'done') targetStatus = 'served';
 
     try {
-      // 1. Update all order_items for this order
+      // 1. Update items
       const { error: itemsError } = await supabase
         .from('order_items')
-        .update({ status: statusLower })
+        .update({ status: targetStatus })
         .eq('order_id', orderId);
 
       if (itemsError) throw itemsError;
 
-      // 2. Also sync the parent order status
+      // 2. Update order
       const { error: orderError } = await supabase
         .from('orders')
-        .update({ status: statusLower })
+        .update({ status: targetStatus })
         .eq('id', orderId);
 
       if (orderError) throw orderError;
@@ -171,22 +170,20 @@ const KitchenDisplay = () => {
       await fetchTickets();
     } catch (err) {
       console.error('Move order error:', err);
+      window.alert('Error updating status: ' + (err.message || err));
     }
   };
 
   const getStationParams = () => {
     return activeStation === 'kitchen' 
-      ? { icon: <ChefHat className="w-5 h-5 mr-2 text-merkez-blue" />, title: t('kitchen.kdsTitle'), color: 'blue' }
-      : { icon: <Martini className="w-5 h-5 mr-2 text-purple-500" />, title: t('kitchen.barTitle'), color: 'purple' };
+      ? { icon: <ChefHat className="w-5 h-5 mr-2 text-merkez-blue" />, title: t('kitchen.kdsTitle') || 'Kitchen Display', color: 'blue' }
+      : { icon: <Martini className="w-5 h-5 mr-2 text-purple-500" />, title: t('kitchen.barTitle') || 'Bar Display', color: 'purple' };
   };
 
   const { icon, title } = getStationParams();
-
-  // Filter based on currently active station
   const stationTickets = (tickets || []).filter(t => t && t.station === activeStation);
   const getColumnData = (status) => stationTickets.filter(t => t && t.status === status);
 
-  // Mobile column view state
   const [mobileColumn, setMobileColumn] = useState('NEW');
 
   return (
@@ -197,11 +194,10 @@ const KitchenDisplay = () => {
             {icon}
             {title}
           </h2>
-          <p className="text-sm text-gray-500">{t('kitchen.subtitle')}</p>
+          <p className="text-sm text-gray-500">{t('kitchen.subtitle') || 'Manage orders'}</p>
         </div>
         
         <div className="flex flex-col xl:flex-row gap-4 items-center w-full sm:w-auto">
-          {/* Station Toggle */}
           <div className="flex bg-gray-100 p-1 rounded-lg w-full sm:w-auto">
              <button
                onClick={() => setActiveStation('kitchen')}
@@ -210,7 +206,7 @@ const KitchenDisplay = () => {
                }`}
              >
                <ChefHat className="w-4 h-4 mr-2"/>
-               {t('kitchen.stationKitchen')}
+               {t('kitchen.stationKitchen') || 'Kitchen'}
              </button>
              <button
                onClick={() => setActiveStation('bar')}
@@ -219,38 +215,27 @@ const KitchenDisplay = () => {
                }`}
              >
                <Martini className="w-4 h-4 mr-2"/>
-               {t('kitchen.stationBar')}
+               {t('kitchen.stationBar') || 'Bar'}
              </button>
           </div>
 
           <div className="flex gap-2 sm:gap-3 w-full sm:w-auto justify-center">
-            <div 
-              onClick={() => setMobileColumn('NEW')}
-              className={`text-center px-3 sm:px-4 py-1.5 rounded-lg border min-w-[60px] sm:min-w-[70px] cursor-pointer transition-all lg:cursor-default ${
-                mobileColumn === 'NEW' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-100 opacity-60'
-              } lg:opacity-100 lg:bg-red-50 lg:border-red-100`}
-            >
-               <span className="block text-lg sm:text-xl font-bold text-red-600">{getColumnData('NEW').length}</span>
-               <span className="text-[9px] sm:text-[10px] font-bold text-red-400 uppercase tracking-wider">{t('status.new')}</span>
-             </div>
-             <div 
-               onClick={() => setMobileColumn('PREPARING')}
-               className={`text-center px-3 sm:px-4 py-1.5 rounded-lg border min-w-[60px] sm:min-w-[70px] cursor-pointer transition-all lg:cursor-default ${
-                 mobileColumn === 'PREPARING' ? 'bg-yellow-50 border-yellow-200' : 'bg-gray-50 border-gray-100 opacity-60'
-               } lg:opacity-100 lg:bg-yellow-50 lg:border-yellow-100`}
-             >
-               <span className="block text-lg sm:text-xl font-bold text-yellow-600">{getColumnData('PREPARING').length}</span>
-               <span className="text-[9px] sm:text-[10px] font-bold text-yellow-400 uppercase tracking-wider">{t('status.preparing')}</span>
-             </div>
-             <div 
-               onClick={() => setMobileColumn('READY')}
-               className={`text-center px-3 sm:px-4 py-1.5 rounded-lg border min-w-[60px] sm:min-w-[70px] cursor-pointer transition-all lg:cursor-default ${
-                 mobileColumn === 'READY' ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100 opacity-60'
-               } lg:opacity-100 lg:bg-green-50 lg:border-green-100`}
-             >
-               <span className="block text-lg sm:text-xl font-bold text-green-600">{getColumnData('READY').length}</span>
-               <span className="text-[9px] sm:text-[10px] font-bold text-green-400 uppercase tracking-wider">{t('status.ready')}</span>
-             </div>
+            {['NEW', 'PREPARING', 'READY'].map(s => (
+              <div 
+                key={s}
+                onClick={() => setMobileColumn(s)}
+                className={`text-center px-3 sm:px-4 py-1.5 rounded-lg border min-w-[60px] sm:min-w-[70px] cursor-pointer transition-all lg:cursor-default ${
+                  mobileColumn === s 
+                    ? (s === 'NEW' ? 'bg-red-50 border-red-200' : s === 'PREPARING' ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200') 
+                    : 'bg-gray-50 border-gray-100 opacity-60'
+                } lg:opacity-100`}
+              >
+                 <span className={`block text-lg sm:text-xl font-bold ${s === 'NEW' ? 'text-red-600' : s === 'PREPARING' ? 'text-yellow-600' : 'text-green-600'}`}>
+                   {getColumnData(s).length}
+                 </span>
+                 <span className="text-[9px] sm:text-[10px] font-bold opacity-60 uppercase tracking-wider">{t(`status.${s.toLowerCase()}`)}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -258,74 +243,58 @@ const KitchenDisplay = () => {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden relative" style={{ height: 'calc(100vh - 210px)' }}>
         
         {/* NEW COLUMN */}
-        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${
-          mobileColumn === 'NEW' ? 'flex' : 'hidden lg:flex'
-        }`}>
+        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'NEW' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 bg-red-500 text-white font-bold flex justify-between items-center shadow-sm z-10">
-            <span>🔴 {t('kitchen.columnNew')}</span>
+            <span>🔴 {t('kitchen.columnNew') || 'New Tickets'}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{getColumnData('NEW').length}</span>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
             {getColumnData('NEW').map(ticket => (
               <TicketCard 
                  key={ticket.id} 
                  ticket={ticket} 
                  t={t}
-                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'PREPARING')} text={t('kitchen.startPreparing')} color="bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500" />}
+                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'PREPARING')} text={t('kitchen.startPreparing') || 'Start Preparing'} color="bg-yellow-500 hover:bg-yellow-600" />}
               />
             ))}
-            {getColumnData('NEW').length === 0 && (
-              <p className="text-center text-gray-400 font-medium text-sm mt-8">{t('kitchen.noNewTickets')}</p>
-            )}
           </div>
         </div>
 
         {/* PREPARING COLUMN */}
-        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${
-          mobileColumn === 'PREPARING' ? 'flex' : 'hidden lg:flex'
-        }`}>
+        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'PREPARING' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 bg-yellow-500 text-white font-bold flex justify-between items-center shadow-sm z-10">
-            <span>🟡 {t('kitchen.columnPreparing')}</span>
+            <span>🟡 {t('kitchen.columnPreparing') || 'Preparing'}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{getColumnData('PREPARING').length}</span>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
             {getColumnData('PREPARING').map(ticket => (
               <TicketCard 
                  key={ticket.id} 
                  ticket={ticket} 
                  t={t}
-                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'READY')} text={t('kitchen.markAsReady')} color="bg-green-500 hover:bg-green-600 focus:ring-green-500" />}
+                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'READY')} text={t('kitchen.markAsReady') || 'Mark as Ready'} color="bg-green-500 hover:bg-green-600" />}
               />
             ))}
-            {getColumnData('PREPARING').length === 0 && (
-              <p className="text-center text-gray-400 font-medium text-sm mt-8">{t('kitchen.noPreparing')}</p>
-            )}
           </div>
         </div>
 
         {/* READY COLUMN */}
-        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${
-          mobileColumn === 'READY' ? 'flex' : 'hidden lg:flex'
-        }`}>
+        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'READY' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 bg-green-500 text-white font-bold flex justify-between items-center shadow-sm z-10">
-            <span>🟢 {t('kitchen.columnReady')}</span>
+            <span>🟢 {t('kitchen.columnReady') || 'Ready'}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{getColumnData('READY').length}</span>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
             {getColumnData('READY').map(ticket => (
               <TicketCard 
                  key={ticket.id} 
                  ticket={ticket} 
                  t={t}
-                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'served')} text={t('kitchen.archivedDone')} color="bg-gray-500 hover:bg-gray-600" />}
+                 actionBtn={<ActionBtn onClick={() => moveOrder(ticket.id, 'DONE')} text={t('kitchen.markAsDone') || 'Finish'} color="bg-blue-500 hover:bg-blue-600" />}
               />
             ))}
-            {getColumnData('READY').length === 0 && (
-              <p className="text-center text-gray-400 font-medium text-sm mt-8">{t('kitchen.noReady')}</p>
-            )}
           </div>
         </div>
-
       </div>
     </div>
   );

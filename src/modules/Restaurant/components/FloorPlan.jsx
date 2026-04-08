@@ -363,11 +363,11 @@ const FloorPlan = () => {
      setIsProcessing(true);
      try {
        // Update all order_items and the order itself to 'served'
-       await supabase.from('order_items').update({ status: 'served' }).eq('order_id', orderId.replace('#', ''));
-       await supabase.from('orders').update({ status: 'served' }).eq('id', orderId.replace('#', ''));
+       await supabase.from('order_items').update({ status: 'served' }).eq('order_id', orderId);
+       await supabase.from('orders').update({ status: 'served' }).eq('id', orderId);
        fetchLiveOrders();
      } catch (e) {
-       console.error(err);
+       console.error('Serve order error:', e);
      } finally {
        setIsProcessing(false);
      }
