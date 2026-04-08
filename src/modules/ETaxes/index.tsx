@@ -10,7 +10,7 @@ const ETaxesModule: React.FC = () => {
       key: 'dashboard',
       label: (
         <span>
-          <DashboardOutlined />
+          <DashboardOutlined style={{ marginRight: 8 }} />
           Dashboard
         </span>
       ),
@@ -20,7 +20,7 @@ const ETaxesModule: React.FC = () => {
       key: 'settings',
       label: (
         <span>
-          <SettingOutlined />
+          <SettingOutlined style={{ marginRight: 8 }} />
           Settings
         </span>
       ),
