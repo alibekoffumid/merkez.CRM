@@ -146,8 +146,9 @@ const KitchenDisplay = () => {
   };
 
   const moveOrder = async (ticketId, newStatus) => {
-    // ticketId might have suffix like -kitchen or -bar
-    const orderId = ticketId.split('-')[0];
+    // ticketId has suffix like -kitchen or -bar. 
+    // UUIDs contain hyphens, so split('-')[0] was wrong.
+    const orderId = ticketId.replace(/-kitchen$|-bar$/, '');
     const statusLower = newStatus.toLowerCase();
 
     try {
