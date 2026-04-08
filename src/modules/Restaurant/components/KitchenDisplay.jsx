@@ -82,8 +82,9 @@ const KitchenDisplay = () => {
           if (items.length === 0) return null;
 
           // Ticket status is based on the least progressed item
-          // For simplicity, we use the order's own status or 'NEW'
-          const ticketStatus = (order.status || 'NEW').toUpperCase();
+          // Map 'pending' or 'new' to 'NEW' column
+          let ticketStatus = (order.status || 'NEW').toUpperCase();
+          if (ticketStatus === 'PENDING') ticketStatus = 'NEW';
           
           return {
             id: order.id,

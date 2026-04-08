@@ -256,7 +256,7 @@ const FloorPlan = () => {
         .from('orders')
         .insert([{
           table_id: selectedTable.merged_id || selectedTable.id,
-          status: 'pending',
+          status: 'new',
           total_amount: orderTotal - finalDiscount - bonusesUsed,
           customer_id: selectedCustomer?.id,
           discount_amount: finalDiscount + bonusesUsed,
