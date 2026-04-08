@@ -61,8 +61,12 @@ export const etaxesService = {
 
   async fiscalizeOrder(orderId: string, paymentType: 'cash' | 'card'): Promise<string> {
     const settings = await this.getSettings();
-    if (!settings) throw new Error('Settings not configured');
-    if (settings.shift_status !== 'open') throw new Error('Shift is closed');
+    // Allow demo mode if settings not configured
+    const shiftStatus = settings?.shift_status || 'open';
+    
+    if (settings && shiftStatus !== 'open') {
+      throw new Error('Shift is closed. Please open shift in E-Taxes dashboard.');
+    }
 
     // Fetch order details
     const { data: order, error: orderError } = await supabase
