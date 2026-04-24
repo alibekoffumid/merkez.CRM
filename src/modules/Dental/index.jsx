@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Activity, Package, Users, Settings } from 'lucide-react';
+import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2 } from 'lucide-react';
 import Scheduler from './components/Scheduler';
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
@@ -8,6 +8,7 @@ import DentalInventory from './components/DentalInventory';
 const DentalModule = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('scheduler');
+  const [isFullPage, setIsFullPage] = useState(false);
 
   const tabs = [
     { id: 'scheduler', label: t('dental.appointments'), icon: Calendar },
@@ -17,7 +18,12 @@ const DentalModule = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-full space-y-6 bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100">
+    <div className={`
+      flex flex-col min-h-full space-y-6 transition-all duration-500
+      ${isFullPage 
+        ? 'fixed inset-0 z-[100] bg-white p-6 md:p-12 overflow-y-auto no-scrollbar rounded-0' 
+        : 'bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100'}
+    `}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -26,9 +32,21 @@ const DentalModule = () => {
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-gray-50 rounded-2xl p-1 border border-gray-200">
+          <div className="flex items-center bg-gray-50 rounded-2xl p-1 border border-gray-200 shadow-sm">
+             <button 
+               onClick={() => setIsFullPage(!isFullPage)}
+               className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${
+                 isFullPage 
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  : 'text-gray-500 hover:text-gray-900 bg-white border border-gray-100'
+               }`}
+               title={isFullPage ? "Minimize" : "Maximize"}
+             >
+               {isFullPage ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+             </button>
+             <div className="w-px h-6 bg-gray-200 mx-1" />
              <button className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">Export PDF</button>
-             <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-white border border-gray-200 rounded-xl transition-all shadow-sm">
+             <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-white border border-gray-100 rounded-xl transition-all shadow-sm">
                <Settings className="w-5 h-5" />
              </button>
           </div>
