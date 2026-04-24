@@ -9,6 +9,13 @@ export const getNavItems = (t) => [
     color: 'hover:text-merkez-blue hover:bg-blue-50' 
   },
   { 
+    id: 'dental',
+    name: t('sidebar.dental'), 
+    icon: Activity, 
+    path: '/dental', 
+    color: 'hover:text-merkez-blue hover:bg-blue-50'
+  },
+  { 
     id: 'crm',
     name: t('sidebar.crm'), 
     icon: Users, 
@@ -48,13 +55,6 @@ export const getNavItems = (t) => [
     name: t('sidebar.etaxes') || 'E-taxes', 
     icon: Receipt, 
     path: '/dashboard/e-taxes', 
-    color: 'hover:text-merkez-blue hover:bg-blue-50'
-  },
-  { 
-    id: 'dental',
-    name: t('sidebar.dental'), 
-    icon: Activity, 
-    path: '/dental', 
     color: 'hover:text-merkez-blue hover:bg-blue-50'
   },
 ];
