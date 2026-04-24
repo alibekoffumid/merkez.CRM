@@ -76,7 +76,7 @@ const Scheduler = () => {
       <div className="flex-1 overflow-auto relative no-scrollbar bg-gray-50/30">
         <div className="min-w-[1200px] flex h-full">
           {/* Time Gutter */}
-          <div className="w-24 shrink-0 border-r border-gray-100 pt-20 bg-gray-50/50">
+          <div className="w-24 shrink-0 border-r border-gray-100 pt-[160px] bg-gray-50/50">
             {timeSlots.map(time => (
               <div key={time} className="h-24 flex items-start justify-center pt-2">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{time}</span>
@@ -89,8 +89,8 @@ const Scheduler = () => {
             {doctors.map(doctor => (
               <div key={doctor.id} className="flex-1 border-r border-gray-100 relative group/col">
                 {/* Column Header - Glass Effect */}
-                <div className="sticky top-0 bg-white/80 backdrop-blur-xl z-20 border-b border-gray-100 p-5 flex flex-col items-center">
-                  <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-xl mb-3`}>
+                <div className="sticky top-0 bg-white/90 backdrop-blur-xl z-30 border-b border-gray-100 p-5 flex flex-col items-center h-[160px] justify-center">
+                  <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg mb-3`}>
                     {doctor.avatar}
                   </div>
                   <span className="text-sm font-black text-gray-900 tracking-tight">{doctor.name}</span>
