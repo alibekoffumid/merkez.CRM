@@ -55,7 +55,6 @@ export const getNavItems = (t) => [
     name: t('sidebar.dental'), 
     icon: Activity, 
     path: '/dental', 
-    color: 'hover:text-merkez-blue hover:bg-blue-50',
-    roles: ['admin', 'dentist']
+    color: 'hover:text-merkez-blue hover:bg-blue-50'
   },
 ];
