@@ -21,7 +21,7 @@ const DentalModule = () => {
     <div className={`
       flex flex-col min-h-full space-y-6 transition-all duration-500
       ${isFullPage 
-        ? 'fixed inset-0 z-[100] bg-white p-6 md:p-12 overflow-y-auto no-scrollbar rounded-0' 
+        ? 'fixed inset-0 z-[100] bg-white p-6 md:p-12 rounded-0 overflow-hidden' 
         : 'bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100'}
     `}>
       {/* Header */}
@@ -73,7 +73,7 @@ const DentalModule = () => {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 transition-all duration-500">
+      <div className={`flex-1 transition-all duration-500 ${isFullPage ? 'overflow-y-auto pr-2 no-scrollbar' : ''}`}>
         {activeTab === 'scheduler' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Scheduler />
