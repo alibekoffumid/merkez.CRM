@@ -1,0 +1,151 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String         @id @default(uuid())
+  fullName          String?
+  role              String         @default("user") // admin, manager, user, dentist
+  preferredLanguage String         @default("ru")
+  email             String?        @unique
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  // Relations
+  appointments      Appointment[]  @relation("DentistAppointments")
+  treatmentsCreated ToothStatus[]  @relation("TreatmentCreator")
+}
+
+model Patient {
+  id             String         @id @default(uuid())
+  firstName      String
+  lastName       String
+  birthDate      DateTime?
+  phone          String?
+  email          String?
+  address        String?
+  medicalHistory String?        // Notes on allergies, etc.
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // Relations
+  appointments   Appointment[]
+  toothHistory   ToothStatus[]
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  patientId   String
+  dentistId   String
+  startTime   DateTime
+  endTime     DateTime
+  status      AppointmentStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  patient     Patient           @relation(fields: [patientId], references: [id])
+  dentist     User              @relation("DentistAppointments", fields: [dentistId], references: [id])
+  procedures  Procedure[]       @relation("AppointmentProcedures")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model ToothStatus {
+  id          String         @id @default(uuid())
+  patientId   String
+  toothNumber Int            // 1-32
+  status      ToothCondition
+  notes       String?
+  
+  // History tracking
+  createdAt   DateTime       @default(now())
+  updatedBy   String         // User ID of the dentist/staff
+  
+  // Relations
+  patient     Patient        @relation(fields: [patientId], references: [id])
+  creator     User           @relation("TreatmentCreator", fields: [updatedBy], references: [id])
+}
+
+enum ToothCondition {
+  HEALTHY
+  CARIES
+  MISSING
+  CROWN
+  IMPLANT
+  FILLING
+  ROOT_CANAL
+  EXTRACTION_REQUIRED
+  BRIDGE
+}
+
+model InventoryItem {
+  id           String              @id @default(uuid())
+  name         String
+  description  String?
+  quantity     Float               @default(0)
+  unit         String              // pcs, ml, g, etc.
+  minThreshold Float               @default(10)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  // Relations
+  procedures   ProcedureMaterial[]
+  transactions InventoryTransaction[]
+}
+
+model Procedure {
+  id           String              @id @default(uuid())
+  name         String
+  description  String?
+  basePrice    Float
+  
+  // Relations
+  materials    ProcedureMaterial[]
+  appointments Appointment[]       @relation("AppointmentProcedures")
+}
+
+model ProcedureMaterial {
+  id           String         @id @default(uuid())
+  procedureId  String
+  itemId       String
+  quantityUsed Float
+  
+  // Relations
+  procedure    Procedure      @relation(fields: [procedureId], references: [id])
+  inventoryItem InventoryItem @relation(fields: [itemId], references: [id])
+}
+
+model InventoryTransaction {
+  id            String          @id @default(uuid())
+  itemId        String
+  type          TransactionType // IN, OUT, ADJUSTMENT
+  quantity      Float
+  reason        String?         // e.g., "Procedure #123 completed"
+  referenceId   String?         // ID of the related object (e.g. Appointment ID)
+  createdAt     DateTime        @default(now())
+
+  // Relations
+  inventoryItem InventoryItem   @relation(fields: [itemId], references: [id])
+}
+
+enum TransactionType {
+  IN
+  OUT
+  ADJUSTMENT
+}

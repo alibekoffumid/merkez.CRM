@@ -454,5 +454,30 @@
     "email": "Email",
     "role": "Role",
     "joined": "Joined"
+  },
+  "dental": {
+    "title": "Merkez Dental",
+    "subtitle": "Clinical Management & Patient Chart",
+    "appointments": "Appointments",
+    "patientChart": "Patient Chart",
+    "inventory": "Dental Inventory",
+    "patients": "Patient List",
+    "chartTitle": "Interactive Dental Chart",
+    "chartSubtitle": "iPad & Tablet Optimized Module",
+    "accessRestricted": "Access Restricted",
+    "accessRestrictedDesc": "Only authorized dentists or administrators can access clinical patient charts.",
+    "assignTooth": "Assign to Tooth #",
+    "legend": "Clinical Legend",
+    "auditTrail": "Audit Trail",
+    "syncChart": "Synchronize Chart",
+    "healthy": "Healthy",
+    "caries": "Caries",
+    "missing": "Missing",
+    "crown": "Crown",
+    "implant": "Implant",
+    "filling": "Filling",
+    "rootCanal": "Root Canal",
+    "extraction": "Extraction",
+    "bridge": "Bridge"
   }
 }

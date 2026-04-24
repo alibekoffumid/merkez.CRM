@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity } from 'lucide-react';
 
 export const getNavItems = (t) => [
   { 
@@ -48,6 +48,13 @@ export const getNavItems = (t) => [
     name: t('sidebar.etaxes') || 'E-taxes', 
     icon: Receipt, 
     path: '/dashboard/e-taxes', 
+    color: 'hover:text-merkez-blue hover:bg-blue-50'
+  },
+  { 
+    id: 'dental',
+    name: 'Dental CRM', 
+    icon: Activity, 
+    path: '/dental', 
     color: 'hover:text-merkez-blue hover:bg-blue-50'
   },
 ];

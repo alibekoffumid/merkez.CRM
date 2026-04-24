@@ -431,5 +431,30 @@
     "email": "Email",
     "role": "Rol",
     "joined": "Qeydiyyat tarixi"
+  },
+  "dental": {
+    "title": "Merkez Dental",
+    "subtitle": "Klinika İdarəetməsi və Pasiyent Kartı",
+    "appointments": "Qəbullar",
+    "patientChart": "Pasiyent Kartı",
+    "inventory": "Stomatoloji Anbar",
+    "patients": "Pasiyent Siyahısı",
+    "chartTitle": "İnteraktiv Diş Kartı",
+    "chartSubtitle": "iPad və Planşetlər üçün Modul",
+    "accessRestricted": "Giriş Məhduddur",
+    "accessRestrictedDesc": "Yalnız səlahiyyətli həkimlər və ya administratorlar klinik pasiyent kartlarına daxil ola bilərlər.",
+    "assignTooth": "Diş № üçün təyin et",
+    "legend": "Klinik Legenda",
+    "auditTrail": "Dəyişiklik Tarixçəsi",
+    "syncChart": "Kartı Sinxronizasiya Et",
+    "healthy": "Sağlam",
+    "caries": "Karies",
+    "missing": "Yoxdur",
+    "crown": "Qapaq (Koronka)",
+    "implant": "İmplant",
+    "filling": "Plomb",
+    "rootCanal": "Kanal müalicəsi",
+    "extraction": "Çəkilmə",
+    "bridge": "Körpü"
   }
 }
