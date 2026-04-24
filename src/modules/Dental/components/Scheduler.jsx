@@ -35,22 +35,22 @@ const Scheduler = () => {
   const appointments = useMemo(() => mockAppointments, []);
 
   return (
-    <div className="bg-[#0B0F1A] rounded-[2.5rem] shadow-2xl border border-slate-800/50 overflow-hidden flex flex-col h-[850px] font-sans">
+    <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden flex flex-col h-[850px] font-sans">
       {/* Premium Header */}
-      <div className="p-8 border-b border-slate-800/50 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-slate-900/20 backdrop-blur-xl sticky top-0 z-30 gap-6">
+      <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl sticky top-0 z-30 gap-6">
         <div className="flex items-center gap-6">
           <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5">
             <CalendarIcon className="w-7 h-7 text-blue-400" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-white tracking-tight">
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">
               {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', day: 'numeric' })}
             </h2>
             <div className="flex items-center gap-4 mt-1">
-              <div className="flex bg-slate-800/50 rounded-xl p-1 border border-slate-700/50">
-                <button className="p-1.5 hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-white"><ChevronLeft className="w-4 h-4" /></button>
-                <button className="px-4 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest transition-colors">Today</button>
-                <button className="p-1.5 hover:bg-slate-700 rounded-lg transition-all text-slate-400 hover:text-white"><ChevronRight className="w-4 h-4" /></button>
+              <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
+                <button className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
+                <button className="px-4 text-[10px] font-black text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Today</button>
+                <button className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
@@ -58,11 +58,11 @@ const Scheduler = () => {
 
         <div className="flex items-center gap-4 w-full lg:w-auto">
           <div className="relative flex-1 lg:flex-none lg:w-64">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
               placeholder="Search appointments..." 
-              className="w-full bg-slate-800/30 border border-slate-700/50 rounded-2xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              className="w-full bg-gray-100 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
           </div>
           <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl text-sm font-black transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
@@ -73,13 +73,13 @@ const Scheduler = () => {
       </div>
 
       {/* Scheduler Grid */}
-      <div className="flex-1 overflow-auto relative no-scrollbar bg-slate-900/10">
+      <div className="flex-1 overflow-auto relative no-scrollbar bg-gray-50/30">
         <div className="min-w-[1200px] flex h-full">
           {/* Time Gutter */}
-          <div className="w-24 shrink-0 border-r border-slate-800/50 pt-20 bg-slate-900/20">
+          <div className="w-24 shrink-0 border-r border-gray-100 pt-20 bg-gray-50/50">
             {timeSlots.map(time => (
               <div key={time} className="h-24 flex items-start justify-center pt-2">
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{time}</span>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{time}</span>
               </div>
             ))}
           </div>
@@ -87,21 +87,21 @@ const Scheduler = () => {
           {/* Doctor Columns */}
           <div className="flex-1 flex">
             {doctors.map(doctor => (
-              <div key={doctor.id} className="flex-1 border-r border-slate-800/50 relative group/col">
+              <div key={doctor.id} className="flex-1 border-r border-gray-100 relative group/col">
                 {/* Column Header - Glass Effect */}
-                <div className="sticky top-0 bg-[#0B0F1A]/80 backdrop-blur-xl z-20 border-b border-slate-800/50 p-5 flex flex-col items-center">
+                <div className="sticky top-0 bg-white/80 backdrop-blur-xl z-20 border-b border-gray-100 p-5 flex flex-col items-center">
                   <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-xl mb-3`}>
                     {doctor.avatar}
                   </div>
-                  <span className="text-sm font-black text-white tracking-tight">{doctor.name}</span>
-                  <span className="text-[10px] text-blue-400/60 font-black uppercase tracking-[0.2em] mt-1">{doctor.specialty}</span>
+                  <span className="text-sm font-black text-gray-900 tracking-tight">{doctor.name}</span>
+                  <span className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1">{doctor.specialty}</span>
                 </div>
 
                 {/* Slots Area */}
                 <div className="relative h-full">
                   {timeSlots.map(time => (
-                    <div key={time} className="h-24 border-b border-slate-800/30 group/slot hover:bg-white/5 transition-colors flex items-center justify-center">
-                      <button className="w-10 h-10 rounded-full bg-slate-800/50 opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-400 hover:bg-blue-500 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-xl">
+                    <div key={time} className="h-24 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
+                      <button className="w-10 h-10 rounded-full bg-gray-100 opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm">
                         <Plus className="w-5 h-5" />
                       </button>
                     </div>
@@ -116,30 +116,30 @@ const Scheduler = () => {
                       const height = (app.duration / 60) * 96;
 
                       const statusColors = {
-                        CONFIRMED: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/40 text-emerald-400',
-                        IN_PROGRESS: 'from-blue-500/20 to-blue-500/5 border-blue-500/40 text-blue-400',
-                        SCHEDULED: 'from-slate-700/20 to-slate-700/5 border-slate-700/40 text-slate-400',
+                        CONFIRMED: 'from-emerald-50 to-emerald-100/30 border-emerald-200 text-emerald-700 shadow-emerald-100/50',
+                        IN_PROGRESS: 'from-blue-50 to-blue-100/30 border-blue-200 text-blue-700 shadow-blue-100/50',
+                        SCHEDULED: 'from-gray-50 to-gray-100/30 border-gray-200 text-gray-700 shadow-gray-100/50',
                       };
 
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-3 right-3 rounded-3xl p-5 border backdrop-blur-md transition-all hover:scale-[1.02] hover:shadow-2xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status]} group/app`}
+                          className={`absolute left-3 right-3 rounded-2xl p-4 border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status]} group/app shadow-sm`}
                           style={{ top: `${top}px`, height: `${height}px` }}
                         >
                           <div className="flex flex-col h-full">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-sm font-black text-white tracking-tight truncate">{app.patient}</h4>
-                              <button className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded-lg">
-                                <MoreHorizontal className="w-4 h-4 text-white" />
+                            <div className="flex items-start justify-between mb-1">
+                              <h4 className="text-sm font-black tracking-tight truncate">{app.patient}</h4>
+                              <button className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1 hover:bg-black/5 rounded-lg">
+                                <MoreHorizontal className="w-4 h-4" />
                               </button>
                             </div>
-                            <div className="flex flex-wrap items-center gap-4 mt-auto">
-                              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-                                <Clock className="w-3.5 h-3.5" /> {app.time} ({app.duration}m)
+                            <div className="flex flex-wrap items-center gap-3 mt-auto">
+                              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest opacity-70">
+                                <Clock className="w-3 h-3" /> {app.time}
                               </div>
-                              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/50">
-                                <Activity className="w-3.5 h-3.5" /> {app.type}
+                              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest opacity-70">
+                                <Activity className="w-3 h-3" /> {app.type}
                               </div>
                             </div>
                             
@@ -167,22 +167,22 @@ const Scheduler = () => {
       </div>
 
       {/* Footer Info */}
-      <div className="p-6 bg-slate-900/40 border-t border-slate-800/50 flex items-center justify-between">
+      <div className="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-3">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Confirmed</span>
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Confirmed</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">In Progress</span>
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">In Progress</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-600" />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Scheduled</span>
+            <div className="w-2.5 h-2.5 rounded-full bg-gray-400" />
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Scheduled</span>
           </div>
         </div>
-        <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Merkez Dental Sync • v2.4.0</p>
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Merkez Dental Sync • v2.4.0</p>
       </div>
     </div>
   );

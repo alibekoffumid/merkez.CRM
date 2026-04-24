@@ -66,12 +66,12 @@ const DentalChart: React.FC = () => {
 
   if (!hasAccess) {
     return (
-      <div className="bg-slate-950 rounded-[2.5rem] p-16 border border-slate-900 flex flex-col items-center justify-center text-center shadow-2xl">
-        <div className="w-24 h-24 rounded-3xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20 mb-8 animate-pulse">
+      <div className="bg-white rounded-[2.5rem] p-16 border border-gray-100 flex flex-col items-center justify-center text-center shadow-xl">
+        <div className="w-24 h-24 rounded-3xl bg-rose-50 flex items-center justify-center border border-rose-100 mb-8">
           <ShieldAlert className="w-12 h-12 text-rose-500" />
         </div>
-        <h2 className="text-3xl font-black text-white mb-4 tracking-tight">{t('dental.accessRestricted')}</h2>
-        <p className="text-slate-400 max-w-sm leading-relaxed">
+        <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">{t('dental.accessRestricted')}</h2>
+        <p className="text-gray-500 max-w-sm leading-relaxed">
           {t('dental.accessRestrictedDesc')}
         </p>
       </div>
@@ -132,19 +132,19 @@ const DentalChart: React.FC = () => {
         onClick={() => handleToothClick(num)}
         className={`
           relative flex flex-col items-center justify-center p-2 md:p-4 rounded-[1.5rem] cursor-pointer transition-all duration-300
-          ${isSelected ? 'bg-slate-800 ring-2 ring-blue-500 shadow-lg shadow-blue-500/20 z-10 scale-110' : 'hover:bg-slate-800/40'}
+          ${isSelected ? 'bg-blue-50 ring-2 ring-blue-500 shadow-md z-10 scale-110' : 'hover:bg-gray-50'}
           ${data && !isSelected ? config.bg : 'bg-transparent'}
           group w-14 h-24 md:w-20 md:h-32
         `}
       >
-        <span className={`text-[10px] md:text-xs font-black mb-1 md:mb-2 transition-colors ${isSelected ? 'text-blue-400' : 'text-slate-600'}`}>
+        <span className={`text-[10px] md:text-xs font-black mb-1 md:mb-2 transition-colors ${isSelected ? 'text-blue-600' : 'text-gray-400'}`}>
           {num}
         </span>
         <div className="w-8 h-12 md:w-12 md:h-16 relative">
           {renderToothSVG(num, status, isSelected)}
         </div>
         {data && (
-          <div className="absolute -bottom-1 -right-1 bg-slate-950 rounded-full p-1 border border-slate-800 shadow-xl">
+          <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 border border-gray-100 shadow-sm">
             <config.icon className={`w-3 h-3 md:w-4 md:h-4 ${config.color}`} />
           </div>
         )}
@@ -153,28 +153,26 @@ const DentalChart: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#080B14] rounded-[3rem] shadow-[0_0_100px_-20px_rgba(0,0,0,0.5)] border border-slate-800/40 p-6 md:p-12 overflow-hidden font-sans">
+    <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-6 md:p-12 overflow-hidden font-sans">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-16">
         <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-[1.75rem] bg-gradient-to-br from-blue-500 to-indigo-600 p-[1px] shadow-lg shadow-blue-500/20">
-            <div className="w-full h-full rounded-[1.75rem] bg-slate-950 flex items-center justify-center">
-              <Stethoscope className="w-8 h-8 text-blue-400" />
-            </div>
+          <div className="w-16 h-16 rounded-[1.75rem] bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+            <Stethoscope className="w-8 h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">{t('dental.chartTitle')}</h1>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('dental.chartTitle')}</h1>
             <div className="flex items-center gap-3 mt-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-              <p className="text-slate-400 text-sm font-medium uppercase tracking-widest">{t('dental.chartSubtitle')}</p>
+              <p className="text-gray-400 text-sm font-medium uppercase tracking-widest">{t('dental.chartSubtitle')}</p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {selectedTooth ? (
-            <div className="flex items-center gap-2 p-3 bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-blue-500/20 animate-in slide-in-from-right-4 duration-500">
-              <span className="text-xs font-black text-blue-400 uppercase tracking-widest px-4 border-r border-slate-800">{t('dental.assignTooth')} {selectedTooth}:</span>
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-2xl border border-blue-100 shadow-sm animate-in slide-in-from-right-4 duration-500">
+              <span className="text-xs font-black text-blue-600 uppercase tracking-widest px-4 border-r border-gray-200">{t('dental.assignTooth')} {selectedTooth}:</span>
               <div className="flex flex-wrap gap-1.5 px-2">
                 {(Object.keys(CONDITION_CONFIG) as ToothCondition[]).map((key) => (
                   <button
@@ -190,13 +188,13 @@ const DentalChart: React.FC = () => {
                   </button>
                 ))}
               </div>
-              <button onClick={() => setSelectedTooth(null)} className="ml-2 p-2 hover:bg-slate-800 rounded-xl text-slate-500 transition-colors">
+              <button onClick={() => setSelectedTooth(null)} className="ml-2 p-2 hover:bg-gray-200 rounded-xl text-gray-400 transition-colors">
                 <Plus className="w-5 h-5 rotate-45" />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-4 text-slate-500 text-sm bg-slate-900/40 backdrop-blur-md px-8 py-4 rounded-2xl border border-slate-800/50">
-              <Info className="w-5 h-5 text-blue-500" />
+            <div className="flex items-center gap-4 text-gray-500 text-sm bg-gray-50 px-8 py-4 rounded-2xl border border-gray-100 shadow-sm">
+              <Info className="w-5 h-5 text-blue-600" />
               <span className="font-medium">{t('dental.chartSubtitle')}</span>
             </div>
           )}
@@ -209,10 +207,10 @@ const DentalChart: React.FC = () => {
         </div>
         <div className="relative flex items-center justify-center py-6">
           <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-slate-800 to-transparent"></div>
+            <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
           </div>
-          <div className="relative bg-[#080B14] px-10 border border-slate-800/50 rounded-full py-1">
-            <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.6em]">Occlusal Mapping Area</span>
+          <div className="relative bg-white px-10 border border-gray-100 rounded-full py-1 shadow-sm">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.6em]">Occlusal Mapping Area</span>
           </div>
         </div>
         <div className="grid grid-cols-8 gap-1 md:flex md:justify-center md:gap-4 lg:gap-6">
@@ -221,48 +219,48 @@ const DentalChart: React.FC = () => {
       </div>
 
       <div className="mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 bg-slate-900/30 backdrop-blur-sm rounded-[2.5rem] p-10 border border-slate-800/40">
+        <div className="lg:col-span-8 bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-indigo-400" />
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+              <Activity className="w-5 h-5 text-indigo-600" />
             </div>
-            <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">{t('dental.legend')}</h3>
+            <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em]">{t('dental.legend')}</h3>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-y-8 gap-x-4">
             {(Object.keys(CONDITION_CONFIG) as ToothCondition[]).map((key) => (
               <div key={key} className="flex items-center gap-4 group cursor-default">
-                <div className={`w-3 h-3 rounded-full ${CONDITION_CONFIG[key].color.replace('text-', 'bg-')} shadow-[0_0_10px_rgba(0,0,0,0.5)] group-hover:scale-125 transition-transform`} />
-                <span className="text-xs text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-200 transition-colors">{CONDITION_CONFIG[key].label}</span>
+                <div className={`w-3 h-3 rounded-full ${CONDITION_CONFIG[key].color.replace('text-', 'bg-')} shadow-sm group-hover:scale-125 transition-transform`} />
+                <span className="text-xs text-gray-500 font-bold uppercase tracking-wider group-hover:text-gray-900 transition-colors">{CONDITION_CONFIG[key].label}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="lg:col-span-4 bg-gradient-to-b from-slate-900/60 to-slate-900/20 rounded-[2.5rem] p-10 border border-slate-800/40 shadow-inner">
+        <div className="lg:col-span-4 bg-gray-50 rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <History className="w-5 h-5 text-purple-400" />
-              <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">{t('dental.auditTrail')}</h3>
+              <History className="w-5 h-5 text-purple-600" />
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em]">{t('dental.auditTrail')}</h3>
             </div>
-            <button className="text-slate-500 hover:text-white transition-colors">
+            <button className="text-gray-400 hover:text-gray-900 transition-colors">
               <ChevronDown className="w-5 h-5" />
             </button>
           </div>
           <div className="space-y-6">
             {Object.keys(teethData).length > 0 ? (
               Object.entries(teethData).slice(-4).reverse().map(([num, data]) => (
-                <div key={num} className="group flex items-start gap-5 p-4 rounded-2xl hover:bg-slate-800/30 transition-all border border-transparent hover:border-slate-800">
+                <div key={num} className="group flex items-start gap-5 p-4 rounded-2xl hover:bg-white transition-all border border-transparent hover:border-gray-200 shadow-sm">
                   <div className={`mt-1.5 w-3 h-3 rounded-full ${CONDITION_CONFIG[data.status].color.replace('text-', 'bg-')} shrink-0`} />
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-1">
-                      <p className="text-xs font-black text-white uppercase">Tooth #{num}</p>
-                      <span className="text-[9px] font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-md uppercase tracking-tighter">{CONDITION_CONFIG[data.status].label}</span>
+                      <p className="text-xs font-black text-gray-900 uppercase">Tooth #{num}</p>
+                      <span className="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md uppercase tracking-tighter">{CONDITION_CONFIG[data.status].label}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-2">
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
                         <UserIcon className="w-3 h-3" /> {data.updatedBy}
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
                         <Clock className="w-3 h-3" /> {new Date(data.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -271,10 +269,10 @@ const DentalChart: React.FC = () => {
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
-                  <Plus className="w-6 h-6 text-slate-600" />
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+                  <Plus className="w-6 h-6 text-gray-400" />
                 </div>
-                <p className="text-xs text-slate-600 font-black uppercase tracking-widest">No Recent Records</p>
+                <p className="text-xs text-gray-400 font-black uppercase tracking-widest">No Recent Records</p>
               </div>
             )}
           </div>
