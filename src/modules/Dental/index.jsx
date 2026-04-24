@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2 } from 'lucide-react';
-import Scheduler from './components/Scheduler';
+import Scheduler, { doctors } from './components/Scheduler';
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
 
@@ -115,10 +115,33 @@ const DentalModule = () => {
           <DentalInventory />
         )}
         {activeTab === 'patients' && (
-          <div className="bg-gray-50/50 rounded-[2.5rem] p-20 border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
-            <Users className="w-16 h-16 text-gray-300 mb-6" />
-            <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{t('dental.patients')}</h3>
-            <p className="text-gray-500 max-w-sm mt-3 font-medium">Encrypted storage for patient history, X-ray imagery, and multi-visit clinical records.</p>
+          <div className="space-y-6">
+            <div className="bg-gray-50/50 rounded-[2.5rem] p-20 border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+              <Users className="w-16 h-16 text-gray-300 mb-6" />
+              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{t('dental.patients')}</h3>
+              <p className="text-gray-500 max-w-sm mt-3 font-medium">Encrypted storage for patient history, X-ray imagery, and multi-visit clinical records.</p>
+            </div>
+
+            {/* Compact Doctors List */}
+            <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-black text-gray-900">Clinical Staff</h3>
+                <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors.length} active</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {doctors.map(doc => (
+                  <div key={doc.id} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-blue-200 transition-all group">
+                    <div className={`w-10 h-10 rounded-xl ${doc.color} flex items-center justify-center text-xs font-black text-white shadow-sm group-hover:scale-110 transition-transform`}>
+                      {doc.avatar}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900">{doc.name}</h4>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{doc.specialty}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const doctors = [
+export const doctors = [
   { id: 1, name: 'Dr. Sarah Wilson', specialty: 'Orthodontist', color: 'bg-blue-500', glow: 'shadow-blue-500/20', avatar: 'SW' },
   { id: 2, name: 'Dr. James Chen', specialty: 'General Dentist', color: 'bg-emerald-500', glow: 'shadow-emerald-500/20', avatar: 'JC' },
   { id: 3, name: 'Dr. Elena Rossi', specialty: 'Oral Surgeon', color: 'bg-purple-500', glow: 'shadow-purple-500/20', avatar: 'ER' },
