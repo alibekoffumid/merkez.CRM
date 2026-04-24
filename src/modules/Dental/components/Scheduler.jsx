@@ -72,42 +72,54 @@ const Scheduler = () => {
         </div>
       </div>
 
-      {/* Scheduler Grid */}
-      <div className="flex-1 overflow-auto relative no-scrollbar bg-gray-50/30">
-        <div className="min-w-[1200px] flex h-full">
-          {/* Time Gutter */}
-          <div className="w-24 shrink-0 border-r border-gray-100 pt-[160px] bg-gray-50/50">
-            {timeSlots.map(time => (
-              <div key={time} className="h-24 flex items-start justify-center pt-2">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{time}</span>
+      {/* Main Grid Container */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Fixed Header Row */}
+        <div className="flex bg-white/90 backdrop-blur-xl border-b border-gray-100 z-30 sticky top-0">
+          {/* Time Placeholder */}
+          <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50 flex items-center justify-center">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</span>
+          </div>
+          {/* Doctor Headers */}
+          <div className="flex-1 flex min-w-[1200px]">
+            {doctors.map(doctor => (
+              <div key={doctor.id} className="flex-1 border-r border-gray-100 p-5 flex flex-col items-center justify-center h-[140px]">
+                <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg mb-3`}>
+                  {doctor.avatar}
+                </div>
+                <span className="text-sm font-black text-gray-900 tracking-tight">{doctor.name}</span>
+                <span className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1">{doctor.specialty}</span>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* Doctor Columns */}
-          <div className="flex-1 flex">
-            {doctors.map(doctor => (
-              <div key={doctor.id} className="flex-1 border-r border-gray-100 relative group/col">
-                {/* Column Header - Glass Effect */}
-                <div className="sticky top-0 bg-white/90 backdrop-blur-xl z-30 border-b border-gray-100 p-5 flex flex-col items-center h-[160px] justify-center">
-                  <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg mb-3`}>
-                    {doctor.avatar}
-                  </div>
-                  <span className="text-sm font-black text-gray-900 tracking-tight">{doctor.name}</span>
-                  <span className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1">{doctor.specialty}</span>
+        {/* Scrollable Slots Area */}
+        <div className="flex-1 overflow-auto no-scrollbar bg-gray-50/30 relative">
+          <div className="flex min-w-[1200px] h-full">
+            {/* Time Gutter */}
+            <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50">
+              {timeSlots.map(time => (
+                <div key={time} className="h-24 flex items-start justify-center pt-2 border-b border-gray-50">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{time}</span>
                 </div>
+              ))}
+            </div>
 
-                {/* Slots Area */}
-                <div className="relative h-full">
+            {/* Columns Area */}
+            <div className="flex-1 flex relative">
+              {doctors.map(doctor => (
+                <div key={doctor.id} className="flex-1 border-r border-gray-100 relative">
+                  {/* Slots */}
                   {timeSlots.map(time => (
                     <div key={time} className="h-24 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
-                      <button className="w-10 h-10 rounded-full bg-gray-100 opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm">
+                      <button className="w-10 h-10 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100">
                         <Plus className="w-5 h-5" />
                       </button>
                     </div>
                   ))}
 
-                  {/* Appointments Layer */}
+                  {/* Appointments */}
                   <div className="absolute inset-0 pointer-events-none">
                     {appointments.filter(app => app.doctorId === doctor.id).map(app => {
                       const startHour = parseInt(app.time.split(':')[0]);
@@ -124,7 +136,7 @@ const Scheduler = () => {
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-3 right-3 rounded-2xl p-4 border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status]} group/app shadow-sm`}
+                          className={`absolute left-3 right-3 rounded-2xl p-4 border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status]} group/app shadow-sm z-10`}
                           style={{ top: `${top}px`, height: `${height}px` }}
                         >
                           <div className="flex flex-col h-full">
@@ -142,7 +154,6 @@ const Scheduler = () => {
                                 <Activity className="w-3 h-3" /> {app.type}
                               </div>
                             </div>
-                            
                             {app.status === 'IN_PROGRESS' && (
                               <div className="absolute top-4 right-4 flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -155,12 +166,12 @@ const Scheduler = () => {
                     })}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {/* Live Time Indicator */}
-            <div className="absolute top-[350px] left-0 right-0 h-[2px] bg-red-500/50 z-10 pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.5)]">
-              <div className="absolute -left-1 -top-[4px] w-2.5 h-2.5 rounded-full bg-red-500 shadow-xl" />
+              {/* Live Indicator */}
+              <div className="absolute top-[350px] left-0 right-0 h-[2px] bg-red-500/50 z-20 pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                <div className="absolute -left-1 -top-[4px] w-2.5 h-2.5 rounded-full bg-red-500 shadow-xl" />
+              </div>
             </div>
           </div>
         </div>
