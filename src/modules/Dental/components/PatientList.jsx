@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2 } from 'lucide-react';
+import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2, X } from 'lucide-react';
 import { DentalService } from '../../../services/DentalService';
+import { supabase } from '../../../supabaseClient';
 
 const PatientList = ({ onViewChart }) => {
   const { t } = useTranslation();
@@ -9,6 +10,9 @@ const PatientList = ({ onViewChart }) => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newPatient, setNewPatient] = useState({ name: '', phone: '', email: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -18,12 +22,35 @@ const PatientList = ({ onViewChart }) => {
     try {
       setLoading(true);
       const data = await DentalService.getPatients(searchQuery);
-      setPatients(data);
+      setPatients(data || []);
     } catch (err) {
       console.error('Error fetching patients:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddPatient = async (e) => {
+    e.preventDefault();
+    if (!newPatient.name) return;
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabase.from('customers').insert([{
+        name: newPatient.name,
+        phone: newPatient.phone,
+        email: newPatient.email,
+        type: 'Regular'
+      }]);
+      if (error) throw error;
+      setShowAddModal(false);
+      setNewPatient({ name: '', phone: '', email: '' });
+      fetchPatients();
+    } catch (err) {
+      console.error('Error adding patient:', err);
+      alert('Failed to add patient');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,14 +75,14 @@ const PatientList = ({ onViewChart }) => {
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button 
-            onClick={() => alert(t('common.comingSoon') || 'Coming soon')}
+            onClick={() => alert('Filter options will be available soon.')}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-[1.5rem] text-sm font-bold border border-gray-100 transition-all shadow-sm"
           >
             <Filter className="w-4 h-4" />
             {t('common.filter')}
           </button>
           <button 
-            onClick={() => alert(t('common.comingSoon') || 'Adding patients is handled via the central Customers module.')}
+            onClick={() => setShowAddModal(true)}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
@@ -136,6 +163,79 @@ const PatientList = ({ onViewChart }) => {
           </div>
         )}
       </div>
+
+      {/* Add Patient Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
+          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-md relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button 
+              onClick={() => setShowAddModal(false)}
+              className="absolute top-6 right-6 p-2 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="mb-8">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-blue-100">
+                <User className="w-6 h-6" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Add New Patient</h3>
+              <p className="text-sm font-medium text-gray-500 mt-1">Enter details to create a new patient record.</p>
+            </div>
+
+            <form onSubmit={handleAddPatient} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Full Name</label>
+                <input 
+                  type="text" 
+                  required
+                  value={newPatient.name}
+                  onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  placeholder="e.g. John Doe"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Phone Number</label>
+                <input 
+                  type="tel" 
+                  value={newPatient.phone}
+                  onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  placeholder="e.g. +1 234 567 890"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Email Address (Optional)</label>
+                <input 
+                  type="email" 
+                  value={newPatient.email}
+                  onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  placeholder="e.g. john@example.com"
+                />
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Patient'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
