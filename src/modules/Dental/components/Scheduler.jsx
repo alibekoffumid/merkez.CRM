@@ -21,7 +21,11 @@ export const doctors = [
   { id: 3, name: 'Dr. Elena Rossi', specialty: 'Oral Surgeon', color: 'bg-purple-500', glow: 'shadow-purple-500/20', avatar: 'ER' },
 ];
 
-const timeSlots = Array.from({ length: 11 }, (_, i) => `${9 + i}:00`);
+const timeSlots = Array.from({ length: 22 }, (_, i) => {
+  const hour = 9 + Math.floor(i / 2);
+  const min = i % 2 === 0 ? '00' : '30';
+  return `${hour}:${min}`;
+});
 
 const Scheduler = () => {
   const { t } = useTranslation();
@@ -134,9 +138,11 @@ const Scheduler = () => {
           <div className="flex min-w-[1200px] h-full">
             {/* Time Gutter */}
             <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50">
-              {timeSlots.map(time => (
-                <div key={time} className="h-24 flex items-start justify-center pt-2 border-b border-gray-50">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{time}</span>
+              {timeSlots.map((time, index) => (
+                <div key={time} className="h-12 flex items-start justify-center pt-1.5 border-b border-gray-50/80">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    {index % 2 === 0 ? time : ''}
+                  </span>
                 </div>
               ))}
             </div>
@@ -147,9 +153,9 @@ const Scheduler = () => {
                 <div key={doctor.id} className="flex-1 border-r border-gray-100 relative">
                   {/* Slots */}
                   {timeSlots.map(time => (
-                    <div key={time} className="h-24 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
-                      <button className="w-10 h-10 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100">
-                        <Plus className="w-5 h-5" />
+                    <div key={time} className="h-12 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
+                      <button className="w-8 h-8 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100">
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
