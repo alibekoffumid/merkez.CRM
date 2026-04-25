@@ -16,12 +16,6 @@ import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
 
-const staticDoctors = [
-  { id: 1, name: 'Dr. Sarah Wilson', specialty: 'Orthodontist', color: 'bg-blue-500', glow: 'shadow-blue-500/20', avatar: 'SW' },
-  { id: 2, name: 'Dr. James Chen', specialty: 'General Dentist', color: 'bg-emerald-500', glow: 'shadow-emerald-500/20', avatar: 'JC' },
-  { id: 3, name: 'Dr. Elena Rossi', specialty: 'Oral Surgeon', color: 'bg-purple-500', glow: 'shadow-purple-500/20', avatar: 'ER' },
-];
-
 const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
 };
@@ -36,7 +30,7 @@ const Scheduler = ({ isFullPage }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
-  const [doctors, setDoctors] = useState(staticDoctors);
+  const [doctors, setDoctors] = useState([]);
   const [patientsList, setPatientsList] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -76,14 +70,26 @@ const Scheduler = ({ isFullPage }) => {
         .order('full_name');
       
       if (data && data.length > 0) {
-        const mappedDoctors = data.map((profile, index) => ({
-          id: profile.id,
-          name: profile.full_name || 'Anonymous Doctor',
-          specialty: profile.role === 'admin' ? 'Head Doctor' : 'Dentist',
-          color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
-          glow: ['shadow-blue-500/20', 'shadow-emerald-500/20', 'shadow-purple-500/20', 'shadow-rose-500/20', 'shadow-amber-500/20'][index % 5],
-          avatar: getInitials(profile.full_name)
-        }));
+        // Filter out testers and de-duplicate by name
+        const uniqueNames = new Set();
+        const mappedDoctors = data
+          .filter(profile => {
+            const name = (profile.full_name || '').toLowerCase();
+            return name && !name.includes('test') && !name.includes('tester');
+          })
+          .filter(profile => {
+            if (uniqueNames.has(profile.full_name)) return false;
+            uniqueNames.add(profile.full_name);
+            return true;
+          })
+          .map((profile, index) => ({
+            id: profile.id,
+            name: profile.full_name,
+            specialty: profile.role === 'admin' ? 'Head Doctor' : 'Dentist',
+            color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
+            glow: ['shadow-blue-500/20', 'shadow-emerald-500/20', 'shadow-purple-500/20', 'shadow-rose-500/20', 'shadow-amber-500/20'][index % 5],
+            avatar: getInitials(profile.full_name)
+          }));
         setDoctors(mappedDoctors);
         
         // Update initial doctor_name in formData if it was empty

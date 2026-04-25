@@ -47,13 +47,24 @@ const DentalModule = () => {
         .order('full_name');
       
       if (data) {
-        const mappedDoctors = data.map((profile, index) => ({
-          id: profile.id,
-          name: profile.full_name || 'Anonymous Staff',
-          specialty: profile.role === 'admin' ? 'Head Doctor' : 'Clinical Staff',
-          color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
-          avatar: getInitials(profile.full_name)
-        }));
+        const uniqueNames = new Set();
+        const mappedDoctors = data
+          .filter(profile => {
+            const name = (profile.full_name || '').toLowerCase();
+            return name && !name.includes('test') && !name.includes('tester');
+          })
+          .filter(profile => {
+            if (uniqueNames.has(profile.full_name)) return false;
+            uniqueNames.add(profile.full_name);
+            return true;
+          })
+          .map((profile, index) => ({
+            id: profile.id,
+            name: profile.full_name || 'Anonymous Staff',
+            specialty: profile.role === 'admin' ? 'Head Doctor' : 'Clinical Staff',
+            color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
+            avatar: getInitials(profile.full_name)
+          }));
         setDoctors(mappedDoctors);
       }
     } catch (err) {
