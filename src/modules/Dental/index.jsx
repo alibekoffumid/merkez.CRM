@@ -37,13 +37,25 @@ const DentalModule = () => {
 
   return (
     <div className={`
-      flex flex-col min-h-full space-y-6 transition-all duration-500
+      flex flex-col min-h-full transition-all duration-500
       ${isFullPage 
-        ? 'fixed inset-0 z-[100] bg-white p-6 md:p-12 rounded-0 overflow-hidden' 
-        : 'bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100'}
+        ? 'fixed inset-0 z-[100] bg-gray-50 p-2 md:p-4 rounded-0 overflow-hidden' 
+        : 'bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100 space-y-6'}
     `}>
+      {/* Floating Minimize Button */}
+      {isFullPage && (
+        <button 
+          onClick={() => setIsFullPage(false)}
+          className="fixed bottom-6 right-6 lg:top-6 lg:bottom-auto z-[200] w-14 h-14 bg-gray-900 text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-all shadow-2xl shadow-gray-900/20 active:scale-95 animate-in fade-in slide-in-from-bottom-8 lg:slide-in-from-top-8"
+          title="Exit Full Screen"
+        >
+          <Minimize2 className="w-6 h-6" />
+        </button>
+      )}
+
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {!isFullPage && (
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('dental.title')}</h1>
           <p className="text-gray-500 text-sm mt-1 font-medium">{t('dental.subtitle')}</p>
@@ -69,11 +81,13 @@ const DentalModule = () => {
              </button>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Tabs */}
-      <div className="flex p-1.5 bg-gray-50/80 backdrop-blur-xl rounded-[2rem] w-fit border border-gray-200/50 shadow-sm overflow-x-auto no-scrollbar">
-        {tabs.map(tab => (
+      {!isFullPage && (
+        <div className="flex p-1.5 bg-gray-50/80 backdrop-blur-xl rounded-[2rem] w-fit border border-gray-200/50 shadow-sm overflow-x-auto no-scrollbar">
+          {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -88,13 +102,14 @@ const DentalModule = () => {
             {tab.label}
           </button>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Content Area */}
-      <div className={`flex-1 transition-all duration-500 ${isFullPage ? 'overflow-y-auto pr-2 no-scrollbar' : ''}`}>
+      <div className={`flex-1 transition-all duration-500 ${isFullPage ? 'h-full overflow-hidden' : ''}`}>
         {activeTab === 'scheduler' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Scheduler />
+          <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${isFullPage ? 'h-full' : ''}`}>
+            <Scheduler isFullPage={isFullPage} />
           </div>
         )}
         {activeTab === 'chart' && (

@@ -27,7 +27,7 @@ const timeSlots = Array.from({ length: 22 }, (_, i) => {
   return `${hour}:${min}`;
 });
 
-const Scheduler = () => {
+const Scheduler = ({ isFullPage }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
@@ -72,7 +72,7 @@ const Scheduler = () => {
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col h-[850px] font-sans">
+    <div className={`bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col font-sans ${isFullPage ? 'h-full' : 'h-[850px]'}`}>
       {/* Premium Header */}
       <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-30 gap-6 rounded-t-[2.5rem]">
         <div className="flex items-center gap-6">
