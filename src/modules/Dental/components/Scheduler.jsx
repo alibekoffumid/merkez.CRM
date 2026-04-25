@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Calendar as CalendarIcon, 
   ChevronLeft, 
   ChevronRight, 
   Plus, 
+  Search, 
   Clock, 
-  User, 
   Activity, 
-  Calendar as CalendarIcon,
-  Search,
-  Filter,
-  MoreHorizontal,
-  Loader2
+  MoreHorizontal, 
+  Loader2,
+  X,
+  User 
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
