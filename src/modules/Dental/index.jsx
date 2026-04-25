@@ -4,11 +4,28 @@ import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2 } fr
 import Scheduler, { doctors } from './components/Scheduler';
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
+import PatientList from './components/PatientList';
+import TreatmentHistory from './components/TreatmentHistory';
+import XRayGallery from './components/XRayGallery';
 
 const DentalModule = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState({
+    name: 'John Doe',
+    id: '#DN-90210',
+    age: '34'
+  });
+
+  const handleViewChart = (patient) => {
+    setSelectedPatient({
+      name: patient.name,
+      id: `#DN-${patient.id.toString().padStart(5, '0')}`,
+      age: '34' // Mock age
+    });
+    setActiveTab('chart');
+  };
 
   const tabs = [
     { id: 'scheduler', label: t('dental.appointments'), icon: Calendar },
@@ -89,8 +106,8 @@ const DentalModule = () => {
                      <Users className="w-7 h-7 text-white" />
                    </div>
                    <div>
-                     <h3 className="text-2xl font-black">John Doe</h3>
-                     <p className="text-gray-500 text-sm font-medium">Patient ID: #DN-90210 • 34 years old</p>
+                     <h3 className="text-2xl font-black">{selectedPatient.name}</h3>
+                     <p className="text-gray-500 text-sm font-medium">Patient ID: {selectedPatient.id} • {selectedPatient.age} years old</p>
                    </div>
                  </div>
                  <div className="flex flex-wrap gap-8 mt-6 border-t border-gray-100 pt-6">
@@ -109,18 +126,16 @@ const DentalModule = () => {
                </div>
              </div>
              <DentalChart />
+             <TreatmentHistory />
+             <XRayGallery />
           </div>
         )}
         {activeTab === 'inventory' && (
           <DentalInventory />
         )}
         {activeTab === 'patients' && (
-          <div className="space-y-6">
-            <div className="bg-gray-50/50 rounded-[2.5rem] p-20 border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
-              <Users className="w-16 h-16 text-gray-300 mb-6" />
-              <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{t('dental.patients')}</h3>
-              <p className="text-gray-500 max-w-sm mt-3 font-medium">Encrypted storage for patient history, X-ray imagery, and multi-visit clinical records.</p>
-            </div>
+          <div className="space-y-12">
+            <PatientList onViewChart={handleViewChart} />
 
             {/* Compact Doctors List */}
             <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">

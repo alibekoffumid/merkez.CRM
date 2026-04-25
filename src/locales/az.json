@@ -456,6 +456,16 @@
     "filling": "Plomb",
     "rootCanal": "Kanal müalicəsi",
     "extraction": "Çəkilmə",
-    "bridge": "Körpü"
+    "bridge": "Körpü",
+    "searchPatients": "Pasiyent axtarışı...",
+    "addPatient": "Pasiyent əlavə et",
+    "patientName": "Pasiyentin tam adı",
+    "lastVisit": "Son qəbul",
+    "balance": "Balans",
+    "phoneNumber": "Telefon",
+    "viewChart": "Kartı aç",
+    "addVisit": "Qəbula yaz",
+    "noPatients": "Pasiyent tapılmadı",
+    "patientDetails": "Pasiyent məlumatları"
   }
 }

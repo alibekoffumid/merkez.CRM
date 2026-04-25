@@ -479,6 +479,16 @@
     "filling": "Пломба",
     "rootCanal": "Пульпит",
     "extraction": "Удаление",
-    "bridge": "Мост"
+    "bridge": "Мост",
+    "searchPatients": "Поиск пациентов...",
+    "addPatient": "Добавить пациента",
+    "patientName": "ФИО пациента",
+    "lastVisit": "Последний визит",
+    "balance": "Баланс",
+    "phoneNumber": "Телефон",
+    "viewChart": "Открыть карту",
+    "addVisit": "Записать на прием",
+    "noPatients": "Пациенты не найдены",
+    "patientDetails": "Детали пациента"
   }
 }

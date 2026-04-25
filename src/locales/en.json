@@ -479,6 +479,16 @@
     "filling": "Filling",
     "rootCanal": "Root Canal",
     "extraction": "Extraction",
-    "bridge": "Bridge"
+    "bridge": "Bridge",
+    "searchPatients": "Search patients...",
+    "addPatient": "Add Patient",
+    "patientName": "Patient Name",
+    "lastVisit": "Last Visit",
+    "balance": "Balance",
+    "phoneNumber": "Phone Number",
+    "viewChart": "Open Chart",
+    "addVisit": "Schedule Visit",
+    "noPatients": "No patients found",
+    "patientDetails": "Patient Details"
   }
 }
