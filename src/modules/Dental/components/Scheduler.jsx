@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
+import { supabase } from '../../../supabaseClient';
 
 export const doctors = [
   { id: 1, name: 'Dr. Sarah Wilson', specialty: 'Orthodontist', color: 'bg-blue-500', glow: 'shadow-blue-500/20', avatar: 'SW' },
@@ -32,6 +33,26 @@ const Scheduler = ({ isFullPage }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    patient_name: '',
+    phone: '',
+    doctor_name: doctors[0].name,
+    appointment_date: new Date().toISOString().split('T')[0],
+    start_time: '10:00',
+    duration_minutes: 30,
+    procedure_type: 'Consultation'
+  });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
 
   useEffect(() => {
     fetchAppointments();
@@ -62,6 +83,55 @@ const Scheduler = ({ isFullPage }) => {
       console.error('Error fetching appointments:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      
+      // 1. Check or Create Patient
+      let patientId;
+      const { data: existing } = await supabase.from('customers').select('id').eq('name', formData.patient_name).limit(1);
+      
+      if (existing && existing.length > 0) {
+        patientId = existing[0].id;
+      } else {
+        const { data: newPatient, error: createError } = await supabase.from('customers').insert([{ 
+          name: formData.patient_name, 
+          phone: formData.phone || null,
+          type: 'Regular' 
+        }]).select();
+        
+        if (createError) throw createError;
+        patientId = newPatient[0].id;
+      }
+
+      // 2. Create Appointment
+      const doctorObj = doctors.find(d => d.name === formData.doctor_name) || doctors[0];
+      const { error: apptError } = await supabase.from('dental_appointments').insert([{
+        patient_id: patientId,
+        doctor_name: doctorObj.name,
+        doctor_specialty: doctorObj.specialty,
+        doctor_color: doctorObj.color,
+        appointment_date: formData.appointment_date,
+        start_time: formData.start_time,
+        duration_minutes: parseInt(formData.duration_minutes),
+        procedure_type: formData.procedure_type,
+        status: 'SCHEDULED'
+      }]);
+
+      if (apptError) throw apptError;
+      
+      setShowModal(false);
+      showNotification('Appointment scheduled successfully!');
+      fetchAppointments();
+    } catch (err) {
+      console.error(err);
+      showNotification('Error: ' + (err.message || 'Failed to schedule'), 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -102,7 +172,18 @@ const Scheduler = ({ isFullPage }) => {
               className="w-full bg-gray-100 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
           </div>
-          <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl text-sm font-black transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
+          <button 
+            onClick={() => {
+              setFormData({
+                ...formData,
+                appointment_date: currentDate.toISOString().split('T')[0],
+                patient_name: '',
+                phone: '',
+                start_time: '10:00'
+              });
+              setShowModal(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl text-sm font-black transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
             <Plus className="w-5 h-5" />
             New Appointment
           </button>
@@ -154,7 +235,19 @@ const Scheduler = ({ isFullPage }) => {
                   {/* Slots */}
                   {timeSlots.map(time => (
                     <div key={time} className="h-12 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
-                      <button className="w-8 h-8 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100">
+                      <button 
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            doctor_name: doctor.name,
+                            start_time: time,
+                            appointment_date: currentDate.toISOString().split('T')[0],
+                            patient_name: '',
+                            phone: ''
+                          });
+                          setShowModal(true);
+                        }}
+                        className="w-8 h-8 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100 z-20">
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>
@@ -225,6 +318,90 @@ const Scheduler = ({ isFullPage }) => {
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {notification.show && (
+        <div className="fixed top-6 right-6 z-[300] animate-in slide-in-from-top-8 fade-in duration-300">
+          <div className={`rounded-2xl shadow-xl border p-4 flex items-center gap-3 ${
+            notification.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
+              <Activity className={`w-4 h-4 ${notification.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`} />
+            </div>
+            <p className="text-sm font-black tracking-tight">{notification.message}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Add Appointment Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-md relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 p-2 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-full transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+            <div className="mb-8">
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">New Appointment</h3>
+              <p className="text-sm font-medium text-gray-500 mt-1">Add a new patient or search existing</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Patient Name</label>
+                <input type="text" required value={formData.patient_name} onChange={(e) => setFormData({ ...formData, patient_name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="e.g. John Doe" />
+              </div>
+              
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Phone Number (Optional)</label>
+                <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="+1 234 567 890" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Doctor</label>
+                  <select value={formData.doctor_name} onChange={(e) => setFormData({ ...formData, doctor_name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    {doctors.map(doc => <option key={doc.id} value={doc.name}>{doc.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Time</label>
+                  <input type="time" required value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Duration</label>
+                  <select value={formData.duration_minutes} onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <option value="15">15 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1.5 hours</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Procedure</label>
+                  <select value={formData.procedure_type} onChange={(e) => setFormData({ ...formData, procedure_type: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <option value="Consultation">Consultation</option>
+                    <option value="Cleaning">Cleaning</option>
+                    <option value="Filling">Filling</option>
+                    <option value="Extraction">Extraction</option>
+                    <option value="Checkup">Checkup</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isSubmitting ? 'Saving...' : 'Book Appointment'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
