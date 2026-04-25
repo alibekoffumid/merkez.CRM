@@ -43,6 +43,7 @@ const Scheduler = ({ isFullPage }) => {
   const [showModal, setShowModal] = useState(false);
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [formData, setFormData] = useState({
     patient_name: '',
     phone: '',
@@ -66,6 +67,13 @@ const Scheduler = ({ isFullPage }) => {
     fetchPatients();
     fetchDoctors();
   }, [currentDate]);
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 4000);
+  };
 
   const fetchDoctors = async () => {
     try {
@@ -135,28 +143,51 @@ const Scheduler = ({ isFullPage }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.patient_name || !formData.doctor_name) {
+      showNotification('Please enter patient name and select a doctor', 'error');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
+      console.log('Starting appointment save...', formData);
       
       // 1. Check or Create Patient
       let patientId;
-      const { data: existing } = await supabase.from('customers').select('id').eq('name', formData.patient_name).limit(1);
+      const { data: existing, error: searchError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('name', formData.patient_name)
+        .limit(1);
       
+      if (searchError) throw searchError;
+
       if (existing && existing.length > 0) {
         patientId = existing[0].id;
+        console.log('Existing patient found:', patientId);
       } else {
-        const { data: newPatient, error: createError } = await supabase.from('customers').insert([{ 
-          name: formData.patient_name, 
-          phone: formData.phone || null,
-          type: 'Regular' 
-        }]).select();
+        console.log('Creating new patient...');
+        const { data: newPatients, error: createError } = await supabase
+          .from('customers')
+          .insert([{ 
+            name: formData.patient_name, 
+            phone: formData.phone || null,
+            type: 'Regular' 
+          }])
+          .select();
         
         if (createError) throw createError;
-        patientId = newPatient[0].id;
+        if (!newPatients || newPatients.length === 0) throw new Error('Failed to create patient record');
+        patientId = newPatients[0].id;
+        console.log('New patient created:', patientId);
+        fetchPatients();
       }
 
       // 2. Create Appointment
       const doctorObj = doctors.find(d => d.name === formData.doctor_name) || doctors[0];
+      if (!doctorObj) throw new Error('No doctor selected');
+
+      console.log('Creating appointment for doctor:', doctorObj.name);
       const { error: apptError } = await supabase.from('dental_appointments').insert([{
         patient_id: patientId,
         doctor_name: doctorObj.name,
@@ -171,12 +202,12 @@ const Scheduler = ({ isFullPage }) => {
 
       if (apptError) throw apptError;
       
-      setShowModal(false);
       showNotification('Appointment scheduled successfully!');
+      setShowModal(false);
       fetchAppointments();
     } catch (err) {
-      console.error(err);
-      showNotification('Error: ' + (err.message || 'Failed to schedule'), 'error');
+      console.error('SAVE ERROR:', err);
+      showNotification('Error: ' + (err.message || 'Database connection error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -223,6 +254,7 @@ const Scheduler = ({ isFullPage }) => {
             onClick={() => {
               setFormData({
                 ...formData,
+                doctor_name: doctors.length > 0 ? doctors[0].name : '',
                 appointment_date: currentDate.toISOString().split('T')[0],
                 patient_name: '',
                 phone: '',
