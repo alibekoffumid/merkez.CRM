@@ -164,36 +164,43 @@ const Scheduler = () => {
                       const height = (app.duration / 60) * 96;
 
                       const statusColors = {
-                        CONFIRMED: 'from-emerald-50 to-emerald-100/30 border-emerald-200 text-emerald-700 shadow-emerald-100/50',
-                        IN_PROGRESS: 'from-blue-50 to-blue-100/30 border-blue-200 text-blue-700 shadow-blue-100/50',
-                        SCHEDULED: 'from-gray-50 to-gray-100/30 border-gray-200 text-gray-700 shadow-gray-100/50',
+                        CONFIRMED: 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-emerald-100/50',
+                        IN_PROGRESS: 'bg-blue-50 border-blue-200 text-blue-700 shadow-blue-100/50',
+                        SCHEDULED: 'bg-gray-50 border-gray-200 text-gray-700 shadow-gray-100/50',
                       };
+
+                      const isSmall = app.duration <= 30;
 
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-3 right-3 rounded-2xl p-4 border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10`}
-                          style={{ top: `${top}px`, height: `${height}px` }}
+                          className={`absolute left-2 right-2 rounded-xl border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10 overflow-hidden ${isSmall ? 'p-2' : 'p-3'}`}
+                          style={{ top: `${top}px`, height: `${Math.max(height, 40)}px` }}
                         >
                           <div className="flex flex-col h-full">
-                            <div className="flex items-start justify-between mb-1">
-                              <h4 className="text-sm font-black tracking-tight truncate">{app.patient}</h4>
-                              <button className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1 hover:bg-black/5 rounded-lg">
-                                <MoreHorizontal className="w-4 h-4" />
+                            <div className="flex items-start justify-between">
+                              <h4 className="text-xs font-black tracking-tight truncate pr-4">{app.patient}</h4>
+                              <button className="opacity-0 group-hover/app:opacity-100 transition-opacity p-0.5 hover:bg-black/5 rounded absolute right-1 top-1">
+                                <MoreHorizontal className="w-3 h-3" />
                               </button>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3 mt-auto">
-                              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest opacity-70">
-                                <Clock className="w-3 h-3" /> {app.time}
+                            <div className={`flex flex-wrap items-center gap-2 mt-auto pt-1 ${isSmall ? 'hidden' : ''}`}>
+                              <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest opacity-70">
+                                <Clock className="w-2.5 h-2.5" /> {app.time}
                               </div>
-                              <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest opacity-70">
-                                <Activity className="w-3 h-3" /> {app.type}
+                              <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest opacity-70 truncate">
+                                <Activity className="w-2.5 h-2.5" /> {app.type}
                               </div>
                             </div>
+                            {isSmall && (
+                              <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest opacity-70 mt-0.5 truncate">
+                                {app.time} • {app.type}
+                              </div>
+                            )}
                             {app.status === 'IN_PROGRESS' && (
-                              <div className="absolute top-4 right-4 flex h-2 w-2">
+                              <div className="absolute top-2 right-2 flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500 m-[1px]"></span>
                               </div>
                             )}
                           </div>
