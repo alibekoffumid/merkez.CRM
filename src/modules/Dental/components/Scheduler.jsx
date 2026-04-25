@@ -16,11 +16,15 @@ import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
 
-export const doctors = [
+const staticDoctors = [
   { id: 1, name: 'Dr. Sarah Wilson', specialty: 'Orthodontist', color: 'bg-blue-500', glow: 'shadow-blue-500/20', avatar: 'SW' },
   { id: 2, name: 'Dr. James Chen', specialty: 'General Dentist', color: 'bg-emerald-500', glow: 'shadow-emerald-500/20', avatar: 'JC' },
   { id: 3, name: 'Dr. Elena Rossi', specialty: 'Oral Surgeon', color: 'bg-purple-500', glow: 'shadow-purple-500/20', avatar: 'ER' },
 ];
+
+const getInitials = (name) => {
+  return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+};
 
 const timeSlots = Array.from({ length: 22 }, (_, i) => {
   const hour = 9 + Math.floor(i / 2);
@@ -32,6 +36,7 @@ const Scheduler = ({ isFullPage }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState(staticDoctors);
   const [patientsList, setPatientsList] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -41,7 +46,7 @@ const Scheduler = ({ isFullPage }) => {
   const [formData, setFormData] = useState({
     patient_name: '',
     phone: '',
-    doctor_name: doctors[0].name,
+    doctor_name: '',
     appointment_date: new Date().toISOString().split('T')[0],
     start_time: '10:00',
     duration_minutes: 30,
@@ -59,7 +64,37 @@ const Scheduler = ({ isFullPage }) => {
   useEffect(() => {
     fetchAppointments();
     fetchPatients();
+    fetchDoctors();
   }, [currentDate]);
+
+  const fetchDoctors = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['admin', 'manager', 'user']) // Fetch all potential doctors
+        .order('full_name');
+      
+      if (data && data.length > 0) {
+        const mappedDoctors = data.map((profile, index) => ({
+          id: profile.id,
+          name: profile.full_name || 'Anonymous Doctor',
+          specialty: profile.role === 'admin' ? 'Head Doctor' : 'Dentist',
+          color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
+          glow: ['shadow-blue-500/20', 'shadow-emerald-500/20', 'shadow-purple-500/20', 'shadow-rose-500/20', 'shadow-amber-500/20'][index % 5],
+          avatar: getInitials(profile.full_name)
+        }));
+        setDoctors(mappedDoctors);
+        
+        // Update initial doctor_name in formData if it was empty
+        if (!formData.doctor_name) {
+          setFormData(prev => ({ ...prev, doctor_name: mappedDoctors[0].name }));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching doctors:', err);
+    }
+  };
 
   const fetchPatients = async () => {
     try {
