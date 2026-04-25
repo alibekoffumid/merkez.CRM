@@ -20,7 +20,7 @@ const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
 };
 
-const timeSlots = Array.from({ length: 30 }, (_, i) => {
+const timeSlots = Array.from({ length: 32 }, (_, i) => {
   const hour = 8 + Math.floor(i / 2);
   const min = i % 2 === 0 ? '00' : '30';
   return `${hour}:${min}`;
@@ -208,6 +208,19 @@ const Scheduler = ({ isFullPage }) => {
     }
   };
 
+  const handleDeleteAppointment = async (id) => {
+    if (!window.confirm('Delete this appointment?')) return;
+    try {
+      const { error } = await supabase.from('dental_appointments').delete().eq('id', id);
+      if (error) throw error;
+      showNotification('Appointment deleted', 'success');
+      fetchAppointments();
+    } catch (err) {
+      console.error(err);
+      showNotification('Failed to delete', 'error');
+    }
+  };
+
   const changeDate = (days) => {
     const newDate = new Date(currentDate);
     newDate.setDate(currentDate.getDate() + days);
@@ -289,7 +302,7 @@ const Scheduler = ({ isFullPage }) => {
         </div>
 
         {/* Scrollable Slots Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-gray-50/30 relative min-w-max">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-gray-50/30 relative min-w-max pb-20">
           <div className="flex min-w-[1200px] h-full">
             {/* Time Gutter */}
             <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50">
@@ -353,8 +366,12 @@ const Scheduler = ({ isFullPage }) => {
                           <div className="flex flex-col h-full">
                             <div className="flex items-start justify-between">
                               <h4 className="text-xs font-black tracking-tight truncate pr-4">{app.patient}</h4>
-                              <button className="opacity-0 group-hover/app:opacity-100 transition-opacity p-0.5 hover:bg-black/5 rounded absolute right-1 top-1">
-                                <MoreHorizontal className="w-3 h-3" />
+                              <button 
+                                onClick={() => handleDeleteAppointment(app.id)}
+                                className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1 hover:bg-rose-500 hover:text-white rounded-lg absolute right-1 top-1 pointer-events-auto"
+                                title="Delete"
+                              >
+                                <X className="w-3 h-3" />
                               </button>
                             </div>
                             <div className={`flex flex-wrap items-center gap-2 mt-auto pt-1 ${isSmall ? 'hidden' : ''}`}>
