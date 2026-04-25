@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2, X } from 'lucide-react';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
-import { doctors } from './Scheduler';
+
+const getInitials = (name) => {
+  return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+};
 
 const PatientList = ({ onViewChart }) => {
   const { t } = useTranslation();
@@ -15,10 +18,11 @@ const PatientList = ({ onViewChart }) => {
   const [newPatient, setNewPatient] = useState({ name: '', phone: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [doctors, setDoctors] = useState([]);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [selectedPatientForAppt, setSelectedPatientForAppt] = useState(null);
   const [newAppointment, setNewAppointment] = useState({
-    doctor_name: 'Dr. Sarah Wilson',
+    doctor_name: '',
     appointment_date: new Date().toISOString().split('T')[0],
     start_time: '10:00',
     duration_minutes: 30,
@@ -34,7 +38,34 @@ const PatientList = ({ onViewChart }) => {
 
   useEffect(() => {
     fetchPatients();
+    fetchDoctors();
   }, [searchQuery]);
+
+  const fetchDoctors = async () => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['admin', 'manager', 'user'])
+        .order('full_name');
+      
+      if (data && data.length > 0) {
+        const mappedDoctors = data.map((profile, index) => ({
+          id: profile.id,
+          name: profile.full_name || 'Anonymous Doctor',
+          specialty: profile.role === 'admin' ? 'Head Doctor' : 'Dentist',
+          color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
+          avatar: getInitials(profile.full_name)
+        }));
+        setDoctors(mappedDoctors);
+        if (!newAppointment.doctor_name) {
+          setNewAppointment(prev => ({ ...prev, doctor_name: mappedDoctors[0].name }));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching doctors:', err);
+    }
+  };
 
   const fetchPatients = async () => {
     try {
@@ -78,7 +109,7 @@ const PatientList = ({ onViewChart }) => {
     if (!selectedPatientForAppt) return;
     try {
       setIsSubmitting(true);
-      const doctorObj = doctors.find(d => d.name === newAppointment.doctor_name) || doctors[0];
+      const doctorObj = doctors.find(d => d.name === newAppointment.doctor_name) || (doctors.length > 0 ? doctors[0] : { specialty: 'Dentist', color: 'bg-blue-500' });
       const { error } = await supabase.from('dental_appointments').insert([{
         patient_id: selectedPatientForAppt.id,
         doctor_name: newAppointment.doctor_name,
