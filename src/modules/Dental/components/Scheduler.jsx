@@ -121,6 +121,7 @@ const Scheduler = ({ isFullPage }) => {
         const formatted = data.map(app => ({
           id: app.id,
           patient: app.customers?.name || app.patient_name || 'New Patient',
+          phone: app.customers?.phone || app.phone || '',
           doctorName: app.doctor_name,
           time: app.start_time.substring(0, 5),
           duration: app.duration_minutes,
@@ -360,37 +361,46 @@ const Scheduler = ({ isFullPage }) => {
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-2 right-2 rounded-xl border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10 overflow-hidden ${isSmall ? 'p-2' : 'p-3'}`}
-                          style={{ top: `${top}px`, height: `${Math.max(height, 40)}px` }}
+                          className={`absolute left-1 right-1 rounded-xl border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10 overflow-hidden ${isSmall ? 'p-2' : 'p-3'}`}
+                          style={{ 
+                            top: `${top}px`, 
+                            height: `${Math.max(height, 40)}px`,
+                            marginLeft: index % 2 === 0 ? '0' : '4px' // Slight offset for visual separation
+                          }}
                         >
-                          <div className="flex flex-col h-full">
-                            <div className="flex items-start justify-between">
-                              <h4 className="text-xs font-black tracking-tight truncate pr-4">{app.patient}</h4>
-                              <button 
-                                onClick={() => handleDeleteAppointment(app.id)}
-                                className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1 hover:bg-rose-500 hover:text-white rounded-lg absolute right-1 top-1 pointer-events-auto"
-                                title="Delete"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
+                          <div className="flex flex-col h-full relative">
+                            <div className="flex flex-col pr-6">
+                               <h4 className="text-[11px] font-black tracking-tight truncate text-gray-900">{app.patient}</h4>
+                               {app.phone && (
+                                 <p className="text-[9px] font-bold text-blue-600/70 truncate flex items-center gap-1 mt-0.5">
+                                   <Phone className="w-2.5 h-2.5" /> {app.phone}
+                                 </p>
+                               )}
+                               <button 
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDeleteAppointment(app.id);
+                                 }}
+                                 className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1.5 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-lg absolute right-0 top-0 pointer-events-auto shadow-sm"
+                                 title="Delete"
+                               >
+                                 <X className="w-3.5 h-3.5" />
+                               </button>
                             </div>
-                            <div className={`flex flex-wrap items-center gap-2 mt-auto pt-1 ${isSmall ? 'hidden' : ''}`}>
-                              <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest opacity-70">
+                            
+                            <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-1 ${isSmall ? 'hidden' : ''}`}>
+                              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60">
                                 <Clock className="w-2.5 h-2.5" /> {app.time}
                               </div>
-                              <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest opacity-70 truncate">
+                              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60 truncate">
                                 <Activity className="w-2.5 h-2.5" /> {app.type}
                               </div>
                             </div>
                             {isSmall && (
-                              <div className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest opacity-70 mt-0.5 truncate">
-                                {app.time} • {app.type}
-                              </div>
-                            )}
-                            {app.status === 'IN_PROGRESS' && (
-                              <div className="absolute top-2 right-2 flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500 m-[1px]"></span>
+                              <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest opacity-60 mt-auto truncate">
+                                <span>{app.time}</span>
+                                <span>•</span>
+                                <span>{app.type}</span>
                               </div>
                             )}
                           </div>
