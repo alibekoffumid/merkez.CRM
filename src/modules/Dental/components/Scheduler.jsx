@@ -32,6 +32,7 @@ const Scheduler = ({ isFullPage }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
+  const [patientsList, setPatientsList] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [showModal, setShowModal] = useState(false);
@@ -56,7 +57,17 @@ const Scheduler = ({ isFullPage }) => {
 
   useEffect(() => {
     fetchAppointments();
+    fetchPatients();
   }, [currentDate]);
+
+  const fetchPatients = async () => {
+    try {
+      const { data } = await supabase.from('customers').select('id, name, phone').order('name');
+      setPatientsList(data || []);
+    } catch (err) {
+      console.error('Error fetching patients:', err);
+    }
+  };
 
   const fetchAppointments = async () => {
     try {
@@ -349,7 +360,28 @@ const Scheduler = ({ isFullPage }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Patient Name</label>
-                <input type="text" required value={formData.patient_name} onChange={(e) => setFormData({ ...formData, patient_name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="e.g. John Doe" />
+                <input 
+                  type="text" 
+                  required 
+                  list="patients-list"
+                  value={formData.patient_name} 
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const matched = patientsList.find(p => p.name === val);
+                    setFormData({ 
+                      ...formData, 
+                      patient_name: val,
+                      phone: matched && matched.phone ? matched.phone : formData.phone
+                    });
+                  }} 
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                  placeholder="Start typing to search existing, or type new name..." 
+                />
+                <datalist id="patients-list">
+                  {patientsList.map(p => (
+                    <option key={p.id} value={p.name} />
+                  ))}
+                </datalist>
               </div>
               
               <div>
