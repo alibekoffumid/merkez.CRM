@@ -13,7 +13,8 @@ import {
   Activity,
   Plus,
   Save,
-  Stethoscope
+  Stethoscope,
+  Trash2
 } from 'lucide-react';
 import { DentalService } from '../../../services/DentalService';
 import { useUser } from '../../../core/UserContext';
