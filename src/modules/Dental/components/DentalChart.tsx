@@ -13,9 +13,9 @@ import {
   Activity,
   Plus,
   Save,
-  Trash2,
   Stethoscope
 } from 'lucide-react';
+import { DentalService } from '../../../services/DentalService';
 import { useUser } from '../../../core/UserContext';
 
 // Define Tooth Conditions aligned with Prisma Schema
@@ -30,11 +30,16 @@ type ToothCondition =
   | 'EXTRACTION_REQUIRED'
   | 'BRIDGE';
 
-const DentalChart: React.FC = () => {
+interface DentalChartProps {
+  patientId?: string;
+}
+
+const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [teethData, setTeethData] = useState<Record<number, ToothData>>({});
+  const [loading, setLoading] = useState(false);
   
   interface ToothData {
     status: ToothCondition;
@@ -78,20 +83,65 @@ const DentalChart: React.FC = () => {
     );
   }
 
+  React.useEffect(() => {
+    if (patientId) {
+      loadToothHistory();
+    }
+  }, [patientId]);
+
+  const loadToothHistory = async () => {
+    try {
+      setLoading(true);
+      const history = await DentalService.getToothHistory(patientId);
+      const parsedData: Record<number, ToothData> = {};
+      
+      // Since it's ordered by created_at descending, we process from bottom up to get the latest per tooth
+      // Wait, if it's descending, the first one encountered is the latest.
+      history.forEach(record => {
+        if (!parsedData[record.tooth_number]) {
+          parsedData[record.tooth_number] = {
+            status: record.condition as ToothCondition,
+            updatedBy: record.updated_by || 'Unknown',
+            updatedAt: record.created_at,
+            notes: record.notes
+          };
+        }
+      });
+      setTeethData(parsedData);
+    } catch (err) {
+      console.error('Error loading tooth history:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleToothClick = (num: number) => {
     setSelectedTooth(num === selectedTooth ? null : num);
   };
 
-  const updateStatus = (status: ToothCondition) => {
-    if (selectedTooth) {
+  const updateStatus = async (status: ToothCondition) => {
+    if (!selectedTooth || !patientId) return;
+
+    try {
+      const doctorName = profile?.fullName || 'Dr. Unknown';
+      const record = await DentalService.updateToothCondition(
+        patientId,
+        selectedTooth,
+        status,
+        '',
+        doctorName
+      );
+
       setTeethData(prev => ({
         ...prev,
         [selectedTooth]: {
           status,
-          updatedBy: profile?.fullName || 'Dr. Unknown',
-          updatedAt: new Date().toISOString(),
+          updatedBy: doctorName,
+          updatedAt: record.created_at || new Date().toISOString(),
         }
       }));
+    } catch (err) {
+      console.error('Error updating tooth status:', err);
     }
   };
 

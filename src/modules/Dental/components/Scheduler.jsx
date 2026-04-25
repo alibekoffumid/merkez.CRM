@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -9,9 +9,11 @@ import {
   Calendar as CalendarIcon,
   Search,
   Filter,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { DentalService } from '../../../services/DentalService';
 
 export const doctors = [
   { id: 1, name: 'Dr. Sarah Wilson', specialty: 'Orthodontist', color: 'bg-blue-500', glow: 'shadow-blue-500/20', avatar: 'SW' },
@@ -21,18 +23,49 @@ export const doctors = [
 
 const timeSlots = Array.from({ length: 11 }, (_, i) => `${9 + i}:00`);
 
-const mockAppointments = [
-  { id: 1, doctorId: 1, patient: 'Alice Freeman', time: '09:00', duration: 60, type: 'Consultation', status: 'CONFIRMED' },
-  { id: 2, doctorId: 1, patient: 'Bob Smith', time: '11:00', duration: 90, type: 'Braces Adjustment', status: 'IN_PROGRESS' },
-  { id: 3, doctorId: 2, patient: 'Charlie Brown', time: '10:00', duration: 45, type: 'Cleaning', status: 'SCHEDULED' },
-  { id: 4, doctorId: 3, patient: 'Diana Prince', time: '14:00', duration: 120, type: 'Surgery', status: 'SCHEDULED' },
-];
-
 const Scheduler = () => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const appointments = useMemo(() => mockAppointments, []);
+  useEffect(() => {
+    fetchAppointments();
+  }, [currentDate]);
+
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const dateString = currentDate.toISOString().split('T')[0];
+      const data = await DentalService.getAppointments(dateString);
+      
+      // Map doctor_name to doctorId for UI matching
+      const mappedAppointments = data.map(app => {
+        const doc = doctors.find(d => d.name === app.doctor_name);
+        return {
+          id: app.id,
+          doctorId: doc ? doc.id : 1, // Fallback to 1
+          patient: app.patient?.name || 'Unknown',
+          time: app.start_time.substring(0, 5), // "09:00:00" -> "09:00"
+          duration: app.duration_minutes,
+          type: app.procedure_type,
+          status: app.status
+        };
+      });
+      
+      setAppointments(mappedAppointments);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changeDate = (days) => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + days);
+    setCurrentDate(newDate);
+  };
 
   return (
     <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col h-[850px] font-sans">
@@ -48,9 +81,9 @@ const Scheduler = () => {
             </h2>
             <div className="flex items-center gap-4 mt-1">
               <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
-                <button className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
-                <button className="px-4 text-[10px] font-black text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Today</button>
-                <button className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
+                <button onClick={() => changeDate(-1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={() => setCurrentDate(new Date())} className="px-4 text-[10px] font-black text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Today</button>
+                <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
@@ -121,7 +154,8 @@ const Scheduler = () => {
 
                   {/* Appointments */}
                   <div className="absolute inset-0 pointer-events-none">
-                    {appointments.filter(app => app.doctorId === doctor.id).map(app => {
+                    {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}
+                    {!loading && appointments.filter(app => app.doctorId === doctor.id).map(app => {
                       const startHour = parseInt(app.time.split(':')[0]);
                       const startMin = parseInt(app.time.split(':')[1]);
                       const top = ((startHour - 9) * 96) + (startMin / 60 * 96);
@@ -136,7 +170,7 @@ const Scheduler = () => {
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-3 right-3 rounded-2xl p-4 border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status]} group/app shadow-sm z-10`}
+                          className={`absolute left-3 right-3 rounded-2xl p-4 border transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto bg-gradient-to-br ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10`}
                           style={{ top: `${top}px`, height: `${height}px` }}
                         >
                           <div className="flex flex-col h-full">

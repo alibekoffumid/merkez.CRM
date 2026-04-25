@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Package, 
   Search, 
@@ -9,21 +9,41 @@ import {
   Plus,
   MoreVertical,
   History,
-  Box
+  Box,
+  Loader2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-const mockInventory = [
-  { id: 1, name: 'Dental Composite (A2)', category: 'Restorative', quantity: 42, unit: 'pcs', status: 'IN_STOCK', min: 10 },
-  { id: 2, name: 'Anesthetic Cartridges', category: 'General', quantity: 120, unit: 'pcs', status: 'IN_STOCK', min: 50 },
-  { id: 3, name: 'Diamond Burs (Fine)', category: 'Instruments', quantity: 8, unit: 'pcs', status: 'LOW_STOCK', min: 15 },
-  { id: 4, name: 'Disposable Syringes', category: 'General', quantity: 300, unit: 'pcs', status: 'IN_STOCK', min: 100 },
-  { id: 5, name: 'Impression Material', category: 'Prosthetic', quantity: 3, unit: 'kg', status: 'CRITICAL', min: 5 },
-];
+import { DentalService } from '../../../services/DentalService';
 
 const DentalInventory = () => {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const [inventory, setInventory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchInventory();
+  }, [search]);
+
+  const fetchInventory = async () => {
+    try {
+      setLoading(true);
+      const data = await DentalService.getInventory(search);
+      setInventory(data);
+    } catch (err) {
+      console.error('Error fetching inventory:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStatus = (item) => {
+    if (item.quantity <= item.min_quantity / 2) return 'CRITICAL';
+    if (item.quantity <= item.min_quantity) return 'LOW_STOCK';
+    return 'IN_STOCK';
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -93,50 +113,69 @@ const DentalInventory = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {mockInventory.map((item) => (
-                <tr key={item.id} className="group hover:bg-gray-50/50 transition-colors">
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100 group-hover:scale-110 transition-transform">
-                        <Package className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <span className="text-sm font-bold text-gray-900">{item.name}</span>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="px-8 py-10 text-center">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
                     </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-md border border-gray-100">
-                      {item.category}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">{item.quantity} {item.unit}</span>
-                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mt-1">Min threshold: {item.min}</span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        item.status === 'IN_STOCK' ? 'bg-emerald-500' :
-                        item.status === 'LOW_STOCK' ? 'bg-amber-500' :
-                        'bg-rose-500 animate-pulse'
-                      }`} />
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${
-                        item.status === 'IN_STOCK' ? 'text-emerald-600' :
-                        item.status === 'LOW_STOCK' ? 'text-amber-600' :
-                        'text-rose-600'
-                      }`}>
-                        {item.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <button className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-900">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
                   </td>
                 </tr>
-              ))}
+              ) : inventory.length > 0 ? (
+                inventory.map((item) => {
+                  const status = calculateStatus(item);
+                  return (
+                    <tr key={item.id} className="group hover:bg-gray-50/50 transition-colors">
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100 group-hover:scale-110 transition-transform">
+                            <Package className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <span className="text-sm font-bold text-gray-900">{item.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-md border border-gray-100">
+                          {item.category}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gray-900">{item.quantity} {item.unit}</span>
+                          <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mt-1">Min threshold: {item.min_quantity}</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            status === 'IN_STOCK' ? 'bg-emerald-500' :
+                            status === 'LOW_STOCK' ? 'bg-amber-500' :
+                            'bg-rose-500 animate-pulse'
+                          }`} />
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            status === 'IN_STOCK' ? 'text-emerald-600' :
+                            status === 'LOW_STOCK' ? 'text-amber-600' :
+                            'text-rose-600'
+                          }`}>
+                            {status.replace('_', ' ')}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <button className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-900">
+                          <MoreVertical className="w-5 h-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="5" className="px-8 py-10 text-center text-gray-500 text-sm font-bold">
+                    No items found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

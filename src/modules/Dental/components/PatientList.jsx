@@ -1,24 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity } from 'lucide-react';
+import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2 } from 'lucide-react';
+import { DentalService } from '../../../services/DentalService';
 
 const PatientList = ({ onViewChart }) => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock Data
-  const patients = [
-    { id: 1, name: 'John Doe', phone: '+994 50 123 45 67', lastVisit: '2026-04-12', balance: -1240, status: 'active' },
-    { id: 2, name: 'Jane Smith', phone: '+994 55 987 65 43', lastVisit: '2026-03-28', balance: 0, status: 'active' },
-    { id: 3, name: 'Robert Brown', phone: '+994 70 555 11 22', lastVisit: '2026-04-20', balance: 450, status: 'completed' },
-    { id: 4, name: 'Emily Davis', phone: '+994 51 444 33 22', lastVisit: '2026-04-15', balance: -200, status: 'active' },
-    { id: 5, name: 'Michael Wilson', phone: '+994 99 333 22 11', lastVisit: '2026-02-10', balance: 0, status: 'inactive' },
-  ];
+  useEffect(() => {
+    fetchPatients();
+  }, [searchQuery]);
 
-  const filteredPatients = patients.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    p.phone.includes(searchQuery)
-  );
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const data = await DentalService.getPatients(searchQuery);
+      setPatients(data);
+    } catch (err) {
+      console.error('Error fetching patients:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredPatients = patients; // Filtering is done on server-side now
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -51,14 +60,18 @@ const PatientList = ({ onViewChart }) => {
 
       {/* Patient Cards/List */}
       <div className="grid grid-cols-1 gap-4">
-        {filteredPatients.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+          </div>
+        ) : filteredPatients.length > 0 ? (
           filteredPatients.map((patient) => (
             <div 
               key={patient.id}
               className="group bg-white rounded-[2rem] border border-gray-100 p-6 hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-blue-600/5 relative overflow-hidden"
             >
               {/* Background Accent */}
-              <div className={`absolute top-0 right-0 w-32 h-32 opacity-[0.03] -translate-y-16 translate-x-16 rounded-full group-hover:scale-150 transition-transform duration-700 ${patient.balance < 0 ? 'bg-red-600' : 'bg-emerald-600'}`} />
+              <div className={`absolute top-0 right-0 w-32 h-32 opacity-[0.03] -translate-y-16 translate-x-16 rounded-full group-hover:scale-150 transition-transform duration-700 ${(patient.estimated_value || 0) < 0 ? 'bg-red-600' : 'bg-emerald-600'}`} />
 
               <div className="flex flex-col lg:flex-row items-center gap-6 relative z-10">
                 {/* Avatar */}
@@ -72,11 +85,11 @@ const PatientList = ({ onViewChart }) => {
                   <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-2">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
                       <Phone className="w-3.5 h-3.5" />
-                      {patient.phone}
+                      {patient.phone || 'No phone'}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
                       <Calendar className="w-3.5 h-3.5" />
-                      {t('dental.lastVisit')}: {patient.lastVisit}
+                      {t('dental.lastVisit')}: {patient.updated_at ? new Date(patient.updated_at).toLocaleDateString() : 'N/A'}
                     </div>
                   </div>
                 </div>
@@ -84,9 +97,9 @@ const PatientList = ({ onViewChart }) => {
                 {/* Financial Status */}
                 <div className="flex flex-row lg:flex-col items-center lg:items-end gap-6 lg:gap-1 px-6 lg:border-x lg:border-gray-100">
                   <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 hidden lg:block">{t('dental.balance')}</p>
-                  <div className={`flex items-center gap-1 text-xl font-black ${patient.balance < 0 ? 'text-rose-500' : patient.balance > 0 ? 'text-emerald-500' : 'text-gray-900'}`}>
+                  <div className={`flex items-center gap-1 text-xl font-black ${(patient.estimated_value || 0) < 0 ? 'text-rose-500' : (patient.estimated_value || 0) > 0 ? 'text-emerald-500' : 'text-gray-900'}`}>
                     <DollarSign className="w-5 h-5" />
-                    {Math.abs(patient.balance).toLocaleString()}
+                    {(patient.estimated_value || 0).toLocaleString()}
                   </div>
                 </div>
 

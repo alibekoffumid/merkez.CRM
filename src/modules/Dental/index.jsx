@@ -21,7 +21,8 @@ const DentalModule = () => {
   const handleViewChart = (patient) => {
     setSelectedPatient({
       name: patient.name,
-      id: `#DN-${patient.id.toString().padStart(5, '0')}`,
+      id: `#DN-${patient.id?.toString().substring(0, 5) || '00000'}`,
+      rawId: patient.id,
       age: '34' // Mock age
     });
     setActiveTab('chart');
@@ -125,9 +126,9 @@ const DentalModule = () => {
                  </div>
                </div>
              </div>
-             <DentalChart />
-             <TreatmentHistory />
-             <XRayGallery />
+             <DentalChart patientId={selectedPatient.rawId} />
+             <TreatmentHistory patientId={selectedPatient.rawId} />
+             <XRayGallery patientId={selectedPatient.rawId} />
           </div>
         )}
         {activeTab === 'inventory' && (
