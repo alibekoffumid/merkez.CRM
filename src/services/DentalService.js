@@ -5,10 +5,7 @@ export const DentalService = {
   async getPatients(search = '') {
     let query = supabase
       .from('customers')
-      .select(`
-        *,
-        dental_patient_profiles (*)
-      `)
+      .select('*')
       .order('name');
 
     if (search) {
