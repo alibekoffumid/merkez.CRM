@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2 } from 'lucide-react';
-import Scheduler, { doctors } from './components/Scheduler';
+import Scheduler from './components/Scheduler';
+import { supabase } from '../../supabaseClient';
+
+const getInitials = (name) => {
+  return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
+};
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
 import PatientList from './components/PatientList';
@@ -12,6 +17,7 @@ const DentalModule = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
+  const [doctors, setDoctors] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState({
     name: 'John Doe',
     id: '#DN-90210',
@@ -26,6 +32,33 @@ const DentalModule = () => {
       age: '34' // Mock age
     });
     setActiveTab('chart');
+  };
+
+  React.useEffect(() => {
+    fetchDoctors();
+  }, []);
+
+  const fetchDoctors = async () => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['admin', 'manager', 'user'])
+        .order('full_name');
+      
+      if (data) {
+        const mappedDoctors = data.map((profile, index) => ({
+          id: profile.id,
+          name: profile.full_name || 'Anonymous Staff',
+          specialty: profile.role === 'admin' ? 'Head Doctor' : 'Clinical Staff',
+          color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
+          avatar: getInitials(profile.full_name)
+        }));
+        setDoctors(mappedDoctors);
+      }
+    } catch (err) {
+      console.error('Error fetching staff:', err);
+    }
   };
 
   const tabs = [
