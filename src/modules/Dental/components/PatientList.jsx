@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2, X } from 'lucide-react';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
+import { doctors } from './Scheduler';
 
 const PatientList = ({ onViewChart }) => {
   const { t } = useTranslation();
@@ -13,6 +14,15 @@ const PatientList = ({ onViewChart }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPatient, setNewPatient] = useState({ name: '', phone: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [selectedPatientForAppt, setSelectedPatientForAppt] = useState(null);
+  const [newAppointment, setNewAppointment] = useState({
+    doctor_name: 'Dr. Sarah Wilson',
+    appointment_date: new Date().toISOString().split('T')[0],
+    start_time: '10:00',
+    duration_minutes: 30,
+    procedure_type: 'Consultation'
+  });
 
   useEffect(() => {
     fetchPatients();
@@ -49,6 +59,35 @@ const PatientList = ({ onViewChart }) => {
     } catch (err) {
       console.error('Error adding patient:', err);
       alert('Failed to add patient');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddAppointment = async (e) => {
+    e.preventDefault();
+    if (!selectedPatientForAppt) return;
+    try {
+      setIsSubmitting(true);
+      const doctorObj = doctors.find(d => d.name === newAppointment.doctor_name) || doctors[0];
+      const { error } = await supabase.from('dental_appointments').insert([{
+        patient_id: selectedPatientForAppt.id,
+        doctor_name: newAppointment.doctor_name,
+        doctor_specialty: doctorObj.specialty,
+        doctor_color: doctorObj.color,
+        appointment_date: newAppointment.appointment_date,
+        start_time: newAppointment.start_time,
+        duration_minutes: parseInt(newAppointment.duration_minutes),
+        procedure_type: newAppointment.procedure_type,
+        status: 'SCHEDULED'
+      }]);
+      if (error) throw error;
+      setShowAppointmentModal(false);
+      // Optional: show a success toast here
+      alert('Appointment scheduled successfully!');
+    } catch (err) {
+      console.error('Error scheduling appointment:', err);
+      alert('Failed to schedule appointment');
     } finally {
       setIsSubmitting(false);
     }
@@ -145,10 +184,17 @@ const PatientList = ({ onViewChart }) => {
                     <Activity className="w-4 h-4" />
                     {t('dental.viewChart')}
                   </button>
-                  <button className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 transition-all">
+                  <button 
+                    onClick={() => {
+                      setSelectedPatientForAppt(patient);
+                      setShowAppointmentModal(true);
+                    }}
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 transition-all">
                     {t('dental.addVisit')}
                   </button>
-                  <button className="p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all">
+                  <button 
+                    onClick={() => alert('Options menu coming soon')}
+                    className="p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all">
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
@@ -230,6 +276,115 @@ const PatientList = ({ onViewChart }) => {
                   className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Patient'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Appointment Modal */}
+      {showAppointmentModal && selectedPatientForAppt && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowAppointmentModal(false)} />
+          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-md relative z-10 shadow-2xl animate-in zoom-in-95 duration-300">
+            <button 
+              onClick={() => setShowAppointmentModal(false)}
+              className="absolute top-6 right-6 p-2 bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="mb-8">
+              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-purple-100">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Schedule Visit</h3>
+              <p className="text-sm font-medium text-gray-500 mt-1">Book appointment for <span className="font-bold text-gray-900">{selectedPatientForAppt.name}</span></p>
+            </div>
+
+            <form onSubmit={handleAddAppointment} className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Select Doctor</label>
+                <select 
+                  value={newAppointment.doctor_name}
+                  onChange={(e) => setNewAppointment({ ...newAppointment, doctor_name: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                >
+                  {doctors.map(doc => (
+                    <option key={doc.id} value={doc.name}>{doc.name} - {doc.specialty}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Date</label>
+                  <input 
+                    type="date" 
+                    required
+                    value={newAppointment.appointment_date}
+                    onChange={(e) => setNewAppointment({ ...newAppointment, appointment_date: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Time</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={newAppointment.start_time}
+                    onChange={(e) => setNewAppointment({ ...newAppointment, start_time: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Duration (min)</label>
+                  <select 
+                    value={newAppointment.duration_minutes}
+                    onChange={(e) => setNewAppointment({ ...newAppointment, duration_minutes: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  >
+                    <option value="15">15 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Procedure</label>
+                  <select 
+                    value={newAppointment.procedure_type}
+                    onChange={(e) => setNewAppointment({ ...newAppointment, procedure_type: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  >
+                    <option value="Consultation">Consultation</option>
+                    <option value="Cleaning">Cleaning</option>
+                    <option value="Filling">Filling</option>
+                    <option value="Extraction">Extraction</option>
+                    <option value="Checkup">Checkup</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button 
+                  type="button"
+                  onClick={() => setShowAppointmentModal(false)}
+                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Booking'}
                 </button>
               </div>
             </form>
