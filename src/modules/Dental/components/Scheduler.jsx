@@ -116,12 +116,14 @@ const Scheduler = () => {
           {/* Doctor Headers */}
           <div className="flex-1 flex min-w-[1200px]">
             {doctors.map(doctor => (
-              <div key={doctor.id} className="flex-1 border-r border-gray-100 p-5 flex flex-col items-center justify-center h-[140px]">
-                <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg mb-3`}>
+              <div key={doctor.id} className="flex-1 border-r border-gray-100 p-3 flex items-center justify-center gap-3 h-16">
+                <div className={`w-8 h-8 rounded-xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-[10px] font-black text-white shadow-md shrink-0`}>
                   {doctor.avatar}
                 </div>
-                <span className="text-sm font-black text-gray-900 tracking-tight">{doctor.name}</span>
-                <span className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1">{doctor.specialty}</span>
+                <div className="flex flex-col items-start justify-center">
+                  <span className="text-xs font-black text-gray-900 tracking-tight leading-tight">{doctor.name}</span>
+                  <span className="text-[9px] text-blue-500 font-black uppercase tracking-[0.1em] leading-tight mt-0.5">{doctor.specialty}</span>
+                </div>
               </div>
             ))}
           </div>
