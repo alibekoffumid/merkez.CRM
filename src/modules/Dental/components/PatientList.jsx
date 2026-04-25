@@ -47,11 +47,17 @@ const PatientList = ({ onViewChart }) => {
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-[1.5rem] text-sm font-bold border border-gray-100 transition-all shadow-sm">
+          <button 
+            onClick={() => alert(t('common.comingSoon') || 'Coming soon')}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-[1.5rem] text-sm font-bold border border-gray-100 transition-all shadow-sm"
+          >
             <Filter className="w-4 h-4" />
             {t('common.filter')}
           </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+          <button 
+            onClick={() => alert(t('common.comingSoon') || 'Adding patients is handled via the central Customers module.')}
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] text-sm font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+          >
             <Plus className="w-4 h-4" />
             {t('dental.addPatient')}
           </button>
