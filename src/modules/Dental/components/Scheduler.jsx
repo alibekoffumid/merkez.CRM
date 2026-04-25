@@ -55,13 +55,6 @@ const Scheduler = ({ isFullPage }) => {
   });
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
-  const showNotification = (msg, type = 'success') => {
-    setNotification({ show: true, message: msg, type });
-    setTimeout(() => {
-      setNotification({ show: false, message: '', type: 'success' });
-    }, 3000);
-  };
-
   useEffect(() => {
     fetchAppointments();
     fetchPatients();
