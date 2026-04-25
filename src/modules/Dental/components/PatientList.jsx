@@ -87,7 +87,7 @@ const PatientList = ({ onViewChart }) => {
       alert('Appointment scheduled successfully!');
     } catch (err) {
       console.error('Error scheduling appointment:', err);
-      alert('Failed to schedule appointment');
+      alert('Failed to schedule appointment: ' + (err.message || JSON.stringify(err)));
     } finally {
       setIsSubmitting(false);
     }
