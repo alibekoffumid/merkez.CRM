@@ -35,7 +35,6 @@ const Scheduler = () => {
   const appointments = useMemo(() => mockAppointments, []);
 
   return (
-  return (
     <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col h-[850px] font-sans">
       {/* Premium Header */}
       <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl sticky top-0 z-30 gap-6">
