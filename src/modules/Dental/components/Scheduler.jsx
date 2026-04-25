@@ -70,7 +70,7 @@ const Scheduler = () => {
   return (
     <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col h-[850px] font-sans">
       {/* Premium Header */}
-      <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl sticky top-0 z-30 gap-6">
+      <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-30 gap-6 rounded-t-[2.5rem]">
         <div className="flex items-center gap-6">
           <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5">
             <CalendarIcon className="w-7 h-7 text-blue-400" />
@@ -106,9 +106,9 @@ const Scheduler = () => {
       </div>
 
       {/* Main Grid Container */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 overflow-x-auto">
         {/* Fixed Header Row */}
-        <div className="flex bg-white/90 backdrop-blur-xl border-b border-gray-100 z-30 sticky top-0">
+        <div className="flex bg-white/90 backdrop-blur-xl border-b border-gray-100 z-30 min-w-max">
           {/* Time Placeholder */}
           <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50 flex items-center justify-center">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</span>
@@ -130,7 +130,7 @@ const Scheduler = () => {
         </div>
 
         {/* Scrollable Slots Area */}
-        <div className="flex-1 overflow-auto no-scrollbar bg-gray-50/30 relative">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-gray-50/30 relative min-w-max">
           <div className="flex min-w-[1200px] h-full">
             {/* Time Gutter */}
             <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50">
