@@ -14,6 +14,7 @@ const PatientList = ({ onViewChart }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPatient, setNewPatient] = useState({ name: '', phone: '', email: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [selectedPatientForAppt, setSelectedPatientForAppt] = useState(null);
   const [newAppointment, setNewAppointment] = useState({
@@ -23,6 +24,13 @@ const PatientList = ({ onViewChart }) => {
     duration_minutes: 30,
     procedure_type: 'Consultation'
   });
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ show: true, message: msg, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
 
   useEffect(() => {
     fetchPatients();
@@ -56,9 +64,10 @@ const PatientList = ({ onViewChart }) => {
       setShowAddModal(false);
       setNewPatient({ name: '', phone: '', email: '' });
       fetchPatients();
+      showNotification('Patient added successfully!');
     } catch (err) {
       console.error('Error adding patient:', err);
-      alert('Failed to add patient');
+      showNotification('Failed to add patient: ' + (err.message || ''), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -83,11 +92,10 @@ const PatientList = ({ onViewChart }) => {
       }]);
       if (error) throw error;
       setShowAppointmentModal(false);
-      // Optional: show a success toast here
-      alert('Appointment scheduled successfully!');
+      showNotification('Appointment scheduled successfully!');
     } catch (err) {
       console.error('Error scheduling appointment:', err);
-      alert('Failed to schedule appointment: ' + (err.message || JSON.stringify(err)));
+      showNotification('Failed to schedule appointment: ' + (err.message || JSON.stringify(err)), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,7 +104,29 @@ const PatientList = ({ onViewChart }) => {
   const filteredPatients = patients; // Filtering is done on server-side now
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
+      {/* Toast Notification */}
+      {notification.show && (
+        <div className="fixed top-6 right-6 z-[300] animate-in slide-in-from-top-8 fade-in duration-300">
+          <div className={`rounded-2xl shadow-xl border p-4 flex items-center gap-3 ${
+            notification.type === 'success' 
+              ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
+              : 'bg-rose-50 border-rose-100 text-rose-700'
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+              notification.type === 'success' ? 'bg-emerald-100' : 'bg-rose-100'
+            }`}>
+              {notification.type === 'success' ? (
+                <Calendar className="w-4 h-4 text-emerald-600" />
+              ) : (
+                <Activity className="w-4 h-4 text-rose-600" />
+              )}
+            </div>
+            <p className="text-sm font-black tracking-tight">{notification.message}</p>
+          </div>
+        </div>
+      )}
+
       {/* Search and Actions */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96 group">
@@ -114,7 +144,7 @@ const PatientList = ({ onViewChart }) => {
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button 
-            onClick={() => alert('Filter options will be available soon.')}
+            onClick={() => showNotification('Filter options will be available soon.', 'error')}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-[1.5rem] text-sm font-bold border border-gray-100 transition-all shadow-sm"
           >
             <Filter className="w-4 h-4" />
@@ -193,7 +223,7 @@ const PatientList = ({ onViewChart }) => {
                     {t('dental.addVisit')}
                   </button>
                   <button 
-                    onClick={() => alert('Options menu coming soon')}
+                    onClick={() => showNotification('Options menu coming soon', 'error')}
                     className="p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all">
                     <MoreVertical className="w-5 h-5" />
                   </button>
