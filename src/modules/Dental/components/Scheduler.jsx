@@ -111,21 +111,18 @@ const Scheduler = ({ isFullPage }) => {
       const dateString = currentDate.toISOString().split('T')[0];
       const data = await DentalService.getAppointments(dateString);
       
-      // Map doctor_name to doctorId for UI matching
-      const mappedAppointments = data.map(app => {
-        const doc = doctors.find(d => d.name === app.doctor_name);
-        return {
+      if (data) {
+        const formatted = data.map(app => ({
           id: app.id,
-          doctorId: doc ? doc.id : 1, // Fallback to 1
-          patient: app.patient?.name || 'Unknown',
-          time: app.start_time.substring(0, 5), // "09:00:00" -> "09:00"
+          patient: app.customers?.name || 'Unknown',
+          doctorName: app.doctor_name,
+          time: app.start_time.substring(0, 5),
           duration: app.duration_minutes,
           type: app.procedure_type,
           status: app.status
-        };
-      });
-      
-      setAppointments(mappedAppointments);
+        }));
+        setAppointments(formatted);
+      }
     } catch (err) {
       console.error('Error fetching appointments:', err);
     } finally {
@@ -327,7 +324,7 @@ const Scheduler = ({ isFullPage }) => {
                   {/* Appointments */}
                   <div className="absolute inset-0 pointer-events-none">
                     {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}
-                    {!loading && appointments.filter(app => app.doctorId === doctor.id).map(app => {
+                    {!loading && appointments.filter(app => app.doctorName === doctor.name).map(app => {
                       const startHour = parseInt(app.time.split(':')[0]);
                       const startMin = parseInt(app.time.split(':')[1]);
                       const top = ((startHour - 9) * 96) + (startMin / 60 * 96);
