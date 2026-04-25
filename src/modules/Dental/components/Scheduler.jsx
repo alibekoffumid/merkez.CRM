@@ -36,6 +36,7 @@ const Scheduler = ({ isFullPage }) => {
   const [loading, setLoading] = useState(true);
   
   const [showModal, setShowModal] = useState(false);
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     patient_name: '',
@@ -358,30 +359,63 @@ const Scheduler = ({ isFullPage }) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              <div className="relative">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Patient Name</label>
-                <input 
-                  type="text" 
-                  required 
-                  list="patients-list"
-                  value={formData.patient_name} 
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    const matched = patientsList.find(p => p.name === val);
-                    setFormData({ 
-                      ...formData, 
-                      patient_name: val,
-                      phone: matched && matched.phone ? matched.phone : formData.phone
-                    });
-                  }} 
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                  placeholder="Start typing to search existing, or type new name..." 
-                />
-                <datalist id="patients-list">
-                  {patientsList.map(p => (
-                    <option key={p.id} value={p.name} />
-                  ))}
-                </datalist>
+                <div className="relative group/input">
+                  <input 
+                    type="text" 
+                    required 
+                    autoComplete="off"
+                    value={formData.patient_name} 
+                    onFocus={() => setShowPatientDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowPatientDropdown(false), 200)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormData({ 
+                        ...formData, 
+                        patient_name: val
+                      });
+                      setShowPatientDropdown(true);
+                    }} 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                    placeholder="Search existing or type new name..." 
+                  />
+                  {showPatientDropdown && formData.patient_name && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[300] max-h-60 overflow-y-auto no-scrollbar py-2 animate-in fade-in zoom-in-95 duration-200">
+                      {patientsList
+                        .filter(p => p.name.toLowerCase().includes(formData.patient_name.toLowerCase()))
+                        .map(p => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                patient_name: p.name,
+                                phone: p.phone || formData.phone
+                              });
+                              setShowPatientDropdown(false);
+                            }}
+                            className="w-full px-5 py-3 text-left hover:bg-gray-50 flex items-center justify-between group transition-colors"
+                          >
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{p.name}</p>
+                              {p.phone && <p className="text-[10px] font-medium text-gray-400">{p.phone}</p>}
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <User className="w-4 h-4 text-blue-600" />
+                            </div>
+                          </button>
+                        ))
+                      }
+                      {patientsList.filter(p => p.name.toLowerCase().includes(formData.patient_name.toLowerCase())).length === 0 && (
+                        <div className="px-5 py-4 text-center">
+                          <p className="text-sm font-bold text-gray-400">New patient will be created</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div>
