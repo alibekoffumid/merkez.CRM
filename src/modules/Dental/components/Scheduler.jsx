@@ -377,13 +377,17 @@ const Scheduler = ({ isFullPage }) => {
                       });
                       setShowPatientDropdown(true);
                     }} 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-12" 
                     placeholder="Search existing or type new name..." 
                   />
-                  {showPatientDropdown && formData.patient_name && (
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                    <ChevronRight className="w-4 h-4 rotate-90" />
+                  </div>
+                  {showPatientDropdown && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[300] max-h-60 overflow-y-auto no-scrollbar py-2 animate-in fade-in zoom-in-95 duration-200">
                       {patientsList
                         .filter(p => p.name.toLowerCase().includes(formData.patient_name.toLowerCase()))
+                        .slice(0, 50)
                         .map(p => (
                           <button
                             key={p.id}
