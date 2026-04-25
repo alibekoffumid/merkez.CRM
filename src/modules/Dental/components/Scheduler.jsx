@@ -53,7 +53,6 @@ const Scheduler = ({ isFullPage }) => {
     duration_minutes: 30,
     procedure_type: 'Consultation'
   });
-  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
   useEffect(() => {
     fetchAppointments();
