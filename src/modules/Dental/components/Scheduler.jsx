@@ -35,7 +35,8 @@ const Scheduler = () => {
   const appointments = useMemo(() => mockAppointments, []);
 
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 overflow-hidden flex flex-col h-[850px] font-sans">
+  return (
+    <div className="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col h-[850px] font-sans">
       {/* Premium Header */}
       <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl sticky top-0 z-30 gap-6">
         <div className="flex items-center gap-6">
@@ -177,23 +178,6 @@ const Scheduler = () => {
         </div>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Confirmed</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">In Progress</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Scheduled</span>
-          </div>
-        </div>
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Merkez Dental Sync • v2.4.0</p>
       </div>
     </div>
   );
