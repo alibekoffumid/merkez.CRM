@@ -20,8 +20,8 @@ const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
 };
 
-const timeSlots = Array.from({ length: 22 }, (_, i) => {
-  const hour = 9 + Math.floor(i / 2);
+const timeSlots = Array.from({ length: 30 }, (_, i) => {
+  const hour = 8 + Math.floor(i / 2);
   const min = i % 2 === 0 ? '00' : '30';
   return `${hour}:${min}`;
 });
@@ -120,7 +120,7 @@ const Scheduler = ({ isFullPage }) => {
       if (data) {
         const formatted = data.map(app => ({
           id: app.id,
-          patient: app.customers?.name || 'Unknown',
+          patient: app.customers?.name || app.patient_name || 'New Patient',
           doctorName: app.doctor_name,
           time: app.start_time.substring(0, 5),
           duration: app.duration_minutes,
@@ -333,7 +333,7 @@ const Scheduler = ({ isFullPage }) => {
                     {!loading && appointments.filter(app => app.doctorName === doctor.name).map(app => {
                       const startHour = parseInt(app.time.split(':')[0]);
                       const startMin = parseInt(app.time.split(':')[1]);
-                      const top = ((startHour - 9) * 96) + (startMin / 60 * 96);
+                      const top = ((startHour - 8) * 96) + (startMin / 60 * 96);
                       const height = (app.duration / 60) * 96;
 
                       const statusColors = {
