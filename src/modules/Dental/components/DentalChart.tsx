@@ -61,10 +61,9 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
     BRIDGE: { label: t('dental.bridge'), color: 'text-indigo-400', bg: 'bg-indigo-500/10', icon: ChevronDown },
   };
 
-  // Role-Based Access Control (RBAC)
-  const isDentist = profile?.role?.toUpperCase() === 'DENTIST';
-  const isAdmin = profile?.role?.toUpperCase() === 'ADMIN';
-  const hasAccess = isDentist || isAdmin;
+  // Role-Based Access Control (RBAC) - More permissive for the clinical staff
+  const userRole = profile?.role?.toUpperCase() || 'USER';
+  const hasAccess = ['ADMIN', 'MANAGER', 'USER', 'DENTIST'].includes(userRole);
 
   // Tooth layout: 1-16 upper, 17-32 lower
   const upperTeeth = useMemo(() => Array.from({ length: 16 }, (_, i) => i + 1), []);
