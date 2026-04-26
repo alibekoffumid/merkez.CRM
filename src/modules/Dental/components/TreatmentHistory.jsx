@@ -21,9 +21,9 @@ const TreatmentHistory = ({ patientId }) => {
       
       const mappedData = data.map(item => ({
         id: item.id,
-        date: new Date(item.created_at).toLocaleDateString(),
+        date: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Unknown Date',
         doctor: item.updated_by || 'Unknown',
-        procedure: `${item.condition.replace('_', ' ')} - Tooth #${item.tooth_number}`,
+        procedure: `${(item.condition || 'Unknown').replace('_', ' ')} - Tooth #${item.tooth_number || '?'}`,
         notes: item.notes || 'No notes provided.',
         status: 'completed',
         cost: 0

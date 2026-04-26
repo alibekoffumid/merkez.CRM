@@ -50,6 +50,7 @@ const Scheduler = ({ isFullPage }) => {
   });
 
   useEffect(() => {
+    console.log('Scheduler: Initializing with date:', currentDate);
     fetchAppointments();
     fetchPatients();
     fetchDoctors();
@@ -124,10 +125,10 @@ const Scheduler = ({ isFullPage }) => {
           patient: app.patient?.name || app.patient_name || 'New Patient',
           phone: app.patient?.phone || app.phone || '',
           doctorName: app.doctor_name,
-          time: app.start_time.substring(0, 5),
-          duration: app.duration_minutes,
-          type: app.procedure_type,
-          status: app.status
+          time: (app.start_time || '00:00').substring(0, 5),
+          duration: app.duration_minutes || 30,
+          type: app.procedure_type || 'Consultation',
+          status: app.status || 'SCHEDULED'
         }));
         setAppointments(formatted);
       }
@@ -228,6 +229,11 @@ const Scheduler = ({ isFullPage }) => {
     newDate.setDate(currentDate.getDate() + days);
     setCurrentDate(newDate);
   };
+
+  if (!timeSlots || !doctors) {
+    console.error('Scheduler: Critical data missing');
+    return <div className="p-20 text-center">Critical Error: Scheduler Data Missing</div>;
+  }
 
   return (
     <div className={`bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col font-sans ${isFullPage ? 'h-full' : 'h-[850px]'}`}>
@@ -346,10 +352,11 @@ const Scheduler = ({ isFullPage }) => {
                   <div className="absolute inset-0 pointer-events-none">
                     {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}
                     {!loading && appointments.filter(app => app.doctorName === doctor.name).map((app, index) => {
-                      const startHour = parseInt(app.time.split(':')[0]);
-                      const startMin = parseInt(app.time.split(':')[1]);
+                      const timeStr = app.time || '00:00';
+                      const startHour = parseInt(timeStr.split(':')[0]) || 8;
+                      const startMin = parseInt(timeStr.split(':')[1]) || 0;
                       const top = ((startHour - 8) * 96) + (startMin / 60 * 96);
-                      const height = (app.duration / 60) * 96;
+                      const height = ((app.duration || 30) / 60) * 96;
 
                       const statusColors = {
                         CONFIRMED: 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-emerald-100/50',
