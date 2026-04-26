@@ -28,6 +28,12 @@ const DentalModule = () => {
     id: '#DN-00000',
     age: '--'
   });
+  const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
+  const [newDoctor, setNewDoctor] = useState({
+    full_name: '',
+    role: 'user',
+    specialty: 'Clinical Staff'
+  });
 
   const handleViewChart = (patient) => {
     setSelectedPatient({
@@ -78,6 +84,28 @@ const DentalModule = () => {
       }
     } catch (err) {
       console.error('DentalModule: Error fetching staff:', err);
+    }
+  };
+
+  const handleAddDoctor = async (e) => {
+    e.preventDefault();
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          full_name: newDoctor.full_name,
+          role: newDoctor.role,
+          updated_at: new Date()
+        }]);
+
+      if (profileError) throw profileError;
+      
+      setShowAddDoctorModal(false);
+      setNewDoctor({ full_name: '', role: 'user', specialty: 'Clinical Staff' });
+      fetchDoctors();
+    } catch (err) {
+      console.error('Error adding doctor:', err);
+      alert('Error: ' + err.message);
     }
   };
 
@@ -185,8 +213,19 @@ const DentalModule = () => {
 
               <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-black text-gray-900">Clinical Staff</h3>
-                  <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors?.length || 0} active</span>
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900">Clinical Staff</h3>
+                    <p className="text-xs text-gray-500 font-medium">Manage your clinical team and doctors</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors?.length || 0} active</span>
+                    <button 
+                      onClick={() => setShowAddDoctorModal(true)}
+                      className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all shadow-lg"
+                    >
+                      <Users className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {(doctors || []).map(doc => (
@@ -205,6 +244,50 @@ const DentalModule = () => {
             </div>
           )}
         </div>
+
+        {showAddDoctorModal && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden">
+              <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="text-xl font-black text-gray-900">Add Clinical Staff</h3>
+                <button onClick={() => setShowAddDoctorModal(false)} className="text-gray-400 hover:text-gray-900">
+                  <Maximize2 className="w-6 h-6 rotate-45" />
+                </button>
+              </div>
+              <form onSubmit={handleAddDoctor} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
+                  <input 
+                    required
+                    type="text" 
+                    placeholder="Dr. Jane Smith"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900"
+                    value={newDoctor.full_name}
+                    onChange={(e) => setNewDoctor({...newDoctor, full_name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Role</label>
+                  <select 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900"
+                    value={newDoctor.role}
+                    onChange={(e) => setNewDoctor({...newDoctor, role: e.target.value})}
+                  >
+                    <option value="user">Doctor / Staff</option>
+                    <option value="manager">Manager</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </div>
+                <button 
+                  type="submit"
+                  className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-500 shadow-xl shadow-blue-600/20"
+                >
+                  Create Profile
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   } catch (err) {
