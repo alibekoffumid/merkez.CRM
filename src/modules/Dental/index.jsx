@@ -32,7 +32,7 @@ const DentalModule = () => {
   const [newDoctor, setNewDoctor] = useState({
     name: '',
     specialty: 'Dentist',
-    color: 'bg-blue-500'
+    color: 'bg-blue-600'
   });
 
   const handleViewChart = (patient) => {
@@ -54,22 +54,22 @@ const DentalModule = () => {
       console.log('DentalModule: Fetching staff...');
       
       // 1. Fetch from profiles (System Users)
-      const { data: profiles, error: pError } = await supabase
+      const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
         .in('role', ['admin', 'manager', 'user'])
         .order('full_name');
 
-      // 2. Fetch from dental_staff (Manually added doctors)
-      const { data: dentalStaff, error: dError } = await supabase
-        .from('dental_staff')
+      // 2. Fetch from staff table (Manually added staff/doctors)
+      const { data: staffData } = await supabase
+        .from('staff')
         .select('*')
         .order('name');
       
       const combinedDoctors = [];
       const uniqueNames = new Set();
 
-      // Process Profiles
+      // Process Profiles (System Admins/Users)
       if (profiles) {
         profiles.forEach((profile, index) => {
           if (!profile.full_name) return;
@@ -89,15 +89,15 @@ const DentalModule = () => {
         });
       }
 
-      // Process Dental Staff
-      if (dentalStaff) {
-        dentalStaff.forEach((staff) => {
+      // Process Staff Table (Clinic Doctors)
+      if (staffData) {
+        staffData.forEach((staff) => {
           if (!uniqueNames.has(staff.name)) {
             uniqueNames.add(staff.name);
             combinedDoctors.push({
               id: staff.id,
               name: staff.name,
-              specialty: staff.specialty,
+              specialty: staff.specialty || staff.role || 'Clinic Staff',
               color: staff.color || 'bg-blue-600',
               avatar: getInitials(staff.name)
             });
@@ -114,18 +114,21 @@ const DentalModule = () => {
   const handleAddDoctor = async (e) => {
     e.preventDefault();
     try {
+      // We use the 'staff' table which is definitely in the schema cache
       const { error } = await supabase
-        .from('dental_staff')
+        .from('staff')
         .insert([{
           name: newDoctor.name,
+          role: 'Dentist', // Generic role for the system
           specialty: newDoctor.specialty,
-          color: newDoctor.color
+          color: newDoctor.color,
+          status: 'Active'
         }]);
 
       if (error) throw error;
       
       setShowAddDoctorModal(false);
-      setNewDoctor({ name: '', specialty: 'Dentist', color: 'bg-blue-500' });
+      setNewDoctor({ name: '', specialty: 'Dentist', color: 'bg-blue-600' });
       fetchDoctors();
     } catch (err) {
       console.error('Error adding doctor:', err);
@@ -285,7 +288,7 @@ const DentalModule = () => {
                   <input 
                     required
                     type="text" 
-                    placeholder="e.g. Dr. Jane Smith"
+                    placeholder="e.g. Dr. Sahil Abbasov"
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                     value={newDoctor.name}
                     onChange={(e) => setNewDoctor({...newDoctor, name: e.target.value})}
