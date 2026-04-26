@@ -316,7 +316,7 @@ const Scheduler = ({ isFullPage, doctors = [] }) => {
                   {/* Slots */}
                   {timeSlots.map(time => (
                     <div key={time} className="h-10 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
-                      <button 
+                        <button 
                         onClick={() => {
                           setFormData({
                             ...formData,
@@ -328,7 +328,7 @@ const Scheduler = ({ isFullPage, doctors = [] }) => {
                           });
                           setShowModal(true);
                         }}
-                        className="w-8 h-8 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100 z-20">
+                        className="w-8 h-8 rounded-full bg-white opacity-20 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100 z-20">
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>

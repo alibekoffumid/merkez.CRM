@@ -56,7 +56,7 @@ const DentalModule = () => {
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['admin'])
+        .or('role.ilike.admin,role.ilike.manager,role.ilike.dentist')
         .order('full_name');
 
       const { data: staffData } = await supabase
@@ -105,6 +105,24 @@ const DentalModule = () => {
             });
           }
         });
+      }
+
+      // Fallback: If no doctors found, add the current user as a doctor
+      if (combinedDoctors.length === 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: currentProfile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+          if (currentProfile) {
+            combinedDoctors.push({
+              id: currentProfile.id,
+              name: currentProfile.full_name || 'System Administrator',
+              specialty: 'Administrator',
+              color: 'bg-blue-600',
+              avatar: getInitials(currentProfile.full_name),
+              type: 'system'
+            });
+          }
+        }
       }
 
       setDoctors(combinedDoctors);
