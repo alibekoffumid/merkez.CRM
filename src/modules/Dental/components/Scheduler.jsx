@@ -27,11 +27,10 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
   return `${hour.toString().padStart(2, '0')}:${min}`;
 });
 
-const Scheduler = ({ isFullPage }) => {
+const Scheduler = ({ isFullPage, doctors = [] }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
-  const [doctors, setDoctors] = useState([]);
   const [patientsList, setPatientsList] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -53,7 +52,6 @@ const Scheduler = ({ isFullPage }) => {
     console.log('Scheduler: Initializing with date:', currentDate);
     fetchAppointments();
     fetchPatients();
-    fetchDoctors();
 
     // Refresh live indicator every minute
     const timer = setInterval(() => {
@@ -71,47 +69,12 @@ const Scheduler = ({ isFullPage }) => {
     }, 4000);
   };
 
-  const fetchDoctors = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('role', ['admin', 'manager', 'user']) // Fetch all potential doctors
-        .order('full_name');
-      
-      if (data && data.length > 0) {
-        // Filter out testers and de-duplicate by name
-        const uniqueNames = new Set();
-        const mappedDoctors = data
-          .filter(profile => {
-            const name = (profile.full_name || '').toLowerCase();
-            return name && !name.includes('test') && !name.includes('tester');
-          })
-          .filter(profile => {
-            if (uniqueNames.has(profile.full_name)) return false;
-            uniqueNames.add(profile.full_name);
-            return true;
-          })
-          .map((profile, index) => ({
-            id: profile.id,
-            name: profile.full_name,
-            specialty: profile.role === 'admin' ? 'Head Doctor' : 'Dentist',
-            color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
-            glow: ['shadow-blue-500/20', 'shadow-emerald-500/20', 'shadow-purple-500/20', 'shadow-rose-500/20', 'shadow-amber-500/20'][index % 5],
-            avatar: getInitials(profile.full_name)
-          }));
-        setDoctors(mappedDoctors);
-        
-        // Update initial doctor_name in formData if it was empty and we have doctors
-        if (!formData.doctor_name && mappedDoctors.length > 0) {
-          setFormData(prev => ({ ...prev, doctor_name: mappedDoctors[0].name }));
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching doctors:', err);
-    }
-  };
 
+  useEffect(() => {
+    if (!formData.doctor_name && doctors.length > 0) {
+      setFormData(prev => ({ ...prev, doctor_name: doctors[0].name }));
+    }
+  }, [doctors]);
   const fetchPatients = async () => {
     try {
       const { data } = await supabase.from('customers').select('id, name, phone').order('name');
