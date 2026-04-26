@@ -23,16 +23,24 @@ const JarvisVoice: React.FC = () => {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder.current = new MediaRecorder(stream);
+      
+      // Chrome/Blink browsers prefer webm
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
+        ? 'audio/webm' 
+        : 'audio/ogg';
+        
+      mediaRecorder.current = new MediaRecorder(stream, { mimeType });
       audioChunks.current = [];
 
       mediaRecorder.current.ondataavailable = (event) => {
-        audioChunks.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunks.current.push(event.data);
+        }
       };
 
       mediaRecorder.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
-        await processAudio(audioBlob);
+        const audioBlob = new Blob(audioChunks.current, { type: mimeType });
+        await processAudio(audioBlob, mimeType.split('/')[1]);
       };
 
       mediaRecorder.current.start();
@@ -52,11 +60,11 @@ const JarvisVoice: React.FC = () => {
     }
   };
 
-  const processAudio = async (blob: Blob) => {
+  const processAudio = async (blob: Blob, ext: string = 'webm') => {
     setIsProcessing(true);
     try {
       const formData = new FormData();
-      formData.append('audio', blob, 'recording.wav');
+      formData.append('audio', blob, `recording.${ext}`);
 
       const { data, error: funcError } = await supabase.functions.invoke('jarvis', {
         body: formData,
