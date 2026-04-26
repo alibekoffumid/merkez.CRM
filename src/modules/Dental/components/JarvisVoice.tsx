@@ -176,19 +176,39 @@ const JarvisVoice: React.FC = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Patient</label>
-                  <p className="text-lg font-black text-gray-900">{result.patient_name}</p>
+                  <input 
+                    type="text" 
+                    value={result.patient_name}
+                    onChange={(e) => setResult({...result, patient_name: e.target.value})}
+                    className="w-full bg-gray-50 border-b-2 border-transparent focus:border-blue-600 outline-none text-lg font-black text-gray-900 transition-all py-1"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Procedure</label>
-                  <p className="text-lg font-black text-gray-900">{result.procedure_type}</p>
+                  <input 
+                    type="text" 
+                    value={result.procedure_type}
+                    onChange={(e) => setResult({...result, procedure_type: e.target.value})}
+                    className="w-full bg-gray-50 border-b-2 border-transparent focus:border-blue-600 outline-none text-lg font-black text-gray-900 transition-all py-1"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</label>
-                  <p className="text-lg font-black text-gray-900">{result.date}</p>
+                  <input 
+                    type="date" 
+                    value={result.date}
+                    onChange={(e) => setResult({...result, date: e.target.value})}
+                    className="w-full bg-gray-50 border-b-2 border-transparent focus:border-blue-600 outline-none text-lg font-black text-gray-900 transition-all py-1"
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</label>
-                  <p className="text-lg font-black text-gray-900">{result.time}</p>
+                  <input 
+                    type="time" 
+                    value={result.time}
+                    onChange={(e) => setResult({...result, time: e.target.value})}
+                    className="w-full bg-gray-50 border-b-2 border-transparent focus:border-blue-600 outline-none text-lg font-black text-gray-900 transition-all py-1"
+                  />
                 </div>
               </div>
 
