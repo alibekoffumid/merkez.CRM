@@ -54,7 +54,15 @@ const Scheduler = ({ isFullPage }) => {
     fetchAppointments();
     fetchPatients();
     fetchDoctors();
+
+    // Refresh live indicator every minute
+    const timer = setInterval(() => {
+      setTick(prev => prev + 1);
+    }, 60000);
+    return () => clearInterval(timer);
   }, [currentDate]);
+
+  const [tick, setTick] = React.useState(0);
 
   const showNotification = (msg, type = 'success') => {
     setNotification({ show: true, message: msg, type });
@@ -230,6 +238,23 @@ const Scheduler = ({ isFullPage }) => {
     setCurrentDate(newDate);
   };
 
+  const getLiveIndicatorPos = () => {
+    const now = new Date();
+    const isToday = now.toDateString() === currentDate.toDateString();
+    if (!isToday) return null;
+
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    
+    // Grid starts at 08:00. 1 hour = 96px (2 slots * 48px)
+    if (hours < 8 || hours >= 24) return null;
+    
+    const top = ((hours - 8) * 96) + (minutes / 60 * 96);
+    return top;
+  };
+
+  const liveIndicatorPos = getLiveIndicatorPos();
+
   if (!timeSlots || !doctors) {
     console.error('Scheduler: Critical data missing');
     return <div className="p-20 text-center">Critical Error: Scheduler Data Missing</div>;
@@ -296,13 +321,13 @@ const Scheduler = ({ isFullPage }) => {
           {/* Doctor Headers */}
           <div className="flex-1 flex min-w-[1200px]">
             {doctors.map(doctor => (
-              <div key={doctor.id} className="flex-1 border-r border-gray-100 p-3 flex items-center justify-center gap-3 h-16">
-                <div className={`w-8 h-8 rounded-xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-[10px] font-black text-white shadow-md shrink-0`}>
+              <div key={doctor.id} className="flex-1 border-r border-gray-100 p-4 flex items-center justify-start gap-4 h-20 bg-white">
+                <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg shrink-0 transition-transform hover:scale-105`}>
                   {doctor.avatar}
                 </div>
-                <div className="flex flex-col items-start justify-center">
-                  <span className="text-xs font-black text-gray-900 tracking-tight leading-tight">{doctor.name}</span>
-                  <span className="text-[9px] text-blue-500 font-black uppercase tracking-[0.1em] leading-tight mt-0.5">{doctor.specialty}</span>
+                <div className="flex flex-col items-start justify-center overflow-hidden">
+                  <span className="text-sm font-black text-gray-900 tracking-tight leading-tight truncate w-full">{doctor.name}</span>
+                  <span className="text-[10px] text-blue-500 font-black uppercase tracking-[0.15em] leading-tight mt-1">{doctor.specialty}</span>
                 </div>
               </div>
             ))}
@@ -420,9 +445,14 @@ const Scheduler = ({ isFullPage }) => {
               ))}
 
               {/* Live Indicator */}
-              <div className="absolute top-[350px] left-0 right-0 h-[2px] bg-red-500/50 z-20 pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.5)]">
-                <div className="absolute -left-1 -top-[4px] w-2.5 h-2.5 rounded-full bg-red-500 shadow-xl" />
-              </div>
+              {liveIndicatorPos !== null && (
+                <div 
+                  className="absolute left-0 right-0 h-[2px] bg-red-500/50 z-20 pointer-events-none shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-all duration-1000"
+                  style={{ top: `${liveIndicatorPos}px` }}
+                >
+                  <div className="absolute -left-1 -top-[4px] w-2.5 h-2.5 rounded-full bg-red-500 shadow-lg border-2 border-white" />
+                </div>
+              )}
             </div>
           </div>
         </div>
