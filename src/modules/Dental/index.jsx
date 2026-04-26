@@ -51,25 +51,26 @@ const DentalModule = () => {
 
   const fetchDoctors = async () => {
     try {
-      console.log('DentalModule: Fetching staff...');
+      console.log('DentalModule: Fetching isolated staff...');
       
-      // 1. Fetch from profiles (System Users)
+      // 1. Fetch from profiles (System Users) - Only if they have a specific flag or we want them global
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['admin', 'manager', 'user'])
+        .in('role', ['admin']) // Only global admins for now
         .order('full_name');
 
-      // 2. Fetch from staff table (Manually added staff/doctors)
+      // 2. Fetch from staff table filtered by MODULE = 'dental'
       const { data: staffData } = await supabase
         .from('staff')
         .select('*')
+        .eq('module', 'dental')
         .order('name');
       
       const combinedDoctors = [];
       const uniqueNames = new Set();
 
-      // Process Profiles (System Admins/Users)
+      // Process Profiles (System Admins)
       if (profiles) {
         profiles.forEach((profile, index) => {
           if (!profile.full_name) return;
@@ -81,15 +82,16 @@ const DentalModule = () => {
             combinedDoctors.push({
               id: profile.id,
               name: profile.full_name,
-              specialty: profile.role === 'admin' ? 'Head Doctor' : 'System Staff',
-              color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
-              avatar: getInitials(profile.full_name)
+              specialty: 'Administrator',
+              color: 'bg-blue-500',
+              avatar: getInitials(profile.full_name),
+              type: 'system'
             });
           }
         });
       }
 
-      // Process Staff Table (Clinic Doctors)
+      // Process Dental Staff (Isolated)
       if (staffData) {
         staffData.forEach((staff) => {
           if (!uniqueNames.has(staff.name)) {
@@ -97,9 +99,10 @@ const DentalModule = () => {
             combinedDoctors.push({
               id: staff.id,
               name: staff.name,
-              specialty: staff.specialty || staff.role || 'Clinic Staff',
+              specialty: staff.specialty || 'Dentist',
               color: staff.color || 'bg-blue-600',
-              avatar: getInitials(staff.name)
+              avatar: getInitials(staff.name),
+              type: 'isolated'
             });
           }
         });
@@ -114,15 +117,18 @@ const DentalModule = () => {
   const handleAddDoctor = async (e) => {
     e.preventDefault();
     try {
-      // We use the 'staff' table which is definitely in the schema cache
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from('staff')
         .insert([{
           name: newDoctor.name,
-          role: 'Dentist', // Generic role for the system
+          role: 'Dentist', 
           specialty: newDoctor.specialty,
           color: newDoctor.color,
-          status: 'Active'
+          status: 'Active',
+          module: 'dental', // STRICT ISOLATION
+          user_id: user?.id
         }]);
 
       if (error) throw error;
