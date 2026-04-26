@@ -34,7 +34,7 @@ export const DentalService = {
       .from('dental_appointments')
       .select(`
         *,
-        patient:customers(name)
+        patient:customers(name, phone)
       `)
       .eq('appointment_date', date);
 

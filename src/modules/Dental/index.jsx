@@ -3,15 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2 } from 'lucide-react';
 import Scheduler from './components/Scheduler';
 import { supabase } from '../../supabaseClient';
-
-const getInitials = (name) => {
-  return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
-};
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
 import PatientList from './components/PatientList';
 import TreatmentHistory from './components/TreatmentHistory';
 import XRayGallery from './components/XRayGallery';
+
+const getInitials = (name) => {
+  if (!name) return '?';
+  try {
+    return name.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  } catch (e) {
+    return '?';
+  }
+};
 
 const DentalModule = () => {
   const { t } = useTranslation();
