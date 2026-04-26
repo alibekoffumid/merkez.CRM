@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2 } from 'lucide-react';
+import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2, Plus } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import Scheduler from './components/Scheduler';
 import DentalChart from './components/DentalChart';
@@ -30,9 +30,9 @@ const DentalModule = () => {
   });
   const [showAddDoctorModal, setShowAddDoctorModal] = useState(false);
   const [newDoctor, setNewDoctor] = useState({
-    full_name: '',
-    role: 'user',
-    specialty: 'Clinical Staff'
+    name: '',
+    specialty: 'Dentist',
+    color: 'bg-blue-500'
   });
 
   const handleViewChart = (patient) => {
@@ -52,36 +52,60 @@ const DentalModule = () => {
   const fetchDoctors = async () => {
     try {
       console.log('DentalModule: Fetching staff...');
-      const { data, error } = await supabase
+      
+      // 1. Fetch from profiles (System Users)
+      const { data: profiles, error: pError } = await supabase
         .from('profiles')
         .select('*')
         .in('role', ['admin', 'manager', 'user'])
         .order('full_name');
-      
-      if (error) throw error;
 
-      if (data) {
-        console.log('DentalModule: Staff found:', data.length);
-        const uniqueNames = new Set();
-        const mappedDoctors = data
-          .filter(profile => {
-            const name = (profile.full_name || '').toLowerCase();
-            return name && !name.includes('test') && !name.includes('tester');
-          })
-          .filter(profile => {
-            if (uniqueNames.has(profile.full_name)) return false;
+      // 2. Fetch from dental_staff (Manually added doctors)
+      const { data: dentalStaff, error: dError } = await supabase
+        .from('dental_staff')
+        .select('*')
+        .order('name');
+      
+      const combinedDoctors = [];
+      const uniqueNames = new Set();
+
+      // Process Profiles
+      if (profiles) {
+        profiles.forEach((profile, index) => {
+          if (!profile.full_name) return;
+          const name = profile.full_name.toLowerCase();
+          if (name.includes('test') || name.includes('tester')) return;
+          
+          if (!uniqueNames.has(profile.full_name)) {
             uniqueNames.add(profile.full_name);
-            return true;
-          })
-          .map((profile, index) => ({
-            id: profile.id,
-            name: profile.full_name || 'Anonymous Staff',
-            specialty: profile.role === 'admin' ? 'Head Doctor' : 'Clinical Staff',
-            color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
-            avatar: getInitials(profile.full_name)
-          }));
-        setDoctors(mappedDoctors);
+            combinedDoctors.push({
+              id: profile.id,
+              name: profile.full_name,
+              specialty: profile.role === 'admin' ? 'Head Doctor' : 'System Staff',
+              color: ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-amber-500'][index % 5],
+              avatar: getInitials(profile.full_name)
+            });
+          }
+        });
       }
+
+      // Process Dental Staff
+      if (dentalStaff) {
+        dentalStaff.forEach((staff) => {
+          if (!uniqueNames.has(staff.name)) {
+            uniqueNames.add(staff.name);
+            combinedDoctors.push({
+              id: staff.id,
+              name: staff.name,
+              specialty: staff.specialty,
+              color: staff.color || 'bg-blue-600',
+              avatar: getInitials(staff.name)
+            });
+          }
+        });
+      }
+
+      setDoctors(combinedDoctors);
     } catch (err) {
       console.error('DentalModule: Error fetching staff:', err);
     }
@@ -90,18 +114,18 @@ const DentalModule = () => {
   const handleAddDoctor = async (e) => {
     e.preventDefault();
     try {
-      const { error: profileError } = await supabase
-        .from('profiles')
+      const { error } = await supabase
+        .from('dental_staff')
         .insert([{
-          full_name: newDoctor.full_name,
-          role: newDoctor.role,
-          updated_at: new Date()
+          name: newDoctor.name,
+          specialty: newDoctor.specialty,
+          color: newDoctor.color
         }]);
 
-      if (profileError) throw profileError;
+      if (error) throw error;
       
       setShowAddDoctorModal(false);
-      setNewDoctor({ full_name: '', role: 'user', specialty: 'Clinical Staff' });
+      setNewDoctor({ name: '', specialty: 'Dentist', color: 'bg-blue-500' });
       fetchDoctors();
     } catch (err) {
       console.error('Error adding doctor:', err);
@@ -221,9 +245,10 @@ const DentalModule = () => {
                     <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors?.length || 0} active</span>
                     <button 
                       onClick={() => setShowAddDoctorModal(true)}
-                      className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all shadow-lg"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
                     >
-                      <Users className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
+                      <span className="text-xs font-bold">Add Doctor</span>
                     </button>
                   </div>
                 </div>
@@ -246,41 +271,52 @@ const DentalModule = () => {
         </div>
 
         {showAddDoctorModal && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden">
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
               <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="text-xl font-black text-gray-900">Add Clinical Staff</h3>
-                <button onClick={() => setShowAddDoctorModal(false)} className="text-gray-400 hover:text-gray-900">
-                  <Maximize2 className="w-6 h-6 rotate-45" />
+                <button onClick={() => setShowAddDoctorModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                   <Maximize2 className="w-5 h-5 text-gray-400 rotate-45" />
                 </button>
               </div>
               <form onSubmit={handleAddDoctor} className="p-8 space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Full Name</label>
                   <input 
                     required
                     type="text" 
-                    placeholder="Dr. Jane Smith"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900"
-                    value={newDoctor.full_name}
-                    onChange={(e) => setNewDoctor({...newDoctor, full_name: e.target.value})}
+                    placeholder="e.g. Dr. Jane Smith"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={newDoctor.name}
+                    onChange={(e) => setNewDoctor({...newDoctor, name: e.target.value})}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Role</label>
-                  <select 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900"
-                    value={newDoctor.role}
-                    onChange={(e) => setNewDoctor({...newDoctor, role: e.target.value})}
-                  >
-                    <option value="user">Doctor / Staff</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Administrator</option>
-                  </select>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Specialty</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Orthodontist"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    value={newDoctor.specialty}
+                    onChange={(e) => setNewDoctor({...newDoctor, specialty: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Calendar Color</label>
+                  <div className="flex gap-3">
+                    {['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-rose-600', 'bg-amber-600'].map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setNewDoctor({...newDoctor, color: c})}
+                        className={`w-8 h-8 rounded-full ${c} ${newDoctor.color === c ? 'ring-4 ring-offset-2 ring-gray-200' : ''} transition-all`}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <button 
                   type="submit"
-                  className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-500 shadow-xl shadow-blue-600/20"
+                  className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] mt-4"
                 >
                   Create Profile
                 </button>
