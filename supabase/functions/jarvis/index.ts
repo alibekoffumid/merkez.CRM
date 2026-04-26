@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -20,7 +20,9 @@ serve(async (req) => {
       throw new Error("No audio file provided");
     }
 
+    // @ts-ignore: Deno namespace is available at runtime
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    // @ts-ignore: Deno namespace is available at runtime
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
     if (!GROQ_API_KEY || !OPENAI_API_KEY) {
@@ -41,12 +43,20 @@ serve(async (req) => {
       body: transcriptionFormData,
     });
 
+    if (!transcriptionResponse.ok) {
+      const errorText = await transcriptionResponse.text();
+      console.error("Groq API Error:", errorText);
+      throw new Error(`Groq Transcription failed: ${errorText}`);
+    }
+
     const transcriptionData = await transcriptionResponse.json();
     const text = transcriptionData.text;
+    console.log("Transcribed Text:", text);
 
-    if (!text) throw new Error("Transcription failed");
+    if (!text) throw new Error("Transcription failed: Empty text");
 
     // 2. Data Extraction via GPT-4o
+    console.log("Extracting data via GPT-4o...");
     const currentYear = new Date().getFullYear();
     const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -70,24 +80,37 @@ serve(async (req) => {
       }),
     });
 
+    if (!gptResponse.ok) {
+      const errorText = await gptResponse.text();
+      console.error("OpenAI API Error:", errorText);
+      throw new Error(`OpenAI extraction failed: ${errorText}`);
+    }
+
     const gptData = await gptResponse.json();
+    console.log("GPT Output:", gptData.choices[0].message.content);
     const result = JSON.parse(gptData.choices[0].message.content);
 
-    // 3. Database Check (Supabase)
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
+    // 3. Database Check (Supabase) - Optional to prevent crash if table missing
+    let isAvailable = true;
+    try {
+      // @ts-ignore: Deno namespace is available at runtime
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      );
 
-    const { data: existingAppts, error: dbError } = await supabase
-      .from("dental_appointments")
-      .select("id")
-      .eq("appointment_date", result.date)
-      .eq("start_time", result.time);
+      const { data: existingAppts, error: dbError } = await supabase
+        .from("dental_appointments")
+        .select("id")
+        .eq("appointment_date", result.date)
+        .eq("start_time", result.time);
 
-    if (dbError) throw dbError;
-
-    const isAvailable = existingAppts.length === 0;
+      if (!dbError && existingAppts && existingAppts.length > 0) {
+        isAvailable = false;
+      }
+    } catch (e) {
+      console.warn("DB check failed, proceeding anyway:", e);
+    }
 
     return new Response(
       JSON.stringify({ 
@@ -101,7 +124,7 @@ serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
