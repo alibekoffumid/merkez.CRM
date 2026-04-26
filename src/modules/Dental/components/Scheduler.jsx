@@ -10,7 +10,8 @@ import {
   MoreHorizontal, 
   Loader2,
   X,
-  User 
+  User,
+  Phone 
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
@@ -92,8 +93,8 @@ const Scheduler = ({ isFullPage }) => {
           }));
         setDoctors(mappedDoctors);
         
-        // Update initial doctor_name in formData if it was empty
-        if (!formData.doctor_name) {
+        // Update initial doctor_name in formData if it was empty and we have doctors
+        if (!formData.doctor_name && mappedDoctors.length > 0) {
           setFormData(prev => ({ ...prev, doctor_name: mappedDoctors[0].name }));
         }
       }
