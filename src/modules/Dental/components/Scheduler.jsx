@@ -21,10 +21,10 @@ const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
 };
 
-const timeSlots = Array.from({ length: 32 }, (_, i) => {
-  const hour = 8 + Math.floor(i / 2);
+const timeSlots = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2);
   const min = i % 2 === 0 ? '00' : '30';
-  return `${hour}:${min}`;
+  return `${hour.toString().padStart(2, '0')}:${min}`;
 });
 
 const Scheduler = ({ isFullPage }) => {
@@ -246,10 +246,8 @@ const Scheduler = ({ isFullPage }) => {
     const hours = now.getHours();
     const minutes = now.getMinutes();
     
-    // Grid starts at 08:00. 1 hour = 96px (2 slots * 48px)
-    if (hours < 8 || hours >= 24) return null;
-    
-    const top = ((hours - 8) * 96) + (minutes / 60 * 96);
+    // Grid starts at 00:00. 1 hour = 80px (2 slots * 40px)
+    const top = (hours * 80) + (minutes / 60 * 80);
     return top;
   };
 
@@ -340,9 +338,9 @@ const Scheduler = ({ isFullPage }) => {
             {/* Time Gutter */}
             <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50">
               {timeSlots.map((time, index) => (
-                <div key={time} className="h-12 flex items-start justify-center pt-1.5 border-b border-gray-50/80">
+                <div key={time} className="h-10 flex items-start justify-center pt-1.5 border-b border-gray-50/80">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    {index % 2 === 0 ? time : ''}
+                    {time.endsWith(':00') ? time : ''}
                   </span>
                 </div>
               ))}
@@ -354,7 +352,7 @@ const Scheduler = ({ isFullPage }) => {
                 <div key={doctor.id} className="flex-1 border-r border-gray-100 relative">
                   {/* Slots */}
                   {timeSlots.map(time => (
-                    <div key={time} className="h-12 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
+                    <div key={time} className="h-10 border-b border-gray-50 group/slot hover:bg-blue-50/30 transition-colors flex items-center justify-center">
                       <button 
                         onClick={() => {
                           setFormData({
@@ -378,10 +376,10 @@ const Scheduler = ({ isFullPage }) => {
                     {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}
                     {!loading && appointments.filter(app => app.doctorName === doctor.name).map((app, index) => {
                       const timeStr = app.time || '00:00';
-                      const startHour = parseInt(timeStr.split(':')[0]) || 8;
+                      const startHour = parseInt(timeStr.split(':')[0]) || 0;
                       const startMin = parseInt(timeStr.split(':')[1]) || 0;
-                      const top = ((startHour - 8) * 96) + (startMin / 60 * 96);
-                      const height = ((app.duration || 30) / 60) * 96;
+                      const top = (startHour * 80) + (startMin / 60 * 80);
+                      const height = ((app.duration || 30) / 60) * 80;
 
                       const statusColors = {
                         CONFIRMED: 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-emerald-100/50',
