@@ -66,8 +66,9 @@ const JarvisVoice: React.FC = () => {
       const formData = new FormData();
       formData.append('audio', blob, `recording.${ext}`);
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const meta = import.meta as any;
+      const supabaseUrl = meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${supabaseUrl}/functions/v1/jarvis`, {
         method: 'POST',
