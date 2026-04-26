@@ -8,6 +8,8 @@ import DentalInventory from './components/DentalInventory';
 import PatientList from './components/PatientList';
 import TreatmentHistory from './components/TreatmentHistory';
 import XRayGallery from './components/XRayGallery';
+import JarvisVoice from './components/JarvisVoice';
+import { useUser } from '../../core/UserContext';
 
 const getInitials = (name) => {
   if (!name) return '?';
@@ -350,6 +352,8 @@ const DentalModule = () => {
             </div>
           </div>
         )}
+        {/* Voice Assistant Jarvis */}
+        <JarvisVoice />
       </div>
     );
   } catch (err) {
