@@ -51,26 +51,22 @@ const DentalModule = () => {
 
   const fetchDoctors = async () => {
     try {
-      console.log('DentalModule: Fetching isolated staff...');
+      console.log('DentalModule: Fetching isolated staff (Robust Mode)...');
       
-      // 1. Fetch from profiles (System Users) - Only if they have a specific flag or we want them global
       const { data: profiles } = await supabase
         .from('profiles')
         .select('*')
-        .in('role', ['admin']) // Only global admins for now
+        .in('role', ['admin'])
         .order('full_name');
 
-      // 2. Fetch from staff table filtered by MODULE = 'dental'
       const { data: staffData } = await supabase
         .from('staff')
         .select('*')
-        .eq('module', 'dental')
         .order('name');
       
       const combinedDoctors = [];
       const uniqueNames = new Set();
 
-      // Process Profiles (System Admins)
       if (profiles) {
         profiles.forEach((profile, index) => {
           if (!profile.full_name) return;
@@ -91,16 +87,19 @@ const DentalModule = () => {
         });
       }
 
-      // Process Dental Staff (Isolated)
       if (staffData) {
         staffData.forEach((staff) => {
-          if (!uniqueNames.has(staff.name)) {
+          // Robust parsing of role field: "ROLE|SPECIALTY|COLOR|MODULE"
+          const roleParts = (staff.role || '').split('|');
+          const isDental = roleParts[3] === 'dental' || staff.module === 'dental';
+          
+          if (isDental && !uniqueNames.has(staff.name)) {
             uniqueNames.add(staff.name);
             combinedDoctors.push({
               id: staff.id,
               name: staff.name,
-              specialty: staff.specialty || 'Dentist',
-              color: staff.color || 'bg-blue-600',
+              specialty: roleParts[1] || staff.specialty || 'Dentist',
+              color: roleParts[2] || staff.color || 'bg-blue-600',
               avatar: getInitials(staff.name),
               type: 'isolated'
             });
@@ -119,15 +118,15 @@ const DentalModule = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Robust Data String: "ROLE|SPECIALTY|COLOR|MODULE"
+      const robustRole = `Dentist|${newDoctor.specialty}|${newDoctor.color}|dental`;
+
       const { error } = await supabase
         .from('staff')
         .insert([{
           name: newDoctor.name,
-          role: 'Dentist', 
-          specialty: newDoctor.specialty,
-          color: newDoctor.color,
+          role: robustRole, // Store all metadata in one safe column
           status: 'Active',
-          module: 'dental', // STRICT ISOLATION
           user_id: user?.id
         }]);
 
