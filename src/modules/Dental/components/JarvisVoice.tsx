@@ -17,6 +17,16 @@ const JarvisVoice: React.FC = () => {
   const [result, setResult] = useState<JarvisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   
+  const speak = (text: string) => {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ru-RU'; // Set to Russian
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
+
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
@@ -89,6 +99,9 @@ const JarvisVoice: React.FC = () => {
 
       if (!data.isAvailable) {
         setError('Time slot is already taken! 🛑');
+        speak('К сожалению, это время уже занято.');
+      } else if (data.message) {
+        speak(data.message);
       }
 
       setResult(data.result);
@@ -116,6 +129,7 @@ const JarvisVoice: React.FC = () => {
 
       if (dbError) throw dbError;
       
+      speak('Запись успешно подтверждена и сохранена.');
       setShowConfirmModal(false);
       setResult(null);
       alert('Appointment created successfully! 🎉');

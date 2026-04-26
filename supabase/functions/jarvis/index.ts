@@ -72,7 +72,8 @@ serve(async (req: Request) => {
             role: "system",
             content: `You are a dental assistant. Extract appointment details from text. 
             Return ONLY a valid JSON object. 
-            Format: { "patient_name": "string", "procedure_type": "string", "date": "YYYY-MM-DD", "time": "HH:mm" }.
+            Format: { "patient_name": "string", "procedure_type": "string", "date": "YYYY-MM-DD", "time": "HH:mm", "message": "string" }.
+            The 'message' should be a friendly confirmation in Russian, e.g., 'Запись для Алибекова на завтра в 10 утра готова. Подтверждаете?'.
             Current date: ${new Date().toISOString().split('T')[0]}. 
             If year is not specified, use ${currentYear}.`
           },
@@ -118,6 +119,7 @@ serve(async (req: Request) => {
       JSON.stringify({ 
         result, 
         isAvailable, 
+        message: result.message,
         transcription: text 
       }),
       { 
