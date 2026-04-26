@@ -62,7 +62,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
   };
 
   // Role-Based Access Control (RBAC) - More permissive for the clinical staff
-  const userRole = profile?.role?.toUpperCase() || 'USER';
+  const userRole = (profile as any)?.role?.toUpperCase() || 'USER';
   const hasAccess = ['ADMIN', 'MANAGER', 'USER', 'DENTIST'].includes(userRole);
 
   // Tooth layout: 1-16 upper, 17-32 lower
@@ -123,7 +123,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
     if (!selectedTooth || !patientId) return;
 
     try {
-      const doctorName = profile?.fullName || 'Dr. Unknown';
+      const doctorName = (profile as any)?.fullName || (profile as any)?.full_name || 'Dr. Unknown';
       const record = await DentalService.updateToothCondition(
         patientId,
         selectedTooth,
