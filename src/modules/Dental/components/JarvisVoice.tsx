@@ -66,11 +66,24 @@ const JarvisVoice: React.FC = () => {
       const formData = new FormData();
       formData.append('audio', blob, `recording.${ext}`);
 
-      const { data, error: funcError } = await supabase.functions.invoke('jarvis', {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/jarvis`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
         body: formData,
       });
 
-      if (funcError) throw funcError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Jarvis API Error:', errorData);
+        throw new Error(errorData.error || `Server responded with ${response.status}`);
+      }
+
+      const data = await response.json();
 
       if (!data.isAvailable) {
         setError('Time slot is already taken! 🛑');
