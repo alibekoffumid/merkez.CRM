@@ -56,24 +56,25 @@ serve(async (req: Request) => {
 
     if (!text) throw new Error("Transcription failed: Empty text");
 
-    // 2. Data Extraction via GPT-4o
-    console.log("Extracting data via GPT-4o...");
+    // 2. Data Extraction via Groq (Llama 3 70B)
+    console.log("Extracting data via Groq Llama 3...");
     const currentYear = new Date().getFullYear();
-    const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const gptResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "llama-3.1-70b-versatile",
         messages: [
           {
             role: "system",
             content: `You are a dental assistant. Extract appointment details from text. 
             Return ONLY a valid JSON object. 
             Format: { "patient_name": "string", "procedure_type": "string", "date": "YYYY-MM-DD", "time": "HH:mm" }.
-            If current year is ${currentYear}, use it for relative dates (e.g. 'tomorrow').`
+            Current date: ${new Date().toISOString().split('T')[0]}. 
+            If year is not specified, use ${currentYear}.`
           },
           { role: "user", content: text }
         ],
@@ -83,12 +84,12 @@ serve(async (req: Request) => {
 
     if (!gptResponse.ok) {
       const errorText = await gptResponse.text();
-      console.error("OpenAI API Error:", errorText);
-      throw new Error(`OpenAI extraction failed: ${errorText}`);
+      console.error("Groq Extraction Error:", errorText);
+      throw new Error(`Groq extraction failed: ${errorText}`);
     }
 
     const gptData = await gptResponse.json();
-    console.log("GPT Output:", gptData.choices[0].message.content);
+    console.log("Groq Llama Output:", gptData.choices[0].message.content);
     const result = JSON.parse(gptData.choices[0].message.content);
 
     // 3. Database Check (Supabase) - Optional to prevent crash if table missing
