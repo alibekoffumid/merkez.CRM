@@ -607,7 +607,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                           {/* Color accent stripe */}
                           <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${accent}`} />
                           
-                          <div className="flex items-center h-full relative pl-6 pr-12 gap-8">
+                          <div className="flex items-center h-full relative pl-6 pr-10 gap-8">
                             {/* 1. Name Section */}
                             <div className="min-w-[140px]">
                                <h4 className="text-[14px] font-black tracking-tight text-gray-900 truncate leading-none mb-1">{app.patient}</h4>
@@ -654,7 +654,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                 e.stopPropagation();
                                 handleDeleteAppointment(app.id);
                               }}
-                              className="absolute right-4 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto"
+                              className="absolute right-2 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto"
                               title="Delete"
                             >
                               <X className="w-4 h-4" />
