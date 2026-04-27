@@ -586,42 +586,54 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                           }}
                         >
                           {/* Color accent stripe */}
-                          <div className={`absolute left-0 top-2 bottom-2 w-1 rounded-full ${accent}`} />
-                          <div className="flex flex-col justify-center h-full relative">
-                            <div className="flex flex-col pr-8">
-                               <h4 className="text-[13px] font-black tracking-tight truncate text-gray-900 leading-tight mb-0.5">{app.patient}</h4>
+                          <div className={`absolute left-0 top-3 bottom-3 w-1.5 rounded-r-full ${accent} shadow-[2px_0_10px_-2px_rgba(0,0,0,0.1)]`} />
+                          
+                          <div className="flex flex-col h-full relative pl-2 pr-6">
+                            {/* Header: Name & Phone */}
+                            <div className="mb-auto">
+                               <h4 className="text-[13px] font-black tracking-tight text-gray-900 truncate leading-none pt-1">{app.patient}</h4>
                                {app.phone && (
-                                 <p className="text-[10px] font-bold text-blue-600/80 truncate flex items-center gap-1.5">
+                                 <p className="text-[10px] font-bold text-blue-500/90 mt-1 flex items-center gap-1.5">
                                    <Phone className="w-3 h-3 shrink-0" /> {app.phone}
                                  </p>
                                )}
-                               <p className="text-[10px] font-bold text-gray-400 truncate flex items-center gap-1">
-                                 <Activity className="w-3 h-3 shrink-0" /> {app.type}
-                               </p>
+                            </div>
+
+                            {/* Middle: Procedure & Notes */}
+                            <div className="mt-2 space-y-1">
+                               <div className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-0.5 rounded-lg border border-gray-100 w-fit">
+                                 <Activity className="w-3 h-3 text-gray-400" />
+                                 <span className="text-[10px] font-bold text-gray-600 truncate max-w-[120px]">{app.type}</span>
+                               </div>
+                               
                                {app.notes && (
-                                 <p className="text-[9px] font-medium text-gray-500 italic truncate mt-0.5 border-t border-gray-100/50 pt-0.5">
-                                    {app.notes}
-                                 </p>
+                                 <div className="flex items-start gap-1.5 mt-1 opacity-80">
+                                   <div className="w-1 h-1 rounded-full bg-gray-300 mt-1.5 shrink-0" />
+                                   <p className="text-[9px] font-medium text-gray-500 italic leading-tight line-clamp-2">
+                                      {app.notes}
+                                   </p>
+                                 </div>
                                )}
-                               <button 
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   handleDeleteAppointment(app.id);
-                                 }}
-                                 className="opacity-0 group-hover/app:opacity-100 transition-opacity p-1.5 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-lg absolute right-0 top-0 pointer-events-auto shadow-sm"
-                                 title="Delete"
-                               >
-                                 <X className="w-3.5 h-3.5" />
-                               </button>
                             </div>
                             
+                            {/* Footer: Time */}
                             {!isSmall && (
-                              <div className="flex items-center gap-3 mt-auto pt-1">
-                                <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60">
-                                  <Clock className="w-2.5 h-2.5" /> {app.time}
-                                </div>
+                              <div className="mt-auto pt-2 flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                <Clock className="w-3 h-3" /> {app.time}
                               </div>
                             )}
+
+                            {/* Delete Button - Absolute positioned in the corner */}
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAppointment(app.id);
+                              }}
+                              className="absolute top-0 right-[-1.25rem] opacity-0 group-hover/app:opacity-100 transition-all p-1.5 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl pointer-events-auto shadow-sm translate-x-2 group-hover/app:translate-x-0"
+                              title="Delete"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </div>
                       );
