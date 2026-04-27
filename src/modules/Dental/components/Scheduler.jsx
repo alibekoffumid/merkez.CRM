@@ -38,6 +38,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
   const [showPatientDropdown, setShowPatientDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [showCalendar, setShowCalendar] = useState(false);
   const [formData, setFormData] = useState({
     patient_name: '',
     phone: '',
@@ -239,20 +240,88 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
       {/* Premium Header */}
       <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-30 gap-6 rounded-t-[2.5rem]">
         <div className="flex items-center gap-6">
-          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5">
+          <div 
+            className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5 cursor-pointer hover:bg-blue-500/20 transition-all"
+            onClick={() => setShowCalendar(!showCalendar)}
+          >
             <CalendarIcon className="w-7 h-7 text-blue-400" />
           </div>
-          <div>
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+          <div className="relative">
+            <h2 
+              className="text-2xl font-black text-gray-900 tracking-tight cursor-pointer hover:text-blue-600 transition-colors"
+              onClick={() => setShowCalendar(!showCalendar)}
+            >
               {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', day: 'numeric' })}
             </h2>
             <div className="flex items-center gap-4 mt-1">
               <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
                 <button onClick={() => changeDate(-1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
-                <button onClick={() => setCurrentDate(new Date())} className="px-4 text-[10px] font-black text-gray-500 hover:text-gray-900 uppercase tracking-widest transition-colors">Today</button>
+                {currentDate.toDateString() === new Date().toDateString() ? (
+                  <span className="px-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">Today</span>
+                ) : (
+                  <button onClick={() => setCurrentDate(new Date())} className="px-4 text-[10px] font-black text-gray-500 hover:text-blue-600 uppercase tracking-widest transition-colors">Today</button>
+                )}
                 <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
+
+            {/* Calendar Popup */}
+            {showCalendar && (
+              <div className="absolute top-full left-0 mt-2 z-[500] bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 w-72 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="flex items-center justify-between mb-3">
+                  <button onClick={() => {
+                    const d = new Date(currentDate);
+                    d.setMonth(d.getMonth() - 1);
+                    setCurrentDate(d);
+                  }} className="p-1 hover:bg-gray-100 rounded-lg"><ChevronLeft className="w-4 h-4" /></button>
+                  <span className="text-sm font-black text-gray-900">
+                    {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <button onClick={() => {
+                    const d = new Date(currentDate);
+                    d.setMonth(d.getMonth() + 1);
+                    setCurrentDate(d);
+                  }} className="p-1 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
+                </div>
+                <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                  {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => (
+                    <span key={d} className="text-[9px] font-black text-gray-400 uppercase">{d}</span>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {(() => {
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth();
+                    const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    const today = new Date();
+                    const cells = [];
+                    for (let i = 0; i < firstDay; i++) cells.push(<div key={`e${i}`} />);
+                    for (let day = 1; day <= daysInMonth; day++) {
+                      const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                      const isSelected = day === currentDate.getDate();
+                      cells.push(
+                        <button
+                          key={day}
+                          onClick={() => {
+                            setCurrentDate(new Date(year, month, day));
+                            setShowCalendar(false);
+                          }}
+                          className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                            isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' :
+                            isToday ? 'bg-blue-50 text-blue-600 border border-blue-200' :
+                            'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    }
+                    return cells;
+                  })()}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
