@@ -12,7 +12,8 @@ import {
   X,
   User,
   Phone,
-  Edit2
+  Edit2,
+  ChevronDown
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
