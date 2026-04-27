@@ -187,7 +187,7 @@ const DentalModule = () => {
       <div className={`
         flex flex-col min-h-full transition-all duration-500
         ${isFullPage 
-          ? 'fixed inset-0 z-[100] bg-gray-50 p-2 md:p-4 rounded-0 overflow-hidden' 
+          ? `fixed inset-0 z-[100] bg-gray-50 p-2 md:p-4 rounded-0 ${activeTab === 'scheduler' ? 'overflow-hidden' : 'overflow-y-auto'}` 
           : 'bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100 space-y-6'}
       `}>
         {isFullPage && (
@@ -244,7 +244,7 @@ const DentalModule = () => {
           </div>
         )}
 
-        <div className={`flex-1 transition-all duration-500 ${isFullPage ? 'h-full overflow-hidden' : ''}`}>
+        <div className={`flex-1 transition-all duration-500 ${isFullPage && activeTab === 'scheduler' ? 'h-full overflow-hidden' : ''}`}>
           {activeTab === 'scheduler' && (
             <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${isFullPage ? 'h-full' : ''}`}>
               <Scheduler 
