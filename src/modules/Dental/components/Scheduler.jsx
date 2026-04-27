@@ -41,6 +41,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showDoctorDropdown, setShowDoctorDropdown] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [selectedDoctorId, setSelectedDoctorId] = useState('all');
   const [isEditingClient, setIsEditingClient] = useState(false);
@@ -349,21 +350,57 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
 
-              {/* Doctor Dropdown */}
-              <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
-                <div className="flex items-center gap-2 px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-200">
-                  <User className="w-3 h-3" /> Staff
-                </div>
-                <select 
-                  value={selectedDoctorId} 
-                  onChange={(e) => setSelectedDoctorId(e.target.value)}
-                  className="bg-transparent px-4 py-1 text-xs font-bold text-gray-700 outline-none cursor-pointer"
+              {/* Custom Doctor Dropdown */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowDoctorDropdown(!showDoctorDropdown)}
+                  className="flex items-center gap-3 bg-gray-100/80 hover:bg-white hover:shadow-md border border-gray-200/50 rounded-xl px-4 py-2 transition-all group"
                 >
-                  <option value="all">All Doctors</option>
-                  {doctors.map(doc => (
-                    <option key={doc.id} value={doc.id}>{doc.name}</option>
-                  ))}
-                </select>
+                  <div className="flex items-center gap-2 pr-3 border-r border-gray-200/50">
+                    <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Staff</span>
+                  </div>
+                  <span className="text-xs font-black text-gray-700 min-w-[100px] text-left">
+                    {selectedDoctorId === 'all' ? 'All Doctors' : doctors.find(d => d.id === selectedDoctorId)?.name}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${showDoctorDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showDoctorDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-[490]" onClick={() => setShowDoctorDropdown(false)} />
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 min-w-[200px] animate-in zoom-in-95 fade-in duration-200 origin-top">
+                      <button
+                        onClick={() => {
+                          setSelectedDoctorId('all');
+                          setShowDoctorDropdown(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${selectedDoctorId === 'all' ? 'bg-blue-50/50 text-blue-600' : 'text-gray-600'}`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black">ALL</div>
+                        <span className="text-xs font-bold uppercase tracking-wider">All Doctors</span>
+                      </button>
+                      
+                      <div className="h-px bg-gray-50 my-1 mx-2" />
+                      
+                      {doctors.map(doc => (
+                        <button
+                          key={doc.id}
+                          onClick={() => {
+                            setSelectedDoctorId(doc.id);
+                            setShowDoctorDropdown(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${selectedDoctorId === doc.id ? 'bg-blue-50/50 text-blue-600' : 'text-gray-600'}`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg ${doc.color} flex items-center justify-center text-[10px] font-black text-white shadow-sm`}>
+                            {doc.avatar}
+                          </div>
+                          <span className="text-xs font-bold">{doc.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
