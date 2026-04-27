@@ -219,7 +219,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
         )}
 
         {/* Hover Info Tooltip */}
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-48 bg-gray-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[60] scale-90 group-hover:scale-100 origin-bottom">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-gray-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[60] scale-90 group-hover:scale-100 origin-bottom">
           <div className="flex items-center justify-between mb-2 border-b border-white/10 pb-2">
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tooth #{num}</span>
             <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${config.bg.replace('/10', '/30')} ${config.color}`}>
@@ -325,7 +325,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
           
           <div 
             ref={upperRowRef}
-            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 py-8"
+            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 py-24"
             style={{ scrollSnapType: 'x mandatory' }}
           >
             {upperTeeth.map(num => (
@@ -371,7 +371,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
 
           <div 
             ref={lowerRowRef}
-            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 py-8"
+            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 py-24"
             style={{ scrollSnapType: 'x mandatory' }}
           >
             {lowerTeeth.map(num => (
