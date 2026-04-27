@@ -325,52 +325,52 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   return (
     <div className={`flex flex-col font-sans ${isFullPage ? 'h-full' : 'flex-1'}`}>
       {/* Premium Header */}
-      <div className="p-4 md:p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-[100] gap-4 md:gap-6">
-        <div className="flex items-center gap-3 md:gap-6 w-full lg:w-auto">
+      <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-[100] gap-6">
+        <div className="flex items-center gap-6">
           <div 
-            className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5 cursor-pointer hover:bg-blue-500/20 transition-all shrink-0"
+            className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5 cursor-pointer hover:bg-blue-500/20 transition-all"
             onClick={() => setShowCalendar(!showCalendar)}
           >
-            <CalendarIcon className="w-6 h-6 md:w-7 md:h-7 text-blue-400" />
+            <CalendarIcon className="w-7 h-7 text-blue-400" />
           </div>
-          <div className="relative flex-1">
+          <div className="relative">
             <h2 
-              className="text-lg md:text-2xl font-black text-gray-900 tracking-tight cursor-pointer hover:text-blue-600 transition-colors truncate"
+              className="text-2xl font-black text-gray-900 tracking-tight cursor-pointer hover:text-blue-600 transition-colors"
               onClick={() => setShowCalendar(!showCalendar)}
             >
-              {currentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric', day: 'numeric' })}
+              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', day: 'numeric' })}
             </h2>
-            <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1">
-              <div className="flex bg-gray-100 rounded-xl p-0.5 md:p-1 border border-gray-200/50">
-                <button onClick={() => changeDate(-1)} className="p-1 md:p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-3 h-3 md:w-4 md:h-4" /></button>
+            <div className="flex items-center gap-4 mt-1">
+              <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
+                <button onClick={() => changeDate(-1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
                 {currentDate.toDateString() === new Date().toDateString() ? (
-                  <span className="px-2 md:px-4 text-[8px] md:text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">Today</span>
+                  <span className="px-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">Today</span>
                 ) : (
-                  <button onClick={() => setCurrentDate(new Date())} className="px-2 md:px-4 text-[8px] md:text-[10px] font-black text-gray-500 hover:text-blue-600 uppercase tracking-widest transition-colors">Today</button>
+                  <button onClick={() => setCurrentDate(new Date())} className="px-4 text-[10px] font-black text-gray-500 hover:text-blue-600 uppercase tracking-widest transition-colors">Today</button>
                 )}
-                <button onClick={() => changeDate(1)} className="p-1 md:p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-3 h-3 md:w-4 md:h-4" /></button>
+                <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
 
               {/* Custom Doctor Dropdown */}
               <div className="relative">
                 <button 
                   onClick={() => setShowDoctorDropdown(!showDoctorDropdown)}
-                  className="flex items-center gap-2 md:gap-3 bg-gray-100/80 hover:bg-white hover:shadow-md border border-gray-200/50 rounded-xl px-3 md:px-4 py-1.5 md:py-2 transition-all group"
+                  className="flex items-center gap-3 bg-gray-100/80 hover:bg-white hover:shadow-md border border-gray-200/50 rounded-xl px-4 py-2 transition-all group"
                 >
-                  <div className="flex items-center gap-1 md:gap-2 pr-2 md:pr-3 border-r border-gray-200/50">
-                    <User className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                    <span className="text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest hidden sm:inline">Staff</span>
+                  <div className="flex items-center gap-2 pr-3 border-r border-gray-200/50">
+                    <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Staff</span>
                   </div>
-                  <span className="text-[10px] md:text-xs font-black text-gray-700 min-w-[80px] md:min-w-[100px] text-left truncate">
+                  <span className="text-xs font-black text-gray-700 min-w-[100px] text-left">
                     {selectedDoctorId === 'all' ? 'All Doctors' : doctors.find(d => d.id === selectedDoctorId)?.name}
                   </span>
-                  <ChevronDown className={`w-3 h-3 md:w-3.5 md:h-3.5 text-gray-400 transition-transform duration-300 ${showDoctorDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${showDoctorDropdown ? 'rotate-180' : ''}`} />
                 </button>
 
                 {showDoctorDropdown && (
                   <>
                     <div className="fixed inset-0 z-[490]" onClick={() => setShowDoctorDropdown(false)} />
-                    <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 min-w-[180px] md:min-w-[200px] animate-in zoom-in-95 fade-in duration-200 origin-top">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 min-w-[200px] animate-in zoom-in-95 fade-in duration-200 origin-top">
                       <button
                         onClick={() => {
                           setSelectedDoctorId('all');
@@ -378,8 +378,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${selectedDoctorId === 'all' ? 'bg-blue-50/50 text-blue-600' : 'text-gray-600'}`}
                       >
-                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[8px] md:text-[10px] font-black">ALL</div>
-                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider">All Doctors</span>
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black">ALL</div>
+                        <span className="text-xs font-bold uppercase tracking-wider">All Doctors</span>
                       </button>
                       
                       <div className="h-px bg-gray-50 my-1 mx-2" />
@@ -393,10 +393,10 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${selectedDoctorId === doc.id ? 'bg-blue-50/50 text-blue-600' : 'text-gray-600'}`}
                         >
-                          <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg ${doc.color} flex items-center justify-center text-[8px] md:text-[10px] font-black text-white shadow-sm shrink-0`}>
+                          <div className={`w-8 h-8 rounded-lg ${doc.color} flex items-center justify-center text-[10px] font-black text-white shadow-sm`}>
                             {doc.avatar}
                           </div>
-                          <span className="text-[10px] md:text-xs font-bold truncate">{doc.name}</span>
+                          <span className="text-xs font-bold">{doc.name}</span>
                         </button>
                       ))}
                     </div>

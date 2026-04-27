@@ -213,30 +213,21 @@ const PatientList = ({ onViewChart }) => {
           filteredPatients.map((patient) => (
             <div 
               key={patient.id}
-              className="group bg-white rounded-[1.5rem] md:rounded-[2rem] border border-gray-100 p-4 md:p-6 hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-blue-600/5 relative overflow-hidden"
+              className="group bg-white rounded-[2rem] border border-gray-100 p-6 hover:border-blue-200 transition-all duration-300 shadow-sm hover:shadow-xl hover:shadow-blue-600/5 relative overflow-hidden"
             >
               {/* Background Accent */}
-              <div className={`absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 opacity-[0.03] -translate-y-12 md:-translate-y-16 translate-x-12 md:translate-x-16 rounded-full group-hover:scale-150 transition-transform duration-700 ${(patient.estimated_value || 0) < 0 ? 'bg-red-600' : 'bg-emerald-600'}`} />
+              <div className={`absolute top-0 right-0 w-32 h-32 opacity-[0.03] -translate-y-16 translate-x-16 rounded-full group-hover:scale-150 transition-transform duration-700 ${(patient.estimated_value || 0) < 0 ? 'bg-red-600' : 'bg-emerald-600'}`} />
 
-              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 relative z-10">
-                {/* Avatar & Basic Info */}
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 flex items-center justify-center shadow-inner shrink-0">
-                    <User className="w-6 h-6 md:w-8 md:h-8 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                  </div>
-                  <div className="flex-1 md:hidden">
-                    <h3 className="text-base font-black text-gray-900 tracking-tight leading-tight">{patient.name}</h3>
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                      <Phone className="w-3 h-3" />
-                      {patient.phone || 'No phone'}
-                    </div>
-                  </div>
+              <div className="flex flex-col lg:flex-row items-center gap-6 relative z-10">
+                {/* Avatar */}
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+                  <User className="w-8 h-8 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </div>
 
-                {/* Patient Info (Hidden on mobile, replaced by compact view above) */}
-                <div className="hidden md:block flex-1">
+                {/* Patient Info */}
+                <div className="flex-1 text-center lg:text-left">
                   <h3 className="text-lg font-black text-gray-900 tracking-tight">{patient.name}</h3>
-                  <div className="flex flex-wrap gap-4 mt-2">
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-2">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
                       <Phone className="w-3.5 h-3.5" />
                       {patient.phone || 'No phone'}
@@ -249,40 +240,35 @@ const PatientList = ({ onViewChart }) => {
                 </div>
 
                 {/* Financial Status */}
-                <div className="flex items-center md:items-end justify-between md:flex-col gap-2 w-full md:w-auto px-0 md:px-6 md:border-x md:border-gray-100 border-t border-gray-50 pt-3 md:pt-0">
-                  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400">{t('dental.balance')}</p>
-                  <div className={`flex items-center gap-1 text-base md:text-xl font-black ${(patient.estimated_value || 0) < 0 ? 'text-rose-500' : (patient.estimated_value || 0) > 0 ? 'text-emerald-500' : 'text-gray-900'}`}>
-                    <DollarSign className="w-4 h-4 md:w-5 md:h-5" />
+                <div className="flex flex-row lg:flex-col items-center lg:items-end gap-6 lg:gap-1 px-6 lg:border-x lg:border-gray-100">
+                  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-400 hidden lg:block">{t('dental.balance')}</p>
+                  <div className={`flex items-center gap-1 text-xl font-black ${(patient.estimated_value || 0) < 0 ? 'text-rose-500' : (patient.estimated_value || 0) > 0 ? 'text-emerald-500' : 'text-gray-900'}`}>
+                    <DollarSign className="w-5 h-5" />
                     {(patient.estimated_value || 0).toLocaleString()}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-3 w-full lg:w-auto">
                   <button 
                     onClick={() => onViewChart(patient)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all"
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
                   >
                     <Activity className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('dental.viewChart')}</span>
-                    <span className="sm:hidden">Chart</span>
+                    {t('dental.viewChart')}
                   </button>
                   <button 
                     onClick={() => {
                       setSelectedPatientForAppt(patient);
                       setShowAppointmentModal(true);
                     }}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-3 md:py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest border border-gray-100 transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t('dental.addVisit')}</span>
-                    <span className="sm:hidden">Visit</span>
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 transition-all">
+                    {t('dental.addVisit')}
                   </button>
                   <button 
                     onClick={() => showNotification('Options menu coming soon', 'error')}
-                    className="p-3 md:p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all"
-                  >
-                    <MoreVertical className="w-4 h-4 md:w-5 md:h-5" />
+                    className="p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all">
+                    <MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
               </div>
