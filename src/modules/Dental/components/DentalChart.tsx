@@ -10,6 +10,8 @@ import {
   Clock,
   User as UserIcon,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Activity,
   Plus,
   Save,
