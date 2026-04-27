@@ -363,16 +363,16 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                         SCHEDULED: 'bg-gray-50 border-gray-200 text-gray-700 shadow-gray-100/50',
                       };
 
-                      const isSmall = app.duration <= 30;
+                      const isSmall = app.duration <= 20;
 
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-1 right-1 rounded-2xl border transition-all hover:scale-[1.01] hover:shadow-xl cursor-pointer pointer-events-auto ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10 overflow-hidden ${isSmall ? 'px-4 py-2' : 'p-4'}`}
+                          className={`absolute left-1 right-1 rounded-2xl border transition-all hover:scale-[1.01] hover:shadow-xl cursor-pointer pointer-events-auto ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10 overflow-hidden p-4`}
                           style={{ 
                             top: `${top}px`, 
-                            height: `${Math.max(height, 40)}px`,
-                            marginLeft: index % 2 === 0 ? '0' : '4px' // Slight offset for visual separation
+                            height: `${Math.max(height, 60)}px`,
+                            marginLeft: index % 2 === 0 ? '0' : '4px'
                           }}
                         >
                           <div className="flex flex-col justify-center h-full relative">
