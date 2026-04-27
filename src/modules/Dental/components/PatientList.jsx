@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2, X } from 'lucide-react';
+import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2, X, Clock } from 'lucide-react';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
 
