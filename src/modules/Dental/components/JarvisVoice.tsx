@@ -29,9 +29,47 @@ const JarvisVoice: React.FC = () => {
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
+  const recognition = useRef<any>(null);
+
+  useEffect(() => {
+    // Setup Background Wake Word Detection
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognition.current = new SpeechRecognition();
+      recognition.current.continuous = true;
+      recognition.current.interimResults = false;
+      recognition.current.lang = 'ru-RU';
+
+      recognition.current.onresult = (event: any) => {
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript.toLowerCase();
+        console.log('Wake word listener heard:', text);
+        
+        if (text.includes('джарвис') || text.includes('jarvis')) {
+          speak('Слушаю вас');
+          startRecording();
+        }
+      };
+
+      recognition.current.onend = () => {
+        // Keep it listening
+        if (!isRecording && !isProcessing) {
+          recognition.current.start();
+        }
+      };
+
+      recognition.current.start();
+    }
+
+    return () => {
+      if (recognition.current) recognition.current.stop();
+    };
+  }, [isRecording, isProcessing]);
 
   const startRecording = async () => {
     try {
+      if (recognition.current) recognition.current.stop(); // Stop listener to free mic
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       // Chrome/Blink browsers prefer webm
