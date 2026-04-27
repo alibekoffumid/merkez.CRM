@@ -31,7 +31,7 @@ export const DentalService = {
   // --- Appointments ---
   async getAppointments(date) {
     const { data, error } = await supabase
-      .from('dental_appointments')
+      .from('dental_records')
       .select(`
         *,
         patient:customers(name, phone)
@@ -44,7 +44,7 @@ export const DentalService = {
 
   async createAppointment(appointment) {
     const { data, error } = await supabase
-      .from('dental_appointments')
+      .from('dental_records')
       .insert([appointment])
       .select();
 

@@ -51,6 +51,17 @@ const DentalModule = () => {
     fetchDoctors();
   }, []);
 
+  const fetchAppointments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('dental_records')
+        .select('*')
+        .eq('appointment_date', format(selectedDate, 'yyyy-MM-dd'));
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+    }
+  };
+
   const fetchDoctors = async () => {
     try {
       console.log('DentalModule: Fetching isolated staff (Robust Mode)...');
