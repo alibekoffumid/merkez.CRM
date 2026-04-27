@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
+import { supabase } from '../../../supabaseClient';
 
 const DentalInventory = () => {
   const { t } = useTranslation();
@@ -21,6 +22,15 @@ const DentalInventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    category: 'General',
+    quantity: 0,
+    unit: 'pcs',
+    min_quantity: 10
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchInventory();
@@ -30,12 +40,33 @@ const DentalInventory = () => {
     try {
       setLoading(true);
       const data = await DentalService.getInventory(search);
-      setInventory(data);
+      setInventory(data || []);
     } catch (err) {
       console.error('Error fetching inventory:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const { error } = await supabase
+        .from('dental_inventory')
+        .insert([newItem]);
+      
+      if (error) throw error;
+      
+      setShowAddModal(false);
+      setNewItem({ name: '', category: 'General', quantity: 0, unit: 'pcs', min_quantity: 10 });
+      fetchInventory();
+    } catch (err) {
+      console.error('Error adding item:', err);
+      alert('Error: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -45,16 +76,18 @@ const DentalInventory = () => {
     return 'IN_STOCK';
   };
 
+  const stats = [
+    { label: 'Total Items', value: inventory.length.toString(), icon: Box, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Low Stock Alerts', value: inventory.filter(i => i.quantity <= i.min_quantity).length.toString(), icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Consumed (30d)', value: '0', icon: ArrowDownRight, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { label: 'Restocked (30d)', value: '0', icon: ArrowUpRight, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  ];
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          { label: 'Total Items', value: '842', icon: Box, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Low Stock Alerts', value: '12', icon: AlertTriangle, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Consumed (30d)', value: '1.2k', icon: ArrowDownRight, color: 'text-rose-600', bg: 'bg-rose-50' },
-          { label: 'Restocked (30d)', value: '840', icon: ArrowUpRight, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        ].map((stat, i) => (
+        {stats.map((stat, i) => (
           <div key={i} className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-blue-200 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center border border-transparent`}>
@@ -93,7 +126,10 @@ const DentalInventory = () => {
               <History className="w-5 h-5 text-purple-600" />
               Transaction Log
             </button>
-            <button className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 rounded-2xl text-sm font-black text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95">
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 rounded-2xl text-sm font-black text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
+            >
               <Plus className="w-5 h-5" />
               Add Item
             </button>
@@ -189,6 +225,112 @@ const DentalInventory = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Item Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowAddModal(false)} />
+          <div className="bg-white rounded-[2.5rem] w-full max-w-xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Add New Item</h3>
+                <p className="text-gray-500 text-sm font-medium mt-1 uppercase tracking-widest">Inventory Management</p>
+              </div>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
+              >
+                <Plus className="w-6 h-6 rotate-45" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdd} className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Item Name</label>
+                    <input 
+                      required
+                      type="text" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      placeholder="e.g. Disposable Gloves"
+                      value={newItem.name}
+                      onChange={(e) => setNewItem({...newItem, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Category</label>
+                    <select 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      value={newItem.category}
+                      onChange={(e) => setNewItem({...newItem, category: e.target.value})}
+                    >
+                      <option value="General">General</option>
+                      <option value="Restorative">Restorative</option>
+                      <option value="Instruments">Instruments</option>
+                      <option value="Hygiene">Hygiene</option>
+                      <option value="Prosthetic">Prosthetic</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Quantity</label>
+                    <input 
+                      required
+                      type="number" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      placeholder="0"
+                      value={newItem.quantity}
+                      onChange={(e) => setNewItem({...newItem, quantity: parseFloat(e.target.value)})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Unit</label>
+                    <input 
+                      required
+                      type="text" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      placeholder="pcs, kg, etc."
+                      value={newItem.unit}
+                      onChange={(e) => setNewItem({...newItem, unit: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Min Threshold</label>
+                    <input 
+                      required
+                      type="number" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      placeholder="10"
+                      value={newItem.min_quantity}
+                      onChange={(e) => setNewItem({...newItem, min_quantity: parseFloat(e.target.value)})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Save Item'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
