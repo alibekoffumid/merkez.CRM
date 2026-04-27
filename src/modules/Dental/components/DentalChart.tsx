@@ -139,6 +139,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
 
     try {
       const doctorName = (profile as any)?.fullName || (profile as any)?.full_name || 'Dr. Unknown';
+      console.log('DentalChart: Updating tooth status...', { patientId, selectedTooth, status, doctorName });
       const record = await DentalService.updateToothCondition(
         patientId,
         selectedTooth,
@@ -146,6 +147,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
         '',
         doctorName
       );
+      console.log('DentalChart: Update successful!', record);
 
       setTeethData(prev => ({
         ...prev,
@@ -155,8 +157,10 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
           updatedAt: record.created_at || new Date().toISOString(),
         }
       }));
+      // Optional: Add a small visual feedback if possible, or just log
     } catch (err) {
       console.error('Error updating tooth status:', err);
+      alert('Failed to save tooth status: ' + (err.message || 'Unknown error'));
     }
   };
 
