@@ -410,7 +410,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
+                          className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:shadow-xl hover:brightness-95 cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
                           style={{ 
                             top: `${top}px`, 
                             height: `${Math.max(height, 60)}px`,
