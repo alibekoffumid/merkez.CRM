@@ -40,6 +40,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [isEditingClient, setIsEditingClient] = useState(false);
   const [editData, setEditData] = useState({ name: '', phone: '', notes: '' });
@@ -765,9 +766,76 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     {doctors.map(doc => <option key={doc.id} value={doc.name}>{doc.name}</option>)}
                   </select>
                 </div>
-                <div>
+                <div className="relative">
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Time</label>
-                  <input type="time" required value={formData.start_time} onChange={(e) => setFormData({ ...formData, start_time: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                  <button 
+                    type="button"
+                    onClick={() => setShowTimePicker(!showTimePicker)}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all flex items-center justify-between"
+                  >
+                    <span>{formData.start_time}</span>
+                    <Clock className="w-4 h-4 text-gray-400" />
+                  </button>
+
+                  {showTimePicker && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 z-[1000] p-4 animate-in zoom-in-95 duration-200">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        {/* Hours */}
+                        <div className="space-y-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest text-center mb-2">Hours</p>
+                          <div className="h-40 overflow-y-auto pr-1 custom-scrollbar">
+                            {Array.from({ length: 15 }, (_, i) => i + 7).map(h => {
+                              const hourStr = h.toString().padStart(2, '0');
+                              const currentHour = formData.start_time.split(':')[0];
+                              return (
+                                <button
+                                  key={h}
+                                  type="button"
+                                  onClick={() => {
+                                    const mins = formData.start_time.split(':')[1];
+                                    setFormData({ ...formData, start_time: `${hourStr}:${mins}` });
+                                  }}
+                                  className={`w-full py-2 rounded-xl text-sm font-bold transition-all ${currentHour === hourStr ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
+                                >
+                                  {hourStr}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        {/* Minutes */}
+                        <div className="space-y-1">
+                          <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest text-center mb-2">Minutes</p>
+                          <div className="h-40 overflow-y-auto pr-1 custom-scrollbar">
+                            {['00', '15', '30', '45'].map(m => {
+                              const currentMin = formData.start_time.split(':')[1];
+                              return (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  onClick={() => {
+                                    const hour = formData.start_time.split(':')[0];
+                                    setFormData({ ...formData, start_time: `${hour}:${m}` });
+                                    setShowTimePicker(false);
+                                  }}
+                                  className={`w-full py-2 rounded-xl text-sm font-bold transition-all ${currentMin === m ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
+                                >
+                                  {m}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => setShowTimePicker(false)}
+                        className="w-full py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
