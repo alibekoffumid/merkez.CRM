@@ -42,6 +42,19 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
   const [teethData, setTeethData] = useState<Record<number, ToothData>>({});
   const [loading, setLoading] = useState(false);
   
+  const upperRowRef = React.useRef<HTMLDivElement>(null);
+  const lowerRowRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollRow = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = 300;
+      ref.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+  
   interface ToothData {
     status: ToothCondition;
     updatedBy: string;
@@ -251,10 +264,41 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
         </div>
       </div>
 
-      <div className="relative space-y-12 md:space-y-24 py-12 max-w-7xl mx-auto">
-        <div className="grid grid-cols-8 gap-1 md:flex md:justify-center md:gap-4 lg:gap-6">
-          {upperTeeth.map(num => <ToothBox key={num} num={num} />)}
+      <div className="relative space-y-12 md:space-y-16 py-12">
+        {/* Upper Teeth Row */}
+        <div className="relative group">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={() => scrollRow(upperRowRef, 'left')}
+              className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div 
+            ref={upperRowRef}
+            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 md:px-0"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {upperTeeth.map(num => (
+              <div key={num} style={{ scrollSnapAlign: 'start' }}>
+                <ToothBox num={num} />
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={() => scrollRow(upperRowRef, 'right')}
+              className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
         </div>
+
+        {/* Occlusal Separator */}
         <div className="relative flex items-center justify-center py-6">
           <div className="absolute inset-0 flex items-center" aria-hidden="true">
             <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
@@ -263,8 +307,38 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.6em]">Occlusal Mapping Area</span>
           </div>
         </div>
-        <div className="grid grid-cols-8 gap-1 md:flex md:justify-center md:gap-4 lg:gap-6">
-          {lowerTeeth.map(num => <ToothBox key={num} num={num} />)}
+
+        {/* Lower Teeth Row */}
+        <div className="relative group">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={() => scrollRow(lowerRowRef, 'left')}
+              className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div 
+            ref={lowerRowRef}
+            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 md:px-0"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {lowerTeeth.map(num => (
+              <div key={num} style={{ scrollSnapAlign: 'start' }}>
+                <ToothBox num={num} />
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={() => scrollRow(lowerRowRef, 'right')}
+              className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
 
