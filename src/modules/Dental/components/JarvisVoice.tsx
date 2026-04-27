@@ -161,6 +161,8 @@ const JarvisVoice: React.FC = () => {
     if (!result) return;
     try {
       setIsProcessing(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error: dbError } = await supabase
         .from('dental_records')
         .insert([{
@@ -168,6 +170,7 @@ const JarvisVoice: React.FC = () => {
           procedure_type: result.procedure_type,
           appointment_date: result.date,
           start_time: result.time,
+          doctor_id: user?.id,
           status: 'SCHEDULED'
         }]);
 

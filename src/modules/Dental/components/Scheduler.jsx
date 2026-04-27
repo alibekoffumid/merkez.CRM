@@ -99,7 +99,8 @@ const Scheduler = ({ isFullPage, doctors = [] }) => {
           time: (app.start_time || '00:00').substring(0, 5),
           duration: app.duration_minutes || 30,
           type: app.procedure_type || 'Consultation',
-          status: app.status || 'SCHEDULED'
+          status: app.status || 'SCHEDULED',
+          doctorId: app.doctor_id
         }));
         setAppointments(formatted);
       }
