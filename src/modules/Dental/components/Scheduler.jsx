@@ -586,53 +586,59 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                           }}
                         >
                           {/* Color accent stripe */}
-                          <div className={`absolute left-0 top-3 bottom-3 w-1.5 rounded-r-full ${accent} shadow-[2px_0_10px_-2px_rgba(0,0,0,0.1)]`} />
+                          <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${accent}`} />
                           
-                          <div className="flex flex-col h-full relative pl-2 pr-6">
-                            {/* Header: Name & Phone */}
-                            <div className="mb-auto">
-                               <h4 className="text-[13px] font-black tracking-tight text-gray-900 truncate leading-none pt-1">{app.patient}</h4>
-                               {app.phone && (
-                                 <p className="text-[10px] font-bold text-blue-500/90 mt-1 flex items-center gap-1.5">
-                                   <Phone className="w-3 h-3 shrink-0" /> {app.phone}
+                          <div className="flex items-center h-full relative pl-6 pr-12 gap-8">
+                            {/* 1. Name Section */}
+                            <div className="min-w-[140px]">
+                               <h4 className="text-[14px] font-black tracking-tight text-gray-900 truncate leading-none mb-1">{app.patient}</h4>
+                               <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                 <Clock className="w-3 h-3" /> {app.time}
+                               </div>
+                            </div>
+
+                            <div className="w-px h-8 bg-gray-100 shrink-0" />
+
+                            {/* 2. Phone Section */}
+                            <div className="min-w-[120px]">
+                               {app.phone ? (
+                                 <p className="text-[11px] font-bold text-blue-500 flex items-center gap-2">
+                                   <Phone className="w-3.5 h-3.5 shrink-0" /> {app.phone}
                                  </p>
+                               ) : (
+                                 <span className="text-[10px] text-gray-300 font-bold italic">No phone</span>
                                )}
                             </div>
 
-                            {/* Middle: Procedure & Notes */}
-                            <div className="mt-2 space-y-1">
-                               <div className="flex items-center gap-1.5 bg-gray-50/80 px-2 py-0.5 rounded-lg border border-gray-100 w-fit">
-                                 <Activity className="w-3 h-3 text-gray-400" />
-                                 <span className="text-[10px] font-bold text-gray-600 truncate max-w-[120px]">{app.type}</span>
+                            <div className="w-px h-8 bg-gray-100 shrink-0" />
+
+                            {/* 3. Procedure & Note Section */}
+                            <div className="flex flex-1 items-center gap-6 overflow-hidden">
+                               <div className="flex items-center gap-2 bg-blue-50/50 px-3 py-1 rounded-full border border-blue-100 shrink-0">
+                                 <Activity className="w-3 h-3 text-blue-500" />
+                                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider">{app.type}</span>
                                </div>
                                
                                {app.notes && (
-                                 <div className="flex items-start gap-1.5 mt-1 opacity-80">
-                                   <div className="w-1 h-1 rounded-full bg-gray-300 mt-1.5 shrink-0" />
-                                   <p className="text-[9px] font-medium text-gray-500 italic leading-tight line-clamp-2">
+                                 <div className="flex items-center gap-2 text-gray-500 italic truncate">
+                                   <div className="w-1 h-1 rounded-full bg-blue-400 shrink-0" />
+                                   <p className="text-[11px] font-medium truncate leading-none">
                                       {app.notes}
                                    </p>
                                  </div>
                                )}
                             </div>
-                            
-                            {/* Footer: Time */}
-                            {!isSmall && (
-                              <div className="mt-auto pt-2 flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                <Clock className="w-3 h-3" /> {app.time}
-                              </div>
-                            )}
 
-                            {/* Delete Button - Absolute positioned in the corner */}
+                            {/* Delete Button */}
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteAppointment(app.id);
                               }}
-                              className="absolute top-0 right-[-1.25rem] opacity-0 group-hover/app:opacity-100 transition-all p-1.5 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl pointer-events-auto shadow-sm translate-x-2 group-hover/app:translate-x-0"
+                              className="absolute right-4 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto"
                               title="Delete"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
