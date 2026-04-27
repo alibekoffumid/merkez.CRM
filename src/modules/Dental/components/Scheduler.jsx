@@ -357,24 +357,68 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                       const top = (startHour * 80) + (startMin / 60 * 80);
                       const height = ((app.duration || 30) / 60) * 80;
 
-                      const statusColors = {
-                        CONFIRMED: 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-emerald-100/50',
-                        IN_PROGRESS: 'bg-blue-50 border-blue-200 text-blue-700 shadow-blue-100/50',
-                        SCHEDULED: 'bg-gray-50 border-gray-200 text-gray-700 shadow-gray-100/50',
+                      // Color by procedure type
+                      const procedureColors = {
+                        'Consultation': 'bg-blue-50 border-blue-300 text-blue-800',
+                        'Cleaning': 'bg-emerald-50 border-emerald-300 text-emerald-800',
+                        'Extraction': 'bg-rose-50 border-rose-300 text-rose-800',
+                        'Filling': 'bg-amber-50 border-amber-300 text-amber-800',
+                        'Root Canal': 'bg-purple-50 border-purple-300 text-purple-800',
+                        'Crown': 'bg-orange-50 border-orange-300 text-orange-800',
+                        'Implant': 'bg-cyan-50 border-cyan-300 text-cyan-800',
+                        'Whitening': 'bg-yellow-50 border-yellow-300 text-yellow-800',
+                        'Orthodontics': 'bg-indigo-50 border-indigo-300 text-indigo-800',
+                        'X-Ray': 'bg-slate-50 border-slate-300 text-slate-800',
+                        'пломбирование': 'bg-amber-50 border-amber-300 text-amber-800',
+                        'удаление': 'bg-rose-50 border-rose-300 text-rose-800',
+                        'чистка': 'bg-emerald-50 border-emerald-300 text-emerald-800',
+                        'консультация': 'bg-blue-50 border-blue-300 text-blue-800',
+                        'отбеливание': 'bg-yellow-50 border-yellow-300 text-yellow-800',
+                        'имплантация': 'bg-cyan-50 border-cyan-300 text-cyan-800',
+                        'ортодонтия': 'bg-indigo-50 border-indigo-300 text-indigo-800',
+                        'протезирование': 'bg-orange-50 border-orange-300 text-orange-800',
+                        'лечение каналов': 'bg-purple-50 border-purple-300 text-purple-800',
                       };
+
+                      // Match procedure (case-insensitive)
+                      const procKey = Object.keys(procedureColors).find(
+                        k => app.type?.toLowerCase().includes(k.toLowerCase())
+                      );
+                      const cardColor = procKey 
+                        ? procedureColors[procKey] 
+                        : 'bg-gray-50 border-gray-300 text-gray-800';
+
+                      // Accent dot color for the left border stripe
+                      const accentColors = {
+                        'Consultation': 'bg-blue-500',
+                        'Cleaning': 'bg-emerald-500',
+                        'Extraction': 'bg-rose-500',
+                        'Filling': 'bg-amber-500',
+                        'Root Canal': 'bg-purple-500',
+                        'пломбирование': 'bg-amber-500',
+                        'удаление': 'bg-rose-500',
+                        'чистка': 'bg-emerald-500',
+                        'консультация': 'bg-blue-500',
+                      };
+                      const accentKey = Object.keys(accentColors).find(
+                        k => app.type?.toLowerCase().includes(k.toLowerCase())
+                      );
+                      const accent = accentKey ? accentColors[accentKey] : 'bg-gray-400';
 
                       const isSmall = app.duration <= 20;
 
                       return (
                         <div 
                           key={app.id}
-                          className={`absolute left-1 right-1 rounded-2xl border transition-all hover:scale-[1.01] hover:shadow-xl cursor-pointer pointer-events-auto ${statusColors[app.status] || statusColors.SCHEDULED} group/app shadow-sm z-10 overflow-hidden p-4`}
+                          className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:scale-[1.02] hover:shadow-xl cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
                           style={{ 
                             top: `${top}px`, 
                             height: `${Math.max(height, 60)}px`,
                             marginLeft: index % 2 === 0 ? '0' : '4px'
                           }}
                         >
+                          {/* Color accent stripe */}
+                          <div className={`absolute left-0 top-2 bottom-2 w-1 rounded-full ${accent}`} />
                           <div className="flex flex-col justify-center h-full relative">
                             <div className="flex flex-col pr-8">
                                <h4 className="text-[13px] font-black tracking-tight truncate text-gray-900 leading-tight mb-0.5">{app.patient}</h4>
