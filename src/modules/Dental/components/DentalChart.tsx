@@ -217,6 +217,38 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
     );
   };
 
+  const StatusPicker = () => {
+    if (!selectedTooth) return null;
+    return (
+      <div className="flex items-center gap-2 p-4 bg-blue-50/50 rounded-[2rem] border border-blue-100 shadow-xl shadow-blue-600/5 animate-in slide-in-from-top-4 duration-500 max-w-fit mx-auto mb-6">
+        <div className="flex items-center gap-3 pr-6 border-r border-blue-100">
+          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-black shadow-lg">
+            {selectedTooth}
+          </div>
+          <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('dental.assignTooth')}:</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5 px-4">
+          {(Object.keys(CONDITION_CONFIG) as ToothCondition[]).map((key) => (
+            <button
+              key={key}
+              onClick={() => updateStatus(key)}
+              className={`
+                px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-tighter
+                ${CONDITION_CONFIG[key].bg} ${CONDITION_CONFIG[key].color}
+                hover:scale-105 active:scale-95 border border-transparent hover:border-current/20
+              `}
+            >
+              {CONDITION_CONFIG[key].label}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setSelectedTooth(null)} className="ml-2 p-2 hover:bg-white rounded-full text-gray-400 transition-colors shadow-sm">
+          <Plus className="w-5 h-5 rotate-45" />
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-6 md:p-12 font-sans">
       {/* Header Section */}
@@ -234,39 +266,16 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {selectedTooth ? (
-            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-2xl border border-blue-100 shadow-sm animate-in slide-in-from-right-4 duration-500">
-              <span className="text-xs font-black text-blue-600 uppercase tracking-widest px-4 border-r border-gray-200">{t('dental.assignTooth')} {selectedTooth}:</span>
-              <div className="flex flex-wrap gap-1.5 px-2">
-                {(Object.keys(CONDITION_CONFIG) as ToothCondition[]).map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => updateStatus(key)}
-                    className={`
-                      px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-tighter
-                      ${CONDITION_CONFIG[key].bg} ${CONDITION_CONFIG[key].color}
-                      hover:scale-105 active:scale-95 border border-transparent hover:border-current/20
-                    `}
-                  >
-                    {CONDITION_CONFIG[key].label}
-                  </button>
-                ))}
-              </div>
-              <button onClick={() => setSelectedTooth(null)} className="ml-2 p-2 hover:bg-gray-200 rounded-xl text-gray-400 transition-colors">
-                <Plus className="w-5 h-5 rotate-45" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4 text-gray-500 text-sm bg-gray-50 px-8 py-4 rounded-2xl border border-gray-100 shadow-sm">
-              <Info className="w-5 h-5 text-blue-600" />
-              <span className="font-medium">{t('dental.chartSubtitle')}</span>
-            </div>
-          )}
+        <div className="hidden lg:flex items-center gap-4 text-gray-500 text-sm bg-gray-50 px-8 py-4 rounded-2xl border border-gray-100 shadow-sm">
+          <Info className="w-5 h-5 text-blue-600" />
+          <span className="font-medium">{t('dental.chartSubtitle')}</span>
         </div>
       </div>
 
-      <div className="relative space-y-12 md:space-y-16 py-12">
+      <div className="relative space-y-8 py-12">
+        {/* Upper Teeth Picker */}
+        {selectedTooth && selectedTooth <= 16 && <StatusPicker />}
+
         {/* Upper Teeth Row */}
         <div className="relative group">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -280,11 +289,11 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
           
           <div 
             ref={upperRowRef}
-            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 md:px-0"
+            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 py-8"
             style={{ scrollSnapType: 'x mandatory' }}
           >
             {upperTeeth.map(num => (
-              <div key={num} style={{ scrollSnapAlign: 'start' }}>
+              <div key={num} style={{ scrollSnapAlign: 'start', zIndex: selectedTooth === num ? 50 : 1 }} className="relative">
                 <ToothBox num={num} />
               </div>
             ))}
@@ -310,6 +319,9 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
           </div>
         </div>
 
+        {/* Lower Teeth Picker */}
+        {selectedTooth && selectedTooth > 16 && <StatusPicker />}
+
         {/* Lower Teeth Row */}
         <div className="relative group">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -323,11 +335,11 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
 
           <div 
             ref={lowerRowRef}
-            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 md:px-0"
+            className="flex items-center gap-2 md:gap-4 lg:gap-6 overflow-x-auto no-scrollbar scroll-smooth px-12 py-8"
             style={{ scrollSnapType: 'x mandatory' }}
           >
             {lowerTeeth.map(num => (
-              <div key={num} style={{ scrollSnapAlign: 'start' }}>
+              <div key={num} style={{ scrollSnapAlign: 'start', zIndex: selectedTooth === num ? 50 : 1 }} className="relative">
                 <ToothBox num={num} />
               </div>
             ))}
