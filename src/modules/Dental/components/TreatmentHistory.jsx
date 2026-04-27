@@ -46,7 +46,7 @@ const TreatmentHistory = ({ patientId }) => {
       procedure: `${conditionMap[item.condition] || item.condition} - ${t('dental.tooth')} #${item.tooth_number || '?'}`,
       notes: item.notes || t('dental.noNotes'),
       status: t('status.completed'),
-      cost: 0
+      cost: item.cost || 0
     }));
   }, [history, t]);
 

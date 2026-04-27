@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2, Plus } from 'lucide-react';
+import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2, Plus, Tag } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import Scheduler from './components/Scheduler';
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
 import PatientList from './components/PatientList';
-import TreatmentHistory from './components/TreatmentHistory';
 import XRayGallery from './components/XRayGallery';
 import JarvisVoice from './components/JarvisVoice';
+import PriceList from './components/PriceList';
 import { useUser } from '../../core/UserContext';
 
 const getInitials = (name) => {
@@ -180,6 +180,7 @@ const DentalModule = () => {
     { id: 'chart', label: t('dental.patientChart'), icon: Activity },
     { id: 'inventory', label: t('dental.inventory'), icon: Package },
     { id: 'patients', label: t('dental.patients'), icon: Users },
+    { id: 'prices', label: t('dental.priceList'), icon: Tag },
   ];
 
   try {
@@ -277,6 +278,9 @@ const DentalModule = () => {
           )}
           {activeTab === 'inventory' && (
             <DentalInventory />
+          )}
+          {activeTab === 'prices' && (
+            <PriceList />
           )}
           {activeTab === 'patients' && (
             <div className="space-y-12">

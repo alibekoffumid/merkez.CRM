@@ -72,7 +72,7 @@ export const DentalService = {
     return data;
   },
 
-  async updateToothCondition(patientId, toothNumber, condition, notes = '', userId) {
+  async updateToothCondition(patientId, toothNumber, condition, notes = '', userId, cost = 0) {
     const { data, error } = await supabase
       .from('dental_tooth_history')
       .insert([{
@@ -80,8 +80,33 @@ export const DentalService = {
         tooth_number: toothNumber,
         condition,
         notes,
-        updated_by: userId
+        updated_by: userId,
+        cost
       }])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
+  // --- Price List ---
+  async getPriceList() {
+    const { data, error } = await supabase
+      .from('dental_prices')
+      .select('*');
+    
+    if (error) {
+      if (error.code === 'PGRST116') return [];
+      console.error('Error fetching price list:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  async updatePrice(condition, price) {
+    const { data, error } = await supabase
+      .from('dental_prices')
+      .upsert({ condition, price }, { onConflict: 'condition' })
       .select();
 
     if (error) throw error;

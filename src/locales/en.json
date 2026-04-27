@@ -494,6 +494,9 @@
     "noPatients": "No patients found",
     "patientDetails": "Patient Details",
     "treatmentHistory": "Treatment History",
-    "noNotes": "No notes provided"
+    "noNotes": "No notes provided",
+    "priceList": "Price List",
+    "savePrice": "Save Price",
+    "updatePriceSuccess": "Price updated successfully"
   }
 }

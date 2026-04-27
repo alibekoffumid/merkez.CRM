@@ -471,6 +471,9 @@
     "noPatients": "Pasiyent tapılmadı",
     "patientDetails": "Pasiyent məlumatları",
     "treatmentHistory": "Müalicə Tarixçəsi",
-    "noNotes": "Qeyd yoxdur"
+    "noNotes": "Qeyd yoxdur",
+    "priceList": "Qiymət cədvəli",
+    "savePrice": "Qiyməti yadda saxla",
+    "updatePriceSuccess": "Qiymət uğurla yeniləndi"
   }
 }

@@ -494,6 +494,9 @@
     "noPatients": "Пациенты не найдены",
     "patientDetails": "Детали пациента",
     "treatmentHistory": "История лечения",
-    "noNotes": "Заметки не добавлены"
+    "noNotes": "Заметки не добавлены",
+    "priceList": "Прайс-лист",
+    "savePrice": "Сохранить цену",
+    "updatePriceSuccess": "Цена успешно обновлена"
   }
 }

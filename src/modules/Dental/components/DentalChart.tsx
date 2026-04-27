@@ -43,6 +43,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [teethData, setTeethData] = useState<Record<number, ToothData>>({});
   const [loading, setLoading] = useState(false);
+  const [priceList, setPriceList] = useState<any[]>([]);
   
   const upperRowRef = React.useRef<HTMLDivElement>(null);
   const lowerRowRef = React.useRef<HTMLDivElement>(null);
@@ -98,9 +99,19 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
     );
   }
 
+  const loadPriceList = async () => {
+    try {
+      const data = await DentalService.getPriceList();
+      setPriceList(data);
+    } catch (err) {
+      console.error('Error loading price list:', err);
+    }
+  };
+
   React.useEffect(() => {
     if (patientId) {
       loadToothHistory();
+      loadPriceList();
     }
   }, [patientId]);
 
@@ -139,13 +150,16 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
 
     try {
       const doctorName = (profile as any)?.fullName || (profile as any)?.full_name || 'Dr. Unknown';
-      console.log('DentalChart: Updating tooth status...', { patientId, selectedTooth, status, doctorName });
+      const cost = priceList.find(p => p.condition === status)?.price || 0;
+      
+      console.log('DentalChart: Updating tooth status...', { patientId, selectedTooth, status, doctorName, cost });
       const record = await DentalService.updateToothCondition(
         patientId,
         selectedTooth,
         status,
         '',
-        doctorName
+        doctorName,
+        cost
       );
       console.log('DentalChart: Update successful!', record);
 
