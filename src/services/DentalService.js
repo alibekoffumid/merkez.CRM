@@ -32,10 +32,7 @@ export const DentalService = {
   async getAppointments(date) {
     const { data, error } = await supabase
       .from('dental_records')
-      .select(`
-        *,
-        patient:customers(name, phone)
-      `)
+      .select('*')
       .eq('appointment_date', date);
 
     if (error) throw error;

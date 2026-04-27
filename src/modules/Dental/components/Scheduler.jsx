@@ -97,7 +97,15 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
           phone: app.patient?.phone || app.phone || '',
           doctorName: app.doctor_name,
           time: (app.start_time || '00:00').substring(0, 5),
-          duration: app.duration_minutes || 30,
+          duration: app.duration_minutes || (() => {
+            // Calculate from end_time - start_time
+            if (app.end_time && app.start_time) {
+              const [sh, sm] = app.start_time.split(':').map(Number);
+              const [eh, em] = app.end_time.split(':').map(Number);
+              return (eh * 60 + em) - (sh * 60 + sm);
+            }
+            return 30;
+          })(),
           type: app.procedure_type || 'Consultation',
           status: app.status || 'SCHEDULED',
           doctorId: app.doctor_id
@@ -158,13 +166,18 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
       if (!doctorObj) throw new Error('No doctor selected');
 
       console.log('Creating appointment for doctor:', doctorObj.name);
+      // Calculate end_time
+      const [hh, mm] = formData.start_time.split(':').map(Number);
+      const dur = parseInt(formData.duration_minutes) || 30;
+      const totalMin = mm + dur;
+      const endTime = `${String(hh + Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+
       const { error: apptError } = await supabase.from('dental_records').insert([{
         patient_name: formData.patient_name,
-        phone: formData.phone,
         doctor_id: doctorObj.id,
         appointment_date: formData.appointment_date,
         start_time: formData.start_time,
-        duration_minutes: parseInt(formData.duration_minutes),
+        end_time: endTime,
         procedure_type: formData.procedure_type,
         status: 'SCHEDULED'
       }]);

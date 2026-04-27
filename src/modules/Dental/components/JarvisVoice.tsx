@@ -184,6 +184,11 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
         doctorName = docData?.full_name || '';
       }
 
+      // Calculate end_time (30 min after start)
+      const [h, m] = result.time.split(':').map(Number);
+      const endMin = m + 30;
+      const endTime = `${String(h + Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;
+
       const { error: dbError } = await supabase
         .from('dental_records')
         .insert([{
@@ -191,8 +196,8 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
           procedure_type: result.procedure_type,
           appointment_date: result.date,
           start_time: result.time,
+          end_time: endTime,
           doctor_id: finalDoctorId,
-          duration_minutes: 30,
           status: 'SCHEDULED'
         }]);
 
