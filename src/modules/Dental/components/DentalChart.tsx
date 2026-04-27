@@ -160,7 +160,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
       // Optional: Add a small visual feedback if possible, or just log
     } catch (err) {
       console.error('Error updating tooth status:', err);
-      alert('Failed to save tooth status: ' + (err.message || 'Unknown error'));
+      alert('Failed to save tooth status: ' + ((err as any).message || 'Unknown error'));
     }
   };
 
