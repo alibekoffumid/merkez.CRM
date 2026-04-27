@@ -23,7 +23,7 @@ const getInitials = (name) => {
 
 const DentalModule = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('appointments');
+  const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
