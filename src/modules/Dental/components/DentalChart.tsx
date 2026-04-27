@@ -217,6 +217,38 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
             <config.icon className={`w-3 h-3 md:w-4 md:h-4 ${config.color}`} />
           </div>
         )}
+
+        {/* Hover Info Tooltip */}
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-48 bg-gray-900/95 backdrop-blur-md text-white p-3 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-[60] scale-90 group-hover:scale-100 origin-bottom">
+          <div className="flex items-center justify-between mb-2 border-b border-white/10 pb-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tooth #{num}</span>
+            <span className={`text-[9px] font-black px-2 py-0.5 rounded-md uppercase ${config.bg.replace('/10', '/30')} ${config.color}`}>
+              {config.label}
+            </span>
+          </div>
+          {data ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
+                  <UserIcon className="w-2.5 h-2.5 text-gray-400" />
+                </div>
+                <span className="text-[10px] font-bold truncate">{data.updatedBy}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center">
+                  <Clock className="w-2.5 h-2.5 text-gray-400" />
+                </div>
+                <span className="text-[9px] font-medium text-gray-400 italic">
+                  {new Date(data.updatedAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-[10px] text-gray-500 font-medium italic">No history recorded</div>
+          )}
+          {/* Arrow */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900/95"></div>
+        </div>
       </div>
     );
   };
