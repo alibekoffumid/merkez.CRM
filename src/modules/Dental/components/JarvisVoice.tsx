@@ -171,6 +171,13 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
       setIsProcessing(true);
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Fallback: If for some reason we can't get user ID, try to get the first doctor from profiles
+      let finalDoctorId = user?.id;
+      if (!finalDoctorId) {
+        const { data: docData } = await supabase.from('profiles').select('id').limit(1).single();
+        finalDoctorId = docData?.id;
+      }
+
       const { error: dbError } = await supabase
         .from('dental_records')
         .insert([{
@@ -178,7 +185,7 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
           procedure_type: result.procedure_type,
           appointment_date: result.date,
           start_time: result.time,
-          doctor_id: user?.id,
+          doctor_id: finalDoctorId,
           status: 'SCHEDULED'
         }]);
 
