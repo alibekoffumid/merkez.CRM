@@ -313,8 +313,8 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
         {selectedTooth && selectedTooth <= 16 && <StatusPicker />}
 
         {/* Upper Teeth Row */}
-        <div className="relative group">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="relative group/row">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover/row:opacity-100 transition-opacity">
             <button 
               onClick={() => scrollRow(upperRowRef, 'left')}
               className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
@@ -335,7 +335,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
             ))}
           </div>
 
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 opacity-0 group-hover/row:opacity-100 transition-opacity">
             <button 
               onClick={() => scrollRow(upperRowRef, 'right')}
               className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
@@ -359,8 +359,8 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
         {selectedTooth && selectedTooth > 16 && <StatusPicker />}
 
         {/* Lower Teeth Row */}
-        <div className="relative group">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="relative group/row">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 opacity-0 group-hover/row:opacity-100 transition-opacity">
             <button 
               onClick={() => scrollRow(lowerRowRef, 'left')}
               className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
@@ -381,7 +381,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
             ))}
           </div>
 
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 opacity-0 group-hover/row:opacity-100 transition-opacity">
             <button 
               onClick={() => scrollRow(lowerRowRef, 'right')}
               className="w-10 h-10 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-blue-600 active:scale-95 transition-all"
