@@ -11,7 +11,8 @@ import {
   Loader2,
   X,
   User,
-  Phone 
+  Phone,
+  Edit2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
