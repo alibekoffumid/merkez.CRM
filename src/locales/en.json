@@ -69,7 +69,9 @@
     "period": "Period",
     "generated": "Generated",
     "success": "Success",
-    "error": "Error"
+    "error": "Error",
+    "exportAll": "Export All",
+    "loadMore": "Load More"
   },
   "restaurant": {
     "title": "Restaurant Management",
@@ -489,6 +491,8 @@
     "viewChart": "Open Chart",
     "addVisit": "Schedule Visit",
     "noPatients": "No patients found",
-    "patientDetails": "Patient Details"
+    "patientDetails": "Patient Details",
+    "treatmentHistory": "Treatment History",
+    "noNotes": "No notes provided"
   }
 }

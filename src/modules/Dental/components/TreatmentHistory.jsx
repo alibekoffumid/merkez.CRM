@@ -19,13 +19,25 @@ const TreatmentHistory = ({ patientId }) => {
       setLoading(true);
       const data = await DentalService.getToothHistory(patientId);
       
+      const conditionMap = {
+        'HEALTHY': t('dental.healthy'),
+        'CARIES': t('dental.caries'),
+        'MISSING': t('dental.missing'),
+        'CROWN': t('dental.crown'),
+        'IMPLANT': t('dental.implant'),
+        'FILLING': t('dental.filling'),
+        'ROOT_CANAL': t('dental.rootCanal'),
+        'EXTRACTION_REQUIRED': t('dental.extraction'),
+        'BRIDGE': t('dental.bridge')
+      };
+
       const mappedData = data.map(item => ({
         id: item.id,
-        date: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Unknown Date',
+        date: item.created_at ? new Date(item.created_at).toLocaleDateString() : t('common.noData'),
         doctor: item.updated_by || 'Unknown',
-        procedure: `${(item.condition || 'Unknown').replace('_', ' ')} - Tooth #${item.tooth_number || '?'}`,
-        notes: item.notes || 'No notes provided.',
-        status: 'completed',
+        procedure: `${conditionMap[item.condition] || item.condition} - ${t('dental.chartTitle').split(' ')[2]} #${item.tooth_number || '?'}`,
+        notes: item.notes || t('dental.noNotes'),
+        status: t('status.completed'),
         cost: 0
       }));
       
@@ -44,11 +56,11 @@ const TreatmentHistory = ({ patientId }) => {
           <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center">
             <Clock className="w-5 h-5 text-purple-600" />
           </div>
-          <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em]">Treatment History</h3>
+          <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em]">{t('dental.treatmentHistory')}</h3>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest border border-gray-100 rounded-xl shadow-sm">
           <Download className="w-4 h-4" />
-          Export All
+          {t('common.exportAll')}
         </button>
       </div>
 
@@ -82,7 +94,7 @@ const TreatmentHistory = ({ patientId }) => {
 
               <div className="flex items-center justify-between md:justify-end gap-6 md:w-32">
                 <div className="text-right">
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fee</p>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t('common.price')}</p>
                   <p className="text-sm font-black text-gray-900">${item.cost}</p>
                 </div>
                 <button className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-900">
@@ -99,7 +111,7 @@ const TreatmentHistory = ({ patientId }) => {
       </div>
       
       <button className="w-full mt-8 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-900 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-dashed border-gray-200">
-        Load More Records
+        {t('common.loadMore')}
       </button>
     </div>
   );

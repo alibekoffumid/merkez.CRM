@@ -69,7 +69,9 @@
     "period": "Dövr",
     "generated": "Yaradılıb",
     "success": "Uğurlu",
-    "error": "Xəta"
+    "error": "Xəta",
+    "exportAll": "Hamısını ixrac et",
+    "loadMore": "Daha çox yüklə"
   },
   "restaurant": {
     "title": "Restoran İdarəetməsi",
@@ -466,6 +468,8 @@
     "viewChart": "Kartı aç",
     "addVisit": "Qəbula yaz",
     "noPatients": "Pasiyent tapılmadı",
-    "patientDetails": "Pasiyent məlumatları"
+    "patientDetails": "Pasiyent məlumatları",
+    "treatmentHistory": "Müalicə Tarixçəsi",
+    "noNotes": "Qeyd yoxdur"
   }
 }

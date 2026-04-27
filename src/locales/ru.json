@@ -69,7 +69,9 @@
     "period": "Период",
     "generated": "Дата создания",
     "success": "Успешно",
-    "error": "Ошибка"
+    "error": "Ошибка",
+    "exportAll": "Экспорт всех",
+    "loadMore": "Загрузить ещё"
   },
   "restaurant": {
     "title": "Управление рестораном",
@@ -489,6 +491,8 @@
     "viewChart": "Открыть карту",
     "addVisit": "Записать на прием",
     "noPatients": "Пациенты не найдены",
-    "patientDetails": "Детали пациента"
+    "patientDetails": "Детали пациента",
+    "treatmentHistory": "История лечения",
+    "noNotes": "Заметки не добавлены"
   }
 }
