@@ -208,8 +208,10 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
       setTimeout(() => setSuccess(null), 5000);
 
     } catch (err: any) {
-      setError(err.message);
+      console.error('Jarvis Save Error:', err);
+      setError(err.message || 'Ошибка сохранения');
       speak('Произошла ошибка при сохранении.');
+      setTimeout(() => setError(null), 7000);
     } finally {
       setIsProcessing(false);
     }
