@@ -265,12 +265,12 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
         if (custError) throw custError;
       }
 
-      // 2. Update the appointment record itself
+      // 2. Update the appointment record itself (ONLY name, bypass phone due to cache error)
       const { error: recordError } = await supabase
         .from('dental_records')
         .update({
-          patient_name: editData.name,
-          phone: editData.phone
+          patient_name: editData.name
+          // phone: editData.phone // Bypassed due to Supabase cache error
         })
         .eq('id', selectedClient.id);
 
