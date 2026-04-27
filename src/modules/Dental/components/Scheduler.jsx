@@ -654,7 +654,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                 e.stopPropagation();
                                 handleDeleteAppointment(app.id);
                               }}
-                              className="absolute right-1 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto"
+                              className="absolute top-1 right-1 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto"
                               title="Delete"
                             >
                               <X className="w-4 h-4" />
