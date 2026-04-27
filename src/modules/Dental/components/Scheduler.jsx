@@ -235,7 +235,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
   }
 
   return (
-    <div className={`bg-white rounded-[2.5rem] shadow-xl border border-gray-100 flex flex-col font-sans ${isFullPage ? 'h-full' : 'h-[850px]'}`}>
+    <div className={`bg-white shadow-xl border border-gray-100 flex flex-col font-sans ${isFullPage ? 'h-full rounded-t-[2.5rem] rounded-b-none' : 'h-[850px] rounded-[2.5rem]'}`}>
       {/* Premium Header */}
       <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-30 gap-6 rounded-t-[2.5rem]">
         <div className="flex items-center gap-6">
