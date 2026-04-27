@@ -11,7 +11,6 @@ const PriceList = () => {
 
   const CONDITIONS = [
     'CARIES',
-    'MISSING',
     'CROWN',
     'IMPLANT',
     'FILLING',
