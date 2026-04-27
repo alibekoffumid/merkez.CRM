@@ -250,22 +250,42 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   const handleUpdateClient = async () => {
     try {
       setIsSubmitting(true);
-      console.log('Updating client:', selectedClient.id, editData);
+      let customerId = selectedClient.customerId;
 
-      // 1. Update customer record if exists
-      if (selectedClient.customerId) {
+      // 1. If no customerId, try to find by name first
+      if (!customerId) {
+        const { data: existing } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('name', selectedClient.name)
+          .limit(1);
+        
+        if (existing && existing.length > 0) {
+          customerId = existing[0].id;
+        } else {
+          // Create new customer if truly missing
+          const { data: newCust, error: createError } = await supabase
+            .from('customers')
+            .insert([{ name: editData.name, phone: editData.phone, type: 'Regular' }])
+            .select();
+          if (!createError && newCust) customerId = newCust[0].id;
+        }
+      }
+
+      // 2. Update customer record if we have an ID now
+      if (customerId) {
         const { error: custError } = await supabase
           .from('customers')
           .update({
             name: editData.name,
             phone: editData.phone
           })
-          .eq('id', selectedClient.customerId);
+          .eq('id', customerId);
         
         if (custError) throw custError;
       }
 
-      // 2. Update the appointment record itself (ONLY name, bypass phone due to cache error)
+      // 3. Update the appointment record itself (ONLY name, bypass phone due to cache error)
       const { error: recordError } = await supabase
         .from('dental_records')
         .update({
