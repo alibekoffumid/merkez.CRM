@@ -203,7 +203,7 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
   };
 
   return (
-    <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-6 md:p-12 overflow-hidden font-sans">
+    <div className="bg-white rounded-[3rem] shadow-sm border border-gray-100 p-6 md:p-12 font-sans">
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-16">
         <div className="flex items-center gap-6">
