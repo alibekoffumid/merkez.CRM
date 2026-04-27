@@ -620,7 +620,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                </div>
                                
                                {app.notes && (
-                                 <div className="flex items-center gap-2 text-gray-500 italic truncate">
+                                 <div className="flex items-center gap-2 text-gray-500 italic truncate max-w-md">
                                    <div className="w-1 h-1 rounded-full bg-blue-400 shrink-0" />
                                    <p className="text-[11px] font-medium truncate leading-none">
                                       {app.notes}
