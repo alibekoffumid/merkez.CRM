@@ -18,36 +18,37 @@ const TreatmentHistory = ({ patientId }) => {
     try {
       setLoading(true);
       const data = await DentalService.getToothHistory(patientId);
-      
-      const conditionMap = {
-        'HEALTHY': t('dental.healthy'),
-        'CARIES': t('dental.caries'),
-        'MISSING': t('dental.missing'),
-        'CROWN': t('dental.crown'),
-        'IMPLANT': t('dental.implant'),
-        'FILLING': t('dental.filling'),
-        'ROOT_CANAL': t('dental.rootCanal'),
-        'EXTRACTION_REQUIRED': t('dental.extraction'),
-        'BRIDGE': t('dental.bridge')
-      };
-
-      const mappedData = data.map(item => ({
-        id: item.id,
-        date: item.created_at ? new Date(item.created_at).toLocaleDateString() : t('common.noData'),
-        doctor: item.updated_by || 'Unknown',
-        procedure: `${conditionMap[item.condition] || item.condition} - ${t('dental.chartTitle').split(' ')[2]} #${item.tooth_number || '?'}`,
-        notes: item.notes || t('dental.noNotes'),
-        status: t('status.completed'),
-        cost: 0
-      }));
-      
-      setHistory(mappedData);
+      setHistory(data);
     } catch (err) {
       console.error('Error fetching treatment history:', err);
     } finally {
       setLoading(false);
     }
   };
+
+  const mappedHistory = React.useMemo(() => {
+    const conditionMap = {
+      'HEALTHY': t('dental.healthy'),
+      'CARIES': t('dental.caries'),
+      'MISSING': t('dental.missing'),
+      'CROWN': t('dental.crown'),
+      'IMPLANT': t('dental.implant'),
+      'FILLING': t('dental.filling'),
+      'ROOT_CANAL': t('dental.rootCanal'),
+      'EXTRACTION_REQUIRED': t('dental.extraction'),
+      'BRIDGE': t('dental.bridge')
+    };
+
+    return history.map(item => ({
+      id: item.id,
+      date: item.created_at ? new Date(item.created_at).toLocaleDateString() : t('common.noData'),
+      doctor: item.updated_by || 'Unknown',
+      procedure: `${conditionMap[item.condition] || item.condition} - ${t('dental.chartTitle').split(' ')[2]} #${item.tooth_number || '?'}`,
+      notes: item.notes || t('dental.noNotes'),
+      status: t('status.completed'),
+      cost: 0
+    }));
+  }, [history, t]);
 
   return (
     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -69,8 +70,8 @@ const TreatmentHistory = ({ patientId }) => {
           <div className="flex justify-center py-8">
             <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
           </div>
-        ) : history.length > 0 ? (
-          history.map((item) => (
+        ) : mappedHistory.length > 0 ? (
+          mappedHistory.map((item) => (
             <div key={item.id} className="group flex flex-col md:flex-row gap-6 p-6 rounded-[1.75rem] bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-4 md:w-48 shrink-0">
                 <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-gray-100 shadow-sm">
