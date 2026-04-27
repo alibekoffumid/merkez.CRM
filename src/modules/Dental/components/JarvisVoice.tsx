@@ -43,8 +43,13 @@ const JarvisVoice: React.FC = () => {
       recognition.current.onresult = (event: any) => {
         const last = event.results.length - 1;
         const text = event.results[last][0].transcript.toLowerCase();
-        console.log('Wake word listener heard:', text);
+        console.log('Jarvis heard:', text);
         
+        if (showConfirmModal && (text.includes('подтверждаю') || text.includes('да') || text.includes('сохрани'))) {
+          confirmBooking();
+          return;
+        }
+
         if (text.includes('джарвис') || text.includes('jarvis')) {
           speak('Слушаю вас');
           startRecording();
@@ -156,7 +161,7 @@ const JarvisVoice: React.FC = () => {
     try {
       setIsProcessing(true);
       const { error: dbError } = await supabase
-        .from('dental_appointments')
+        .from('dental_records')
         .insert([{
           patient_name: result.patient_name,
           procedure_type: result.procedure_type,
