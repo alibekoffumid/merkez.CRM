@@ -6,6 +6,7 @@ import Scheduler from './components/Scheduler';
 import DentalChart from './components/DentalChart';
 import DentalInventory from './components/DentalInventory';
 import PatientList from './components/PatientList';
+import TreatmentHistory from './components/TreatmentHistory';
 import XRayGallery from './components/XRayGallery';
 import JarvisVoice from './components/JarvisVoice';
 import PriceList from './components/PriceList';
