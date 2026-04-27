@@ -42,6 +42,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   const [showCalendar, setShowCalendar] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [selectedDoctorId, setSelectedDoctorId] = useState('all');
   const [isEditingClient, setIsEditingClient] = useState(false);
   const [editData, setEditData] = useState({ name: '', phone: '', notes: '' });
   const [formData, setFormData] = useState({
@@ -347,6 +348,23 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 )}
                 <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
+
+              {/* Doctor Dropdown */}
+              <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
+                <div className="flex items-center gap-2 px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-200">
+                  <User className="w-3 h-3" /> Staff
+                </div>
+                <select 
+                  value={selectedDoctorId} 
+                  onChange={(e) => setSelectedDoctorId(e.target.value)}
+                  className="bg-transparent px-4 py-1 text-xs font-bold text-gray-700 outline-none cursor-pointer"
+                >
+                  <option value="all">All Doctors</option>
+                  {doctors.map(doc => (
+                    <option key={doc.id} value={doc.id}>{doc.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Calendar Popup */}
@@ -447,8 +465,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</span>
           </div>
           {/* Doctor Headers */}
-          <div className="flex-1 flex min-w-[1200px]">
-            {doctors.map(doctor => (
+          <div className="flex-1 flex min-w-full">
+            {doctors.filter(d => selectedDoctorId === 'all' || d.id === selectedDoctorId).map(doctor => (
               <div key={doctor.id} className="flex-1 border-r border-gray-100 p-4 flex items-center justify-start gap-4 h-20 bg-white">
                 <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg shrink-0 transition-transform hover:scale-105`}>
                   {doctor.avatar}
@@ -464,7 +482,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
         {/* Scrollable Slots Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-gray-50/30 relative min-w-max pb-20">
-          <div className="flex min-w-[1200px] h-full">
+          <div className="flex min-w-full h-full">
             {/* Time Gutter */}
             <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50">
               {timeSlots.map((time, index) => (
@@ -478,7 +496,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
             {/* Columns Area */}
             <div className="flex-1 flex relative">
-              {doctors.map(doctor => (
+              {doctors.filter(d => selectedDoctorId === 'all' || d.id === selectedDoctorId).map(doctor => (
                 <div key={doctor.id} className="flex-1 border-r border-gray-100 relative">
                   {/* Slots */}
                   {timeSlots.map(time => (
