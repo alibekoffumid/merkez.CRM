@@ -17,6 +17,17 @@ export const DentalService = {
     return data;
   },
 
+  async updatePatient(id, updates) {
+    const { data, error } = await supabase
+      .from('customers')
+      .update(updates)
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  },
+
   async getPatientProfile(customerId) {
     const { data, error } = await supabase
       .from('dental_patient_profiles')

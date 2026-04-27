@@ -40,6 +40,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [isEditingClient, setIsEditingClient] = useState(false);
+  const [editData, setEditData] = useState({ name: '', phone: '' });
   const [formData, setFormData] = useState({
     patient_name: '',
     phone: '',
@@ -95,7 +97,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
       // Fetch patients to map names to phones if record is missing phone
       const patientsData = await DentalService.getPatients();
       const phoneMap = patientsData.reduce((acc, p) => {
-        acc[p.name] = p.phone;
+        acc[p.name] = { phone: p.phone, id: p.id };
         return acc;
       }, {});
       
@@ -103,7 +105,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
         const formatted = data.map(app => ({
           id: app.id,
           patient: app.patient_name || 'New Patient',
-          phone: app.phone || phoneMap[app.patient_name] || '',
+          phone: app.phone || phoneMap[app.patient_name]?.phone || '',
+          customerId: phoneMap[app.patient_name]?.id,
           doctorName: app.doctor_name,
           time: (app.start_time || '00:00').substring(0, 5),
           duration: app.duration_minutes || (() => {
@@ -242,6 +245,38 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
     console.error('Scheduler: Critical data missing');
     return <div className="p-20 text-center">Critical Error: Scheduler Data Missing</div>;
   }
+
+  const handleUpdateClient = async () => {
+    try {
+      setIsSubmitting(true);
+      // 1. Update customer record
+      if (selectedClient.customerId) {
+        await DentalService.updatePatient(selectedClient.customerId, {
+          name: editData.name,
+          phone: editData.phone
+        });
+      }
+
+      // 2. Update the appointment record itself
+      await supabase
+        .from('dental_records')
+        .update({
+          patient_name: editData.name,
+          phone: editData.phone
+        })
+        .eq('id', selectedClient.id);
+
+      showNotification('Client updated successfully');
+      setIsEditingClient(false);
+      setSelectedClient(null);
+      fetchAppointments();
+    } catch (err) {
+      console.error('Update error:', err);
+      showNotification('Failed to update client', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className={`bg-white shadow-xl border border-gray-100 flex flex-col font-sans ${isFullPage ? 'h-full rounded-t-[2.5rem] rounded-b-none' : 'h-[850px] rounded-[2.5rem]'}`}>
@@ -487,13 +522,19 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                       return (
                         <div 
                           key={app.id}
-                          onClick={() => setSelectedClient({
-                            name: app.patient,
-                            phone: app.phone,
-                            type: app.type,
-                            time: app.time,
-                            date: app.date
-                          })}
+                          onClick={() => {
+                            setSelectedClient({
+                              id: app.id,
+                              customerId: app.customerId,
+                              name: app.patient,
+                              phone: app.phone,
+                              type: app.type,
+                              time: app.time,
+                              date: app.date
+                            });
+                            setEditData({ name: app.patient, phone: app.phone });
+                            setIsEditingClient(false);
+                          }}
                           className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:shadow-xl hover:brightness-95 cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
                           style={{ 
                             top: `${top}px`, 
@@ -721,11 +762,30 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
             
             <div className="pt-16 px-8 pb-8">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedClient.name}</h3>
-                  <p className="text-blue-600 font-bold text-sm">Regular Patient</p>
+                <div className="flex-1">
+                  {isEditingClient ? (
+                    <input 
+                      type="text"
+                      value={editData.name}
+                      onChange={(e) => setEditData({...editData, name: e.target.value})}
+                      className="text-2xl font-black text-gray-900 tracking-tight bg-gray-50 border-b-2 border-blue-500 outline-none w-full"
+                    />
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedClient.name}</h3>
+                      <p className="text-blue-600 font-bold text-sm">Regular Patient</p>
+                    </>
+                  )}
                 </div>
                 <div className="flex gap-2">
+                  {!isEditingClient && (
+                    <button 
+                      onClick={() => setIsEditingClient(true)}
+                      className="p-3 bg-gray-50 text-gray-400 rounded-2xl hover:bg-blue-50 hover:text-blue-600 transition-all"
+                    >
+                      <Edit2 className="w-5 h-5" />
+                    </button>
+                  )}
                   <a href={`tel:${selectedClient.phone}`} className="p-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all">
                     <Phone className="w-5 h-5" />
                   </a>
@@ -735,27 +795,56 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
               <div className="mt-8 space-y-4">
                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Phone Number</p>
-                  <p className="text-gray-900 font-bold">{selectedClient.phone || 'Not provided'}</p>
+                  {isEditingClient ? (
+                    <input 
+                      type="text"
+                      value={editData.phone}
+                      onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                      className="text-gray-900 font-bold bg-transparent border-b border-blue-200 outline-none w-full"
+                    />
+                  ) : (
+                    <p className="text-gray-900 font-bold">{selectedClient.phone || 'Not provided'}</p>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Appointment</p>
-                    <p className="text-gray-900 font-bold">{selectedClient.time}</p>
+                {!isEditingClient && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Appointment</p>
+                      <p className="text-gray-900 font-bold">{selectedClient.time}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Procedure</p>
+                      <p className="text-gray-900 font-bold truncate">{selectedClient.type}</p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Procedure</p>
-                    <p className="text-gray-900 font-bold truncate">{selectedClient.type}</p>
-                  </div>
-                </div>
+                )}
               </div>
 
-              <button 
-                onClick={() => setSelectedClient(null)}
-                className="w-full mt-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
-              >
-                Close Profile
-              </button>
+              {isEditingClient ? (
+                <div className="flex gap-4 mt-8">
+                  <button 
+                    onClick={() => setIsEditingClient(false)}
+                    className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleUpdateClient}
+                    disabled={isSubmitting}
+                    className="flex-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setSelectedClient(null)}
+                  className="w-full mt-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
+                >
+                  Close Profile
+                </button>
+              )}
             </div>
           </div>
         </div>
