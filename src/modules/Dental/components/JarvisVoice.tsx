@@ -173,9 +173,15 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
       
       // Fallback: If for some reason we can't get user ID, try to get the first doctor from profiles
       let finalDoctorId = user?.id;
-      if (!finalDoctorId) {
-        const { data: docData } = await supabase.from('profiles').select('id').limit(1).single();
+      let doctorName = '';
+      
+      if (finalDoctorId) {
+        const { data: prof } = await supabase.from('profiles').select('full_name').eq('id', finalDoctorId).single();
+        doctorName = prof?.full_name || '';
+      } else {
+        const { data: docData } = await supabase.from('profiles').select('id, full_name').limit(1).single();
         finalDoctorId = docData?.id;
+        doctorName = docData?.full_name || '';
       }
 
       const { error: dbError } = await supabase
@@ -186,6 +192,7 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
           appointment_date: result.date,
           start_time: result.time,
           doctor_id: finalDoctorId,
+          doctor_name: doctorName,
           status: 'SCHEDULED'
         }]);
 

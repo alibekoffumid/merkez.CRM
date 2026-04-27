@@ -338,7 +338,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                   {/* Appointments */}
                   <div className="absolute inset-0 pointer-events-none">
                     {loading && <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-20"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>}
-                    {!loading && appointments.filter(app => app.doctorName === doctor.name).map((app, index) => {
+                    {!loading && appointments.filter(app => app.doctorId === doctor.id).map((app, index) => {
                       const timeStr = app.time || '00:00';
                       const startHour = parseInt(timeStr.split(':')[0]) || 0;
                       const startMin = parseInt(timeStr.split(':')[1]) || 0;
