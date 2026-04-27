@@ -119,11 +119,11 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             }
             return 30;
           })(),
-          type: app.procedure_type || 'Consultation',
+          type: (app.procedure_type || '').split('|')[0].trim() || 'Consultation',
           status: app.status || 'SCHEDULED',
           doctorId: app.doctor_id,
           date: app.appointment_date,
-          notes: app.notes || ''
+          notes: (app.procedure_type || '').split('|')[1]?.trim() || ''
         }));
         setAppointments(formatted);
       }
@@ -193,9 +193,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
         appointment_date: formData.appointment_date,
         start_time: formData.start_time,
         end_time: endTime,
-        procedure_type: formData.procedure_type,
-        status: 'SCHEDULED',
-        notes: formData.notes
+        procedure_type: formData.notes ? `${formData.procedure_type} | ${formData.notes}` : formData.procedure_type,
+        status: 'SCHEDULED'
       }]);
 
       if (apptError) throw apptError;
@@ -288,13 +287,12 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
         if (custError) throw custError;
       }
 
-      // 3. Update the appointment record itself (ONLY name, bypass phone due to cache error)
+      // 3. Update the appointment record itself (Bypass phone/notes columns due to cache error)
       const { error: recordError } = await supabase
         .from('dental_records')
         .update({
           patient_name: editData.name,
-          notes: editData.notes
-          // phone: editData.phone // Bypassed due to Supabase cache error
+          procedure_type: editData.notes ? `${selectedClient.type} | ${editData.notes}` : selectedClient.type
         })
         .eq('id', selectedClient.id);
 
