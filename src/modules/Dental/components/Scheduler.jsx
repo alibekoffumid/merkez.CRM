@@ -39,6 +39,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [formData, setFormData] = useState({
     patient_name: '',
     phone: '',
@@ -91,15 +92,21 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
       const dateString = currentDate.toISOString().split('T')[0];
       const data = await DentalService.getAppointments(dateString);
       
+      // Fetch patients to map names to phones if record is missing phone
+      const patientsData = await DentalService.getPatients();
+      const phoneMap = patientsData.reduce((acc, p) => {
+        acc[p.name] = p.phone;
+        return acc;
+      }, {});
+      
       if (data) {
         const formatted = data.map(app => ({
           id: app.id,
-          patient: app.patient?.name || app.patient_name || 'New Patient',
-          phone: app.patient?.phone || app.phone || '',
+          patient: app.patient_name || 'New Patient',
+          phone: app.phone || phoneMap[app.patient_name] || '',
           doctorName: app.doctor_name,
           time: (app.start_time || '00:00').substring(0, 5),
           duration: app.duration_minutes || (() => {
-            // Calculate from end_time - start_time
             if (app.end_time && app.start_time) {
               const [sh, sm] = app.start_time.split(':').map(Number);
               const [eh, em] = app.end_time.split(':').map(Number);
@@ -109,7 +116,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
           })(),
           type: app.procedure_type || 'Consultation',
           status: app.status || 'SCHEDULED',
-          doctorId: app.doctor_id
+          doctorId: app.doctor_id,
+          date: app.appointment_date
         }));
         setAppointments(formatted);
       }
@@ -479,6 +487,13 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                       return (
                         <div 
                           key={app.id}
+                          onClick={() => setSelectedClient({
+                            name: app.patient,
+                            phone: app.phone,
+                            type: app.type,
+                            time: app.time,
+                            date: app.date
+                          })}
                           className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:shadow-xl hover:brightness-95 cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
                           style={{ 
                             top: `${top}px`, 
@@ -683,6 +698,65 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Client Detail Card Modal */}
+      {selectedClient && (
+        <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="relative h-32 bg-gradient-to-br from-blue-600 to-indigo-700 p-8">
+              <button 
+                onClick={() => setSelectedClient(null)}
+                className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="absolute -bottom-12 left-8 w-24 h-24 rounded-3xl bg-white p-1 shadow-xl">
+                <div className="w-full h-full rounded-[1.25rem] bg-blue-50 flex items-center justify-center text-blue-600 font-black text-3xl">
+                  {selectedClient.name.charAt(0)}
+                </div>
+              </div>
+            </div>
+            
+            <div className="pt-16 px-8 pb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedClient.name}</h3>
+                  <p className="text-blue-600 font-bold text-sm">Regular Patient</p>
+                </div>
+                <div className="flex gap-2">
+                  <a href={`tel:${selectedClient.phone}`} className="p-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all">
+                    <Phone className="w-5 h-5" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-8 space-y-4">
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Phone Number</p>
+                  <p className="text-gray-900 font-bold">{selectedClient.phone || 'Not provided'}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Appointment</p>
+                    <p className="text-gray-900 font-bold">{selectedClient.time}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Procedure</p>
+                    <p className="text-gray-900 font-bold truncate">{selectedClient.type}</p>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedClient(null)}
+                className="w-full mt-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
+              >
+                Close Profile
+              </button>
+            </div>
           </div>
         </div>
       )}
