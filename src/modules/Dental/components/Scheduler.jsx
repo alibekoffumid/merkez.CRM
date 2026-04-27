@@ -320,9 +320,9 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   };
 
   return (
-    <div className={`bg-white shadow-xl border border-gray-100 flex flex-col font-sans ${isFullPage ? 'h-full rounded-t-[2.5rem] rounded-b-none' : 'h-[850px] rounded-[2.5rem]'}`}>
+    <div className={`flex flex-col font-sans ${isFullPage ? 'h-full' : 'h-[850px] bg-white shadow-xl border border-gray-100 rounded-[2.5rem]'}`}>
       {/* Premium Header */}
-      <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-[100] gap-6 rounded-t-[2.5rem]">
+      <div className={`p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-[100] gap-6 ${isFullPage ? '' : 'rounded-t-[2.5rem]'}`}>
         <div className="flex items-center gap-6">
           <div 
             className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5 cursor-pointer hover:bg-blue-500/20 transition-all"
