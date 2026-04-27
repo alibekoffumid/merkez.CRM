@@ -274,29 +274,34 @@ const DentalChart: React.FC<DentalChartProps> = ({ patientId }) => {
   const StatusPicker = () => {
     if (!selectedTooth) return null;
     return (
-      <div className="flex items-center gap-2 p-4 bg-blue-50/50 rounded-[2rem] border border-blue-100 shadow-xl shadow-blue-600/5 animate-in slide-in-from-top-4 duration-500 max-w-fit mx-auto mb-6">
-        <div className="flex items-center gap-3 pr-6 border-r border-blue-100">
-          <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-black shadow-lg">
-            {selectedTooth}
+      <div className="flex flex-col md:flex-row items-center gap-4 p-3 md:p-4 bg-blue-50/50 rounded-[1.5rem] md:rounded-[2rem] border border-blue-100 shadow-xl shadow-blue-600/5 animate-in slide-in-from-top-4 duration-500 w-full max-w-fit mx-auto mb-6">
+        <div className="flex items-center gap-3 pr-0 md:pr-6 border-b md:border-b-0 md:border-r border-blue-100 pb-3 md:pb-0 w-full md:w-auto justify-between md:justify-start">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs md:text-sm font-black shadow-lg shrink-0">
+              {selectedTooth}
+            </div>
+            <span className="text-[8px] md:text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('dental.assignTooth')}:</span>
           </div>
-          <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('dental.assignTooth')}:</span>
+          <button onClick={() => setSelectedTooth(null)} className="p-1.5 hover:bg-white rounded-full text-gray-400 transition-colors shadow-sm md:hidden">
+            <Plus className="w-4 h-4 rotate-45" />
+          </button>
         </div>
-        <div className="flex flex-wrap gap-1.5 px-4">
+        <div className="flex flex-wrap gap-1 md:gap-1.5 px-0 md:px-4 justify-center">
           {(Object.keys(CONDITION_CONFIG) as ToothCondition[]).map((key) => (
             <button
               key={key}
               onClick={() => updateStatus(key)}
               className={`
-                px-4 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-tighter
+                px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black transition-all uppercase tracking-tighter
                 ${CONDITION_CONFIG[key].bg} ${CONDITION_CONFIG[key].color}
-                hover:scale-105 active:scale-95 border border-transparent hover:border-current/20
+                hover:scale-105 active:scale-95 border border-transparent hover:border-current/20 whitespace-nowrap
               `}
             >
               {CONDITION_CONFIG[key].label}
             </button>
           ))}
         </div>
-        <button onClick={() => setSelectedTooth(null)} className="ml-2 p-2 hover:bg-white rounded-full text-gray-400 transition-colors shadow-sm">
+        <button onClick={() => setSelectedTooth(null)} className="hidden md:block ml-2 p-2 hover:bg-white rounded-full text-gray-400 transition-colors shadow-sm">
           <Plus className="w-5 h-5 rotate-45" />
         </button>
       </div>

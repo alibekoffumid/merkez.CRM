@@ -100,8 +100,8 @@ const DentalInventory = () => {
           </div>
         </div>
 
-        {/* Table Content */}
-        <div className="overflow-x-auto">
+        {/* Table Content - Desktop */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50/50">
@@ -178,6 +178,65 @@ const DentalInventory = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Card View - Mobile */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {loading ? (
+            <div className="p-10 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+          ) : inventory.length > 0 ? (
+            inventory.map((item) => {
+              const status = calculateStatus(item);
+              return (
+                <div key={item.id} className="p-4 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100">
+                        <Package className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-gray-900">{item.name}</h4>
+                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{item.category}</span>
+                      </div>
+                    </div>
+                    <button className="p-2 text-gray-400">
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between bg-gray-50/50 rounded-xl p-3 border border-gray-100">
+                    <div className="flex flex-col">
+                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Stock</span>
+                      <span className="text-sm font-black text-gray-900">{item.quantity} {item.unit}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${
+                          status === 'IN_STOCK' ? 'bg-emerald-500' :
+                          status === 'LOW_STOCK' ? 'bg-amber-500' :
+                          'bg-rose-500 animate-pulse'
+                        }`} />
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${
+                          status === 'IN_STOCK' ? 'text-emerald-600' :
+                          status === 'LOW_STOCK' ? 'text-amber-600' :
+                          'text-rose-600'
+                        }`}>
+                          {status.replace('_', ' ')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-10 text-center text-gray-500 text-sm font-bold">
+              No items found.
+            </div>
+          )}
         </div>
 
         {/* Pagination Placeholder */}
