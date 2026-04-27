@@ -458,27 +458,27 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
       {/* Main Grid Container */}
       <div className="flex-1 flex flex-col min-h-0 overflow-x-auto">
-        {/* Fixed Header Row */}
-        <div className="flex bg-white/90 backdrop-blur-xl border-b border-gray-100 z-30 min-w-max">
-          {/* Time Placeholder */}
-          <div className="w-24 shrink-0 border-r border-gray-100 bg-gray-50/50 flex items-center justify-center">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</span>
-          </div>
-          {/* Doctor Headers */}
-          <div className="flex-1 flex min-w-full">
-            {doctors.filter(d => selectedDoctorId === 'all' || d.id === selectedDoctorId).map(doctor => (
-              <div key={doctor.id} className="flex-1 border-r border-gray-100 p-4 flex items-center justify-start gap-4 h-20 bg-white">
-                <div className={`w-12 h-12 rounded-2xl ${doctor.color} ${doctor.glow} flex items-center justify-center text-xs font-black text-white shadow-lg shrink-0 transition-transform hover:scale-105`}>
-                  {doctor.avatar}
+        {/* Doctor Headers Row - Only show if 'All Doctors' selected to distinguish columns */}
+        {selectedDoctorId === 'all' && (
+          <div className="flex bg-gray-50/50 border-b border-gray-100 min-w-max sticky top-0 z-30">
+            <div className="w-24 shrink-0 border-r border-gray-100 flex items-center justify-center bg-gray-50/50">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Time</span>
+            </div>
+            {/* Doctor Headers */}
+            <div className="flex-1 flex min-w-full">
+              {doctors.map(doctor => (
+                <div key={doctor.id} className="flex-1 border-r border-gray-100 p-3 flex items-center justify-start gap-3 h-14 bg-white/80 backdrop-blur-md">
+                  <div className={`w-8 h-8 rounded-xl ${doctor.color} flex items-center justify-center text-[10px] font-black text-white shadow-sm shrink-0`}>
+                    {doctor.avatar}
+                  </div>
+                  <div className="flex flex-col items-start justify-center overflow-hidden">
+                    <span className="text-xs font-black text-gray-900 tracking-tight leading-none truncate w-full">{doctor.name}</span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-start justify-center overflow-hidden">
-                  <span className="text-sm font-black text-gray-900 tracking-tight leading-tight truncate w-full">{doctor.name}</span>
-                  <span className="text-[10px] text-blue-500 font-black uppercase tracking-[0.15em] leading-tight mt-1">{doctor.specialty}</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Scrollable Slots Area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar bg-gray-50/30 relative min-w-max pb-20">
