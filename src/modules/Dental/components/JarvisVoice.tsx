@@ -196,9 +196,9 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
       setResult(null);
       if (onAppointmentCreated) onAppointmentCreated();
       
-      // Beautiful success feedback
-      setSuccess('✨ ЗАПИСЬ СОЗДАНА УСПЕШНО!');
-      setTimeout(() => setSuccess(null), 3000);
+      // Beautiful success feedback with debug info
+      setSuccess(`✨ СОЗДАНО: ${result.patient_name} на ${result.date} (${result.time})`);
+      setTimeout(() => setSuccess(null), 5000);
 
     } catch (err: any) {
       setError(err.message);
