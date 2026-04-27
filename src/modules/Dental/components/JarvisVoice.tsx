@@ -16,6 +16,7 @@ const JarvisVoice: React.FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [result, setResult] = useState<JarvisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   
   const speak = (text: string) => {
     // Cancel any ongoing speech
@@ -175,9 +176,14 @@ const JarvisVoice: React.FC = () => {
       speak('Запись успешно подтверждена и сохранена.');
       setShowConfirmModal(false);
       setResult(null);
-      alert('Appointment created successfully! 🎉');
+      
+      // Beautiful success feedback
+      setSuccess('✨ ЗАПИСЬ СОЗДАНА УСПЕШНО!');
+      setTimeout(() => setSuccess(null), 3000);
+
     } catch (err: any) {
-      alert('Error saving to DB: ' + err.message);
+      setError(err.message);
+      speak('Произошла ошибка при сохранении.');
     } finally {
       setIsProcessing(false);
     }
@@ -296,6 +302,15 @@ const JarvisVoice: React.FC = () => {
           <button onClick={() => setError(null)} className="p-1 hover:bg-rose-100 rounded-lg">
             <X className="w-4 h-4 text-rose-400" />
           </button>
+        </div>
+      )}
+      {/* Success Notification */}
+      {success && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-green-600 text-white px-8 py-4 rounded-2xl font-black shadow-2xl shadow-green-600/30 flex items-center gap-3">
+            <span className="text-xl">✨</span>
+            <span className="uppercase tracking-widest text-sm">{success}</span>
+          </div>
         </div>
       )}
     </>
