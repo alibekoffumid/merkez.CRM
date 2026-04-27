@@ -28,7 +28,7 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
   return `${hour.toString().padStart(2, '0')}:${min}`;
 });
 
-const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
+const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
@@ -839,12 +839,31 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
                   </button>
                 </div>
               ) : (
-                <button 
-                  onClick={() => setSelectedClient(null)}
-                  className="w-full mt-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
-                >
-                  Close Profile
-                </button>
+                <div className="flex flex-col gap-3 mt-8">
+                  <button 
+                    onClick={() => {
+                      if (onViewChart && selectedClient.customerId) {
+                        onViewChart({
+                          id: selectedClient.customerId,
+                          name: selectedClient.name
+                        });
+                        setSelectedClient(null);
+                      } else {
+                        showNotification('Patient profile not linked', 'error');
+                      }
+                    }}
+                    className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    <Activity className="w-5 h-5" />
+                    Open Medical Chart
+                  </button>
+                  <button 
+                    onClick={() => setSelectedClient(null)}
+                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
+                  >
+                    Close Profile
+                  </button>
+                </div>
               )}
             </div>
           </div>

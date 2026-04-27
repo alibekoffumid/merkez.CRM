@@ -247,7 +247,12 @@ const DentalModule = () => {
         <div className={`flex-1 transition-all duration-500 ${isFullPage ? 'h-full overflow-hidden' : ''}`}>
           {activeTab === 'scheduler' && (
             <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${isFullPage ? 'h-full' : ''}`}>
-              <Scheduler isFullPage={isFullPage} doctors={doctors} refreshTrigger={refreshTrigger} />
+              <Scheduler 
+                isFullPage={isFullPage} 
+                doctors={doctors} 
+                refreshTrigger={refreshTrigger} 
+                onViewChart={handleViewChart}
+              />
             </div>
           )}
           {activeTab === 'chart' && (
