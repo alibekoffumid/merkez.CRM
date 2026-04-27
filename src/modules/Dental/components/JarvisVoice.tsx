@@ -18,13 +18,16 @@ const JarvisVoice: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const speak = (text: string) => {
+  const speak = (text: string, onEnd?: () => void) => {
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'ru-RU'; // Set to Russian
+    utterance.lang = 'ru-RU';
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
+    if (onEnd) {
+      utterance.onend = onEnd;
+    }
     window.speechSynthesis.speak(utterance);
   };
 
@@ -52,8 +55,9 @@ const JarvisVoice: React.FC = () => {
         }
 
         if (text.includes('джарвис') || text.includes('jarvis')) {
-          speak('Слушаю вас, доктор');
-          startRecording();
+          speak('Слушаю вас, доктор', () => {
+            startRecording();
+          });
         }
       };
 
