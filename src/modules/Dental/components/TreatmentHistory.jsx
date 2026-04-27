@@ -43,7 +43,7 @@ const TreatmentHistory = ({ patientId }) => {
       id: item.id,
       date: item.created_at ? new Date(item.created_at).toLocaleDateString() : t('common.noData'),
       doctor: item.updated_by || 'Unknown',
-      procedure: `${conditionMap[item.condition] || item.condition} - ${t('dental.chartTitle').split(' ')[2]} #${item.tooth_number || '?'}`,
+      procedure: `${conditionMap[item.condition] || item.condition} - ${t('dental.tooth')} #${item.tooth_number || '?'}`,
       notes: item.notes || t('dental.noNotes'),
       status: t('status.completed'),
       cost: 0
