@@ -52,7 +52,7 @@ const JarvisVoice: React.FC = () => {
         }
 
         if (text.includes('джарвис') || text.includes('jarvis')) {
-          speak('Слушаю вас');
+          speak('Слушаю вас, доктор');
           startRecording();
         }
       };
