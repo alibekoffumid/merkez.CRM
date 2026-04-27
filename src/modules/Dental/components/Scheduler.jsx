@@ -250,16 +250,23 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   const handleUpdateClient = async () => {
     try {
       setIsSubmitting(true);
-      // 1. Update customer record
+      console.log('Updating client:', selectedClient.id, editData);
+
+      // 1. Update customer record if exists
       if (selectedClient.customerId) {
-        await DentalService.updatePatient(selectedClient.customerId, {
-          name: editData.name,
-          phone: editData.phone
-        });
+        const { error: custError } = await supabase
+          .from('customers')
+          .update({
+            name: editData.name,
+            phone: editData.phone
+          })
+          .eq('id', selectedClient.customerId);
+        
+        if (custError) throw custError;
       }
 
       // 2. Update the appointment record itself
-      await supabase
+      const { error: recordError } = await supabase
         .from('dental_records')
         .update({
           patient_name: editData.name,
@@ -267,13 +274,23 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
         })
         .eq('id', selectedClient.id);
 
-      showNotification('Client updated successfully');
+      if (recordError) throw recordError;
+
+      showNotification('Changes saved successfully');
       setIsEditingClient(false);
+      
+      // Update local state immediately for better UX
+      setAppointments(prev => prev.map(app => 
+        app.id === selectedClient.id 
+          ? { ...app, patient: editData.name, phone: editData.phone }
+          : app
+      ));
+
       setSelectedClient(null);
-      fetchAppointments();
+      await fetchAppointments(); // Full sync
     } catch (err) {
-      console.error('Update error:', err);
-      showNotification('Failed to update client', 'error');
+      console.error('Update error detail:', err);
+      showNotification(err.message || 'Failed to save changes', 'error');
     } finally {
       setIsSubmitting(false);
     }
