@@ -42,7 +42,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [isEditingClient, setIsEditingClient] = useState(false);
-  const [editData, setEditData] = useState({ name: '', phone: '' });
+  const [editData, setEditData] = useState({ name: '', phone: '', notes: '' });
   const [formData, setFormData] = useState({
     patient_name: '',
     phone: '',
@@ -50,7 +50,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
     appointment_date: new Date().toISOString().split('T')[0],
     start_time: '10:00',
     duration_minutes: 30,
-    procedure_type: 'Consultation'
+    procedure_type: 'Consultation',
+    notes: ''
   });
 
   useEffect(() => {
@@ -121,7 +122,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
           type: app.procedure_type || 'Consultation',
           status: app.status || 'SCHEDULED',
           doctorId: app.doctor_id,
-          date: app.appointment_date
+          date: app.appointment_date,
+          notes: app.notes || ''
         }));
         setAppointments(formatted);
       }
@@ -192,7 +194,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
         start_time: formData.start_time,
         end_time: endTime,
         procedure_type: formData.procedure_type,
-        status: 'SCHEDULED'
+        status: 'SCHEDULED',
+        notes: formData.notes
       }]);
 
       if (apptError) throw apptError;
@@ -289,7 +292,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
       const { error: recordError } = await supabase
         .from('dental_records')
         .update({
-          patient_name: editData.name
+          patient_name: editData.name,
+          notes: editData.notes
           // phone: editData.phone // Bypassed due to Supabase cache error
         })
         .eq('id', selectedClient.id);
@@ -302,7 +306,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
       // Update local state immediately for better UX
       setAppointments(prev => prev.map(app => 
         app.id === selectedClient.id 
-          ? { ...app, patient: editData.name, phone: editData.phone }
+          ? { ...app, patient: editData.name, phone: editData.phone, notes: editData.notes }
           : app
       ));
 
@@ -423,7 +427,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 appointment_date: currentDate.toISOString().split('T')[0],
                 patient_name: '',
                 phone: '',
-                start_time: '10:00'
+                start_time: '10:00',
+                notes: ''
               });
               setShowModal(true);
             }}
@@ -487,7 +492,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                             start_time: time,
                             appointment_date: currentDate.toISOString().split('T')[0],
                             patient_name: '',
-                            phone: ''
+                            phone: '',
+                            notes: ''
                           });
                           setShowModal(true);
                         }}
@@ -568,9 +574,10 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                               phone: app.phone,
                               type: app.type,
                               time: app.time,
-                              date: app.date
+                              date: app.date,
+                              notes: app.notes
                             });
-                            setEditData({ name: app.patient, phone: app.phone });
+                            setEditData({ name: app.patient, phone: app.phone, notes: app.notes });
                             setIsEditingClient(false);
                           }}
                           className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:shadow-xl hover:brightness-95 cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
@@ -771,6 +778,16 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Appointment Notes</label>
+                <textarea 
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="e.g. Patient has slight tooth sensitivity..."
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px] resize-none"
+                />
+              </div>
+
               <div className="pt-4 flex gap-3">
                 <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2">
                   {isSubmitting ? 'Saving...' : 'Book Appointment'}
@@ -842,6 +859,22 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     />
                   ) : (
                     <p className="text-gray-900 font-bold">{selectedClient.phone || 'Not provided'}</p>
+                  )}
+                </div>
+
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Comments / Clinical Notes</p>
+                  {isEditingClient ? (
+                    <textarea 
+                      value={editData.notes}
+                      onChange={(e) => setEditData({...editData, notes: e.target.value})}
+                      placeholder="Add clinical notes..."
+                      className="text-gray-900 font-medium bg-transparent border-b border-blue-200 outline-none w-full min-h-[80px] resize-none py-1"
+                    />
+                  ) : (
+                    <p className="text-gray-900 font-medium text-sm leading-relaxed italic">
+                      {selectedClient.notes || 'No notes added...'}
+                    </p>
                   )}
                 </div>
 
