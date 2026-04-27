@@ -188,7 +188,7 @@ const DentalModule = () => {
         flex flex-col min-h-full transition-all duration-500
         ${isFullPage 
           ? `fixed inset-0 z-[100] bg-white p-0 rounded-0 ${activeTab === 'scheduler' ? 'overflow-hidden' : 'overflow-y-auto'}` 
-          : 'bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100 space-y-6'}
+          : `bg-white ${activeTab === 'scheduler' ? 'p-0' : 'p-4 md:p-8'} rounded-[2.5rem] border border-gray-100 space-y-6`}
       `}>
         {isFullPage && (
           <button 
