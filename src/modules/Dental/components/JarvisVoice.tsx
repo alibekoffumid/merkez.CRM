@@ -10,7 +10,11 @@ interface JarvisResult {
   doctor_id?: string;
 }
 
-const JarvisVoice: React.FC = () => {
+interface JarvisVoiceProps {
+  onAppointmentCreated?: () => void;
+}
+
+const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -183,6 +187,7 @@ const JarvisVoice: React.FC = () => {
       speak('Запись успешно подтверждена и сохранена.');
       setShowConfirmModal(false);
       setResult(null);
+      if (onAppointmentCreated) onAppointmentCreated();
       
       // Beautiful success feedback
       setSuccess('✨ ЗАПИСЬ СОЗДАНА УСПЕШНО!');

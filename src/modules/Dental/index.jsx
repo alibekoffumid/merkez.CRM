@@ -22,9 +22,12 @@ const getInitials = (name) => {
 
 const DentalModule = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('scheduler');
+  const [activeTab, setActiveTab] = useState('appointments');
   const [isFullPage, setIsFullPage] = useState(false);
   const [doctors, setDoctors] = useState([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleRefresh = () => setRefreshTrigger(prev => prev + 1);
   const [selectedPatient, setSelectedPatient] = useState({
     name: 'Patient',
     id: '#DN-00000',
@@ -244,7 +247,7 @@ const DentalModule = () => {
         <div className={`flex-1 transition-all duration-500 ${isFullPage ? 'h-full overflow-hidden' : ''}`}>
           {activeTab === 'scheduler' && (
             <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${isFullPage ? 'h-full' : ''}`}>
-              <Scheduler isFullPage={isFullPage} />
+              <Scheduler isFullPage={isFullPage} doctors={doctors} refreshTrigger={refreshTrigger} />
             </div>
           )}
           {activeTab === 'chart' && (
@@ -364,7 +367,7 @@ const DentalModule = () => {
           </div>
         )}
         {/* Voice Assistant Jarvis */}
-        <JarvisVoice />
+        <JarvisVoice onAppointmentCreated={handleRefresh} />
       </div>
     );
   } catch (err) {

@@ -27,7 +27,7 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
   return `${hour.toString().padStart(2, '0')}:${min}`;
 });
 
-const Scheduler = ({ isFullPage, doctors = [] }) => {
+const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
   const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
@@ -58,7 +58,7 @@ const Scheduler = ({ isFullPage, doctors = [] }) => {
       setTick(prev => prev + 1);
     }, 60000);
     return () => clearInterval(timer);
-  }, [currentDate]);
+  }, [currentDate, refreshTrigger]);
 
   const [tick, setTick] = React.useState(0);
 
