@@ -595,6 +595,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                    <Phone className="w-3 h-3 shrink-0" /> {app.phone}
                                  </p>
                                )}
+                               <p className="text-[10px] font-bold text-gray-400 truncate flex items-center gap-1">
+                                 <Activity className="w-3 h-3 shrink-0" /> {app.type}
+                               </p>
+                               {app.notes && (
+                                 <p className="text-[9px] font-medium text-gray-500 italic truncate mt-0.5 border-t border-gray-100/50 pt-0.5">
+                                    {app.notes}
+                                 </p>
+                               )}
                                <button 
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -607,19 +615,11 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                </button>
                             </div>
                             
-                            <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 mt-auto pt-1 ${isSmall ? 'hidden' : ''}`}>
-                              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60">
-                                <Clock className="w-2.5 h-2.5" /> {app.time}
-                              </div>
-                              <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60 truncate">
-                                <Activity className="w-2.5 h-2.5" /> {app.type}
-                              </div>
-                            </div>
-                            {isSmall && (
-                              <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest opacity-60 mt-auto truncate">
-                                <span>{app.time}</span>
-                                <span>•</span>
-                                <span>{app.type}</span>
+                            {!isSmall && (
+                              <div className="flex items-center gap-3 mt-auto pt-1">
+                                <div className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest opacity-60">
+                                  <Clock className="w-2.5 h-2.5" /> {app.time}
+                                </div>
                               </div>
                             )}
                           </div>
