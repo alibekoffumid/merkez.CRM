@@ -192,7 +192,6 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
           appointment_date: result.date,
           start_time: result.time,
           doctor_id: finalDoctorId,
-          doctor_name: doctorName,
           duration_minutes: 30,
           status: 'SCHEDULED'
         }]);

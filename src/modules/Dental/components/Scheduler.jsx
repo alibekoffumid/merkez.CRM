@@ -158,11 +158,10 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger }) => {
       if (!doctorObj) throw new Error('No doctor selected');
 
       console.log('Creating appointment for doctor:', doctorObj.name);
-      const { error: apptError } = await supabase.from('dental_appointments').insert([{
-        patient_id: patientId,
-        doctor_name: doctorObj.name,
-        doctor_specialty: doctorObj.specialty,
-        doctor_color: doctorObj.color,
+      const { error: apptError } = await supabase.from('dental_records').insert([{
+        patient_name: formData.patient_name,
+        phone: formData.phone,
+        doctor_id: doctorObj.id,
         appointment_date: formData.appointment_date,
         start_time: formData.start_time,
         duration_minutes: parseInt(formData.duration_minutes),
