@@ -497,6 +497,8 @@
     "noNotes": "No notes provided",
     "priceList": "Price List",
     "savePrice": "Save Price",
-    "updatePriceSuccess": "Price updated successfully"
+    "updatePriceSuccess": "Price updated successfully",
+    "priceListSubtitle": "Manage treatment costs for automatic billing",
+    "priceListWarning": "Prices are used for statistics & billing"
   }
 }

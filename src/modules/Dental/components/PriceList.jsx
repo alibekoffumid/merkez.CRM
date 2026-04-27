@@ -77,12 +77,12 @@ const PriceList = () => {
             </div>
             <div>
               <h3 className="text-2xl font-black text-gray-900">{t('dental.priceList')}</h3>
-              <p className="text-gray-500 text-sm font-medium">Manage treatment costs for automatic billing</p>
+              <p className="text-gray-500 text-sm font-medium">{t('dental.priceListSubtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-2xl border border-amber-100">
             <AlertCircle className="w-4 h-4 text-amber-600" />
-            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Prices are used for statistics & billing</span>
+            <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">{t('dental.priceListWarning')}</span>
           </div>
         </div>
       </div>

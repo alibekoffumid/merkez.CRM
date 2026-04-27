@@ -474,6 +474,8 @@
     "noNotes": "Qeyd yoxdur",
     "priceList": "Qiymət cədvəli",
     "savePrice": "Qiyməti yadda saxla",
-    "updatePriceSuccess": "Qiymət uğurla yeniləndi"
+    "updatePriceSuccess": "Qiymət uğurla yeniləndi",
+    "priceListSubtitle": "Avtomatik hesablama üçün prosedurların qiymətini idarə edin",
+    "priceListWarning": "Qiymətlər statistika və hesab-faktura üçün istifadə olunur"
   }
 }
