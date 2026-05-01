@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap } from 'lucide-react';
 
 export const getNavItems = (t) => [
   { 
@@ -15,6 +15,14 @@ export const getNavItems = (t) => [
     path: '/dental', 
     color: 'hover:text-merkez-blue hover:bg-blue-50',
     roles: ['admin', 'doctor', 'dentist', 'manager', 'user']
+  },
+  { 
+    id: 'education',
+    name: t('sidebar.education') || 'Education', 
+    icon: GraduationCap, 
+    path: '/education', 
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    roles: ['admin', 'manager', 'user']
   },
   { 
     id: 'crm',

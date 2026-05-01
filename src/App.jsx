@@ -13,6 +13,7 @@ import AuthGuard from './components/Auth/AuthGuard';
 import Profile from './modules/Profile';
 import FinanceModule from './modules/Finance';
 import DentalModule from './modules/Dental';
+import EducationModule from './modules/Education';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="restaurant" element={<RestaurantModule />} />
           <Route path="call-center" element={<CallCenterModule />} />
           <Route path="dental" element={<DentalModule />} />
+          <Route path="education" element={<EducationModule />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={
             <div className="flex items-center justify-center h-full text-gray-500">
