@@ -553,6 +553,8 @@
     "active": "Active",
     "enrolled": "Enrolled",
     "attendance": "Attendance",
-    "oneCourse": "1 Course"
+    "oneCourse": "1 Course",
+    "enrolledSuccessfully": "ENROLLED SUCCESSFULLY!",
+    "processing": "PROCESSING..."
   }
 }

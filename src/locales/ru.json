@@ -553,6 +553,8 @@
     "active": "Активен",
     "enrolled": "Зачислен",
     "attendance": "Посещаемость",
-    "oneCourse": "1 Курс"
+    "oneCourse": "1 Курс",
+    "enrolledSuccessfully": "УСПЕШНО ЗАЧИСЛЕН!",
+    "processing": "ОБРАБОТКА..."
   }
 }

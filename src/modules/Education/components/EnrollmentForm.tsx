@@ -186,9 +186,9 @@ const EnrollmentForm = () => {
               ${loading ? 'opacity-80 cursor-not-allowed' : ''}
             `}>
             {loading ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+              <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing')}</>
             ) : success ? (
-              <><CheckCircle2 className="w-5 h-5" /> Enrolled Successfully!</>
+              <><CheckCircle2 className="w-5 h-5" /> {t('education.enrolledSuccessfully')}</>
             ) : (
               t('education.completeEnrollment')
             )}

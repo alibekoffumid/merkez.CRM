@@ -530,6 +530,8 @@
     "active": "Aktiv",
     "enrolled": "Qeydiyyatda",
     "attendance": "Davamiyyət",
-    "oneCourse": "1 Kurs"
+    "oneCourse": "1 Kurs",
+    "enrolledSuccessfully": "UĞURLA QEYDİYYATA ALINDI!",
+    "processing": "İŞLƏNİR..."
   }
 }
