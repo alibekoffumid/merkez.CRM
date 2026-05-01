@@ -48,16 +48,6 @@ const EnrollmentForm = () => {
         
       if (studentError) {
         console.error('Student Error:', studentError);
-        // If table doesn't exist, just simulate success for the demo
-        if (studentError.code === '42P01') {
-           console.log('Table missing, simulating success');
-           setSuccess(true);
-           setTimeout(() => {
-             setSuccess(false);
-             setFormData({ firstName: '', lastName: '', email: '', phone: '', courseId: '' });
-           }, 2000);
-           return;
-        }
         throw studentError;
       }
       
@@ -82,14 +72,9 @@ const EnrollmentForm = () => {
         setFormData({ firstName: '', lastName: '', email: '', phone: '', courseId: '' });
       }, 2000);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Enrollment error:', err);
-      // Simulate success on error since backend might not be fully setup yet
-      setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        setFormData({ firstName: '', lastName: '', email: '', phone: '', courseId: '' });
-      }, 2000);
+      alert('Error: ' + (err.message || 'Failed to enroll student'));
     } finally {
       setLoading(false);
     }
