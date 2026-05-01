@@ -65,7 +65,7 @@ const CourseInventory = () => {
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 shadow-lg shadow-gray-900/20 font-bold text-sm transition-all active:scale-95"
         >
-          <Plus className="w-4 h-4" /> {t('education.addProgram')}
+          <Plus className="w-5 h-5" /> {t('education.addProgram')}
         </button>
       </div>
 

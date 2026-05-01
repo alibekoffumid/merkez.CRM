@@ -72,7 +72,7 @@ const AcademicScheduler = () => {
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
           >
-            <Plus className="w-4 h-4" /> {t('education.newLesson')}
+            <Plus className="w-5 h-5" /> {t('education.newLesson')}
           </button>
         </div>
       </div>

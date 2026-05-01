@@ -517,7 +517,7 @@
     "academicSchedule": "Academic Schedule",
     "manageClasses": "Manage group classes and individual lessons",
     "today": "Today",
-    "newLesson": "+ New Lesson",
+    "newLesson": "New Lesson",
     "schedulerPlaceholder": "Scheduler UI will be integrated here.",
     "upcomingToday": "Upcoming Today",
     "advancedPiano": "Advanced Piano (Group)",
