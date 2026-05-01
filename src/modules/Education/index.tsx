@@ -120,7 +120,7 @@ const EducationModuleContent = () => {
 
 const EducationModule = () => {
   return (
-    <EducationProvider initialTenantId="default-tenant-id">
+    <EducationProvider initialTenantId="00000000-0000-0000-0000-000000000000">
       <EducationModuleContent />
     </EducationProvider>
   );
