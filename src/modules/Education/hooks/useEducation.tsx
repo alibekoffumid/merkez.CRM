@@ -7,6 +7,7 @@ export interface EducationContextType {
   students: any[];
   courses: any[];
   enrollments: any[];
+  lessons: any[];
   loading: boolean;
   error: string | null;
   refreshAll: () => Promise<void>;
@@ -19,6 +20,7 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
   const [students, setStudents] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [lessons, setLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,19 +29,22 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
     setLoading(true);
     setError(null);
     try {
-      const [studentsRes, coursesRes, enrollmentsRes] = await Promise.all([
+      const [studentsRes, coursesRes, enrollmentsRes, lessonsRes] = await Promise.all([
         supabase.from('education_students').select('*').eq('tenant_id', tenantId),
         supabase.from('education_courses').select('*').eq('tenant_id', tenantId),
-        supabase.from('enrollments').select('*, education_students(*), education_courses(*)').eq('tenant_id', tenantId)
+        supabase.from('enrollments').select('*, education_students(*), education_courses(*)').eq('tenant_id', tenantId),
+        supabase.from('education_lessons').select('*, education_courses(*)').eq('tenant_id', tenantId)
       ]);
 
       if (studentsRes.error) throw studentsRes.error;
       if (coursesRes.error) throw coursesRes.error;
       if (enrollmentsRes.error) throw enrollmentsRes.error;
+      if (lessonsRes.error) throw lessonsRes.error;
 
       setStudents(studentsRes.data || []);
       setCourses(coursesRes.data || []);
       setEnrollments(enrollmentsRes.data || []);
+      setLessons(lessonsRes.data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch education data');
       console.error('Education data fetch error:', err);
@@ -61,6 +66,7 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
       students,
       courses,
       enrollments,
+      lessons,
       loading,
       error,
       refreshAll: fetchAllData

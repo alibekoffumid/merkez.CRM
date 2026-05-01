@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 
 const AcademicScheduler = () => {
   const { t } = useTranslation();
-  const { courses, tenantId } = useEducation();
+  const { courses, tenantId, lessons, refreshAll } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     courseId: '',
     teacherName: '',
@@ -24,12 +26,13 @@ const AcademicScheduler = () => {
     if (!formData.courseId || !formData.teacherName || !formData.room) return;
     
     setIsSubmitting(true);
+    setError('');
     try {
       // Combine date and time
       const startDateTime = new Date(`${formData.date}T${formData.startTime}:00`).toISOString();
       const endDateTime = new Date(`${formData.date}T${formData.endTime}:00`).toISOString();
 
-      const { error } = await supabase.from('education_lessons').insert([{
+      const { error: insertError } = await supabase.from('education_lessons').insert([{
         tenant_id: tenantId || '00000000-0000-0000-0000-000000000000',
         course_id: formData.courseId,
         teacher_name: formData.teacherName,
@@ -38,22 +41,27 @@ const AcademicScheduler = () => {
         end_time: endDateTime
       }]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
       
-      setIsModalOpen(false);
-      setFormData({
-        courseId: '',
-        teacherName: '',
-        room: '',
-        date: new Date().toISOString().split('T')[0],
-        startTime: '10:00',
-        endTime: '11:00'
-      });
-      // In a real app we would call refreshLessons() here
-      alert(t('common.success') || 'Success');
+      setSuccess(true);
+      refreshAll();
+      
+      setTimeout(() => {
+        setSuccess(false);
+        setIsModalOpen(false);
+        setFormData({
+          courseId: '',
+          teacherName: '',
+          room: '',
+          date: new Date().toISOString().split('T')[0],
+          startTime: '10:00',
+          endTime: '11:00'
+        });
+      }, 2000);
+      
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Error creating lesson');
+      setError(err.message || 'Error creating lesson');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,24 +96,33 @@ const AcademicScheduler = () => {
         
         <div className="space-y-4">
           <h3 className="font-black text-gray-900 text-lg">{t('education.upcomingToday')}</h3>
-          {/* Sample Lesson Card */}
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-blue-500">
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">10:00 AM - 11:30 AM</p>
-            <h4 className="font-bold text-gray-900">{t('education.advancedPiano')}</h4>
-            <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
-              <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {t('education.studentsCount')}</span>
-              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {t('education.room')} A2</span>
-            </div>
-          </div>
+          
+          {lessons?.length > 0 ? (
+            lessons.map((lesson: any, index: number) => {
+              const startDate = new Date(lesson.start_time);
+              const endDate = new Date(lesson.end_time);
+              
+              const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+              const colors = ['border-l-blue-500 text-blue-600', 'border-l-emerald-500 text-emerald-600', 'border-l-purple-500 text-purple-600', 'border-l-orange-500 text-orange-600'];
+              const colorClass = colors[index % colors.length];
+              const textClass = colorClass.split(' ')[1];
 
-          <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 border-l-emerald-500">
-            <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-1">13:00 PM - 14:00 PM</p>
-            <h4 className="font-bold text-gray-900">{t('education.vocalTraining')}</h4>
-            <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
-              <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {t('education.studentCount')}</span>
-              <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {t('education.studio')} 1</span>
+              return (
+                <div key={lesson.id} className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${colorClass.split(' ')[0]}`}>
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${textClass} mb-1`}>{timeString}</p>
+                  <h4 className="font-bold text-gray-900">{lesson.education_courses?.title || 'Course'}</h4>
+                  <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
+                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {lesson.teacher_name}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {lesson.room}</span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
+              <p className="text-gray-500 text-sm font-bold">No upcoming lessons today.</p>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -205,6 +222,8 @@ const AcademicScheduler = () => {
                 </div>
               </div>
 
+              {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold">{error}</div>}
+
               <div className="pt-4 flex gap-4">
                 <button 
                   type="button"
@@ -215,10 +234,19 @@ const AcademicScheduler = () => {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={isSubmitting}
-                  className="flex-1 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-blue-500 shadow-xl shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  disabled={isSubmitting || success}
+                  className={`flex-1 py-4 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2
+                    ${success ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'}
+                    ${isSubmitting ? 'opacity-80 cursor-not-allowed' : ''}
+                  `}
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('common.save')}
+                  {isSubmitting ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing') || 'Processing...'}</>
+                  ) : success ? (
+                    <><CheckCircle2 className="w-5 h-5" /> {t('education.enrolledSuccessfully') || 'Success!'}</>
+                  ) : (
+                    t('common.save')
+                  )}
                 </button>
               </div>
             </form>
