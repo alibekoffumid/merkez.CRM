@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UserPlus, Mail, Phone, Book } from 'lucide-react';
+import { UserPlus, Mail, Phone, Book, ChevronDown } from 'lucide-react';
 
 const EnrollmentForm = () => {
   const { t } = useTranslation();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState('');
+
+  const courses = [
+    { id: 'piano', name: t('education.classicalPiano') },
+    { id: 'vocal', name: t('education.vocalTraining') },
+    { id: 'art', name: t('education.fineArts') },
+  ];
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm">
       <div className="mb-10 text-center">
@@ -43,13 +51,36 @@ const EnrollmentForm = () => {
         <div className="space-y-2 pt-4">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.selectProgram')}</label>
           <div className="relative">
-            <Book className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <select className="w-full p-4 pl-14 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none text-sm font-bold text-gray-900">
-              <option value="" className="text-gray-400">{t('education.selectCourse')}</option>
-              <option value="piano">{t('education.classicalPiano')}</option>
-              <option value="vocal">{t('education.vocalTraining')}</option>
-              <option value="art">{t('education.fineArts')}</option>
-            </select>
+            <div 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full p-4 pl-14 bg-gray-50 rounded-2xl border border-gray-100 hover:border-blue-200 cursor-pointer transition-all flex items-center justify-between group"
+            >
+              <Book className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              <span className={`text-sm font-bold ${selectedCourse ? 'text-gray-900' : 'text-gray-400'}`}>
+                {selectedCourse ? courses.find(c => c.id === selectedCourse)?.name : t('education.selectCourse')}
+              </span>
+              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </div>
+
+            {isDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  {courses.map(course => (
+                    <div 
+                      key={course.id}
+                      onClick={() => {
+                        setSelectedCourse(course.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`px-5 py-4 cursor-pointer text-sm font-bold transition-colors border-b border-gray-50 last:border-0 ${selectedCourse === course.id ? 'bg-blue-50 text-blue-600' : 'text-gray-900 hover:bg-gray-50'}`}
+                    >
+                      {course.name}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
