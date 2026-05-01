@@ -100,6 +100,19 @@ const AcademicScheduler = () => {
           <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.manageClasses')}</p>
         </div>
         <div className="flex gap-2">
+          <div className="relative flex items-center">
+            <input 
+              type="date" 
+              value={selectedDate.toISOString().split('T')[0]}
+              onChange={(e) => {
+                if(e.target.value) setSelectedDate(new Date(e.target.value));
+              }}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            />
+            <button className="flex items-center justify-center w-10 h-[38px] bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200">
+              <CalendarIcon className="w-4 h-4" />
+            </button>
+          </div>
           <button 
             onClick={() => setSelectedDate(new Date())}
             className="px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border border-gray-200"
