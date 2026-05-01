@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 
 const AcademicScheduler = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { courses, tenantId, lessons, refreshAll } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +22,8 @@ const AcademicScheduler = () => {
   });
 
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
@@ -100,18 +102,79 @@ const AcademicScheduler = () => {
           <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.manageClasses')}</p>
         </div>
         <div className="flex gap-2">
-          <div className="relative flex items-center">
-            <input 
-              type="date" 
-              value={selectedDate.toISOString().split('T')[0]}
-              onChange={(e) => {
-                if(e.target.value) setSelectedDate(new Date(e.target.value));
+          <div className="relative">
+            <button 
+              onClick={() => {
+                setCalendarViewDate(selectedDate);
+                setShowCalendar(!showCalendar);
               }}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-            />
-            <button className="flex items-center justify-center w-10 h-[38px] bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors border border-gray-200">
+              className={`flex items-center justify-center w-10 h-[38px] rounded-xl transition-all border ${showCalendar ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+            >
               <CalendarIcon className="w-4 h-4" />
             </button>
+
+            {/* Custom Calendar Popup */}
+            {showCalendar && (
+              <>
+                <div className="fixed inset-0 z-[400]" onClick={() => setShowCalendar(false)}></div>
+                <div className="absolute top-full right-0 mt-2 z-[500] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-72 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      const d = new Date(calendarViewDate);
+                      d.setMonth(d.getMonth() - 1);
+                      setCalendarViewDate(d);
+                    }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><ChevronLeft className="w-4 h-4 text-gray-600" /></button>
+                    <span className="text-sm font-black text-gray-900 capitalize">
+                      {calendarViewDate.toLocaleDateString(i18n.language || 'ru-RU', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      const d = new Date(calendarViewDate);
+                      d.setMonth(d.getMonth() + 1);
+                      setCalendarViewDate(d);
+                    }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><ChevronRight className="w-4 h-4 text-gray-600" /></button>
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                    {['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d => (
+                      <span key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{d}</span>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {(() => {
+                      const year = calendarViewDate.getFullYear();
+                      const month = calendarViewDate.getMonth();
+                      const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+                      const daysInMonth = new Date(year, month + 1, 0).getDate();
+                      const today = new Date();
+                      const cells = [];
+                      for (let i = 0; i < firstDay; i++) cells.push(<div key={`empty-${i}`} />);
+                      for (let day = 1; day <= daysInMonth; day++) {
+                        const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                        const isSelected = day === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
+                        cells.push(
+                          <button
+                            key={day}
+                            onClick={() => {
+                              setSelectedDate(new Date(year, month, day));
+                              setShowCalendar(false);
+                            }}
+                            className={`w-8 h-8 flex items-center justify-center rounded-xl text-xs font-bold transition-all ${
+                              isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-110 z-10' :
+                              isToday ? 'bg-blue-50 text-blue-600 border border-blue-200' :
+                              'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      }
+                      return cells;
+                    })()}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <button 
             onClick={() => setSelectedDate(new Date())}
