@@ -144,59 +144,61 @@ const AcademicScheduler = () => {
           </div>
 
           {/* Timeline */}
-          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-y-auto relative custom-scrollbar">
-            <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
-              {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (
-                <div key={i} className="absolute w-full border-t border-gray-50" style={{ top: `${(i / TOTAL_HOURS) * 100}%` }}>
-                  <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
-                    {`${START_HOUR + i}:00`}
-                  </span>
-                </div>
-              ))}
-
-              {/* Render Lessons */}
-              {dayLessons.map((lesson: any, i: number) => {
-                const startDate = new Date(lesson.start_time);
-                const endDate = new Date(lesson.end_time);
-                
-                const startDec = startDate.getHours() + startDate.getMinutes() / 60;
-                const endDec = endDate.getHours() + endDate.getMinutes() / 60;
-                
-                const top = Math.max(0, ((startDec - START_HOUR) / TOTAL_HOURS) * 100);
-                const height = Math.max(5, ((endDec - startDec) / TOTAL_HOURS) * 100);
-                
-                const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
-                const colorClass = colors[i % colors.length];
-
-                return (
-                  <div 
-                    key={lesson.id} 
-                    className={`absolute left-4 right-4 rounded-xl border p-3 shadow-sm hover:shadow-md transition-shadow overflow-hidden ${colorClass}`}
-                    style={{ top: `${top}%`, height: `${height}%`, minHeight: '4rem' }}
-                  >
-                    <h4 className="font-bold text-sm truncate">{lesson.education_courses?.title}</h4>
-                    <p className="text-xs opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {lesson.room}</p>
+          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-y-auto relative [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="relative" style={{ height: `${TOTAL_HOURS * 80}px`, marginTop: '10px' }}>
+              <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
+                {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (
+                  <div key={i} className="absolute w-full border-t border-gray-50" style={{ top: `${i * 80}px` }}>
+                    <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
+                      {`${START_HOUR + i}:00`}
+                    </span>
                   </div>
-                );
-              })}
-              
-              {/* Current Time Indicator (if today) */}
-              {isSameDay(selectedDate, new Date()) && (() => {
-                const now = new Date();
-                const nowDec = now.getHours() + now.getMinutes() / 60;
-                if (nowDec >= START_HOUR && nowDec <= START_HOUR + TOTAL_HOURS) {
-                  const top = ((nowDec - START_HOUR) / TOTAL_HOURS) * 100;
+                ))}
+
+                {/* Render Lessons */}
+                {dayLessons.map((lesson: any, i: number) => {
+                  const startDate = new Date(lesson.start_time);
+                  const endDate = new Date(lesson.end_time);
+                  
+                  const startDec = startDate.getHours() + startDate.getMinutes() / 60;
+                  const endDec = endDate.getHours() + endDate.getMinutes() / 60;
+                  
+                  const top = Math.max(0, (startDec - START_HOUR) * 80);
+                  const height = Math.max(20, (endDec - startDec) * 80);
+                  
+                  const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
+                  const colorClass = colors[i % colors.length];
+
                   return (
                     <div 
-                      className="absolute left-0 right-0 border-t-2 border-red-500 z-10 pointer-events-none"
-                      style={{ top: `${top}%` }}
+                      key={lesson.id} 
+                      className={`absolute left-4 right-4 rounded-xl border p-3 shadow-sm hover:shadow-md transition-shadow overflow-hidden ${colorClass}`}
+                      style={{ top: `${top}px`, height: `${height}px` }}
                     >
-                      <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full"></div>
+                      <h4 className="font-bold text-sm truncate">{lesson.education_courses?.title}</h4>
+                      <p className="text-xs opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {lesson.room}</p>
                     </div>
                   );
-                }
-                return null;
-              })()}
+                })}
+                
+                {/* Current Time Indicator (if today) */}
+                {isSameDay(selectedDate, new Date()) && (() => {
+                  const now = new Date();
+                  const nowDec = now.getHours() + now.getMinutes() / 60;
+                  if (nowDec >= START_HOUR && nowDec <= START_HOUR + TOTAL_HOURS) {
+                    const top = (nowDec - START_HOUR) * 80;
+                    return (
+                      <div 
+                        className="absolute left-0 right-0 border-t-2 border-red-500 z-10 pointer-events-none"
+                        style={{ top: `${top}px` }}
+                      >
+                        <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
             </div>
           </div>
         </div>
