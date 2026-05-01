@@ -194,7 +194,7 @@ const AcademicScheduler = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 bg-gray-50 rounded-[2rem] border border-gray-100 p-6 flex flex-col h-[600px] overflow-hidden">
           {/* Week Navigator */}
-          <div className="flex justify-between items-center mb-6 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex justify-between items-center mb-6">
             {getWeekDays().map((date, i) => {
               const isSelected = isSameDay(date, selectedDate);
               const isToday = isSameDay(date, new Date());
