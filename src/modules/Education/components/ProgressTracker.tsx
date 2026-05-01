@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Award, TrendingUp } from 'lucide-react';
 
 const ProgressTracker = () => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-gray-100 shadow-sm">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Student Progress</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">Track performance levels and academic achievements</p>
+          <h2 className="text-2xl font-black text-gray-900">{t('education.studentProgress')}</h2>
+          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.trackPerformance')}</p>
         </div>
       </div>
       
@@ -24,7 +26,7 @@ const ProgressTracker = () => {
           
           <div className="flex items-center gap-8">
             <div className="text-center">
-              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">Level</p>
+              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1.5">{t('education.level')}</p>
               <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold flex items-center gap-1.5">
                 <Award className="w-3.5 h-3.5" /> Grade 4
               </span>
@@ -32,7 +34,7 @@ const ProgressTracker = () => {
             
             <div className="w-40">
               <div className="flex justify-between text-xs mb-2">
-                <span className="text-gray-500 font-medium">Semester Progress</span>
+                <span className="text-gray-500 font-medium">{t('education.semesterProgress')}</span>
                 <span className="font-black text-gray-900">75%</span>
               </div>
               <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">

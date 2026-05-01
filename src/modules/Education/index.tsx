@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Users, BookOpen, TrendingUp, UserPlus, GraduationCap, Settings, Maximize2, Minimize2 } from 'lucide-react';
 import { EducationProvider, useEducation } from './hooks/useEducation';
 import AcademicScheduler from './components/AcademicScheduler';
@@ -8,16 +9,17 @@ import ProgressTracker from './components/ProgressTracker';
 import EnrollmentForm from './components/EnrollmentForm';
 
 const EducationModuleContent = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
   const { students, loading } = useEducation();
 
   const tabs = [
-    { id: 'scheduler', label: 'Schedule', icon: Calendar },
-    { id: 'students', label: 'Students', icon: Users },
-    { id: 'courses', label: 'Programs', icon: BookOpen },
-    { id: 'progress', label: 'Progress', icon: TrendingUp },
-    { id: 'enrollment', label: 'Enrollment', icon: UserPlus },
+    { id: 'scheduler', label: t('education.tabSchedule'), icon: Calendar },
+    { id: 'students', label: t('education.tabStudents'), icon: Users },
+    { id: 'courses', label: t('education.tabPrograms'), icon: BookOpen },
+    { id: 'progress', label: t('education.tabProgress'), icon: TrendingUp },
+    { id: 'enrollment', label: t('education.tabEnrollment'), icon: UserPlus },
   ];
 
   return (
@@ -43,8 +45,8 @@ const EducationModuleContent = () => {
               <GraduationCap className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">Education</h1>
-              <p className="text-gray-500 text-sm mt-1 font-medium">Manage Academy, Students & Programs</p>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('education.title')}</h1>
+              <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -90,9 +92,9 @@ const EducationModuleContent = () => {
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-black text-gray-900">Student Directory</h2>
+              <h2 className="text-2xl font-black text-gray-900">{t('education.studentDirectory')}</h2>
               {loading ? (
-                <p className="text-gray-500 font-bold">Loading students...</p>
+                <p className="text-gray-500 font-bold">{t('education.loadingStudents')}</p>
               ) : students?.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {students.map(student => (
@@ -104,8 +106,8 @@ const EducationModuleContent = () => {
                   <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Users className="w-10 h-10 text-gray-300" />
                   </div>
-                  <p className="text-xl font-black text-gray-900 mb-2">No students found.</p>
-                  <p className="text-sm text-gray-500 font-medium">Get started by enrolling a new student.</p>
+                  <p className="text-xl font-black text-gray-900 mb-2">{t('education.noStudents')}</p>
+                  <p className="text-sm text-gray-500 font-medium">{t('education.enrollStudentStart')}</p>
                 </div>
               )}
             </div>

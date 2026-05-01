@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Book, Clock } from 'lucide-react';
 
 interface Student {
@@ -11,6 +12,7 @@ interface Student {
 }
 
 const StudentCard: React.FC<{ student: Student }> = ({ student }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all">
       <div className="flex items-center gap-4 mb-4">
@@ -23,7 +25,7 @@ const StudentCard: React.FC<{ student: Student }> = ({ student }) => {
         </div>
         <div className="ml-auto">
           <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${student.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-600'}`}>
-            {student.status || 'Active'}
+            {student.status || t('education.active')}
           </span>
         </div>
       </div>
@@ -32,14 +34,14 @@ const StudentCard: React.FC<{ student: Student }> = ({ student }) => {
         <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
           <Book className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Enrolled</p>
-            <p className="text-sm font-bold text-gray-900">1 Course</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase">{t('education.enrolled')}</p>
+            <p className="text-sm font-bold text-gray-900">{t('education.oneCourse')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
           <Clock className="w-5 h-5 text-gray-400" />
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase">Attendance</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase">{t('education.attendance')}</p>
             <p className="text-sm font-bold text-gray-900">100%</p>
           </div>
         </div>
