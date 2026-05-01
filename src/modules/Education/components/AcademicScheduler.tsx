@@ -21,6 +21,31 @@ const AcademicScheduler = () => {
     endTime: '11:00'
   });
 
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const getWeekDays = () => {
+    const curr = new Date(selectedDate);
+    const day = curr.getDay() || 7; // Get current day number, making Sunday (0) into 7
+    curr.setHours(0, 0, 0, 0);
+    const first = curr.getDate() - day + 1; // First day is the day of the month - the day of the week
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const next = new Date(curr.getFullYear(), curr.getMonth(), first + i);
+      days.push(next);
+    }
+    return days;
+  };
+
+  const isSameDay = (d1: Date, d2: Date) => {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  };
+
+  const dayLessons = lessons?.filter(l => isSameDay(new Date(l.start_time), selectedDate)) || [];
+  const START_HOUR = 8;
+  const TOTAL_HOURS = 12; // 8 AM to 8 PM
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.courseId || !formData.teacherName || !formData.room) return;
@@ -75,7 +100,12 @@ const AcademicScheduler = () => {
           <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.manageClasses')}</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border border-gray-200">{t('education.today')}</button>
+          <button 
+            onClick={() => setSelectedDate(new Date())}
+            className="px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border border-gray-200"
+          >
+            {t('education.today')}
+          </button>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
@@ -86,11 +116,88 @@ const AcademicScheduler = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Placeholder for calendar/scheduler view */}
-        <div className="lg:col-span-3 bg-gray-50 rounded-[2rem] border border-gray-100 p-6 flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <CalendarIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-400 font-bold">{t('education.schedulerPlaceholder')}</p>
+        <div className="lg:col-span-3 bg-gray-50 rounded-[2rem] border border-gray-100 p-6 flex flex-col h-[600px] overflow-hidden">
+          {/* Week Navigator */}
+          <div className="flex justify-between items-center mb-6 overflow-x-auto pb-2 scrollbar-hide">
+            {getWeekDays().map((date, i) => {
+              const isSelected = isSameDay(date, selectedDate);
+              const isToday = isSameDay(date, new Date());
+              return (
+                <button
+                  key={i}
+                  onClick={() => setSelectedDate(date)}
+                  className={`flex flex-col items-center min-w-[3.5rem] py-3 rounded-2xl transition-all ${
+                    isSelected 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
+                      : isToday 
+                        ? 'bg-blue-50 text-blue-600 font-bold' 
+                        : 'text-gray-500 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className={`text-[10px] uppercase tracking-widest font-black mb-1 ${isSelected ? 'text-blue-200' : ''}`}>
+                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </span>
+                  <span className="text-lg font-black">{date.getDate()}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Timeline */}
+          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-y-auto relative custom-scrollbar">
+            <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
+              {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (
+                <div key={i} className="absolute w-full border-t border-gray-50" style={{ top: `${(i / TOTAL_HOURS) * 100}%` }}>
+                  <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
+                    {`${START_HOUR + i}:00`}
+                  </span>
+                </div>
+              ))}
+
+              {/* Render Lessons */}
+              {dayLessons.map((lesson: any, i: number) => {
+                const startDate = new Date(lesson.start_time);
+                const endDate = new Date(lesson.end_time);
+                
+                const startDec = startDate.getHours() + startDate.getMinutes() / 60;
+                const endDec = endDate.getHours() + endDate.getMinutes() / 60;
+                
+                const top = Math.max(0, ((startDec - START_HOUR) / TOTAL_HOURS) * 100);
+                const height = Math.max(5, ((endDec - startDec) / TOTAL_HOURS) * 100);
+                
+                const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
+                const colorClass = colors[i % colors.length];
+
+                return (
+                  <div 
+                    key={lesson.id} 
+                    className={`absolute left-4 right-4 rounded-xl border p-3 shadow-sm hover:shadow-md transition-shadow overflow-hidden ${colorClass}`}
+                    style={{ top: `${top}%`, height: `${height}%`, minHeight: '4rem' }}
+                  >
+                    <h4 className="font-bold text-sm truncate">{lesson.education_courses?.title}</h4>
+                    <p className="text-xs opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {lesson.room}</p>
+                  </div>
+                );
+              })}
+              
+              {/* Current Time Indicator (if today) */}
+              {isSameDay(selectedDate, new Date()) && (() => {
+                const now = new Date();
+                const nowDec = now.getHours() + now.getMinutes() / 60;
+                if (nowDec >= START_HOUR && nowDec <= START_HOUR + TOTAL_HOURS) {
+                  const top = ((nowDec - START_HOUR) / TOTAL_HOURS) * 100;
+                  return (
+                    <div 
+                      className="absolute left-0 right-0 border-t-2 border-red-500 z-10 pointer-events-none"
+                      style={{ top: `${top}%` }}
+                    >
+                      <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full"></div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+            </div>
           </div>
         </div>
         
