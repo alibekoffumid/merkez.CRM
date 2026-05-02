@@ -10,7 +10,8 @@
     "signOut": "Çıxış",
     "etaxes": "Vergi",
     "dental": "Stomatologiya",
-    "education": "Təhsil"
+    "education": "Təhsil",
+    "modules": "Modullar"
   },
   "header": {
     "search": "Axtarış...",
@@ -540,6 +541,7 @@
   },
   "modules": {
     "storeTitle": "Modulları seçin",
+    "manageModules": "Modulları idarə et",
     "storeSubtitle": "Lazım olan modullardan ideal platformanızı qurun. Hər modul 14 gün pulsuz sınaq müddəti ilə gəlir.",
     "selectAll": "Hamısını seç",
     "trialBadge": "14 gün pulsuz",

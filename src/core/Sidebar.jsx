@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Settings, LogOut, X } from 'lucide-react';
+import { Settings, LogOut, X, Blocks } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { getNavItemsFromModules } from '../config/moduleRegistry';
@@ -85,6 +85,19 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
       </div>
 
       <div className="p-4 border-t border-gray-100 shrink-0">
+        <NavLink
+          to="/modules"
+          onClick={onCloseMobile}
+          className="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+        >
+          <Blocks className="w-5 h-5 mr-3 shrink-0" />
+          <span className={`
+            transition-opacity duration-300 whitespace-nowrap
+            ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
+          `}>
+            {t('sidebar.modules') || 'Модули'}
+          </span>
+        </NavLink>
         <NavLink
           to="/settings"
           onClick={onCloseMobile}

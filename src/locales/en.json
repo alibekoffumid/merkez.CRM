@@ -10,7 +10,8 @@
     "signOut": "Sign Out",
     "etaxes": "E-taxes",
     "dental": "Dental",
-    "education": "Education"
+    "education": "Education",
+    "modules": "Modules"
   },
   "header": {
     "search": "Search...",
@@ -563,6 +564,7 @@
   },
   "modules": {
     "storeTitle": "Choose your modules",
+    "manageModules": "Manage modules",
     "storeSubtitle": "Build your perfect platform from the modules you need. Each module comes with a 14-day free trial.",
     "selectAll": "Select all",
     "trialBadge": "14 days free",
