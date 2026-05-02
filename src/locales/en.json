@@ -41,7 +41,10 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "taskReport": "Prepare Tax Report",
-    "taskMeeting": "Meeting with Key Client"
+    "taskMeeting": "Meeting with Key Client",
+    "expandBusiness": "Expand Your Business",
+    "expandDesc": "Connect new modules in seconds and manage everything in one place.",
+    "noSales": "No sales yet"
   },
   "common": {
     "save": "Save",
@@ -389,13 +392,25 @@
     "addClient": "Add Client",
     "searchClients": "Search clients...",
     "allStatuses": "All Statuses",
-    "company": "Company",
-    "contact": "Primary Contact",
-    "contactInfo": "Contact Info",
     "active": "Active",
     "lead": "Lead",
     "inactive": "Inactive",
-    "showing": "Showing 1 to 5 of 5 entries"
+    "company": "Company",
+    "contact": "Contact",
+    "contactInfo": "Contact Info",
+    "type": "Type",
+    "client": "Client",
+    "partner": "Partner",
+    "showing": "Showing 1-5 of 5 entries",
+    "noClients": "No clients found",
+    "addFirstClient": "Add your first client",
+    "newClientDetails": "New Client Details",
+    "companyName": "Company Name",
+    "clientType": "Client Type",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "address": "Address",
+    "saveClient": "Save Client"
   },
   "finance": {
     "title": "Finance",

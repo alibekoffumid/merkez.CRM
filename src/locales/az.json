@@ -41,7 +41,10 @@
     "minutesAgo": "{{count}} dəq əvvəl",
     "hoursAgo": "{{count}} saat əvvəl",
     "taskReport": "Vergi hesabatını hazırlayın",
-    "taskMeeting": "Əsas müştəri ilə görüş"
+    "taskMeeting": "Əsas müştəri ilə görüş",
+    "expandBusiness": "Biznesinizi genişləndirin",
+    "expandDesc": "Saniyələr ərzində yeni modullar qoşun və hər şeyi bir yerdən idarə edin.",
+    "noSales": "Hələ satış yoxdur"
   },
   "common": {
     "save": "Yadda saxla",
@@ -363,16 +366,28 @@
   "crm": {
     "title": "CRM",
     "subtitle": "Müştəriləri və lidləri səmərəli idarə edin.",
+    "searchClients": "Müştəri axtarışı...",
     "addClient": "Müştəri əlavə et",
-    "searchClients": "Müştəriləri axtar...",
     "allStatuses": "Bütün statuslar",
-    "company": "Şirkət",
-    "contact": "Əlaqə şəxsi",
-    "contactInfo": "Əlaqə məlumatları",
     "active": "Aktiv",
     "lead": "Lid",
-    "inactive": "Qeyri-aktiv",
-    "showing": "5 yazıdan 1-5 arası göstərilir"
+    "inactive": "Deaktiv",
+    "company": "Şirkət",
+    "contact": "Kontakt",
+    "contactInfo": "Əlaqə məlumatı",
+    "type": "Növ",
+    "client": "Müştəri",
+    "partner": "Tərəfdaş",
+    "showing": "1-5 arası 5 yazı göstərilir",
+    "noClients": "Müştəri tapılmadı",
+    "addFirstClient": "İlk müştərinizi əlavə edin",
+    "newClientDetails": "Yeni müştəri detalları",
+    "companyName": "Şirkət adı",
+    "clientType": "Müştəri növü",
+    "emailAddress": "Email ünvanı",
+    "phoneNumber": "Telefon nömrəsi",
+    "address": "Ünvan",
+    "saveClient": "Müştərini yadda saxla"
   },
   "finance": {
     "title": "Maliyyə",
