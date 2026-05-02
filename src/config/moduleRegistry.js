@@ -1,0 +1,127 @@
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone } from 'lucide-react';
+
+// Master registry of all available modules in the platform
+// This is the single source of truth for module metadata
+export const MODULE_REGISTRY = {
+  dashboard: {
+    id: 'dashboard',
+    nameKey: 'sidebar.dashboard',
+    descriptionKey: 'modules.dashboardDesc',
+    icon: LayoutDashboard,
+    path: '/',
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    accentColor: 'blue',
+    price: 0,
+    isFree: true,      // Always included
+    isCore: true,       // Cannot be disabled
+  },
+  dental: {
+    id: 'dental',
+    nameKey: 'sidebar.dental',
+    descriptionKey: 'modules.dentalDesc',
+    icon: Activity,
+    path: '/dental',
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    accentColor: 'blue',
+    price: 49,
+    isFree: false,
+    isCore: false,
+  },
+  education: {
+    id: 'education',
+    nameKey: 'sidebar.education',
+    descriptionKey: 'modules.educationDesc',
+    icon: GraduationCap,
+    path: '/education',
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    accentColor: 'purple',
+    price: 39,
+    isFree: false,
+    isCore: false,
+  },
+  crm: {
+    id: 'crm',
+    nameKey: 'sidebar.crm',
+    descriptionKey: 'modules.crmDesc',
+    icon: Users,
+    path: '/crm',
+    color: 'hover:text-merkez-red hover:bg-red-50',
+    accentColor: 'red',
+    price: 29,
+    isFree: false,
+    isCore: false,
+  },
+  warehouse: {
+    id: 'warehouse',
+    nameKey: 'sidebar.warehouse',
+    descriptionKey: 'modules.warehouseDesc',
+    icon: Package,
+    path: '/warehouse',
+    color: 'hover:text-merkez-yellow hover:bg-yellow-50',
+    accentColor: 'amber',
+    price: 29,
+    isFree: false,
+    isCore: false,
+  },
+  restaurant: {
+    id: 'restaurant',
+    nameKey: 'sidebar.restaurant',
+    descriptionKey: 'modules.restaurantDesc',
+    icon: ChefHat,
+    path: '/restaurant',
+    color: 'hover:text-merkez-green hover:bg-green-50',
+    accentColor: 'emerald',
+    price: 39,
+    isFree: false,
+    isCore: false,
+  },
+  finance: {
+    id: 'finance',
+    nameKey: 'sidebar.finance',
+    descriptionKey: 'modules.financeDesc',
+    icon: DollarSign,
+    path: '/finance',
+    color: 'hover:text-merkez-green hover:bg-green-50',
+    accentColor: 'green',
+    price: 29,
+    isFree: false,
+    isCore: false,
+  },
+  callCenter: {
+    id: 'callCenter',
+    nameKey: 'sidebar.callCenter',
+    descriptionKey: 'modules.callCenterDesc',
+    icon: Phone,
+    path: '/call-center',
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    accentColor: 'indigo',
+    price: 19,
+    isFree: false,
+    isCore: false,
+  },
+  eTaxes: {
+    id: 'eTaxes',
+    nameKey: 'sidebar.etaxes',
+    descriptionKey: 'modules.eTaxesDesc',
+    icon: Receipt,
+    path: '/dashboard/e-taxes',
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    accentColor: 'sky',
+    price: 19,
+    isFree: false,
+    isCore: false,
+  },
+};
+
+// Get the navigation-ready array from active modules
+export const getNavItemsFromModules = (t, activeModuleIds) => {
+  return Object.values(MODULE_REGISTRY)
+    .filter(mod => mod.isCore || activeModuleIds.includes(mod.id))
+    .map(mod => ({
+      id: mod.id,
+      name: t(mod.nameKey) || mod.id,
+      icon: mod.icon,
+      path: mod.path,
+      color: mod.color,
+    }));
+};

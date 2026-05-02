@@ -3,19 +3,15 @@ import { NavLink } from 'react-router-dom';
 import { Settings, LogOut, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useTranslation } from 'react-i18next';
-import { getNavItems } from '../config/navigation';
+import { getNavItemsFromModules } from '../config/moduleRegistry';
 import { useUser } from './UserContext';
 
 const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
-  const rawNavItems = getNavItems(t);
+  const { profile, activeModules } = useUser();
 
-  // Filter items based on user role
-  const navItems = rawNavItems.filter(item => {
-    if (!item.roles) return true;
-    return item.roles.includes(profile?.role?.toLowerCase());
-  });
+  // Build nav items from active modules only
+  const navItems = getNavItemsFromModules(t, activeModules);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);

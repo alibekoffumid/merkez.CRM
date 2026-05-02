@@ -537,5 +537,25 @@
     "oneCourse": "1 Kurs",
     "enrolledSuccessfully": "UĞURLA QEYDİYYATA ALINDI!",
     "processing": "İŞLƏNİR..."
+  },
+  "modules": {
+    "storeTitle": "Modulları seçin",
+    "storeSubtitle": "Lazım olan modullardan ideal platformanızı qurun. Hər modul 14 gün pulsuz sınaq müddəti ilə gəlir.",
+    "selectAll": "Hamısını seç",
+    "trialBadge": "14 gün pulsuz",
+    "month": "ay",
+    "activate": "Aktivləşdir",
+    "active": "Aktiv",
+    "moduleSelected": "modul seçildi",
+    "modulesSelected": "modul seçildi",
+    "dashboardDesc": "Əsas analitika və biznes icmalı",
+    "dentalDesc": "İnteraktiv diş xəritəsi, xəstə idarəsi və təyinatlar",
+    "educationDesc": "Cədvəl, tələbə idarəsi, kurslar və müəllimlər",
+    "crmDesc": "Müştəri idarəsi, lidlər və satış hunisi",
+    "warehouseDesc": "Məhsul uçotu, anbarlar və inventarizasiya",
+    "restaurantDesc": "Sifariş idarəsi, menyu, stollar və mətbəx",
+    "financeDesc": "Gəlir, xərc, hesabatlar və maliyyə analitikası",
+    "callCenterDesc": "Zəng idarəsi, skriptlər və müraciət analitikası",
+    "eTaxesDesc": "Elektron vergi hesabatları və bəyannamələr"
   }
 }

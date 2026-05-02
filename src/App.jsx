@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CoreLayout from './core/CoreLayout';
-import { UserProvider } from './core/UserContext';
+import { UserProvider, useUser } from './core/UserContext';
 import Dashboard from './modules/Dashboard';
 import ETaxesModule from './modules/ETaxes';
 import CRMModule from './modules/CRM';
@@ -14,6 +14,48 @@ import Profile from './modules/Profile';
 import FinanceModule from './modules/Finance';
 import DentalModule from './modules/Dental';
 import EducationModule from './modules/Education';
+import ModuleStore from './pages/ModuleStore';
+
+// Guard component that checks if a specific module is active
+const ModuleGuard = ({ moduleId, children }) => {
+  const { activeModules, modulesLoading } = useUser();
+  
+  if (modulesLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  if (!activeModules.includes(moduleId)) {
+    return <Navigate to="/modules" replace />;
+  }
+  
+  return children;
+};
+
+// Onboarding guard: redirects to module store if no modules are selected
+const OnboardingGuard = ({ children }) => {
+  const { needsOnboarding, modulesLoading, loading } = useUser();
+  
+  if (loading || modulesLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (needsOnboarding) {
+    return <Navigate to="/modules" replace />;
+  }
+  
+  return children;
+};
 
 function App() {
   return (
@@ -21,26 +63,52 @@ function App() {
       <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        
+        {/* Module Store — accessible always (after auth) */}
+        <Route path="/modules" element={
+          <AuthGuard>
+            <ModuleStore />
+          </AuthGuard>
+        } />
+
         <Route 
           path="/" 
           element={
             <AuthGuard>
-              <CoreLayout />
+              <OnboardingGuard>
+                <CoreLayout />
+              </OnboardingGuard>
             </AuthGuard>
           }
         >
           <Route index element={<Dashboard />} />
           <Route path="dashboard">
             <Route index element={<Dashboard />} />
-            <Route path="e-taxes" element={<ETaxesModule />} />
+            <Route path="e-taxes" element={
+              <ModuleGuard moduleId="eTaxes"><ETaxesModule /></ModuleGuard>
+            } />
           </Route>
-          <Route path="crm" element={<CRMModule />} />
-          <Route path="warehouse" element={<WarehouseModule />} />
-          <Route path="finance" element={<FinanceModule />} />
-          <Route path="restaurant" element={<RestaurantModule />} />
-          <Route path="call-center" element={<CallCenterModule />} />
-          <Route path="dental" element={<DentalModule />} />
-          <Route path="education" element={<EducationModule />} />
+          <Route path="crm" element={
+            <ModuleGuard moduleId="crm"><CRMModule /></ModuleGuard>
+          } />
+          <Route path="warehouse" element={
+            <ModuleGuard moduleId="warehouse"><WarehouseModule /></ModuleGuard>
+          } />
+          <Route path="finance" element={
+            <ModuleGuard moduleId="finance"><FinanceModule /></ModuleGuard>
+          } />
+          <Route path="restaurant" element={
+            <ModuleGuard moduleId="restaurant"><RestaurantModule /></ModuleGuard>
+          } />
+          <Route path="call-center" element={
+            <ModuleGuard moduleId="callCenter"><CallCenterModule /></ModuleGuard>
+          } />
+          <Route path="dental" element={
+            <ModuleGuard moduleId="dental"><DentalModule /></ModuleGuard>
+          } />
+          <Route path="education" element={
+            <ModuleGuard moduleId="education"><EducationModule /></ModuleGuard>
+          } />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={
             <div className="flex items-center justify-center h-full text-gray-500">

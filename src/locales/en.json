@@ -560,5 +560,25 @@
     "oneCourse": "1 Course",
     "enrolledSuccessfully": "ENROLLED SUCCESSFULLY!",
     "processing": "PROCESSING..."
+  },
+  "modules": {
+    "storeTitle": "Choose your modules",
+    "storeSubtitle": "Build your perfect platform from the modules you need. Each module comes with a 14-day free trial.",
+    "selectAll": "Select all",
+    "trialBadge": "14 days free",
+    "month": "mo",
+    "activate": "Activate",
+    "active": "Active",
+    "moduleSelected": "module selected",
+    "modulesSelected": "modules selected",
+    "dashboardDesc": "Basic analytics and business overview",
+    "dentalDesc": "Interactive dental chart, patient management and appointments",
+    "educationDesc": "Schedule, student management, courses and teachers",
+    "crmDesc": "Customer management, leads and sales funnels",
+    "warehouseDesc": "Product tracking, warehouses and inventory",
+    "restaurantDesc": "Order management, menus, tables and kitchen",
+    "financeDesc": "Revenue, expenses, reports and financial analytics",
+    "callCenterDesc": "Call management, scripts and inquiry analytics",
+    "eTaxesDesc": "Electronic tax reports and declarations"
   }
 }
