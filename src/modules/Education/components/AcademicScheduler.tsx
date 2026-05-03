@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
+import TimePicker from '../../../components/Common/TimePicker';
 
 const AcademicScheduler = () => {
   const { t, i18n } = useTranslation();
@@ -505,34 +506,27 @@ const AcademicScheduler = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('restaurant.date') || 'Date'}</label>
-                  <input 
-                    type="date" 
-                    required
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                  />
+                  <div className="relative group">
+                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none" />
+                    <input 
+                      type="date" 
+                      required
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 appearance-none" 
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.startTime')}</label>
-                  <input 
-                    type="time" 
-                    required
-                    value={formData.startTime}
-                    onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.endTime')}</label>
-                  <input 
-                    type="time" 
-                    required
-                    value={formData.endTime}
-                    onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                  />
-                </div>
+                <TimePicker 
+                  label={t('education.startTime')}
+                  value={formData.startTime}
+                  onChange={(val) => setFormData({...formData, startTime: val})}
+                />
+                <TimePicker 
+                  label={t('education.endTime')}
+                  value={formData.endTime}
+                  onChange={(val) => setFormData({...formData, endTime: val})}
+                />
               </div>
 
               {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold">{error}</div>}

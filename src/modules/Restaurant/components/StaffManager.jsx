@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, UserPlus, Edit2, Trash2, X, Lock, Clock, Calendar } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import PatternLock from '../../../components/PatternLock/PatternLock';
+import TimePicker from '../../../components/Common/TimePicker';
 
 const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('') : '?';
@@ -385,13 +386,11 @@ const StaffManager = () => {
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.securityAttendance')}</label>
                     <div className="flex gap-4">
                         <div className="flex-1">
-                            <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.shiftStartTime')}</label>
-                            <input 
-                                type="time"
-                                value={formData.shift_start_time || '09:00'}
-                                onChange={(e) => setFormData({...formData, shift_start_time: e.target.value})}
-                                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none"
-                            />
+                             <TimePicker 
+                                 label={t('restaurant.shiftStartTime')}
+                                 value={formData.shift_start_time || '09:00'}
+                                 onChange={(val) => setFormData({...formData, shift_start_time: val})}
+                             />
                         </div>
                         <div className="flex-1">
                             <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.patternPassword')}</label>
@@ -503,13 +502,11 @@ const StaffManager = () => {
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.securityAttendance')}</label>
                     <div className="flex gap-4">
                         <div className="flex-1">
-                            <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.shiftStartTime')}</label>
-                            <input 
-                                type="time"
-                                value={editingStaff.shift_start_time || '09:00'}
-                                onChange={(e) => setEditingStaff({...editingStaff, shift_start_time: e.target.value})}
-                                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg p-2.5 outline-none"
-                            />
+                             <TimePicker 
+                                 label={t('restaurant.shiftStartTime')}
+                                 value={editingStaff.shift_start_time || '09:00'}
+                                 onChange={(val) => setEditingStaff({...editingStaff, shift_start_time: val})}
+                             />
                         </div>
                         <div className="flex-1">
                             <label className="block text-[10px] text-gray-400 uppercase mb-1">{t('restaurant.patternPassword')}</label>
