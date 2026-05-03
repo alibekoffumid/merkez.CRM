@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Users, BookOpen, TrendingUp, UserPlus, GraduationCap, Settings, Maximize2, Minimize2 } from 'lucide-react';
+import { Calendar, Users, BookOpen, TrendingUp, UserPlus, GraduationCap, Settings, Maximize2, Minimize2, MapPin, ClipboardList } from 'lucide-react';
 import { EducationProvider, useEducation } from './hooks/useEducation';
 import AcademicScheduler from './components/AcademicScheduler';
 import CourseInventory from './components/CourseInventory';
 import StudentCard from './components/StudentCard';
-import ProgressTracker from './components/ProgressTracker';
+import AcademicJournal from './components/AcademicJournal';
 import EnrollmentForm from './components/EnrollmentForm';
+import RoomManagement from './components/RoomManagement';
 
 const EducationModuleContent = () => {
   const { t } = useTranslation();
@@ -18,7 +19,8 @@ const EducationModuleContent = () => {
     { id: 'scheduler', label: t('education.tabSchedule'), icon: Calendar },
     { id: 'students', label: t('education.tabStudents'), icon: Users },
     { id: 'courses', label: t('education.tabPrograms'), icon: BookOpen },
-    { id: 'progress', label: t('education.tabProgress'), icon: TrendingUp },
+    { id: 'progress', label: t('education.tabJournal'), icon: ClipboardList },
+    { id: 'rooms', label: t('education.tabRooms'), icon: MapPin },
     { id: 'enrollment', label: t('education.tabEnrollment'), icon: UserPlus },
   ];
 
@@ -90,7 +92,8 @@ const EducationModuleContent = () => {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {activeTab === 'scheduler' && <AcademicScheduler />}
           {activeTab === 'courses' && <CourseInventory />}
-          {activeTab === 'progress' && <ProgressTracker />}
+          {activeTab === 'progress' && <AcademicJournal />}
+          {activeTab === 'rooms' && <RoomManagement />}
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
