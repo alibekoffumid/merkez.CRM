@@ -72,14 +72,14 @@ const TeacherManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">Teachers</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">Manage your academy faculty and instructors</p>
+          <h2 className="text-2xl font-black text-gray-900">{t('education.tabTeachers')}</h2>
+          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.manageTeachers')}</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
         >
-          <Plus className="w-5 h-5" /> Add Teacher
+          <Plus className="w-5 h-5" /> {t('education.addTeacher')}
         </button>
       </div>
 
@@ -122,10 +122,10 @@ const TeacherManagement = () => {
               <div className="mt-6 pt-6 border-t border-gray-50 flex justify-between items-center">
                 <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 uppercase tracking-widest">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Active
+                  {t('education.active')}
                 </div>
                 <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
-                  View Schedule
+                  {t('education.viewSchedule')}
                 </button>
               </div>
             </div>
@@ -133,8 +133,8 @@ const TeacherManagement = () => {
         ) : (
           <div className="col-span-full bg-gray-50 p-12 rounded-[2.5rem] border border-dashed border-gray-200 text-center">
             <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-500">No teachers added yet</h3>
-            <p className="text-gray-400 text-sm mt-1">Start by adding your first faculty member</p>
+            <h3 className="text-lg font-bold text-gray-500">{t('education.noTeachers')}</h3>
+            <p className="text-gray-400 text-sm mt-1">{t('education.createFirstTeacher')}</p>
           </div>
         )}
       </div>
@@ -154,14 +154,14 @@ const TeacherManagement = () => {
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
                 <GraduationCap className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900">Add Teacher</h2>
-              <p className="text-gray-500 text-sm mt-1">Register a new instructor for your academy</p>
+              <h2 className="text-2xl font-black text-gray-900">{t('education.addTeacher')}</h2>
+              <p className="text-gray-500 text-sm mt-1">{t('education.registerTeacher')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">First Name</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.firstName')}</label>
                   <input 
                     type="text" 
                     required
@@ -172,7 +172,7 @@ const TeacherManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Last Name</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.lastName')}</label>
                   <input 
                     type="text" 
                     required
@@ -185,7 +185,7 @@ const TeacherManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Email Address</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.emailAddress')}</label>
                 <input 
                   type="email" 
                   value={formData.email}
@@ -197,7 +197,7 @@ const TeacherManagement = () => {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Phone</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.phoneNumber')}</label>
                   <input 
                     type="tel" 
                     value={formData.phone}
@@ -207,7 +207,7 @@ const TeacherManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Specialization</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.specialization')}</label>
                   <div className="relative">
                     <button 
                       type="button"
@@ -252,7 +252,7 @@ const TeacherManagement = () => {
                   ${isSubmitting ? 'opacity-80' : ''}
                 `}
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : success ? <CheckCircle2 className="w-5 h-5" /> : 'Save Teacher'}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : success ? <CheckCircle2 className="w-5 h-5" /> : t('education.saveTeacher')}
               </button>
             </form>
           </div>

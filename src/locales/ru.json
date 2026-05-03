@@ -575,7 +575,15 @@
     "attendance": "Посещаемость",
     "oneCourse": "1 Курс",
     "enrolledSuccessfully": "УСПЕШНО ЗАЧИСЛЕН!",
-    "processing": "ОБРАБОТКА..."
+    "processing": "ОБРАБОТКА...",
+    "manageTeachers": "Управление преподавательским составом академии",
+    "addTeacher": "Добавить преподавателя",
+    "noTeachers": "Преподаватели еще не добавлены",
+    "createFirstTeacher": "Начните с добавления первого преподавателя",
+    "viewSchedule": "Посмотреть расписание",
+    "registerTeacher": "Зарегистрируйте нового инструктора для вашей академии",
+    "specialization": "Специализация",
+    "saveTeacher": "Сохранить преподавателя"
   },
   "modules": {
     "storeTitle": "Выберите модули",
