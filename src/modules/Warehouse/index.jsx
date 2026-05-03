@@ -153,17 +153,17 @@ const WarehouseModule = () => {
       </div>
 
       {/* Tab Switcher */}
-      <div className="sticky top-0 z-20 py-4 -mx-6 px-6 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all">
-        <div className="flex bg-gray-50/50 p-1 rounded-2xl w-fit border border-gray-100">
+      <div className="sticky top-4 z-20 flex justify-center w-full pointer-events-none mb-4">
+        <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
           <button 
             onClick={() => setActiveTab('finished')}
-            className={`px-8 py-2.5 text-sm font-bold rounded-xl transition-all ${activeTab === 'finished' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`px-8 py-3 text-sm font-bold rounded-[1.5rem] transition-all duration-300 ${activeTab === 'finished' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
           >
             {t('warehouse.finishedGoods')}
           </button>
           <button 
             onClick={() => setActiveTab('raw')}
-            className={`px-8 py-2.5 text-sm font-bold rounded-xl transition-all ${activeTab === 'raw' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`px-8 py-3 text-sm font-bold rounded-[1.5rem] transition-all duration-300 ${activeTab === 'raw' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
           >
             {t('warehouse.ingredients')}
           </button>

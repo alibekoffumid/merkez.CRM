@@ -65,17 +65,17 @@ const EducationModuleContent = () => {
       )}
 
       {!isFullPage && (
-        <div className="sticky top-0 z-20 py-4 -mx-4 md:-mx-8 px-4 md:px-8 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all duration-300">
-          <div className="flex p-1.5 bg-gray-50/50 rounded-[2rem] w-fit border border-gray-200 shadow-sm overflow-x-auto no-scrollbar">
+        <div className="sticky top-4 z-20 flex justify-center w-full pointer-events-none mb-4">
+          <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-3 px-8 py-3.5 rounded-[1.5rem] text-sm font-bold transition-all duration-300 whitespace-nowrap
+                  flex items-center gap-3 px-8 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 whitespace-nowrap
                   ${activeTab === tab.id 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-white'}
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
                 `}
               >
                 <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse' : ''}`} />
