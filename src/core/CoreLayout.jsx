@@ -27,12 +27,12 @@ const CoreLayout = () => {
       )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300 ${
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden overflow-x-hidden transition-all duration-300 ${
         isSidebarExpanded ? 'lg:filter lg:blur-sm lg:brightness-90 lg:pointer-events-none' : ''
       }`}>
         <Header onMenuClick={toggleMobileSidebar} />
         <main className="flex-1 min-h-0 overflow-hidden bg-gray-50/50">
-          <div className="h-full overflow-y-auto no-scrollbar">
+          <div className="h-full overflow-y-auto overflow-x-hidden no-scrollbar">
             <div className="p-4 sm:p-6 lg:p-10 lg:pl-32 max-w-[1600px] mx-auto">
               <Outlet />
             </div>

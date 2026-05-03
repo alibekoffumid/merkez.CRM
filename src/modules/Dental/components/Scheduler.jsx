@@ -495,7 +495,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
       </div>
 
       {/* Main Grid Container */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-x-auto">
+      <div className="flex-1 flex flex-col min-h-0 overflow-x-auto no-scrollbar">
         {/* Doctor Headers Row - Only show if 'All Doctors' selected to distinguish columns */}
         {selectedDoctorId === 'all' && (
           <div className="flex bg-gray-50/50 border-b border-gray-100 min-w-max sticky top-0 z-30">
