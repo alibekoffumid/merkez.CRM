@@ -183,7 +183,9 @@ const AcademicJournal = () => {
 
         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-center">
           <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('education.nextExamSession')}</h3>
-          <p className="text-xl font-black text-gray-900">May 20 - May 25</p>
+          <p className="text-xl font-black text-gray-900">
+            {new Date(2026, 4, 20).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' })} - {new Date(2026, 4, 25).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' })}
+          </p>
           <p className="text-sm text-gray-500 mt-2 font-medium">12 {t('education.studentsRegistered')}</p>
           <button className="mt-6 w-full py-3 bg-gray-50 text-gray-900 rounded-xl text-sm font-black hover:bg-gray-100 transition-all">
             {t('education.manageExams')}

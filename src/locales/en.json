@@ -611,7 +611,30 @@
     "type": "Type",
     "saveRoom": "Save Room",
     "addNewRoom": "Add New Room",
-    "defineNewSpace": "Define a new classroom or studio space"
+    "defineNewSpace": "Define a new classroom or studio space",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
   },
   "modules": {
     "storeTitle": "Choose your modules",

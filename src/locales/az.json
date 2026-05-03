@@ -590,7 +590,30 @@
     "type": "Növü",
     "saveRoom": "Otağı yadda saxla",
     "addNewRoom": "Yeni otaq əlavə et",
-    "defineNewSpace": "Yeni bir sinif və ya studiya müəyyənləşdirin"
+    "defineNewSpace": "Yeni bir sinif və ya studiya müəyyənləşdirin",
+    "months": {
+      "january": "Yanvar",
+      "february": "Fevral",
+      "march": "Mart",
+      "april": "Aprel",
+      "may": "May",
+      "june": "İyun",
+      "july": "İyul",
+      "august": "Avqust",
+      "september": "Sentyabr",
+      "october": "Oktyabr",
+      "november": "Noyabr",
+      "december": "Dekabr"
+    },
+    "weekdays": {
+      "mon": "B.e.",
+      "tue": "Ç.a.",
+      "wed": "Ç.",
+      "thu": "C.a.",
+      "fri": "C.",
+      "sat": "Ş.",
+      "sun": "B."
+    }
   },
   "modules": {
     "storeTitle": "Modulları seçin",

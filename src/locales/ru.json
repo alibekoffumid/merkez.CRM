@@ -611,7 +611,30 @@
     "type": "Тип",
     "saveRoom": "Сохранить кабинет",
     "addNewRoom": "Добавить новый кабинет",
-    "defineNewSpace": "Определите новый класс или студию"
+    "defineNewSpace": "Определите новый класс или студию",
+    "months": {
+      "january": "Январь",
+      "february": "Февраль",
+      "march": "Март",
+      "april": "Апрель",
+      "may": "Май",
+      "june": "Июнь",
+      "july": "Июль",
+      "august": "Август",
+      "september": "Сентябрь",
+      "october": "Октябрь",
+      "november": "Ноябрь",
+      "december": "Декабрь"
+    },
+    "weekdays": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Вс"
+    }
   },
   "modules": {
     "storeTitle": "Выберите модули",

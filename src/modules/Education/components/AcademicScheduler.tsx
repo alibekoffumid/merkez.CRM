@@ -138,7 +138,15 @@ const AcademicScheduler = () => {
                     }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><ChevronRight className="w-4 h-4 text-gray-600" /></button>
                   </div>
                   <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                    {['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d => (
+                    {[
+                      t('education.weekdays.mon'),
+                      t('education.weekdays.tue'),
+                      t('education.weekdays.wed'),
+                      t('education.weekdays.thu'),
+                      t('education.weekdays.fri'),
+                      t('education.weekdays.sat'),
+                      t('education.weekdays.sun')
+                    ].map(d => (
                       <span key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-wider">{d}</span>
                     ))}
                   </div>
@@ -213,7 +221,7 @@ const AcademicScheduler = () => {
                   }`}
                 >
                   <span className={`text-[10px] uppercase tracking-widest font-black mb-1 ${isSelected ? 'text-blue-200' : ''}`}>
-                    {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                    {date.toLocaleDateString(i18n.language, { weekday: 'short' })}
                   </span>
                   <span className="text-lg font-black">{date.getDate()}</span>
                 </button>
