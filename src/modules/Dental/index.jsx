@@ -251,7 +251,7 @@ const DentalModule = () => {
 
         <div className={`flex-1 transition-all duration-500 ${isFullPage && activeTab === 'scheduler' ? 'h-full overflow-hidden' : ''}`}>
           {activeTab === 'scheduler' && (
-            <div className={`animate-in fade-in duration-700 ${isFullPage ? 'h-full' : ''}`}>
+            <div className={isFullPage ? 'h-full' : ''}>
               <Scheduler 
                 isFullPage={isFullPage} 
                 doctors={doctors} 
@@ -261,7 +261,7 @@ const DentalModule = () => {
             </div>
           )}
           {activeTab === 'chart' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                <div className="bg-white rounded-[2rem] p-8 text-gray-900 shadow-sm border border-gray-100 relative overflow-hidden group">
                  <div className="relative z-10">
                    <div className="flex items-center gap-4 mb-4">

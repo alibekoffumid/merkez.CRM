@@ -104,7 +104,7 @@ const Profile = () => {
   const initials = profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-end mb-8 px-4 sm:px-0">
         <div>
           <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">Management Profile</h1>

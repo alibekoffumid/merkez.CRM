@@ -147,7 +147,7 @@ const PatientList = ({ onViewChart }) => {
   const filteredPatients = patients; // Filtering is done on server-side now
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 relative">
+    <div className="space-y-6 relative">
       {/* Toast Notification */}
       {notification.show && (
         <div className="fixed top-6 right-6 z-[300] animate-in slide-in-from-top-8 fade-in duration-300">

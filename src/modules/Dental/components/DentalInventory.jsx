@@ -84,7 +84,7 @@ const DentalInventory = () => {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 relative">
+    <div className="space-y-8 relative">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
