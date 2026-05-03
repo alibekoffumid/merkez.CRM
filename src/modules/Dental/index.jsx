@@ -190,8 +190,29 @@ const DentalModule = () => {
         flex flex-col min-h-full transition-all duration-500
         ${isFullPage 
           ? `fixed inset-0 z-[100] bg-white p-0 rounded-0 ${activeTab === 'scheduler' ? 'overflow-hidden' : 'overflow-y-auto'}` 
-          : `bg-white ${activeTab === 'scheduler' ? 'p-0' : 'p-4 md:p-8'} rounded-[2.5rem] border border-gray-100 space-y-6`}
+          : `bg-transparent p-0 rounded-0 border-0 space-y-6 overflow-hidden`}
       `}>
+        {!isFullPage && (
+          <div className="sticky top-0 z-[150] flex justify-center w-full pointer-events-none pb-4 bg-gray-50/80 backdrop-blur-md pt-2">
+            <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex items-center gap-3 px-8 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 whitespace-nowrap
+                    ${activeTab === tab.id 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
+                  `}
+                >
+                  <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse' : ''}`} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {isFullPage && (
           <button 
             onClick={() => setIsFullPage(false)}
@@ -226,27 +247,7 @@ const DentalModule = () => {
           </div>
         )}
 
-        {!isFullPage && (
-          <div className="sticky top-4 z-[150] flex justify-center w-full pointer-events-none mb-4">
-            <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`
-                    flex items-center gap-3 px-8 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 whitespace-nowrap
-                    ${activeTab === tab.id 
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
-                  `}
-                >
-                  {tab.icon && <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse' : ''}`} />}
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         <div className={`flex-1 transition-all duration-500 ${isFullPage && activeTab === 'scheduler' ? 'h-full overflow-hidden' : ''}`}>
           {activeTab === 'scheduler' && (

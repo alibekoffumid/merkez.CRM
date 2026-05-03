@@ -29,6 +29,28 @@ const EducationModuleContent = () => {
         ? `fixed inset-0 z-[100] bg-gray-50 p-0 rounded-0 overflow-y-auto` 
         : `bg-transparent p-0 rounded-0 border-0 space-y-6 overflow-hidden`}
     `}>
+      {!isFullPage && (
+        <div className="sticky top-0 z-[150] flex justify-center w-full pointer-events-none pb-4 bg-gray-50/80 backdrop-blur-md pt-2">
+          <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-100 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  flex items-center gap-3 px-8 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 whitespace-nowrap
+                  ${activeTab === tab.id 
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
+                `}
+              >
+                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse' : ''}`} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isFullPage && (
         <button 
           onClick={() => setIsFullPage(false)}
@@ -39,7 +61,7 @@ const EducationModuleContent = () => {
       )}
 
       {!isFullPage && (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
               <GraduationCap className="w-7 h-7" />
@@ -64,29 +86,7 @@ const EducationModuleContent = () => {
         </div>
       )}
 
-      {!isFullPage && (
-        <div className="sticky top-4 z-[150] flex justify-center w-full pointer-events-none mb-4">
-          <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-100 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
-            {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center gap-3 px-8 py-3 rounded-[1.5rem] text-sm font-bold transition-all duration-300 whitespace-nowrap
-                  ${activeTab === tab.id 
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' 
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}
-                `}
-              >
-                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse' : ''}`} />
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-6' : 'p-6 md:p-12'}`}>
+      <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-6 px-4' : 'p-6 md:p-12'}`}>
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           {activeTab === 'scheduler' && <AcademicScheduler />}
           {activeTab === 'courses' && <CourseInventory />}
