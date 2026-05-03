@@ -190,7 +190,7 @@ const DentalModule = () => {
         flex flex-col min-h-full transition-all duration-500
         ${isFullPage 
           ? `fixed inset-0 z-[100] bg-white p-0 rounded-0 ${activeTab === 'scheduler' ? 'overflow-hidden' : 'overflow-y-auto'}` 
-          : `bg-transparent p-0 rounded-0 border-0 space-y-6 overflow-hidden`}
+          : `bg-transparent p-0 rounded-0 border-0 space-y-6`}
       `}>
         {!isFullPage && (
           <div className="sticky top-0 z-[150] flex justify-center w-full pointer-events-none pb-4 bg-gray-50/80 backdrop-blur-md pt-2">
