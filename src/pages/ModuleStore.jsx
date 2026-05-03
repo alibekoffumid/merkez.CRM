@@ -19,18 +19,31 @@ const accentMap = {
 const ModuleStore = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { activateMultipleModules, activeModules, needsOnboarding } = useUser();
+  const { activateMultipleModules, deactivateModule, activeModules, needsOnboarding } = useUser();
   
   const [selected, setSelected] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deactivatingId, setDeactivatingId] = useState(null);
 
   const isFirstVisit = needsOnboarding || activeModules.length === 0;
 
   const modules = Object.values(MODULE_REGISTRY).filter(m => !m.isCore);
 
-  const toggleModule = (id) => {
-    // Don't allow toggling already active modules
-    if (activeModules.includes(id)) return;
+  const toggleModule = async (id) => {
+    // If module is already active, deactivate it
+    if (activeModules.includes(id)) {
+      if (window.confirm(t('modules.confirmDeactivate') || `Вы уверены, что хотите деактивировать модуль?`)) {
+        setDeactivatingId(id);
+        try {
+          await deactivateModule(id);
+        } finally {
+          setDeactivatingId(null);
+        }
+      }
+      return;
+    }
+    
+    // Otherwise toggle selection for activation
     setSelected(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
@@ -131,13 +144,14 @@ const ModuleStore = () => {
               <button
                 key={mod.id}
                 onClick={() => toggleModule(mod.id)}
+                disabled={deactivatingId === mod.id}
                 className={`relative text-left p-6 rounded-[2rem] border-2 transition-all duration-300 group ${
                   isActive
-                    ? 'border-emerald-200 bg-emerald-50/50 cursor-default'
+                    ? 'border-emerald-200 bg-emerald-50/50 hover:border-red-200 hover:bg-red-50/30 cursor-pointer'
                     : isSelected
                       ? `${accent.border} ${accent.bg} ring-2 ${accent.ring} ring-offset-2 scale-[1.02] shadow-xl ${accent.shadow}`
                       : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-lg hover:scale-[1.01] cursor-pointer'
-                }`}
+                } ${deactivatingId === mod.id ? 'opacity-50 grayscale' : ''}`}
               >
                 {/* Checkmark */}
                 {(isSelected || isActive) && (
@@ -169,8 +183,16 @@ const ModuleStore = () => {
 
                 {/* Price / Status */}
                 <div className="flex items-baseline gap-1">
-                  {isActive ? (
-                    <span className="text-sm font-bold text-emerald-600">{t('modules.active') || 'Активен'} ✓</span>
+                  {deactivatingId === mod.id ? (
+                    <div className="flex items-center gap-2 text-gray-400 text-sm font-bold">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {t('common.processing') || 'Обработка...'}
+                    </div>
+                  ) : isActive ? (
+                    <span className="text-sm font-bold text-emerald-600 group-hover:text-red-500 transition-colors">
+                      <span className="group-hover:hidden">{t('modules.active') || 'Активен'} ✓</span>
+                      <span className="hidden group-hover:inline">{t('modules.deactivate') || 'Деактивировать'} ?</span>
+                    </span>
                   ) : (
                     <>
                       <span className="text-2xl font-black text-gray-900">{mod.price}</span>

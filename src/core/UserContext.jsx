@@ -142,6 +142,27 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  const deactivateModule = async (moduleId) => {
+    if (!profile) return false;
+    const tenantId = profile.tenant_id || profile.id;
+    
+    try {
+      const { error } = await supabase
+        .from('tenant_modules')
+        .update({ is_active: false })
+        .eq('tenant_id', tenantId)
+        .eq('module_id', moduleId);
+
+      if (error) throw error;
+      
+      await fetchActiveModules(tenantId);
+      return true;
+    } catch (err) {
+      console.error('Error deactivating module:', err);
+      return false;
+    }
+  };
+
   return (
     <UserContext.Provider value={{ 
       profile, 
@@ -152,6 +173,7 @@ export const UserProvider = ({ children }) => {
       needsOnboarding,
       activateModule,
       activateMultipleModules,
+      deactivateModule,
     }}>
       {children}
     </UserContext.Provider>
