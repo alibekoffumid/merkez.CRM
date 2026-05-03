@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
 import { Calendar, Activity, Package, Users, Settings, Maximize2, Minimize2, Plus, Tag } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import Scheduler from './components/Scheduler';
@@ -58,10 +57,11 @@ const DentalModule = () => {
 
   const fetchAppointments = async () => {
     try {
+      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('dental_records')
         .select('*')
-        .eq('appointment_date', format(new Date(), 'yyyy-MM-dd'));
+        .eq('appointment_date', today);
     } catch (err) {
       console.error('Error fetching appointments:', err);
     }
