@@ -19,7 +19,7 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 sticky top-0 z-30 w-full lg:pl-28 transition-all duration-300">
+    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30 w-full lg:pl-28 transition-all duration-300">
       <div className="flex items-center space-x-2 sm:space-x-6">
         {/* Mobile Menu Toggle */}
         <button 

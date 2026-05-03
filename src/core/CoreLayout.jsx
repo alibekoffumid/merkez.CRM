@@ -31,9 +31,11 @@ const CoreLayout = () => {
         isSidebarExpanded ? 'lg:filter lg:blur-sm lg:brightness-90 lg:pointer-events-none' : ''
       }`}>
         <Header onMenuClick={toggleMobileSidebar} />
-        <main className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6 lg:p-8 lg:pl-28 transition-all duration-300">
+        <main className="flex-1 min-h-0 overflow-hidden bg-gray-50/50">
           <div className="h-full overflow-y-auto no-scrollbar">
-            <Outlet />
+            <div className="p-4 sm:p-6 lg:p-10 lg:pl-32 max-w-[1600px] mx-auto">
+              <Outlet />
+            </div>
           </div>
         </main>
 
