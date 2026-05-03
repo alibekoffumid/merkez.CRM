@@ -129,7 +129,7 @@ const CourseInventory = () => {
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                     className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                    placeholder="e.g. Piano Masterclass" 
+                    placeholder={t('education.placeholders.programName')} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -139,7 +139,7 @@ const CourseInventory = () => {
                     value={formData.category}
                     onChange={(e) => setFormData({...formData, category: e.target.value})}
                     className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                    placeholder="e.g. Music" 
+                    placeholder={t('education.placeholders.category')} 
                   />
                 </div>
               </div>
@@ -159,26 +159,26 @@ const CourseInventory = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('restaurant.maxCapacity')} (optional)</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('restaurant.maxCapacity')} ({t('common.optional')})</label>
                   <input 
                     type="number" 
                     min="1"
                     value={formData.capacity}
                     onChange={(e) => setFormData({...formData, capacity: e.target.value})}
                     className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                    placeholder="e.g. 10" 
+                    placeholder={t('education.placeholders.capacity')} 
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Description</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('common.description')}</label>
                 <textarea 
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
                   rows={3}
                   className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-medium text-gray-900 resize-none" 
-                  placeholder="Details about this program..." 
+                  placeholder={t('education.placeholders.description')} 
                 />
               </div>
 

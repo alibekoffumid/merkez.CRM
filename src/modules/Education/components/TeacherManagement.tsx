@@ -168,7 +168,7 @@ const TeacherManagement = () => {
                     value={formData.firstName}
                     onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                     className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
-                    placeholder="John" 
+                    placeholder={t('education.placeholders.firstName')} 
                   />
                 </div>
                 <div className="space-y-2">
@@ -179,7 +179,7 @@ const TeacherManagement = () => {
                     value={formData.lastName}
                     onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                     className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
-                    placeholder="Doe" 
+                    placeholder={t('education.placeholders.lastName')} 
                   />
                 </div>
               </div>
@@ -191,7 +191,7 @@ const TeacherManagement = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
-                  placeholder="john.doe@example.com" 
+                  placeholder={t('education.placeholders.email')} 
                 />
               </div>
 
@@ -203,7 +203,7 @@ const TeacherManagement = () => {
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                     className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
-                    placeholder="+994 ..." 
+                    placeholder={t('education.placeholders.phone')} 
                   />
                 </div>
                 <div className="space-y-2">

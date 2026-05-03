@@ -147,7 +147,7 @@ const PatientList = ({ onViewChart }) => {
   const filteredPatients = patients; // Filtering is done on server-side now
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
+    <div className="space-y-6 animate-in fade-in duration-700 relative">
       {/* Toast Notification */}
       {notification.show && (
         <div className="fixed top-6 right-6 z-[300] animate-in slide-in-from-top-8 fade-in duration-300">
@@ -230,7 +230,7 @@ const PatientList = ({ onViewChart }) => {
                   <div className="flex flex-wrap justify-center lg:justify-start gap-4 mt-2">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
                       <Phone className="w-3.5 h-3.5" />
-                      {patient.phone || 'No phone'}
+                      {patient.phone || t('dental.notProvided')}
                     </div>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-widest">
                       <Calendar className="w-3.5 h-3.5" />
@@ -298,13 +298,13 @@ const PatientList = ({ onViewChart }) => {
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-blue-100">
                 <User className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Add New Patient</h3>
-              <p className="text-sm font-medium text-gray-500 mt-1">Enter details to create a new patient record.</p>
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('dental.addPatient')}</h3>
+              <p className="text-sm font-medium text-gray-500 mt-1">{t('dental.searchExisting')}</p>
             </div>
 
             <form onSubmit={handleAddPatient} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Full Name</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.fullName')}</label>
                 <input 
                   type="text" 
                   required
@@ -315,7 +315,7 @@ const PatientList = ({ onViewChart }) => {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Phone Number</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.phoneNumber')}</label>
                 <input 
                   type="tel" 
                   value={newPatient.phone}
@@ -325,7 +325,7 @@ const PatientList = ({ onViewChart }) => {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Email Address (Optional)</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('profile.email')}</label>
                 <input 
                   type="email" 
                   value={newPatient.email}
@@ -341,14 +341,14 @@ const PatientList = ({ onViewChart }) => {
                   onClick={() => setShowAddModal(false)}
                   className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold transition-colors"
                 >
-                  Cancel
+                  {t('dental.cancel')}
                 </button>
                 <button 
                   type="submit"
                   disabled={isSubmitting}
                   className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save Patient'}
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('common.save') || 'Save'}
                 </button>
               </div>
             </form>
@@ -371,13 +371,13 @@ const PatientList = ({ onViewChart }) => {
               <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-purple-100">
                 <Calendar className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-black text-gray-900 tracking-tight">Schedule Visit</h3>
-              <p className="text-sm font-medium text-gray-500 mt-1">Book appointment for <span className="font-bold text-gray-900">{selectedPatientForAppt.name}</span></p>
+              <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('dental.addVisit')}</h3>
+              <p className="text-sm font-medium text-gray-500 mt-1">{t('dental.bookAppointment')} <span className="font-bold text-gray-900">{selectedPatientForAppt.name}</span></p>
             </div>
 
             <form onSubmit={handleAddAppointment} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Select Doctor</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.dentist')}</label>
                 <select 
                   value={newAppointment.doctor_name}
                   onChange={(e) => setNewAppointment({ ...newAppointment, doctor_name: e.target.value })}
@@ -391,7 +391,7 @@ const PatientList = ({ onViewChart }) => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Date</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('education.academicJournal') || 'Date'}</label>
                   <input 
                     type="date" 
                     required
@@ -401,7 +401,7 @@ const PatientList = ({ onViewChart }) => {
                   />
                 </div>
                 <div className="relative">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Time</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('education.startTime')}</label>
                   <button 
                     type="button"
                     onClick={() => setShowTimePicker(!showTimePicker)}
@@ -466,7 +466,7 @@ const PatientList = ({ onViewChart }) => {
                         onClick={() => setShowTimePicker(false)}
                         className="w-full py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
                       >
-                        Done
+                        {t('common.done') || 'Done'}
                       </button>
                     </div>
                   )}
@@ -475,32 +475,32 @@ const PatientList = ({ onViewChart }) => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Duration (min)</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.duration')}</label>
                   <select 
                     value={newAppointment.duration_minutes}
                     onChange={(e) => setNewAppointment({ ...newAppointment, duration_minutes: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   >
-                    <option value="15">15 min</option>
-                    <option value="30">30 min</option>
-                    <option value="45">45 min</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1.5 hours</option>
-                    <option value="120">2 hours</option>
+                    <option value="15">15 {t('dental.minutesShort')}</option>
+                    <option value="30">30 {t('dental.minutesShort')}</option>
+                    <option value="45">45 {t('dental.minutesShort')}</option>
+                    <option value="60">1 {t('dental.hourShort')}</option>
+                    <option value="90">1.5 {t('dental.hoursShort')}</option>
+                    <option value="120">2 {t('dental.hoursShort')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Procedure</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.procedure')}</label>
                   <select 
                     value={newAppointment.procedure_type}
                     onChange={(e) => setNewAppointment({ ...newAppointment, procedure_type: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   >
-                    <option value="Consultation">Consultation</option>
-                    <option value="Cleaning">Cleaning</option>
-                    <option value="Filling">Filling</option>
-                    <option value="Extraction">Extraction</option>
-                    <option value="Checkup">Checkup</option>
+                    <option value="Consultation">{t('dental.procedures.consultation')}</option>
+                    <option value="Cleaning">{t('dental.procedures.cleaning')}</option>
+                    <option value="Filling">{t('dental.procedures.filling')}</option>
+                    <option value="Extraction">{t('dental.procedures.extraction')}</option>
+                    <option value="Checkup">{t('dental.procedures.checkup')}</option>
                   </select>
                 </div>
               </div>
@@ -511,14 +511,14 @@ const PatientList = ({ onViewChart }) => {
                   onClick={() => setShowAppointmentModal(false)}
                   className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold transition-colors"
                 >
-                  Cancel
+                  {t('dental.cancel')}
                 </button>
                 <button 
                   type="submit"
                   disabled={isSubmitting}
                   className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Confirm Booking'}
+                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('dental.bookAppointment')}
                 </button>
               </div>
             </form>

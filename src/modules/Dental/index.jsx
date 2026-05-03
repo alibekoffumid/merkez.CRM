@@ -238,7 +238,7 @@ const DentalModule = () => {
                    {isFullPage ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
                  </button>
                  <div className="w-px h-6 bg-gray-200 mx-1" />
-                 <button className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">Export PDF</button>
+                 <button className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">{t('dental.exportPdf')}</button>
                  <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-white border border-gray-100 rounded-xl">
                    <Settings className="w-5 h-5" />
                  </button>
@@ -251,7 +251,7 @@ const DentalModule = () => {
 
         <div className={`flex-1 transition-all duration-500 ${isFullPage && activeTab === 'scheduler' ? 'h-full overflow-hidden' : ''}`}>
           {activeTab === 'scheduler' && (
-            <div className={`animate-in fade-in slide-in-from-bottom-4 duration-700 ${isFullPage ? 'h-full' : ''}`}>
+            <div className={`animate-in fade-in duration-700 ${isFullPage ? 'h-full' : ''}`}>
               <Scheduler 
                 isFullPage={isFullPage} 
                 doctors={doctors} 
@@ -261,7 +261,7 @@ const DentalModule = () => {
             </div>
           )}
           {activeTab === 'chart' && (
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-700">
                <div className="bg-white rounded-[2rem] p-8 text-gray-900 shadow-sm border border-gray-100 relative overflow-hidden group">
                  <div className="relative z-10">
                    <div className="flex items-center gap-4 mb-4">
@@ -270,7 +270,7 @@ const DentalModule = () => {
                      </div>
                      <div>
                        <h3 className="text-2xl font-black">{selectedPatient.name}</h3>
-                       <p className="text-gray-500 text-sm font-medium">Patient ID: {selectedPatient.id}</p>
+                       <p className="text-gray-500 text-sm font-medium">{t('dental.patientId')}: {selectedPatient.id}</p>
                      </div>
                    </div>
                  </div>
@@ -293,17 +293,17 @@ const DentalModule = () => {
               <div className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-black text-gray-900">Clinical Staff</h3>
-                    <p className="text-xs text-gray-500 font-medium">Manage your clinical team and doctors</p>
+                    <h3 className="text-lg font-black text-gray-900">{t('dental.clinicalStaff')}</h3>
+                    <p className="text-xs text-gray-500 font-medium">{t('dental.manageStaff')}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors?.length || 0} active</span>
+                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors?.length || 0} {t('dental.activeStaff')}</span>
                     <button 
                       onClick={() => setShowAddDoctorModal(true)}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
                     >
                       <Plus className="w-4 h-4" />
-                      <span className="text-xs font-bold">Add Doctor</span>
+                      <span className="text-xs font-bold">{t('dental.addDoctor')}</span>
                     </button>
                   </div>
                 </div>
@@ -329,14 +329,14 @@ const DentalModule = () => {
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
               <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="text-xl font-black text-gray-900">Add Clinical Staff</h3>
+                <h3 className="text-xl font-black text-gray-900">{t('dental.addStaffTitle')}</h3>
                 <button onClick={() => setShowAddDoctorModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                    <Maximize2 className="w-5 h-5 text-gray-400 rotate-45" />
                 </button>
               </div>
               <form onSubmit={handleAddDoctor} className="p-8 space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Full Name</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{t('dental.fullName')}</label>
                   <input 
                     required
                     type="text" 
@@ -347,7 +347,7 @@ const DentalModule = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Specialty</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{t('dental.specialty')}</label>
                   <input 
                     type="text" 
                     placeholder="e.g. Orthodontist"
@@ -357,7 +357,7 @@ const DentalModule = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Calendar Color</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">{t('dental.calendarColor')}</label>
                   <div className="flex gap-3">
                     {['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-rose-600', 'bg-amber-600'].map(c => (
                       <button
@@ -373,7 +373,7 @@ const DentalModule = () => {
                   type="submit"
                   className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] mt-4"
                 >
-                  Create Profile
+                  {t('dental.createProfile')}
                 </button>
               </form>
             </div>

@@ -91,7 +91,7 @@ const EducationModuleContent = () => {
       )}
 
       <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-6 px-4' : 'p-6 md:p-12'}`}>
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="animate-in fade-in duration-700">
           {activeTab === 'scheduler' && <AcademicScheduler />}
           {activeTab === 'courses' && <CourseInventory />}
           {activeTab === 'progress' && <AcademicJournal />}

@@ -338,15 +338,15 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               className="text-2xl font-black text-gray-900 tracking-tight cursor-pointer hover:text-blue-600 transition-colors"
               onClick={() => setShowCalendar(!showCalendar)}
             >
-              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', day: 'numeric' })}
+              {currentDate.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric', day: 'numeric' })}
             </h2>
             <div className="flex items-center gap-4 mt-1">
               <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
                 <button onClick={() => changeDate(-1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
                 {currentDate.toDateString() === new Date().toDateString() ? (
-                  <span className="px-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">Today</span>
+                  <span className="px-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">{t('dental.today')}</span>
                 ) : (
-                  <button onClick={() => setCurrentDate(new Date())} className="px-4 text-[10px] font-black text-gray-500 hover:text-blue-600 uppercase tracking-widest transition-colors">Today</button>
+                  <button onClick={() => setCurrentDate(new Date())} className="px-4 text-[10px] font-black text-gray-500 hover:text-blue-600 uppercase tracking-widest transition-colors">{t('dental.today')}</button>
                 )}
                 <button onClick={() => changeDate(1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronRight className="w-4 h-4" /></button>
               </div>
@@ -359,10 +359,10 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 >
                   <div className="flex items-center gap-2 pr-3 border-r border-gray-200/50">
                     <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Staff</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('dental.staff')}</span>
                   </div>
                   <span className="text-xs font-black text-gray-700 min-w-[100px] text-left">
-                    {selectedDoctorId === 'all' ? 'All Doctors' : doctors.find(d => d.id === selectedDoctorId)?.name}
+                    {selectedDoctorId === 'all' ? t('dental.allDoctors') : doctors.find(d => d.id === selectedDoctorId)?.name}
                   </span>
                   <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-300 ${showDoctorDropdown ? 'rotate-180' : ''}`} />
                 </button>
@@ -378,8 +378,8 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${selectedDoctorId === 'all' ? 'bg-blue-50/50 text-blue-600' : 'text-gray-600'}`}
                       >
-                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black">ALL</div>
-                        <span className="text-xs font-bold uppercase tracking-wider">All Doctors</span>
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black">{t('common.all') || 'ALL'}</div>
+                        <span className="text-xs font-bold uppercase tracking-wider">{t('dental.allDoctors')}</span>
                       </button>
                       
                       <div className="h-px bg-gray-50 my-1 mx-2" />
@@ -415,7 +415,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     setCurrentDate(d);
                   }} className="p-1 hover:bg-gray-100 rounded-lg"><ChevronLeft className="w-4 h-4" /></button>
                   <span className="text-sm font-black text-gray-900">
-                    {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    {currentDate.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })}
                   </span>
                   <button onClick={() => {
                     const d = new Date(currentDate);
@@ -424,7 +424,15 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                   }} className="p-1 hover:bg-gray-100 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
                 </div>
                 <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                  {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => (
+                  {[
+                    t('education.weekdays.mon'),
+                    t('education.weekdays.tue'),
+                    t('education.weekdays.wed'),
+                    t('education.weekdays.thu'),
+                    t('education.weekdays.fri'),
+                    t('education.weekdays.sat'),
+                    t('education.weekdays.sun')
+                  ].map(d => (
                     <span key={d} className="text-[9px] font-black text-gray-400 uppercase">{d}</span>
                   ))}
                 </div>
@@ -470,7 +478,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search appointments..." 
+              placeholder={t('dental.searchAppointments')}
               className="w-full bg-gray-100 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
           </div>
@@ -489,7 +497,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             }}
             className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl text-sm font-black transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
             <Plus className="w-5 h-5" />
-            New Appointment
+            {t('dental.newAppointment')}
           </button>
         </div>
       </div>
@@ -742,14 +750,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
             <div className="mb-10">
-              <h3 className="text-3xl font-black text-gray-900 tracking-tight">New Appointment</h3>
-              <p className="text-sm font-medium text-gray-500 mt-1">Add a new patient or search existing</p>
+              <h3 className="text-3xl font-black text-gray-900 tracking-tight">{t('dental.newAppointment')}</h3>
+              <p className="text-sm font-medium text-gray-500 mt-1">{t('dental.searchExisting')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="relative">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Patient Name</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.patientName')}</label>
                   <div className="relative group/input">
                     <input 
                       type="text" 
@@ -767,7 +775,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                         setShowPatientDropdown(true);
                       }} 
                       className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-12" 
-                      placeholder="Search existing or type new name..." 
+                      placeholder={t('dental.searchExisting')} 
                     />
                     <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                       <ChevronRight className="w-4 h-4 rotate-90" />
@@ -802,7 +810,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                           ))}
                         {patientsList.filter(p => p.name.toLowerCase().includes(formData.patient_name.toLowerCase())).length === 0 && (
                           <div className="px-5 py-4 text-center">
-                            <p className="text-sm font-bold text-gray-400">New patient will be created</p>
+                            <p className="text-sm font-bold text-gray-400">{t('dental.newPatientInfo')}</p>
                           </div>
                         )}
                       </div>
@@ -811,7 +819,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 </div>
 
                 <div className="relative">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Phone Number (Optional)</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.phoneNumber')}</label>
                   <input 
                     type="tel" 
                     value={formData.phone} 
@@ -824,13 +832,13 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Doctor</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.dentist')}</label>
                   <select value={formData.doctor_name} onChange={(e) => setFormData({ ...formData, doctor_name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                     {doctors.map(doc => <option key={doc.id} value={doc.name}>{doc.name}</option>)}
                   </select>
                 </div>
                 <div className="relative">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Time</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('education.startTime')}</label>
                   <button 
                     type="button"
                     onClick={() => setShowTimePicker(!showTimePicker)}
@@ -893,7 +901,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                         onClick={() => setShowTimePicker(false)}
                         className="w-full py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
                       >
-                        Done
+                        {t('common.done') || 'Done'}
                       </button>
                     </div>
                   )}
@@ -902,29 +910,29 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Duration</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.duration')}</label>
                   <select value={formData.duration_minutes} onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                    <option value="15">15 min</option>
-                    <option value="30">30 min</option>
-                    <option value="45">45 min</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1.5 hours</option>
+                    <option value="15">15 {t('dental.minutesShort')}</option>
+                    <option value="30">30 {t('dental.minutesShort')}</option>
+                    <option value="45">45 {t('dental.minutesShort')}</option>
+                    <option value="60">1 {t('dental.hourShort')}</option>
+                    <option value="90">1.5 {t('dental.hoursShort')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Procedure</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.procedure')}</label>
                   <select value={formData.procedure_type} onChange={(e) => setFormData({ ...formData, procedure_type: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                    <option value="Consultation">Consultation</option>
-                    <option value="Cleaning">Cleaning</option>
-                    <option value="Filling">Filling</option>
-                    <option value="Extraction">Extraction</option>
-                    <option value="Checkup">Checkup</option>
+                    <option value="Consultation">{t('dental.procedures.consultation')}</option>
+                    <option value="Cleaning">{t('dental.procedures.cleaning')}</option>
+                    <option value="Filling">{t('dental.procedures.filling')}</option>
+                    <option value="Extraction">{t('dental.procedures.extraction')}</option>
+                    <option value="Checkup">{t('dental.procedures.checkup')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">Appointment Notes</label>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.appointmentNotes')}</label>
                 <textarea 
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -935,7 +943,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
               <div className="pt-4 flex gap-3">
                 <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2">
-                  {isSubmitting ? 'Saving...' : 'Book Appointment'}
+                  {isSubmitting ? t('dental.saving') : t('dental.bookAppointment')}
                 </button>
               </div>
             </form>
@@ -973,7 +981,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                   ) : (
                     <>
                       <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedClient.name}</h3>
-                      <p className="text-blue-600 font-bold text-sm">Regular Patient</p>
+                      <p className="text-blue-600 font-bold text-sm">{t('dental.regularPatient')}</p>
                     </>
                   )}
                 </div>
@@ -994,7 +1002,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
               <div className="mt-8 space-y-4">
                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Phone Number</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.phoneNumber')}</p>
                   {isEditingClient ? (
                     <input 
                       type="text"
@@ -1003,12 +1011,12 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                       className="text-gray-900 font-bold bg-transparent border-b border-blue-200 outline-none w-full"
                     />
                   ) : (
-                    <p className="text-gray-900 font-bold">{selectedClient.phone || 'Not provided'}</p>
+                    <p className="text-gray-900 font-bold">{selectedClient.phone || t('dental.notProvided')}</p>
                   )}
                 </div>
 
                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Comments / Clinical Notes</p>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.clinicalNotes')}</p>
                   {isEditingClient ? (
                     <textarea 
                       value={editData.notes}
@@ -1018,7 +1026,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     />
                   ) : (
                     <p className="text-gray-900 font-medium text-sm leading-relaxed italic">
-                      {selectedClient.notes || 'No notes added...'}
+                      {selectedClient.notes || t('dental.noNotes')}
                     </p>
                   )}
                 </div>
@@ -1026,11 +1034,11 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 {!isEditingClient && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Appointment</p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.newAppointment')}</p>
                       <p className="text-gray-900 font-bold">{selectedClient.time}</p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Procedure</p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.procedure')}</p>
                       <p className="text-gray-900 font-bold truncate">{selectedClient.type}</p>
                     </div>
                   </div>
@@ -1043,14 +1051,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     onClick={() => setIsEditingClient(false)}
                     className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
                   >
-                    Cancel
+                    {t('dental.cancel')}
                   </button>
                   <button 
                     onClick={handleUpdateClient}
                     disabled={isSubmitting}
                     className="flex-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    {isSubmitting ? t('dental.saving') : t('dental.saveChanges')}
                   </button>
                 </div>
               ) : (
@@ -1070,13 +1078,13 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3"
                   >
                     <Activity className="w-5 h-5" />
-                    Open Medical Chart
+                    {t('dental.openMedicalChart')}
                   </button>
                   <button 
                     onClick={() => setSelectedClient(null)}
                     className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
                   >
-                    Close Profile
+                    {t('dental.closeProfile')}
                   </button>
                 </div>
               )}

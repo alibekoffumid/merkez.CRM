@@ -128,7 +128,7 @@ const AcademicScheduler = () => {
                       setCalendarViewDate(d);
                     }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><ChevronLeft className="w-4 h-4 text-gray-600" /></button>
                     <span className="text-sm font-black text-gray-900 capitalize">
-                      {calendarViewDate.toLocaleDateString(i18n.language || 'ru-RU', { month: 'long', year: 'numeric' })}
+                      {t(`education.months.${['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'][calendarViewDate.getMonth()]}`)} {calendarViewDate.getFullYear()}
                     </span>
                     <button onClick={(e) => {
                       e.stopPropagation();
@@ -221,7 +221,7 @@ const AcademicScheduler = () => {
                   }`}
                 >
                   <span className={`text-[10px] uppercase tracking-widest font-black mb-1 ${isSelected ? 'text-blue-200' : ''}`}>
-                    {date.toLocaleDateString(i18n.language, { weekday: 'short' })}
+                    {t(`education.weekdays.${['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()]}`)}
                   </span>
                   <span className="text-lg font-black">{date.getDate()}</span>
                 </button>
