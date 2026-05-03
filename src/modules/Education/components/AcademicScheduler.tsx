@@ -6,7 +6,7 @@ import { supabase } from '../../../supabaseClient';
 
 const AcademicScheduler = () => {
   const { t, i18n } = useTranslation();
-  const { courses, students, lessons, refreshAll, rooms, tenantId } = useEducation();
+  const { courses, students, lessons, refreshAll, rooms, teachers, tenantId } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +25,7 @@ const AcademicScheduler = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProgramDropdown, setShowProgramDropdown] = useState(false);
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
+  const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 
   const getWeekDays = () => {
@@ -419,14 +420,44 @@ const AcademicScheduler = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacherName')}</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={formData.teacherName}
-                    onChange={(e) => setFormData({...formData, teacherName: e.target.value})}
-                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                    placeholder="e.g. John Doe" 
-                  />
+                  <div className="relative">
+                    <button 
+                      type="button"
+                      onClick={() => setShowTeacherDropdown(!showTeacherDropdown)}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                    >
+                      <span className={formData.teacherName ? 'text-gray-900' : 'text-gray-400'}>
+                        {formData.teacherName || t('education.selectTeacher', 'Select Teacher')}
+                      </span>
+                      <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showTeacherDropdown ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {showTeacherDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-[490]" onClick={() => setShowTeacherDropdown(false)} />
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                          {teachers?.length > 0 ? (
+                            teachers.map((teacher: any) => (
+                              <button
+                                key={teacher.id}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, teacherName: `${teacher.first_name} ${teacher.last_name}`});
+                                  setShowTeacherDropdown(false);
+                                }}
+                                className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.teacherName === `${teacher.first_name} ${teacher.last_name}` ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                              >
+                                <Users className="w-4 h-4" />
+                                <span className="text-sm font-bold">{teacher.first_name} {teacher.last_name}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-5 py-3 text-xs text-gray-400 italic">{t('education.noTeachersAvailable')}</div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.room')}</label>
