@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, Search, User, Book, CheckCircle, XCircle, MoreVertical, Star, TrendingUp } from 'lucide-react';
+import { ClipboardList, Search, User, Book, CheckCircle, XCircle, MoreVertical, Star, TrendingUp, ChevronDown } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 
 const AcademicJournal = () => {
@@ -8,6 +8,7 @@ const AcademicJournal = () => {
   const { students, courses } = useEducation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('all');
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false);
 
   const filteredStudents = students?.filter(s => {
     const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
@@ -34,16 +35,44 @@ const AcademicJournal = () => {
               className="w-full pl-11 pr-4 py-3 bg-white rounded-xl border border-gray-100 shadow-sm focus:border-blue-500 outline-none transition-all text-sm font-bold"
             />
           </div>
-          <select 
-            value={selectedCourse}
-            onChange={(e) => setSelectedCourse(e.target.value)}
-            className="w-full sm:w-48 px-4 py-3 bg-white rounded-xl border border-gray-100 shadow-sm focus:border-blue-500 outline-none transition-all text-sm font-bold appearance-none"
-          >
-            <option value="all">All Programs</option>
-            {courses?.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.title}</option>
-            ))}
-          </select>
+          <div className="relative w-full sm:w-64">
+            <button 
+              onClick={() => setShowCourseDropdown(!showCourseDropdown)}
+              className="w-full px-5 py-3 bg-white rounded-xl border border-gray-100 shadow-sm focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+            >
+              <span>{selectedCourse === 'all' ? 'All Programs' : courses?.find(c => c.id === selectedCourse)?.title}</span>
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showCourseDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showCourseDropdown && (
+              <>
+                <div className="fixed inset-0 z-[490]" onClick={() => setShowCourseDropdown(false)} />
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-60 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                  <button
+                    onClick={() => {
+                      setSelectedCourse('all');
+                      setShowCourseDropdown(false);
+                    }}
+                    className={`w-full px-5 py-2.5 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${selectedCourse === 'all' ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                  >
+                    All Programs
+                  </button>
+                  {courses?.map((c: any) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setSelectedCourse(c.id);
+                        setShowCourseDropdown(false);
+                      }}
+                      className={`w-full px-5 py-2.5 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${selectedCourse === c.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                    >
+                      {c.title}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 

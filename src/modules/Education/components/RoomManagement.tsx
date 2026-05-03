@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Plus, X, Trash2, Edit2, Users, CheckCircle2, Loader2 } from 'lucide-react';
+import { MapPin, Plus, X, Trash2, Edit2, Users, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 
 const RoomManagement = () => {
@@ -11,6 +11,7 @@ const RoomManagement = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -177,16 +178,37 @@ const RoomManagement = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Type</label>
-                  <select 
-                    value={formData.type}
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold"
-                  >
-                    <option value="General">General</option>
-                    <option value="Studio">Studio</option>
-                    <option value="Lab">Lab</option>
-                    <option value="Hall">Hall</option>
-                  </select>
+                  <div className="relative">
+                    <button 
+                      type="button"
+                      onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                    >
+                      <span>{formData.type}</span>
+                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showTypeDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {showTypeDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-[490]" onClick={() => setShowTypeDropdown(false)} />
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[500] py-2 overflow-hidden animate-in zoom-in-95 fade-in duration-200 origin-top">
+                          {['General', 'Studio', 'Lab', 'Hall'].map(type => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => {
+                                setFormData({...formData, type});
+                                setShowTypeDropdown(false);
+                              }}
+                              className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${formData.type === type ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
