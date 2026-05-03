@@ -6,7 +6,7 @@ import { supabase } from '../../../supabaseClient';
 
 const AcademicScheduler = () => {
   const { t, i18n } = useTranslation();
-  const { courses, students, lessons, refreshAll, rooms } = useEducation();
+  const { courses, students, lessons, refreshAll, rooms, tenantId } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
