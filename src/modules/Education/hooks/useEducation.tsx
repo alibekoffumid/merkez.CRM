@@ -33,7 +33,7 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
     setLoading(true);
     setError(null);
     try {
-      const [studentsRes, coursesRes, enrollmentsRes, lessonsRes, roomsRes] = await Promise.all([
+      const [studentsRes, coursesRes, enrollmentsRes, lessonsRes, roomsRes, teachersRes] = await Promise.all([
         supabase.from('education_students').select('*').eq('tenant_id', tenantId),
         supabase.from('education_courses').select('*').eq('tenant_id', tenantId),
         supabase.from('enrollments').select('*, education_students(*), education_courses(*)').eq('tenant_id', tenantId),
