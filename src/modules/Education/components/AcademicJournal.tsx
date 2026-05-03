@@ -4,7 +4,7 @@ import { ClipboardList, Search, User, Book, CheckCircle, XCircle, MoreVertical, 
 import { useEducation } from '../hooks/useEducation';
 
 const AcademicJournal = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { students, courses } = useEducation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('all');
