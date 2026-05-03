@@ -95,7 +95,7 @@ const AcademicScheduler = () => {
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-gray-100 shadow-sm min-h-[500px] relative">
+    <div className="min-h-[500px] relative">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-black text-gray-900">{t('education.academicSchedule')}</h2>
@@ -192,7 +192,7 @@ const AcademicScheduler = () => {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 bg-gray-50 rounded-[2rem] border border-gray-100 p-6 flex flex-col h-[600px] overflow-hidden">
+        <div className="lg:col-span-3 bg-gray-50/50 rounded-3xl border border-gray-100 p-6 flex flex-col h-[700px] overflow-hidden">
           {/* Week Navigator */}
           <div className="flex justify-between items-center mb-6">
             {getWeekDays().map((date, i) => {
@@ -220,7 +220,7 @@ const AcademicScheduler = () => {
           </div>
 
           {/* Timeline */}
-          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-y-auto relative [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-y-auto relative no-scrollbar">
             <div className="relative" style={{ height: `${TOTAL_HOURS * 80}px`, marginTop: '10px' }}>
               <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
                 {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (

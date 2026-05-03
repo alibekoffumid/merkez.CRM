@@ -33,7 +33,7 @@ const CoreLayout = () => {
         <Header onMenuClick={toggleMobileSidebar} />
         <main className="flex-1 min-h-0 overflow-hidden bg-gray-50/50">
           <div className="h-full overflow-y-auto overflow-x-hidden no-scrollbar">
-            <div className="p-4 sm:p-6 lg:p-10 lg:pl-32 max-w-[1600px] mx-auto">
+            <div className="p-4 sm:p-6 lg:p-10 lg:pl-24 max-w-full mx-auto">
               <Outlet />
             </div>
           </div>

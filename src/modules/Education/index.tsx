@@ -27,7 +27,7 @@ const EducationModuleContent = () => {
       flex flex-col min-h-full transition-all duration-500
       ${isFullPage 
         ? `fixed inset-0 z-[100] bg-gray-50 p-0 rounded-0 overflow-y-auto` 
-        : `bg-white p-4 md:p-8 rounded-[2.5rem] border border-gray-100 space-y-6 overflow-hidden`}
+        : `bg-transparent p-0 rounded-0 border-0 space-y-6 overflow-hidden`}
     `}>
       {isFullPage && (
         <button 
