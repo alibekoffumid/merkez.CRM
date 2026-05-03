@@ -80,14 +80,14 @@ const RoomManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">{t('education.tabRooms')}</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">Manage your academy classrooms and studios</p>
+          <h2 className="text-2xl font-black text-gray-900">{t('education.roomsTitle')}</h2>
+          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.roomsSubtitle')}</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
         >
-          <Plus className="w-5 h-5" /> Add Room
+          <Plus className="w-5 h-5" /> {t('education.addRoom')}
         </button>
       </div>
 
@@ -116,7 +116,7 @@ const RoomManagement = () => {
               
               <div className="flex items-center gap-4 text-sm font-medium text-gray-500">
                 <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg">
-                  <Users className="w-4 h-4" /> {room.capacity} seats
+                  <Users className="w-4 h-4" /> {room.capacity} {t('education.seats')}
                 </span>
                 <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-lg italic">
                   {room.type}
@@ -127,8 +127,8 @@ const RoomManagement = () => {
         ) : (
           <div className="col-span-full bg-gray-50 p-12 rounded-[2.5rem] border border-dashed border-gray-200 text-center">
             <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-500">No rooms added yet</h3>
-            <p className="text-gray-400 text-sm mt-1">Start by adding your first classroom</p>
+            <h3 className="text-lg font-bold text-gray-500">{t('education.noRooms')}</h3>
+            <p className="text-gray-400 text-sm mt-1">{t('education.createFirstRoom')}</p>
           </div>
         )}
       </div>
@@ -148,13 +148,13 @@ const RoomManagement = () => {
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
                 <MapPin className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900">Add New Room</h2>
-              <p className="text-gray-500 text-sm mt-1">Define a new classroom or studio space</p>
+              <h2 className="text-2xl font-black text-gray-900">{t('education.addNewRoom')}</h2>
+              <p className="text-gray-500 text-sm mt-1">{t('education.defineNewSpace')}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Room Name</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.roomName')}</label>
                 <input 
                   type="text" 
                   required
@@ -167,7 +167,7 @@ const RoomManagement = () => {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Capacity</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.capacity')}</label>
                   <input 
                     type="number" 
                     required
@@ -177,7 +177,7 @@ const RoomManagement = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Type</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.type')}</label>
                   <div className="relative">
                     <button 
                       type="button"
@@ -222,7 +222,7 @@ const RoomManagement = () => {
                   ${isSubmitting ? 'opacity-80' : ''}
                 `}
               >
-                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : success ? <CheckCircle2 className="w-5 h-5" /> : 'Save Room'}
+                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : success ? <CheckCircle2 className="w-5 h-5" /> : t('education.saveRoom')}
               </button>
             </form>
           </div>

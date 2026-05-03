@@ -20,8 +20,8 @@ const AcademicJournal = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-2xl font-black text-gray-900">{t('education.tabJournal')}</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">Track attendance, grades, and exam results</p>
+          <h2 className="text-2xl font-black text-gray-900">{t('education.journalTitle')}</h2>
+          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.journalSubtitle')}</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
@@ -29,7 +29,7 @@ const AcademicJournal = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text"
-              placeholder="Search students..."
+              placeholder={t('education.searchStudents')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-white rounded-xl border border-gray-100 shadow-sm focus:border-blue-500 outline-none transition-all text-sm font-bold"
@@ -55,7 +55,7 @@ const AcademicJournal = () => {
                     }}
                     className={`w-full px-5 py-2.5 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${selectedCourse === 'all' ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
                   >
-                    All Programs
+                    {t('education.allPrograms')}
                   </button>
                   {courses?.map((c: any) => (
                     <button
@@ -81,12 +81,12 @@ const AcademicJournal = () => {
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Student</th>
-                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Attendance</th>
-                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Lessons</th>
-                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Exams</th>
-                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Average</th>
-                <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Actions</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('education.student')}</th>
+                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('education.attendance')}</th>
+                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('education.tabSchedule')}</th>
+                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('education.exams')}</th>
+                <th className="px-6 py-5 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('education.average')}</th>
+                <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('education.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -151,7 +151,7 @@ const AcademicJournal = () => {
                 <tr>
                   <td colSpan={6} className="px-8 py-12 text-center">
                     <ClipboardList className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                    <p className="text-gray-500 font-bold">No data in journal</p>
+                    <p className="text-gray-500 font-bold">{t('education.noDataJournal')}</p>
                   </td>
                 </tr>
               )}
@@ -163,18 +163,18 @@ const AcademicJournal = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-600/20 relative overflow-hidden group">
           <TrendingUp className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 group-hover:scale-110 transition-transform duration-700" />
-          <h3 className="text-sm font-black uppercase tracking-widest opacity-80 mb-2">Average Score</h3>
+          <h3 className="text-sm font-black uppercase tracking-widest opacity-80 mb-2">{t('education.averageScore')}</h3>
           <p className="text-4xl font-black">8.2 / 10</p>
           <div className="mt-4 flex items-center gap-2 text-xs font-bold bg-white/10 w-fit px-3 py-1.5 rounded-full">
-            <Star className="w-3 h-3 fill-current" /> +12% from last month
+            <Star className="w-3 h-3 fill-current" /> +12% {t('education.fromLastMonth')}
           </div>
         </div>
         
         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-center">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Attendance</h3>
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('education.totalAttendance')}</h3>
           <div className="flex items-end gap-3">
             <p className="text-4xl font-black text-gray-900">94%</p>
-            <span className="text-emerald-500 text-sm font-bold mb-1">Excellent</span>
+            <span className="text-emerald-500 text-sm font-bold mb-1">{t('education.excellent')}</span>
           </div>
           <div className="mt-6 h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-emerald-500 w-[94%] rounded-full" />
@@ -182,11 +182,11 @@ const AcademicJournal = () => {
         </div>
 
         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-center">
-          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Next Exam Session</h3>
+          <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('education.nextExamSession')}</h3>
           <p className="text-xl font-black text-gray-900">May 20 - May 25</p>
-          <p className="text-sm text-gray-500 mt-2 font-medium">12 students registered</p>
+          <p className="text-sm text-gray-500 mt-2 font-medium">12 {t('education.studentsRegistered')}</p>
           <button className="mt-6 w-full py-3 bg-gray-50 text-gray-900 rounded-xl text-sm font-black hover:bg-gray-100 transition-all">
-            Manage Exams
+            {t('education.manageExams')}
           </button>
         </div>
       </div>
