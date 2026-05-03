@@ -191,8 +191,8 @@ const AcademicScheduler = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 bg-gray-50/50 rounded-3xl border border-gray-100 p-6 flex flex-col h-[700px] overflow-hidden">
+      <div className="flex flex-col gap-8">
+        <div className="w-full flex flex-col h-[800px] overflow-hidden">
           {/* Week Navigator */}
           <div className="flex justify-between items-center mb-6">
             {getWeekDays().map((date, i) => {
@@ -220,7 +220,7 @@ const AcademicScheduler = () => {
           </div>
 
           {/* Timeline */}
-          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-4 overflow-y-auto relative no-scrollbar">
+          <div className="flex-1 overflow-y-auto relative no-scrollbar">
             <div className="relative" style={{ height: `${TOTAL_HOURS * 80}px`, marginTop: '10px' }}>
               <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
                 {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (
@@ -279,8 +279,8 @@ const AcademicScheduler = () => {
           </div>
         </div>
         
-        <div className="space-y-4">
-          <h3 className="font-black text-gray-900 text-lg">{t('education.upcomingToday')}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <h3 className="col-span-full font-black text-gray-900 text-lg mt-4">{t('education.upcomingToday')}</h3>
           
           {lessons?.length > 0 ? (
             lessons.map((lesson: any, index: number) => {
@@ -304,7 +304,7 @@ const AcademicScheduler = () => {
               );
             })
           ) : (
-            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
+            <div className="col-span-full bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
               <p className="text-gray-500 text-sm font-bold">No upcoming lessons today.</p>
             </div>
           )}
