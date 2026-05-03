@@ -53,6 +53,40 @@ CREATE TABLE IF NOT EXISTS attendance (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Teachers Table
+CREATE TABLE IF NOT EXISTS education_teachers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  email TEXT,
+  phone TEXT,
+  specialization TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Rooms Table
+CREATE TABLE IF NOT EXISTS education_rooms (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  capacity INT,
+  type TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Lessons Table
+CREATE TABLE IF NOT EXISTS education_lessons (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  tenant_id UUID NOT NULL,
+  course_id UUID REFERENCES education_courses(id) ON DELETE CASCADE,
+  teacher_name TEXT,
+  room TEXT,
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Add Row Level Security (RLS) policies based on tenant_id for multi-tenancy support
 -- Example:
 -- ALTER TABLE education_students ENABLE ROW LEVEL SECURITY;
