@@ -6,7 +6,7 @@ import { supabase } from '../../../supabaseClient';
 
 const AcademicScheduler = () => {
   const { t, i18n } = useTranslation();
-  const { courses, tenantId, lessons, refreshAll } = useEducation();
+  const { courses, students, lessons, refreshAll, rooms } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,6 +24,7 @@ const AcademicScheduler = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const [showProgramDropdown, setShowProgramDropdown] = useState(false);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 
   const getWeekDays = () => {
@@ -421,14 +422,44 @@ const AcademicScheduler = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.room')}</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={formData.room}
-                    onChange={(e) => setFormData({...formData, room: e.target.value})}
-                    className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                    placeholder="e.g. Studio 1" 
-                  />
+                  <div className="relative">
+                    <button 
+                      type="button"
+                      onClick={() => setShowRoomDropdown(!showRoomDropdown)}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                    >
+                      <span className={formData.room ? 'text-gray-900' : 'text-gray-400'}>
+                        {formData.room ? rooms?.find(r => r.id === formData.room)?.name || formData.room : 'Select Room'}
+                      </span>
+                      <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showRoomDropdown ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {showRoomDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-[490]" onClick={() => setShowRoomDropdown(false)} />
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                          {rooms?.length > 0 ? (
+                            rooms.map((room: any) => (
+                              <button
+                                key={room.id}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, room: room.id});
+                                  setShowRoomDropdown(false);
+                                }}
+                                className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.room === room.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                              >
+                                <MapPin className="w-4 h-4" />
+                                <span className="text-sm font-bold">{room.name}</span>
+                              </button>
+                            ))
+                          ) : (
+                            <div className="px-5 py-3 text-xs text-gray-400 italic">No rooms available</div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
