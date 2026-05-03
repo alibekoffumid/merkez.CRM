@@ -192,7 +192,7 @@ const AcademicScheduler = () => {
       </div>
       
       <div className="flex flex-col gap-8">
-        <div className="w-full flex flex-col h-[800px] overflow-hidden">
+        <div className="w-full flex flex-col h-[800px]">
           {/* Week Navigator */}
           <div className="flex justify-between items-center mb-12">
             {getWeekDays().map((date, i) => {
