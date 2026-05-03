@@ -30,7 +30,7 @@ const timeSlots = Array.from({ length: 48 }, (_, i) => {
 });
 
 const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
   const [patientsList, setPatientsList] = useState([]);
