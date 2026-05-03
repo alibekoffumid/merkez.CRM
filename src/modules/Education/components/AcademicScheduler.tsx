@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckC
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 import TimePicker from '../../../components/Common/TimePicker';
+import DatePicker from '../../../components/Common/DatePicker';
 
 const AcademicScheduler = () => {
   const { t, i18n } = useTranslation();
@@ -504,19 +505,11 @@ const AcademicScheduler = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('restaurant.date') || 'Date'}</label>
-                  <div className="relative group">
-                    <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors z-10 pointer-events-none" />
-                    <input 
-                      type="date" 
-                      required
-                      value={formData.date}
-                      onChange={(e) => setFormData({...formData, date: e.target.value})}
-                      className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 appearance-none" 
-                    />
-                  </div>
-                </div>
+                <DatePicker 
+                  label={t('restaurant.date') || 'Date'}
+                  value={formData.date}
+                  onChange={(val) => setFormData({...formData, date: val})}
+                />
                 <TimePicker 
                   label={t('education.startTime')}
                   value={formData.startTime}

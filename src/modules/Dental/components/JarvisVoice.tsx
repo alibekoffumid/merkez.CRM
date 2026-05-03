@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Loader2, Check, X, AlertCircle } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import TimePicker from '../../../components/Common/TimePicker';
+import DatePicker from '../../../components/Common/DatePicker';
 
 interface JarvisResult {
   patient_name: string;
@@ -290,12 +291,10 @@ const JarvisVoice: React.FC<JarvisVoiceProps> = ({ onAppointmentCreated }) => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</label>
-                  <input 
-                    type="date" 
+                  <DatePicker 
+                    label="Date"
                     value={result.date}
-                    onChange={(e) => setResult({...result, date: e.target.value})}
-                    className="w-full bg-gray-50 border-b-2 border-transparent focus:border-blue-600 outline-none text-lg font-black text-gray-900 transition-all py-1"
+                    onChange={(val) => setResult({...result, date: val})}
                   />
                 </div>
                 <div className="space-y-1">
