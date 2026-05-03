@@ -23,6 +23,7 @@ const AcademicScheduler = () => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showProgramDropdown, setShowProgramDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 
   const getWeekDays = () => {
@@ -368,18 +369,41 @@ const AcademicScheduler = () => {
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.programOrCourse')}</label>
                 <div className="relative">
-                  <Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <select 
-                    required
-                    value={formData.courseId}
-                    onChange={(e) => setFormData({...formData, courseId: e.target.value})}
-                    className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 appearance-none"
+                  <button 
+                    type="button"
+                    onClick={() => setShowProgramDropdown(!showProgramDropdown)}
+                    className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between"
                   >
-                    <option value="" disabled>{t('education.selectProgram')}</option>
-                    {courses?.map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.title}</option>
-                    ))}
-                  </select>
+                    <div className="flex items-center gap-3">
+                      <Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <span>{courses?.find((c: any) => c.id === formData.courseId)?.title || t('education.selectProgram')}</span>
+                    </div>
+                    <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showProgramDropdown ? 'rotate-90' : ''}`} />
+                  </button>
+
+                  {showProgramDropdown && (
+                    <>
+                      <div className="fixed inset-0 z-[490]" onClick={() => setShowProgramDropdown(false)} />
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-60 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                        {courses?.map((c: any) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              setFormData({...formData, courseId: c.id});
+                              setShowProgramDropdown(false);
+                            }}
+                            className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.courseId === c.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                          >
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.courseId === c.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                              <Book className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm font-bold">{c.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
