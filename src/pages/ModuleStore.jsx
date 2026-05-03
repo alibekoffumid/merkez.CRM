@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Check, Sparkles, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
 import { MODULE_REGISTRY } from '../config/moduleRegistry';
 import { useUser } from '../core/UserContext';
 
@@ -24,22 +24,16 @@ const ModuleStore = () => {
   const [selected, setSelected] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deactivatingId, setDeactivatingId] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, moduleId: null });
 
   const isFirstVisit = needsOnboarding || activeModules.length === 0;
 
   const modules = Object.values(MODULE_REGISTRY).filter(m => !m.isCore);
 
   const toggleModule = async (id) => {
-    // If module is already active, deactivate it
+    // If module is already active, show custom confirm modal
     if (activeModules.includes(id)) {
-      if (window.confirm(t('modules.confirmDeactivate') || `Вы уверены, что хотите деактивировать модуль?`)) {
-        setDeactivatingId(id);
-        try {
-          await deactivateModule(id);
-        } finally {
-          setDeactivatingId(null);
-        }
-      }
+      setConfirmModal({ isOpen: true, moduleId: id });
       return;
     }
     
@@ -47,6 +41,19 @@ const ModuleStore = () => {
     setSelected(prev => 
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
+  };
+
+  const handleDeactivate = async () => {
+    const id = confirmModal.moduleId;
+    if (!id) return;
+    
+    setConfirmModal({ isOpen: false, moduleId: null });
+    setDeactivatingId(id);
+    try {
+      await deactivateModule(id);
+    } finally {
+      setDeactivatingId(null);
+    }
   };
 
   const selectAll = () => {
@@ -235,6 +242,39 @@ const ModuleStore = () => {
           </div>
         )}
       </div>
+      {/* Deactivation Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-600/10">
+                <AlertTriangle className="w-10 h-10" />
+              </div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
+                {t('modules.deactivate') || 'Деактивировать?'}
+              </h2>
+              <p className="text-gray-500 font-medium mb-8">
+                {t('modules.confirmDeactivate')}
+              </p>
+              
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setConfirmModal({ isOpen: false, moduleId: null })}
+                  className="flex-1 px-6 py-4 bg-gray-50 text-gray-500 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button 
+                  onClick={handleDeactivate}
+                  className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-600/20 transition-all active:scale-95"
+                >
+                  {t('common.confirm') || 'Да, отключить'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
