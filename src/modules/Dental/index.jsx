@@ -227,7 +227,7 @@ const DentalModule = () => {
         )}
 
         {!isFullPage && (
-          <div className="sticky top-4 z-50 flex justify-center w-full pointer-events-none mb-4">
+          <div className="sticky top-4 z-[150] flex justify-center w-full pointer-events-none mb-4">
             <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
               {tabs.map(tab => (
                 <button
