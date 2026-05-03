@@ -9,10 +9,11 @@ const AcademicJournal = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('all');
 
-  const filteredStudents = students?.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+  const filteredStudents = students?.filter(s => {
+    const fullName = `${s.first_name || ''} ${s.last_name || ''}`.toLowerCase();
+    return fullName.includes(searchTerm.toLowerCase()) &&
     (selectedCourse === 'all' || s.education_courses?.id === selectedCourse)
-  ) || [];
+  }) || [];
 
   return (
     <div className="space-y-6">
@@ -66,10 +67,10 @@ const AcademicJournal = () => {
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 font-black text-sm">
-                          {student.name.substring(0, 2).toUpperCase()}
+                          {(student.first_name?.[0] || '') + (student.last_name?.[0] || '')}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">{student.name}</p>
+                          <p className="font-bold text-gray-900">{student.first_name} {student.last_name}</p>
                           <p className="text-xs text-gray-500 font-medium">{student.education_courses?.title || 'No course'}</p>
                         </div>
                       </div>
