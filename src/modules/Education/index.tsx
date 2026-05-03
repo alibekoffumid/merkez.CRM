@@ -8,6 +8,7 @@ import StudentCard from './components/StudentCard';
 import AcademicJournal from './components/AcademicJournal';
 import EnrollmentForm from './components/EnrollmentForm';
 import RoomManagement from './components/RoomManagement';
+import TeacherManagement from './components/TeacherManagement';
 
 const EducationModuleContent = () => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const EducationModuleContent = () => {
   const tabs = [
     { id: 'scheduler', label: t('education.tabSchedule'), icon: Calendar },
     { id: 'students', label: t('education.tabStudents'), icon: Users },
+    { id: 'teachers', label: t('education.tabTeachers'), icon: GraduationCap },
     { id: 'courses', label: t('education.tabPrograms'), icon: BookOpen },
     { id: 'progress', label: t('education.tabJournal'), icon: ClipboardList },
     { id: 'rooms', label: t('education.tabRooms'), icon: MapPin },
@@ -94,6 +96,7 @@ const EducationModuleContent = () => {
           {activeTab === 'courses' && <CourseInventory />}
           {activeTab === 'progress' && <AcademicJournal />}
           {activeTab === 'rooms' && <RoomManagement />}
+          {activeTab === 'teachers' && <TeacherManagement />}
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
