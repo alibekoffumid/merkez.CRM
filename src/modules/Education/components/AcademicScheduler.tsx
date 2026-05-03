@@ -223,13 +223,47 @@ const AcademicScheduler = () => {
           <div className="flex-1 overflow-y-auto relative no-scrollbar">
             <div className="relative" style={{ height: `${TOTAL_HOURS * 80}px`, marginTop: '10px' }}>
               <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
-                {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (
-                  <div key={i} className="absolute w-full border-t border-gray-50" style={{ top: `${i * 80}px` }}>
-                    <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
-                      {`${START_HOUR + i}:00`}
-                    </span>
-                  </div>
-                ))}
+                {Array.from({ length: TOTAL_HOURS }).map((_, i) => {
+                  const hour = START_HOUR + i;
+                  return (
+                    <div key={i} className="absolute w-full group/slot" style={{ top: `${i * 80}px`, height: '80px' }}>
+                      {/* Hour Line */}
+                      <div className="absolute top-0 left-0 right-0 border-t border-gray-50">
+                        <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
+                          {`${hour}:00`}
+                        </span>
+                      </div>
+                      
+                      {/* Hover Interaction & Plus Button */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <button 
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              startTime: `${hour.toString().padStart(2, '0')}:00`,
+                              endTime: `${(hour + 1).toString().padStart(2, '0')}:00`,
+                              date: selectedDate.toISOString().split('T')[0]
+                            });
+                            setIsModalOpen(true);
+                          }}
+                          className="w-8 h-8 rounded-full bg-white opacity-0 group-hover/slot:opacity-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all scale-75 group-hover/slot:scale-100 shadow-sm border border-gray-100 z-20"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Half-hour marker */}
+                      <div className="absolute top-10 left-0 right-0 border-t border-gray-50/50 border-dashed" />
+                    </div>
+                  );
+                })}
+                
+                {/* Final Hour Line */}
+                <div className="absolute w-full border-t border-gray-50" style={{ top: `${TOTAL_HOURS * 80}px` }}>
+                  <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
+                    {`${START_HOUR + TOTAL_HOURS}:00`}
+                  </span>
+                </div>
 
                 {/* Render Lessons */}
                 {dayLessons.map((lesson: any, i: number) => {
