@@ -24,17 +24,19 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
 
   const selectedOption = options.find(opt => opt.value === value) || options[0];
 
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const updateCoords = () => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-      const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 200 && spaceAbove > spaceBelow);
+      const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 250 && spaceAbove > spaceBelow);
       
       setCoords({
         top: shouldOpenTop ? rect.top : rect.bottom,
         left: rect.left,
-        width: rect.width,
+        width: Math.max(rect.width, 160),
         isTop: shouldOpenTop
       });
     }
@@ -45,46 +47,64 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
       updateCoords();
       window.addEventListener('scroll', updateCoords, true);
       window.addEventListener('resize', updateCoords);
+      
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Node;
+        if (
+          containerRef.current && !containerRef.current.contains(target) &&
+          menuRef.current && !menuRef.current.contains(target)
+        ) {
+          setIsOpen(false);
+        }
+      };
+      
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        window.removeEventListener('scroll', updateCoords, true);
+        window.removeEventListener('resize', updateCoords);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
     }
-    return () => {
-      window.removeEventListener('scroll', updateCoords, true);
-      window.removeEventListener('resize', updateCoords);
-    };
   }, [isOpen]);
 
-
+  const handleSelect = (val: string, e: React.MouseEvent | React.FocusEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onChange(val);
+    setIsOpen(false);
+  };
 
   const dropdownMenu = isOpen && createPortal(
-    <>
-      <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
-      <div 
-        className={`fixed z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
-          bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
-          left: `${coords.left}px`,
-          width: `${coords.width}px`,
-        }}
-      >
-        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
-            >
-              {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
-              <span className="text-sm font-bold">{opt.label}</span>
-            </button>
-          ))}
-        </div>
+    <div 
+      ref={menuRef}
+      className={`fixed z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+      style={{
+        top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
+        bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
+        left: `${coords.left}px`,
+        width: `${coords.width}px`,
+      }}
+    >
+      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+        {options.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onMouseDown={(e) => {
+              // Using onMouseDown because it fires before the click-outside/blur
+              e.preventDefault();
+              e.stopPropagation();
+              onChange(opt.value);
+              setIsOpen(false);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
+          >
+            {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
+            <span className="text-sm font-bold whitespace-nowrap">{opt.label}</span>
+          </button>
+        ))}
       </div>
-    </>,
+    </div>,
     document.body
   );
 
@@ -97,7 +117,11 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
       )}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
         className="w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-blue-500 hover:bg-white rounded-2xl px-4 py-2.5 transition-all group shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
       >
         <div className="flex items-center gap-3">
