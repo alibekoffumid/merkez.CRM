@@ -153,6 +153,44 @@ const IntegrationsModule = () => {
         await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
         setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
       }
+    // 3. Send via Instagram API
+    if (selectedContact.source === 'instagram') {
+      try {
+        const token = (import.meta as any).env.VITE_IG_ACCESS_TOKEN;
+        const recipientId = selectedContact.external_id;
+
+        if (!token) {
+          console.warn("Instagram Access Token missing");
+          await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+          setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
+          return;
+        }
+
+        const response = await fetch(`https://graph.facebook.com/v25.0/me/messages?access_token=${token}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            recipient: { id: recipientId },
+            message: { text: messageText }
+          })
+        });
+
+        if (response.ok) {
+          await supabase.from('integration_messages').update({ status: 'sent' }).eq('id', savedMsg.id);
+          setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'sent' } : m));
+        } else {
+          const err = await response.json();
+          console.error('Instagram API Error:', err);
+          await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+          setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
+        }
+      } catch (error) {
+        console.error('Failed to send Instagram message:', error);
+        await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+        setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
+      }
     }
   };
 
