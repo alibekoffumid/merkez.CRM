@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon, Download, PieChart, Activity, Plus, X, Loader2 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { ReportService } from '../../../services/ReportService';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const monthsList = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
@@ -477,17 +478,18 @@ const Analytics = () => {
                {t('restaurant.downloadReport')}
             </button>
 
-            <select 
+            <Dropdown 
                value={timeRange}
-               onChange={(e) => setTimeRange(e.target.value)}
-               className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-4 py-2 focus:outline-none focus:border-merkez-green font-medium cursor-pointer shadow-sm"
-            >
-               <option value="Today">{t('restaurant.today')}</option>
-               <option value="Yesterday">{t('restaurant.yesterday')}</option>
-               <option value="This Week">{t('restaurant.thisWeek')}</option>
-               <option value="This Month">{t('restaurant.thisMonth')}</option>
-               <option value="Custom Range...">{t('restaurant.customRange')}</option>
-            </select>
+               onChange={(val) => setTimeRange(val)}
+               options={[
+                 { value: 'Today', label: t('restaurant.today') },
+                 { value: 'Yesterday', label: t('restaurant.yesterday') },
+                 { value: 'This Week', label: t('restaurant.thisWeek') },
+                 { value: 'This Month', label: t('restaurant.thisMonth') },
+                 { value: 'Custom Range...', label: t('restaurant.customRange') }
+               ]}
+               className="w-48"
+            />
          </div>
       </div>
 
@@ -683,17 +685,17 @@ const Analytics = () => {
                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('common.category')}</label>
-                    <select 
+                    <Dropdown 
                       value={expenseForm.category}
-                      onChange={e => setExpenseForm({...expenseForm, category: e.target.value})}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue"
-                    >
-                      <option value="Rent">Rent</option>
-                      <option value="Utilities">Utilities</option>
-                      <option value="Supplies">Supplies</option>
-                      <option value="Marketing">Marketing</option>
-                      <option value="Other">Other</option>
-                    </select>
+                      onChange={val => setExpenseForm({...expenseForm, category: val})}
+                      options={[
+                        { value: 'Rent', label: 'Rent' },
+                        { value: 'Utilities', label: 'Utilities' },
+                        { value: 'Supplies', label: 'Supplies' },
+                        { value: 'Marketing', label: 'Marketing' },
+                        { value: 'Other', label: 'Other' }
+                      ]}
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('common.price')}</label>
