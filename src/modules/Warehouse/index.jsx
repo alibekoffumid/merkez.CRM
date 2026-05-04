@@ -153,20 +153,20 @@ const WarehouseModule = () => {
       </div>
 
       {/* Tab Switcher */}
-      <div className="sticky top-4 z-20 flex justify-center w-full pointer-events-none mb-4">
-        <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto">
+      <div className="sticky top-4 z-20 flex justify-start lg:justify-center w-full pointer-events-none mb-4 px-4 sm:px-0">
+        <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto w-max">
           <button 
             onClick={() => setActiveTab('finished')}
-            className={`flex items-center gap-3 px-8 py-3 text-sm font-bold rounded-[1.5rem] transition-all duration-300 ${activeTab === 'finished' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+            className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-[1.5rem] text-[11px] sm:text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === 'finished' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
           >
-            <Package className={`w-4 h-4 ${activeTab === 'finished' ? 'animate-pulse' : ''}`} />
+            <Package className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'finished' ? 'animate-pulse' : ''}`} />
             {t('warehouse.finishedGoods')}
           </button>
           <button 
             onClick={() => setActiveTab('raw')}
-            className={`flex items-center gap-3 px-8 py-3 text-sm font-bold rounded-[1.5rem] transition-all duration-300 ${activeTab === 'raw' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+            className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-[1.5rem] text-[11px] sm:text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === 'raw' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
           >
-            <FolderTree className={`w-4 h-4 ${activeTab === 'raw' ? 'animate-pulse' : ''}`} />
+            <FolderTree className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'raw' ? 'animate-pulse' : ''}`} />
             {t('warehouse.ingredients')}
           </button>
         </div>
