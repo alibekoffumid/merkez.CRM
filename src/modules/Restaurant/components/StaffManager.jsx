@@ -302,9 +302,13 @@ const StaffManager = () => {
 
       {/* Add Staff Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={() => setIsAddModalOpen(false)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
           <div 
-            className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+            onClick={() => setIsAddModalOpen(false)}
+          />
+          <div 
+            className="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
@@ -419,9 +423,13 @@ const StaffManager = () => {
 
       {/* Edit Staff Modal */}
       {editingStaff && (
-        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={() => setEditingStaff(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
           <div 
-            className="bg-white rounded-none sm:rounded-2xl shadow-xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+            onClick={() => setEditingStaff(null)}
+          />
+          <div 
+            className="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
