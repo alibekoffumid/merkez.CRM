@@ -10,12 +10,51 @@ const IntegrationsModule = () => {
   const [messages, setMessages] = useState<UnifiedMessage[]>([]);
   const [inputText, setInputText] = useState('');
 
-  // Example Data - In production, this would be fetched from integration_messages
-  const mockContacts = [
-    { id: '1', name: 'Alibekov Umid', lastMessage: 'Salam, qiymətləri bilmək olar?', source: 'whatsapp', time: '10:45' },
-    { id: '2', name: 'elvin_music', lastMessage: 'Direct-dən yazdım sizə', source: 'instagram', time: '09:20' },
-    { id: '3', name: '+994 50 123 45 67', lastMessage: 'Missed Call', source: 'phone', time: 'Yesterday' },
-  ];
+  const [contacts, setContacts] = useState<any[]>([]);
+
+  useEffect(() => {
+    // 1. Fetch contacts
+    const fetchContacts = async () => {
+      const { data, error } = await supabase
+        .from('integration_contacts')
+        .select('*')
+        .order('last_message_at', { ascending: false });
+      
+      if (data) setContacts(data);
+    };
+
+    fetchContacts();
+
+    // 2. Subscribe to new messages
+    const messageSub = supabase
+      .channel('public:integration_messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'integration_messages' }, (payload) => {
+        // Find if this message belongs to currently selected contact
+        setMessages((prev) => [...prev, payload.new as any]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messageSub);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedContact) return;
+    
+    // Fetch messages for the selected contact
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from('integration_messages')
+        .select('*')
+        .eq('contact_id', selectedContact.id)
+        .order('created_at', { ascending: true });
+        
+      if (data) setMessages(data as any[]);
+    };
+    
+    fetchMessages();
+  }, [selectedContact]);
 
   const handleSendMessage = async () => {
     if (!inputText.trim() || !selectedContact) return;
@@ -99,7 +138,7 @@ const IntegrationsModule = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
-          {mockContacts.map((contact) => (
+          {contacts.map((contact) => (
             <button
               key={contact.id}
               onClick={() => setSelectedContact(contact)}
