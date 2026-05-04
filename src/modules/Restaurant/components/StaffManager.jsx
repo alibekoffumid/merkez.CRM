@@ -4,6 +4,7 @@ import { Search, UserPlus, Edit2, Trash2, X, Lock, Clock, Calendar } from 'lucid
 import { supabase } from '../../../supabaseClient';
 import PatternLock from '../../../components/PatternLock/PatternLock';
 import TimePicker from '../../../components/Common/TimePicker';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('') : '?';
@@ -330,30 +331,30 @@ const StaffManager = () => {
                <div className="grid grid-cols-2 gap-4">
                  <div>
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.role')}</label>
-                     <select 
+                    <Dropdown 
                       value={formData.role}
-                      onChange={(e) => setFormData({...formData, role: e.target.value})}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
-                    >
-                      <option value="Waiter">{t('restaurant.waiter')}</option>
-                      <option value="Head Waiter">{t('restaurant.headwaiter')}</option>
-                      <option value="Chef">{t('restaurant.chef')}</option>
-                      <option value="Bartender">{t('restaurant.bartender')}</option>
-                      <option value="Manager">{t('restaurant.manager')}</option>
-                    </select>
+                      onChange={(val) => setFormData({...formData, role: val})}
+                      options={[
+                        { value: 'Waiter', label: t('restaurant.waiter') },
+                        { value: 'Head Waiter', label: t('restaurant.headwaiter') },
+                        { value: 'Chef', label: t('restaurant.chef') },
+                        { value: 'Bartender', label: t('restaurant.bartender') },
+                        { value: 'Manager', label: t('restaurant.manager') }
+                      ]}
+                    />
                  </div>
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.shift')}</label>
-                     <select 
+                    <Dropdown 
                       value={formData.shift}
-                      onChange={(e) => setFormData({...formData, shift: e.target.value})}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
-                    >
-                      <option value="Morning">{t('restaurant.morning')}</option>
-                      <option value="Evening">{t('restaurant.evening')}</option>
-                      <option value="Night">{t('restaurant.night')}</option>
-                      <option value="Flexible">{t('restaurant.flexible')}</option>
-                    </select>
+                      onChange={(val) => setFormData({...formData, shift: val})}
+                      options={[
+                        { value: 'Morning', label: t('restaurant.morning') },
+                        { value: 'Evening', label: t('restaurant.evening') },
+                        { value: 'Night', label: t('restaurant.night') },
+                        { value: 'Flexible', label: t('restaurant.flexible') }
+                      ]}
+                    />
                  </div>
                </div>
 
@@ -372,14 +373,14 @@ const StaffManager = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
-                   <select 
+                  <Dropdown 
                     value={formData.status}
-                    onChange={(e) => setFormData({...formData, status: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
-                  >
-                    <option value="Active">{t('restaurant.active')}</option>
-                    <option value="On Leave">{t('restaurant.onleave')}</option>
-                  </select>
+                    onChange={(val) => setFormData({...formData, status: val})}
+                    options={[
+                      { value: 'Active', label: t('restaurant.active') },
+                      { value: 'On Leave', label: t('restaurant.onleave') }
+                    ]}
+                  />
                </div>
 
                 <div className="pt-4 border-t border-gray-100 mt-2">
@@ -446,30 +447,30 @@ const StaffManager = () => {
                <div className="grid grid-cols-2 gap-4">
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.role')}</label>
-                    <select 
+                    <Dropdown 
                       value={editingStaff.role}
-                      onChange={(e) => setEditingStaff({...editingStaff, role: e.target.value})}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
-                    >
-                      <option value="Waiter">{t('restaurant.waiter')}</option>
-                      <option value="Head Waiter">{t('restaurant.headwaiter')}</option>
-                      <option value="Chef">{t('restaurant.chef')}</option>
-                      <option value="Bartender">{t('restaurant.bartender')}</option>
-                      <option value="Manager">{t('restaurant.manager')}</option>
-                    </select>
+                      onChange={(val) => setEditingStaff({...editingStaff, role: val})}
+                      options={[
+                        { value: 'Waiter', label: t('restaurant.waiter') },
+                        { value: 'Head Waiter', label: t('restaurant.headwaiter') },
+                        { value: 'Chef', label: t('restaurant.chef') },
+                        { value: 'Bartender', label: t('restaurant.bartender') },
+                        { value: 'Manager', label: t('restaurant.manager') }
+                      ]}
+                    />
                  </div>
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.shift')}</label>
-                    <select 
+                    <Dropdown 
                       value={editingStaff.shift}
-                      onChange={(e) => setEditingStaff({...editingStaff, shift: e.target.value})}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
-                    >
-                      <option value="Morning">{t('restaurant.morning')}</option>
-                      <option value="Evening">{t('restaurant.evening')}</option>
-                      <option value="Night">{t('restaurant.night')}</option>
-                      <option value="Flexible">{t('restaurant.flexible')}</option>
-                    </select>
+                      onChange={(val) => setEditingStaff({...editingStaff, shift: val})}
+                      options={[
+                        { value: 'Morning', label: t('restaurant.morning') },
+                        { value: 'Evening', label: t('restaurant.evening') },
+                        { value: 'Night', label: t('restaurant.night') },
+                        { value: 'Flexible', label: t('restaurant.flexible') }
+                      ]}
+                    />
                  </div>
                </div>
 
@@ -488,14 +489,14 @@ const StaffManager = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
-                  <select 
+                  <Dropdown 
                     value={editingStaff.status}
-                    onChange={(e) => setEditingStaff({...editingStaff, status: e.target.value})}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-yellow focus:border-merkez-yellow block p-2.5 outline-none transition-colors cursor-pointer"
-                  >
-                    <option value="Active">{t('restaurant.active')}</option>
-                    <option value="On Leave">{t('restaurant.onleave')}</option>
-                  </select>
+                    onChange={(val) => setEditingStaff({...editingStaff, status: val})}
+                    options={[
+                      { value: 'Active', label: t('restaurant.active') },
+                      { value: 'On Leave', label: t('restaurant.onleave') }
+                    ]}
+                  />
                </div>
 
                 <div className="pt-4 border-t border-gray-100 mt-2">

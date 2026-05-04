@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Image as ImageIcon, Upload, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import Dropdown from '../../components/Common/Dropdown';
 
 const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdated }) => {
   const { t } = useTranslation();
@@ -180,16 +181,14 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.thCategory')}</label>
-              <select
+              <Dropdown 
                 value={formData.category_id}
-                onChange={e => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
-              >
-                <option value="">{t('warehouse.selectCategory')}</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+                onChange={val => setFormData({ ...formData, category_id: val })}
+                options={[
+                  { value: '', label: t('warehouse.selectCategory') },
+                  ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+                ]}
+              />
             </div>
           </div>
           <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">

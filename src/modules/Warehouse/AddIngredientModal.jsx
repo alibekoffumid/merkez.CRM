@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Box, Scale, DollarSign, AlertCircle } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import Dropdown from '../../components/Common/Dropdown';
 
 const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
   const { t } = useTranslation();
@@ -83,13 +84,11 @@ const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">{t('warehouse.thUnit')}</label>
-              <select
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-merkez-green transition-all"
+              <Dropdown 
                 value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              >
-                {units.map(u => <option key={u} value={u}>{t('restaurant.' + u)}</option>)}
-              </select>
+                onChange={val => setFormData({ ...formData, unit: val })}
+                options={units.map(u => ({ value: u, label: t('restaurant.' + u) }))}
+              />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1.5">{t('warehouse.thStock')}</label>

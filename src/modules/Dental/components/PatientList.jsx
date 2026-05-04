@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Plus, User, Phone, Calendar, DollarSign, ChevronRight, Filter, MoreVertical, Activity, Loader2, X, Clock } from 'lucide-react';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
@@ -378,15 +379,11 @@ const PatientList = ({ onViewChart }) => {
             <form onSubmit={handleAddAppointment} className="space-y-4">
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.dentist')}</label>
-                <select 
+                <Dropdown 
                   value={newAppointment.doctor_name}
-                  onChange={(e) => setNewAppointment({ ...newAppointment, doctor_name: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                >
-                  {doctors.map(doc => (
-                    <option key={doc.id} value={doc.name}>{doc.name} - {doc.specialty}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setNewAppointment({ ...newAppointment, doctor_name: val })}
+                  options={doctors.map(doc => ({ value: doc.name, label: `${doc.name} - ${doc.specialty}` }))}
+                />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -476,32 +473,32 @@ const PatientList = ({ onViewChart }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.duration')}</label>
-                  <select 
+                  <Dropdown 
                     value={newAppointment.duration_minutes}
-                    onChange={(e) => setNewAppointment({ ...newAppointment, duration_minutes: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                  >
-                    <option value="15">15 {t('dental.minutesShort')}</option>
-                    <option value="30">30 {t('dental.minutesShort')}</option>
-                    <option value="45">45 {t('dental.minutesShort')}</option>
-                    <option value="60">1 {t('dental.hourShort')}</option>
-                    <option value="90">1.5 {t('dental.hoursShort')}</option>
-                    <option value="120">2 {t('dental.hoursShort')}</option>
-                  </select>
+                    onChange={(val) => setNewAppointment({ ...newAppointment, duration_minutes: val })}
+                    options={[
+                      { value: '15', label: `15 ${t('dental.minutesShort')}` },
+                      { value: '30', label: `30 ${t('dental.minutesShort')}` },
+                      { value: '45', label: `45 ${t('dental.minutesShort')}` },
+                      { value: '60', label: `1 ${t('dental.hourShort')}` },
+                      { value: '90', label: `1.5 ${t('dental.hoursShort')}` },
+                      { value: '120', label: `2 ${t('dental.hoursShort')}` }
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.procedure')}</label>
-                  <select 
+                  <Dropdown 
                     value={newAppointment.procedure_type}
-                    onChange={(e) => setNewAppointment({ ...newAppointment, procedure_type: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                  >
-                    <option value="Consultation">{t('dental.procedures.consultation')}</option>
-                    <option value="Cleaning">{t('dental.procedures.cleaning')}</option>
-                    <option value="Filling">{t('dental.procedures.filling')}</option>
-                    <option value="Extraction">{t('dental.procedures.extraction')}</option>
-                    <option value="Checkup">{t('dental.procedures.checkup')}</option>
-                  </select>
+                    onChange={(val) => setNewAppointment({ ...newAppointment, procedure_type: val })}
+                    options={[
+                      { value: 'Consultation', label: t('dental.procedures.consultation') },
+                      { value: 'Cleaning', label: t('dental.procedures.cleaning') },
+                      { value: 'Filling', label: t('dental.procedures.filling') },
+                      { value: 'Extraction', label: t('dental.procedures.extraction') },
+                      { value: 'Checkup', label: t('dental.procedures.checkup') }
+                    ]}
+                  />
                 </div>
               </div>
 

@@ -15,6 +15,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const DentalInventory = () => {
   const { t } = useTranslation();
@@ -260,17 +261,17 @@ const DentalInventory = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{t('common.category')}</label>
-                    <select 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                    <Dropdown 
                       value={newItem.category}
-                      onChange={(e) => setNewItem({...newItem, category: e.target.value})}
-                    >
-                      <option value="General">General</option>
-                      <option value="Restorative">Restorative</option>
-                      <option value="Instruments">Instruments</option>
-                      <option value="Hygiene">Hygiene</option>
-                      <option value="Prosthetic">Prosthetic</option>
-                    </select>
+                      onChange={(val) => setNewItem({...newItem, category: val})}
+                      options={[
+                        { value: 'General', label: 'General' },
+                        { value: 'Restorative', label: 'Restorative' },
+                        { value: 'Instruments', label: 'Instruments' },
+                        { value: 'Hygiene', label: 'Hygiene' },
+                        { value: 'Prosthetic', label: 'Prosthetic' }
+                      ]}
+                    />
                   </div>
                 </div>
 

@@ -1,23 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
-  Search, 
-  Clock, 
-  Activity, 
-  MoreHorizontal, 
-  Loader2,
-  X,
-  User,
-  Phone,
-  Edit2,
-  ChevronDown
+  Trash2, Plus, Calendar as CalendarIcon, Clock, User, Phone, 
+  ChevronRight, ChevronLeft, Search, X, Check, MoreVertical, 
+  AlertCircle, Edit2, ChevronDown 
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
 import { supabase } from '../../../supabaseClient';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const getInitials = (name) => {
   return name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : '?';
@@ -833,9 +823,11 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.dentist')}</label>
-                  <select value={formData.doctor_name} onChange={(e) => setFormData({ ...formData, doctor_name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                    {doctors.map(doc => <option key={doc.id} value={doc.name}>{doc.name}</option>)}
-                  </select>
+                  <Dropdown 
+                    value={formData.doctor_name}
+                    onChange={(val) => setFormData({ ...formData, doctor_name: val })}
+                    options={doctors.map(doc => ({ value: doc.name, label: doc.name }))}
+                  />
                 </div>
                 <div className="relative">
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('education.startTime')}</label>
@@ -911,23 +903,31 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.duration')}</label>
-                  <select value={formData.duration_minutes} onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                    <option value="15">15 {t('dental.minutesShort')}</option>
-                    <option value="30">30 {t('dental.minutesShort')}</option>
-                    <option value="45">45 {t('dental.minutesShort')}</option>
-                    <option value="60">1 {t('dental.hourShort')}</option>
-                    <option value="90">1.5 {t('dental.hoursShort')}</option>
-                  </select>
+                  <Dropdown 
+                    value={formData.duration_minutes}
+                    onChange={(val) => setFormData({ ...formData, duration_minutes: val })}
+                    options={[
+                      { value: '15', label: `15 ${t('dental.minutesShort')}` },
+                      { value: '30', label: `30 ${t('dental.minutesShort')}` },
+                      { value: '45', label: `45 ${t('dental.minutesShort')}` },
+                      { value: '60', label: `1 ${t('dental.hourShort')}` },
+                      { value: '90', label: `1.5 ${t('dental.hoursShort')}` }
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-2">{t('dental.procedure')}</label>
-                  <select value={formData.procedure_type} onChange={(e) => setFormData({ ...formData, procedure_type: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                    <option value="Consultation">{t('dental.procedures.consultation')}</option>
-                    <option value="Cleaning">{t('dental.procedures.cleaning')}</option>
-                    <option value="Filling">{t('dental.procedures.filling')}</option>
-                    <option value="Extraction">{t('dental.procedures.extraction')}</option>
-                    <option value="Checkup">{t('dental.procedures.checkup')}</option>
-                  </select>
+                  <Dropdown 
+                    value={formData.procedure_type}
+                    onChange={(val) => setFormData({ ...formData, procedure_type: val })}
+                    options={[
+                      { value: 'Consultation', label: t('dental.procedures.consultation') },
+                      { value: 'Cleaning', label: t('dental.procedures.cleaning') },
+                      { value: 'Filling', label: t('dental.procedures.filling') },
+                      { value: 'Extraction', label: t('dental.procedures.extraction') },
+                      { value: 'Checkup', label: t('dental.procedures.checkup') }
+                    ]}
+                  />
                 </div>
               </div>
 
