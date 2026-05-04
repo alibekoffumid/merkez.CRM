@@ -153,6 +153,8 @@ const IntegrationsModule = () => {
         await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
         setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
       }
+    }
+
     // 3. Send via Instagram API
     if (selectedContact.source === 'instagram') {
       try {
