@@ -48,15 +48,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, positio
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
 
   const handleHourSelect = (h: string) => {
     onChange(`${h}:${minutes}`);
@@ -72,6 +64,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, positio
       <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
       <div 
         className={`fixed z-[9999] bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 flex gap-4 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+        onClick={(e) => e.stopPropagation()}
         style={{
           top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
           bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
