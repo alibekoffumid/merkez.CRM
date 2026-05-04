@@ -17,20 +17,69 @@ const IntegrationsModule = () => {
     { id: '3', name: '+994 50 123 45 67', lastMessage: 'Missed Call', source: 'phone', time: 'Yesterday' },
   ];
 
-  const handleSendMessage = () => {
-    if (!inputText.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputText.trim() || !selectedContact) return;
     
+    const messageText = inputText;
     const newMessage: UnifiedMessage = {
       id: Date.now().toString(),
-      source: selectedContact?.source || 'whatsapp',
+      source: selectedContact.source || 'whatsapp',
       direction: 'outbound',
-      content: inputText,
+      content: messageText,
       timestamp: new Date().toISOString(),
-      status: 'sent'
+      status: 'sending'
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages((prev) => [...prev, newMessage]);
     setInputText('');
+
+    if (newMessage.source === 'whatsapp') {
+      try {
+        const phoneId = import.meta.env.VITE_WA_PHONE_ID;
+        const token = import.meta.env.VITE_WA_ACCESS_TOKEN;
+        
+        // In a real scenario, use selectedContact.external_id (which should be the phone number)
+        // Here we clean up the name if it's a mock phone number for testing
+        const toPhone = selectedContact.external_id || selectedContact.name.replace(/\D/g, '');
+
+        if (!phoneId || !token) {
+          console.warn("WhatsApp API credentials missing in .env");
+          setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'sent' } : m));
+          return;
+        }
+
+        const response = await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            messaging_product: 'whatsapp',
+            recipient_type: 'individual',
+            to: toPhone,
+            type: 'text',
+            text: { preview_url: false, body: messageText }
+          })
+        });
+
+        if (response.ok) {
+           setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'sent' } : m));
+        } else {
+           const err = await response.json();
+           console.error('WhatsApp API Error:', err);
+           setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'failed' } : m));
+        }
+      } catch (error) {
+         console.error('Failed to send WhatsApp message:', error);
+         setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'failed' } : m));
+      }
+    } else {
+      // Mock for other sources
+      setTimeout(() => {
+        setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'sent' } : m));
+      }, 500);
+    }
   };
 
   return (
