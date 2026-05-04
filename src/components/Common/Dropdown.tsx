@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
 interface DropdownOption {
@@ -13,14 +14,43 @@ interface DropdownProps {
   options: DropdownOption[];
   label?: string;
   className?: string;
-  position?: 'top' | 'bottom';
+  position?: 'top' | 'bottom' | 'auto';
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, className = '', position = 'bottom' }) => {
+const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, className = '', position = 'auto' }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, isTop: false });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find(opt => opt.value === value) || options[0];
+
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 200 && spaceAbove > spaceBelow);
+      
+      setCoords({
+        top: shouldOpenTop ? rect.top : rect.bottom,
+        left: rect.left,
+        width: rect.width,
+        isTop: shouldOpenTop
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+    }
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -31,6 +61,39 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const dropdownMenu = isOpen && createPortal(
+    <>
+      <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
+      <div 
+        className={`fixed z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+        style={{
+          top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
+          bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
+          left: `${coords.left}px`,
+          width: `${coords.width}px`,
+        }}
+      >
+        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
+            >
+              {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
+              <span className="text-sm font-bold">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>,
+    document.body
+  );
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
@@ -51,27 +114,7 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
       </button>
 
-      {isOpen && (
-        <>
-          <div className="fixed inset-0 z-[490]" onClick={() => setIsOpen(false)} />
-          <div className={`absolute ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 right-0 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 animate-in zoom-in-95 fade-in duration-200 ${position === 'top' ? 'origin-bottom' : 'origin-top'}`}>
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
-              >
-                {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
-                <span className="text-sm font-bold">{opt.label}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      {dropdownMenu}
     </div>
   );
 };
