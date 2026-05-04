@@ -35,8 +35,8 @@ const IntegrationsModule = () => {
 
     if (newMessage.source === 'whatsapp') {
       try {
-        const phoneId = import.meta.env.VITE_WA_PHONE_ID;
-        const token = import.meta.env.VITE_WA_ACCESS_TOKEN;
+        const phoneId = (import.meta as any).env.VITE_WA_PHONE_ID;
+        const token = (import.meta as any).env.VITE_WA_ACCESS_TOKEN;
         
         // In a real scenario, use selectedContact.external_id (which should be the phone number)
         // Here we clean up the name if it's a mock phone number for testing

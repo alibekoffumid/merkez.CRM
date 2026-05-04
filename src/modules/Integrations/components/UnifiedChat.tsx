@@ -7,7 +7,7 @@ export interface UnifiedMessage {
   direction: 'inbound' | 'outbound';
   content: string;
   timestamp: string;
-  status: 'sent' | 'delivered' | 'read' | 'failed' | 'missed';
+  status: 'sent' | 'delivered' | 'read' | 'failed' | 'missed' | 'sending';
   sender_name?: string;
 }
 
@@ -24,6 +24,7 @@ const UnifiedChat: React.FC<{ messages: UnifiedMessage[] }> = ({ messages }) => 
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case 'sending': return <Clock className="w-3 h-3 text-blue-200 animate-pulse" />;
       case 'sent': return <Check className="w-3 h-3 text-gray-400" />;
       case 'delivered': return <CheckCheck className="w-3 h-3 text-gray-400" />;
       case 'read': return <CheckCheck className="w-3 h-3 text-blue-500" />;
