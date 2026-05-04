@@ -879,7 +879,7 @@ const FloorPlan = () => {
       {selectedTable && !mergeMode && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={handleCloseModal}>
           <div 
-            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 flex flex-col h-fit max-h-[95vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
+            className={`bg-white rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 flex flex-col h-[90vh] sm:h-[85vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-md'} animate-in fade-in zoom-in-95`}
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -895,7 +895,7 @@ const FloorPlan = () => {
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
               
               {/* Left Column: Table Details */}
-              <div className={`p-5 flex flex-col h-fit min-h-0 ${isAddingOrder ? 'w-full lg:w-[40%] lg:border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
+              <div className={`p-5 flex flex-col h-full min-h-0 ${isAddingOrder ? 'w-full lg:w-[40%] lg:border-r border-gray-100 bg-white flex-shrink-0' : 'w-full'}`}>
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <p className="text-sm text-gray-500">{t('restaurant.tableStatus')}</p>
