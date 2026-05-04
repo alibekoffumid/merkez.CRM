@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Edit, Trash2, ShieldCheck, DoorOpen, X, CreditCard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const TableSettings = () => {
   const { t } = useTranslation();
@@ -159,15 +160,15 @@ const TableSettings = () => {
             <div className="p-6 space-y-5">
               <div className="space-y-1">
                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.type')}</label>
-                 <select 
-                   className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all"
-                   value={formData.type}
-                   onChange={(e) => setFormData({...formData, type: e.target.value})}
-                 >
-                    <option value="Table">{t('restaurant.table')}</option>
-                    <option value="VIP Cabin">{t('restaurant.vipCabin')}</option>
-                    <option value="Bar Stool">{t('restaurant.barStool')}</option>
-                 </select>
+                  <Dropdown 
+                    value={formData.type}
+                    onChange={(val) => setFormData({...formData, type: val})}
+                    options={[
+                      { value: 'Table', label: t('restaurant.table') },
+                      { value: 'VIP Cabin', label: t('restaurant.vipCabin') },
+                      { value: 'Bar Stool', label: t('restaurant.barStool') }
+                    ]}
+                  />
               </div>
               <div className="flex gap-4">
                  <div className="space-y-1 flex-1">
@@ -244,15 +245,15 @@ const TableSettings = () => {
             <div className="p-6 space-y-5">
               <div className="space-y-1">
                  <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">{t('restaurant.type')}</label>
-                 <select 
-                   className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all"
-                   value={editingTable.type}
-                   onChange={(e) => setEditingTable({...editingTable, type: e.target.value})}
-                 >
-                    <option value="Table">{t('restaurant.table')}</option>
-                    <option value="VIP Cabin">{t('restaurant.vipCabin')}</option>
-                    <option value="Bar Stool">{t('restaurant.barStool')}</option>
-                 </select>
+                  <Dropdown 
+                    value={editingTable.type}
+                    onChange={(val) => setEditingTable({...editingTable, type: val})}
+                    options={[
+                      { value: 'Table', label: t('restaurant.table') },
+                      { value: 'VIP Cabin', label: t('restaurant.vipCabin') },
+                      { value: 'Bar Stool', label: t('restaurant.barStool') }
+                    ]}
+                  />
               </div>
               <div className="flex gap-4">
                  <div className="space-y-1 flex-1">

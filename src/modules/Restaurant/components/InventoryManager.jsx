@@ -6,6 +6,7 @@ import {
   Package, Scale, DollarSign, History
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const InventoryManager = () => {
   const { t } = useTranslation();
@@ -269,17 +270,17 @@ const InventoryManager = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.unit')}</label>
-                  <select
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-merkez-blue"
+                  <Dropdown 
                     value={formData.unit}
-                    onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                  >
-                    <option value="kg">{t('restaurant.kg')}</option>
-                    <option value="liter">{t('restaurant.liter')}</option>
-                    <option value="pcs">{t('restaurant.pcs')}</option>
-                    <option value="pack">{t('restaurant.pack')}</option>
-                    <option value="gram">{t('restaurant.gram')}</option>
-                  </select>
+                    onChange={(val) => setFormData({...formData, unit: val})}
+                    options={[
+                      { value: 'kg', label: t('restaurant.kg') },
+                      { value: 'liter', label: t('restaurant.liter') },
+                      { value: 'pcs', label: t('restaurant.pcs') },
+                      { value: 'pack', label: t('restaurant.pack') },
+                      { value: 'gram', label: t('restaurant.gram') }
+                    ]}
+                  />
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('restaurant.cost')}</label>

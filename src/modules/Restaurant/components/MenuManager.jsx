@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X, Utensils } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import RecipeEditorModal from './RecipeEditorModal';
+import Dropdown from '../../../components/Common/Dropdown';
 
 const MenuManager = () => {
   const { t } = useTranslation();
@@ -188,28 +189,25 @@ const MenuManager = () => {
         
         <div className="flex items-center gap-2">
           {/* ... (selects) ... */}
-          <select 
+          <Dropdown 
              value={categoryFilter}
-             onChange={(e) => setCategoryFilter(e.target.value)}
-             className="px-4 py-2 bg-gray-50 border border-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-100 flex items-center transition-colors outline-none cursor-pointer appearance-none"
-             style={{ backgroundImage: 'none' }}
-          >
-             <option value="All">{t('restaurant.allCategories')}</option>
-             {categories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-             ))}
-          </select>
+             onChange={(val) => setCategoryFilter(val)}
+             options={[
+               { value: 'All', label: t('restaurant.allCategories') },
+               ...categories.map(cat => ({ value: cat.name, label: cat.name }))
+             ]}
+             className="w-44"
+          />
           
-          <select 
+          <Dropdown 
              value={statusFilter}
-             onChange={(e) => setStatusFilter(e.target.value)}
-             className="px-4 py-2 bg-gray-50 border border-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-100 flex items-center transition-colors outline-none cursor-pointer appearance-none"
-             style={{ backgroundImage: 'none' }}
-          >
-             {statuses.map(stat => (
-                <option key={stat} value={stat}>{stat === 'All' ? t('restaurant.allStatuses') : t('restaurant.' + stat.toLowerCase().replace(' ', ''))}</option>
-             ))}
-          </select>
+             onChange={(val) => setStatusFilter(val)}
+             options={statuses.map(stat => ({ 
+               value: stat, 
+               label: stat === 'All' ? t('restaurant.allStatuses') : t('restaurant.' + stat.toLowerCase().replace(' ', ''))
+             }))}
+             className="w-44"
+          />
         </div>
 
         <button 
@@ -339,15 +337,11 @@ const MenuManager = () => {
                <div className="grid grid-cols-2 gap-4">
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.category')}</label>
-                    <select 
+                    <Dropdown 
                       value={editingDish.category_id}
-                      onChange={(e) => setEditingDish(prev => ({ ...prev, category_id: e.target.value }))}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors cursor-pointer"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setEditingDish(prev => ({ ...prev, category_id: val }))}
+                      options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                    />
                  </div>
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.price')}</label>
@@ -427,15 +421,11 @@ const MenuManager = () => {
                <div className="grid grid-cols-2 gap-4">
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.category')}</label>
-                    <select 
+                    <Dropdown 
                       value={newDish.category_id}
-                      onChange={(e) => setNewDish(prev => ({ ...prev, category_id: e.target.value }))}
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-green focus:border-merkez-green block p-2.5 outline-none transition-colors cursor-pointer"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setNewDish(prev => ({ ...prev, category_id: val }))}
+                      options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                    />
                  </div>
                  <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.price')}</label>
@@ -450,14 +440,14 @@ const MenuManager = () => {
                </div>
                <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('common.status')}</label>
-                  <select 
+                  <Dropdown 
                     value={newDish.status}
-                    onChange={(e) => setNewDish(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-green focus:border-merkez-green block p-2.5 outline-none transition-colors cursor-pointer"
-                  >
-                    <option value="Available">{t('restaurant.available')}</option>
-                    <option value="Out of Stock">{t('restaurant.outofstock')}</option>
-                  </select>
+                    onChange={(val) => setNewDish(prev => ({ ...prev, status: val }))}
+                    options={[
+                      { value: 'Available', label: t('restaurant.available') },
+                      { value: 'Out of Stock', label: t('restaurant.outofstock') }
+                    ]}
+                  />
                </div>
                <button 
                 onClick={handleAddDish}
