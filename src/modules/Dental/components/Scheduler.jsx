@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Trash2, Plus, Calendar as CalendarIcon, Clock, User, Phone, 
   ChevronRight, ChevronLeft, Search, X, Check, MoreVertical, 
-  AlertCircle, Edit2, ChevronDown, Activity
+  AlertCircle, Edit2, ChevronDown, Activity, Loader2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DentalService } from '../../../services/DentalService';
