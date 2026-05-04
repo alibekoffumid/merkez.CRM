@@ -6,9 +6,10 @@ interface DatePickerProps {
   value: string; // YYYY-MM-DD
   onChange: (value: string) => void;
   label?: string;
+  position?: 'top' | 'bottom';
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }) => {
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, position = 'bottom' }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -98,7 +99,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 origin-top">
+        <div className={`absolute ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 ${position === 'top' ? 'origin-bottom' : 'origin-top'}`}>
           <div className="flex items-center justify-between mb-6">
             <button type="button" onClick={() => changeMonth(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><ChevronLeft className="w-5 h-5" /></button>
             <span className="text-sm font-black text-gray-900 uppercase tracking-tight">

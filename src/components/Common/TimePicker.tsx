@@ -5,9 +5,10 @@ interface TimePickerProps {
   value: string;
   onChange: (value: string) => void;
   label?: string;
+  position?: 'top' | 'bottom';
 }
 
-const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label }) => {
+const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, position = 'bottom' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +57,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 z-[600] p-4 flex gap-4 animate-in zoom-in-95 fade-in duration-200 origin-top overflow-hidden">
+        <div className={`absolute ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 right-0 bg-white rounded-3xl shadow-2xl border border-gray-100 z-[600] p-4 flex gap-4 animate-in zoom-in-95 fade-in duration-200 ${position === 'top' ? 'origin-bottom' : 'origin-top'} overflow-hidden`}>
           <div className="flex-1 max-h-48 overflow-y-auto no-scrollbar scroll-smooth">
             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-2">Hour</div>
             <div className="space-y-1">

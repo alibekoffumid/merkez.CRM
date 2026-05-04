@@ -509,16 +509,19 @@ const AcademicScheduler = () => {
                   label={t('restaurant.date') || 'Date'}
                   value={formData.date}
                   onChange={(val) => setFormData({...formData, date: val})}
+                  position="top"
                 />
                 <TimePicker 
                   label={t('education.startTime')}
                   value={formData.startTime}
                   onChange={(val) => setFormData({...formData, startTime: val})}
+                  position="top"
                 />
                 <TimePicker 
                   label={t('education.endTime')}
                   value={formData.endTime}
                   onChange={(val) => setFormData({...formData, endTime: val})}
+                  position="top"
                 />
               </div>
 
