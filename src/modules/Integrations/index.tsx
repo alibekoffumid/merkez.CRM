@@ -83,34 +83,48 @@ const IntegrationsModule = () => {
     if (!inputText.trim() || !selectedContact) return;
     
     const messageText = inputText;
-    const newMessage: UnifiedMessage = {
-      id: Date.now().toString(),
-      source: selectedContact.source || 'whatsapp',
-      direction: 'outbound',
-      content: messageText,
-      timestamp: new Date().toISOString(),
-      status: 'sending'
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
     setInputText('');
 
-    if (newMessage.source === 'whatsapp') {
+    // 1. Save outbound message to database first
+    const { data: savedMsg, error: dbError } = await supabase
+      .from('integration_messages')
+      .insert({
+        tenant_id: selectedContact.tenant_id || '00000000-0000-0000-0000-000000000000',
+        contact_id: selectedContact.id,
+        direction: 'outbound',
+        type: 'text',
+        content: messageText,
+        status: 'sending'
+      })
+      .select()
+      .single();
+
+    if (dbError || !savedMsg) {
+      console.error('Failed to save message:', dbError);
+      return;
+    }
+
+    // Add to local state immediately
+    setMessages((prev) => {
+      if (prev.some(m => m.id === savedMsg.id)) return prev;
+      return [...prev, savedMsg as any];
+    });
+
+    // 2. Send via WhatsApp API
+    if (selectedContact.source === 'whatsapp') {
       try {
         const phoneId = (import.meta as any).env.VITE_WA_PHONE_ID;
         const token = (import.meta as any).env.VITE_WA_ACCESS_TOKEN;
-        
-        // In a real scenario, use selectedContact.external_id (which should be the phone number)
-        // Here we clean up the name if it's a mock phone number for testing
-        const toPhone = selectedContact.external_id || selectedContact.name.replace(/\D/g, '');
+        const toPhone = selectedContact.external_id;
 
         if (!phoneId || !token) {
-          console.warn("WhatsApp API credentials missing in .env");
-          setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'sent' } : m));
+          console.warn("WhatsApp API credentials missing");
+          await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+          setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
           return;
         }
 
-        const response = await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
+        const response = await fetch(`https://graph.facebook.com/v25.0/${phoneId}/messages`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -126,21 +140,19 @@ const IntegrationsModule = () => {
         });
 
         if (response.ok) {
-           setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'sent' } : m));
+          await supabase.from('integration_messages').update({ status: 'sent' }).eq('id', savedMsg.id);
+          setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'sent' } : m));
         } else {
-           const err = await response.json();
-           console.error('WhatsApp API Error:', err);
-           setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'failed' } : m));
+          const err = await response.json();
+          console.error('WhatsApp API Error:', err);
+          await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+          setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
         }
       } catch (error) {
-         console.error('Failed to send WhatsApp message:', error);
-         setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'failed' } : m));
+        console.error('Failed to send WhatsApp message:', error);
+        await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+        setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
       }
-    } else {
-      // Mock for other sources
-      setTimeout(() => {
-        setMessages((prev) => prev.map(m => m.id === newMessage.id ? { ...m, status: 'sent' } : m));
-      }, 500);
     }
   };
 

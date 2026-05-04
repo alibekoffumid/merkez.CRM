@@ -68,7 +68,7 @@ const UnifiedChat: React.FC<{ messages: UnifiedMessage[] }> = ({ messages }) => 
               flex items-center justify-end gap-1 mt-1 text-[10px]
               ${msg.direction === 'outbound' ? 'text-blue-100' : 'text-gray-400'}
             `}>
-              <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <span>{new Date(msg.timestamp || (msg as any).created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               {msg.direction === 'outbound' && getStatusIcon(msg.status)}
             </div>
           </div>
