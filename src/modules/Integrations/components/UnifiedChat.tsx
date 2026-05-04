@@ -33,47 +33,75 @@ const UnifiedChat: React.FC<{ messages: UnifiedMessage[] }> = ({ messages }) => 
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Сегодня';
+    if (date.toDateString() === yesterday.toDateString()) return 'Вчера';
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  const getMessageDate = (msg: any) => {
+    const raw = msg.timestamp || msg.created_at;
+    return raw ? new Date(raw) : new Date();
+  };
+
   return (
     <div className="flex flex-col space-y-4 p-4 h-full overflow-y-auto bg-gray-50/30 no-scrollbar">
-      {messages.map((msg) => (
-        <div 
-          key={msg.id}
-          className={`flex w-full ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
-        >
-          <div className={`
-            relative max-w-[80%] sm:max-w-[70%] p-3 rounded-2xl shadow-sm border
-            ${msg.direction === 'outbound' 
-              ? 'bg-blue-600 text-white border-blue-500 rounded-tr-none' 
-              : 'bg-white text-gray-900 border-gray-100 rounded-tl-none'}
-          `}>
-            {/* Source Badge */}
-            <div className={`
-              absolute -top-2 ${msg.direction === 'outbound' ? '-left-2' : '-right-2'}
-              bg-white rounded-full p-1 shadow-md border border-gray-100
-            `}>
-              {getSourceIcon(msg.source)}
-            </div>
+      {messages.map((msg, index) => {
+        const msgDate = getMessageDate(msg);
+        const prevDate = index > 0 ? getMessageDate(messages[index - 1]) : null;
+        const showDateSeparator = !prevDate || msgDate.toDateString() !== prevDate.toDateString();
 
-            {msg.direction === 'inbound' && (
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">
-                {msg.sender_name || 'Guest'}
-              </p>
+        return (
+          <React.Fragment key={msg.id}>
+            {showDateSeparator && (
+              <div className="flex items-center justify-center my-2">
+                <div className="bg-white/80 backdrop-blur-sm border border-gray-100 rounded-full px-4 py-1.5 shadow-sm">
+                  <span className="text-[11px] font-bold text-gray-500">{formatDate(msg.timestamp || (msg as any).created_at)}</span>
+                </div>
+              </div>
             )}
+            <div className={`flex w-full ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`
+                relative max-w-[80%] sm:max-w-[70%] p-3 rounded-2xl shadow-sm border
+                ${msg.direction === 'outbound' 
+                  ? 'bg-blue-600 text-white border-blue-500 rounded-tr-none' 
+                  : 'bg-white text-gray-900 border-gray-100 rounded-tl-none'}
+              `}>
+                {/* Source Badge */}
+                <div className={`
+                  absolute -top-2 ${msg.direction === 'outbound' ? '-left-2' : '-right-2'}
+                  bg-white rounded-full p-1 shadow-md border border-gray-100
+                `}>
+                  {getSourceIcon(msg.source)}
+                </div>
 
-            <div className="text-sm font-medium leading-relaxed">
-              {msg.content}
-            </div>
+                {msg.direction === 'inbound' && (
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1 leading-none">
+                    {msg.sender_name || 'Guest'}
+                  </p>
+                )}
 
-            <div className={`
-              flex items-center justify-end gap-1 mt-1 text-[10px]
-              ${msg.direction === 'outbound' ? 'text-blue-100' : 'text-gray-400'}
-            `}>
-              <span>{new Date(msg.timestamp || (msg as any).created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              {msg.direction === 'outbound' && getStatusIcon(msg.status)}
+                <div className="text-sm font-medium leading-relaxed">
+                  {msg.content}
+                </div>
+
+                <div className={`
+                  flex items-center justify-end gap-1.5 mt-1.5 text-[10px]
+                  ${msg.direction === 'outbound' ? 'text-blue-100' : 'text-gray-400'}
+                `}>
+                  <span>{msgDate.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                  {msg.direction === 'outbound' && getStatusIcon(msg.status)}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      ))}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 };
