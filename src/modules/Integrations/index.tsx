@@ -11,30 +11,53 @@ const IntegrationsModule = () => {
   const [inputText, setInputText] = useState('');
 
   const [contacts, setContacts] = useState<any[]>([]);
+  const selectedContactRef = React.useRef<any>(null);
+
+  // Keep ref in sync with state so realtime callback sees latest value
+  useEffect(() => {
+    selectedContactRef.current = selectedContact;
+  }, [selectedContact]);
+
+  const fetchContacts = async () => {
+    const { data } = await supabase
+      .from('integration_contacts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) setContacts(data);
+  };
 
   useEffect(() => {
-    // 1. Fetch contacts
-    const fetchContacts = async () => {
-      const { data, error } = await supabase
-        .from('integration_contacts')
-        .select('*')
-        .order('last_message_at', { ascending: false });
-      
-      if (data) setContacts(data);
-    };
-
     fetchContacts();
 
-    // 2. Subscribe to new messages
+    // Subscribe to new contacts
+    const contactSub = supabase
+      .channel('realtime:integration_contacts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'integration_contacts' }, () => {
+        fetchContacts();
+      })
+      .subscribe();
+
+    // Subscribe to new messages
     const messageSub = supabase
-      .channel('public:integration_messages')
+      .channel('realtime:integration_messages')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'integration_messages' }, (payload) => {
-        // Find if this message belongs to currently selected contact
-        setMessages((prev) => [...prev, payload.new as any]);
+        const newMsg = payload.new as any;
+        const current = selectedContactRef.current;
+        // Only append if the message belongs to the currently selected contact
+        if (current && newMsg.contact_id === current.id) {
+          setMessages((prev) => {
+            // Prevent duplicates
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+        // Always refresh contacts list (to update last message preview)
+        fetchContacts();
       })
       .subscribe();
 
     return () => {
+      supabase.removeChannel(contactSub);
       supabase.removeChannel(messageSub);
     };
   }, []);
