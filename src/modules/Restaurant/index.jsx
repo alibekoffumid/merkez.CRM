@@ -26,7 +26,7 @@ const RestaurantModule = () => {
   return (
     <div className="flex flex-col min-h-full space-y-6">
       {/* Standardized TabBar Container */}
-      <div className="sticky top-0 z-[150] flex justify-start lg:justify-center w-full pointer-events-none pb-4 bg-gray-50/80 backdrop-blur-md pt-2 px-4 sm:px-0">
+      <div className="sticky top-0 z-40 flex justify-start lg:justify-center w-full pointer-events-none pb-4 bg-gray-50/80 backdrop-blur-md pt-2 px-4 sm:px-0">
         <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto w-max">
           {tabs.map(tab => (
             <button
