@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare } from 'lucide-react';
 
 // Master registry of all available modules in the platform
 // This is the single source of truth for module metadata
@@ -108,6 +108,18 @@ export const MODULE_REGISTRY = {
     color: 'hover:text-merkez-blue hover:bg-blue-50',
     accentColor: 'sky',
     price: 19,
+    isFree: false,
+    isCore: false,
+  },
+  integrations: {
+    id: 'integrations',
+    nameKey: 'sidebar.integrations',
+    descriptionKey: 'modules.integrationsDesc',
+    icon: MessageSquare,
+    path: '/integrations',
+    color: 'hover:text-blue-600 hover:bg-blue-50',
+    accentColor: 'blue',
+    price: 29,
     isFree: false,
     isCore: false,
   },

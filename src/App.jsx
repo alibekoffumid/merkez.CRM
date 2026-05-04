@@ -14,6 +14,7 @@ import Profile from './modules/Profile';
 import FinanceModule from './modules/Finance';
 import DentalModule from './modules/Dental';
 import EducationModule from './modules/Education';
+import IntegrationsModule from './modules/Integrations';
 import ModuleStore from './pages/ModuleStore';
 
 // Guard component that checks if a specific module is active
@@ -108,6 +109,9 @@ function App() {
           } />
           <Route path="education" element={
             <ModuleGuard moduleId="education"><EducationModule /></ModuleGuard>
+          } />
+          <Route path="integrations" element={
+            <ModuleGuard moduleId="integrations"><IntegrationsModule /></ModuleGuard>
           } />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={
