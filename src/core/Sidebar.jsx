@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Settings, LogOut, X, LayoutGrid } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useTranslation } from 'react-i18next';
@@ -9,9 +9,38 @@ import { useUser } from './UserContext';
 const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules } = useUser();
+  const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const channelRef = useRef(null);
 
   // Build nav items from active modules only
   const navItems = getNavItemsFromModules(t, activeModules);
+
+  // Listen for new inbound messages globally
+  useEffect(() => {
+    channelRef.current = supabase
+      .channel('sidebar-unread-badge')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'integration_messages' }, (payload) => {
+        if (payload.new?.direction === 'inbound') {
+          // Only increment if user is NOT on integrations page
+          if (!window.location.pathname.startsWith('/integrations')) {
+            setUnreadCount((prev) => prev + 1);
+          }
+        }
+      })
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
+    };
+  }, []);
+
+  // Clear badge when user navigates to integrations
+  useEffect(() => {
+    if (location.pathname.startsWith('/integrations')) {
+      setUnreadCount(0);
+    }
+  }, [location.pathname]);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -53,7 +82,14 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
               }`
             }
           >
-            <item.icon className="w-5 h-5 mr-3 shrink-0" />
+            <div className="relative shrink-0">
+              <item.icon className="w-5 h-5 mr-3" />
+              {item.id === 'integrations' && unreadCount > 0 && (
+                <span className="absolute -top-2 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1 shadow-lg shadow-red-500/30 animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </div>
             <span className={`
               transition-opacity duration-300 whitespace-nowrap
               ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
