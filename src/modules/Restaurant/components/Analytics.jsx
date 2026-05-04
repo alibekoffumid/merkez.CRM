@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, Users, DollarSign, Award, ArrowUpRight, CheckCircle2, BarChart3, Calendar as CalendarIcon, Download, PieChart, Activity, Plus, X, Loader2 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
@@ -674,10 +675,10 @@ const Analytics = () => {
       </div>
 
       {/* Expense Modal */}
-      {isExpenseModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {isExpenseModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div 
-            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+            className="absolute -inset-10 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
             onClick={() => setIsExpenseModalOpen(false)}
           />
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10" onClick={e => e.stopPropagation()}>
@@ -729,7 +730,8 @@ const Analytics = () => {
                </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X, Utensils } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
@@ -395,10 +396,10 @@ const MenuManager = () => {
       )}
 
       {/* Add Dish Modal */}
-      {isAddDishModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
+      {isAddDishModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4">
           <div 
-            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+            className="absolute -inset-10 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
             onClick={() => setIsAddDishModalOpen(false)}
           />
           <div 
@@ -461,7 +462,8 @@ const MenuManager = () => {
                </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Confirmation Modal */}

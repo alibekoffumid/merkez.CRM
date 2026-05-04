@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus, Edit, Trash2, ShieldCheck, DoorOpen, X, CreditCard } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
@@ -144,10 +145,10 @@ const TableSettings = () => {
       </div>
 
       {/* Add Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4">
           <div 
-            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+            className="absolute -inset-10 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
             onClick={() => setIsModalOpen(false)}
           />
           <div 
@@ -229,14 +230,15 @@ const TableSettings = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Edit Modal */}
-      {editingTable && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
+      {editingTable && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4">
           <div 
-            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+            className="absolute -inset-10 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
             onClick={() => setEditingTable(null)}
           />
           <div 
@@ -317,7 +319,8 @@ const TableSettings = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Confirmation Modal */}
