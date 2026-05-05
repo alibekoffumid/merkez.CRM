@@ -12,13 +12,15 @@ import {
   ArrowRight,
   AlertCircle,
   Delete,
-  CheckCircle2
+  CheckCircle2,
+  History as HistoryIcon
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import { RetailProduct, CartItem } from '../../../types/retail';
 import { UserProfile } from '../../../types/auth';
+import { NavLink } from 'react-router-dom';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -226,7 +228,7 @@ const RetailPOS: React.FC = () => {
               <Package className="w-5 h-5" />
             </NavLink>
             <NavLink to="/retail/history" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title="История">
-              <History className="w-5 h-5" />
+              <HistoryIcon className="w-5 h-5" />
             </NavLink>
           </div>
           
