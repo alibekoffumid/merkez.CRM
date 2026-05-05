@@ -53,7 +53,7 @@ const RetailPOS: React.FC = () => {
 
   const addToCart = (product: any) => {
     // Ensure we have a valid price before adding to cart
-    const finalPrice = parseFloat(product.price || product.sale_price || 0);
+    const finalPrice = Number(product.price || product.sale_price || 0);
     
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
@@ -212,7 +212,7 @@ const RetailPOS: React.FC = () => {
                     <span className="text-xs text-gray-500">{p.barcode}</span>
                   </div>
                   <span className="font-bold text-merkez-blue">
-                    {(parseFloat(p.price || p.sale_price || 0)).toFixed(2)} ₼
+                    {Number(p.price || p.sale_price || 0).toFixed(2)} ₼
                   </span>
                 </button>
               ))}
