@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Image as ImageIcon, Upload, Loader2, Trash2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 
@@ -12,6 +14,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [deleteImage, setDeleteImage] = useState(false);
+  const { profile } = useUser();
   
   const [formData, setFormData] = useState({ 
     name: '', 
@@ -109,7 +112,14 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
         critical_stock: parseFloat(formData.critical_stock || 5),
         image_url: finalImageUrl
       })
-      .eq('id', product.id);
+      .eq('id', product.id)
+      .eq('user_id', profile?.id);
+
+    if (error) {
+        toast.error(error.message);
+        setLoading(false);
+        return;
+    }
 
     setLoading(false);
     if (!error) {
@@ -121,7 +131,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">

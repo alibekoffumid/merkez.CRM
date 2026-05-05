@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Plus, Save, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 
@@ -11,6 +13,7 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   const fileInputRef = useRef(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const { profile } = useUser();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -83,9 +86,16 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
         category_id: formData.category_id,
         stock_quantity: parseFloat(formData.stock_quantity || 0),
         critical_stock: parseFloat(formData.critical_stock || 5),
-        image_url: imageUrl
+        image_url: imageUrl,
+        user_id: profile?.id
       }])
       .select('*, categories(name)');
+
+    if (error) {
+      toast.error(error.message);
+      setLoading(false);
+      return;
+    }
 
     setLoading(false);
     if (!error && data) {
@@ -108,7 +118,7 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
