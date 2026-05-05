@@ -126,8 +126,8 @@ function App() {
           } />
         </Route>
       </Routes>
-    </BrowserRouter>
       <Toaster position="top-right" />
+    </BrowserRouter>
     </UserProvider>
   );
 }
