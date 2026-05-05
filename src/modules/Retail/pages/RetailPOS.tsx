@@ -21,6 +21,7 @@ import { toast } from 'react-hot-toast';
 import { RetailProduct, CartItem } from '../../../types/retail';
 import { UserProfile } from '../../../types/auth';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -32,6 +33,7 @@ interface UserContextType {
 // Local interfaces removed as they are now imported
 
 const RetailPOS: React.FC = () => {
+  const { t } = useTranslation();
   const { profile } = useUser() as UserContextType;
   const [cart, setCart] = useState<CartItem[]>([]);
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -83,7 +85,7 @@ const RetailPOS: React.FC = () => {
         .single();
 
       if (error || !data) {
-        toast.error('Товар не найден');
+        toast.error(t('retail.productNotFound'));
       } else {
         // Explicitly pass the price fields
         addToCart(data);
@@ -186,8 +188,8 @@ const RetailPOS: React.FC = () => {
             <ShoppingCart className="w-6 h-6 text-merkez-blue" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">Mərkəz Retail POS</h1>
-            <p className="text-xs text-gray-500 font-medium">Кассир: {profile?.full_name || 'Admin'}</p>
+            <h1 className="text-lg font-bold text-gray-900">{t('retail.posTitle')}</h1>
+            <p className="text-xs text-gray-500 font-medium">{t('retail.cashier')}: {profile?.full_name || 'Admin'}</p>
           </div>
         </div>
         
@@ -195,7 +197,7 @@ const RetailPOS: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text"
-            placeholder="Поиск товара по названию или штрих-коду..."
+            placeholder={t('retail.searchPlaceholder')}
             className="w-full pl-10 pr-4 py-2 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-merkez-blue/20 transition-all"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
@@ -224,17 +226,17 @@ const RetailPOS: React.FC = () => {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
-            <NavLink to="/retail/inventory" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title="Склад">
+            <NavLink to="/retail/inventory" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.inventory')}>
               <Package className="w-5 h-5" />
             </NavLink>
-            <NavLink to="/retail/history" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title="История">
+            <NavLink to="/retail/history" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.history')}>
               <HistoryIcon className="w-5 h-5" />
             </NavLink>
           </div>
           
           <div className="px-4 py-2 bg-green-50 rounded-lg flex items-center gap-2 border border-green-100">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-bold text-green-700 uppercase tracking-wider">Online</span>
+            <span className="text-xs font-bold text-green-700 uppercase tracking-wider">{t('retail.online')}</span>
           </div>
         </div>
       </div>
@@ -252,7 +254,7 @@ const RetailPOS: React.FC = () => {
               ref={barcodeRef}
               type="text"
               className="w-full pl-16 pr-4 py-4 bg-white border-2 border-transparent focus:border-merkez-blue rounded-2xl shadow-sm text-xl font-mono tracking-[0.2em] transition-all outline-none"
-              placeholder="СКАНИРУЙТЕ ШТРИХ-КОД..."
+              placeholder={t('retail.scanBarcode')}
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
             />
@@ -261,8 +263,8 @@ const RetailPOS: React.FC = () => {
           {/* Cart Table */}
           <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Текущий чек</span>
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{cart.length} Позиций</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{t('retail.currentCheck')}</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{cart.length} {t('retail.positions')}</span>
             </div>
             
             <div className="flex-1 overflow-y-auto">
@@ -271,16 +273,16 @@ const RetailPOS: React.FC = () => {
                   <div className="p-6 bg-gray-100 rounded-full">
                     <Package className="w-12 h-12" />
                   </div>
-                  <p className="font-medium">Корзина пуста. Начните сканирование.</p>
+                  <p className="font-medium">{t('retail.emptyCart')}</p>
                 </div>
               ) : (
                 <table className="w-full">
                   <thead className="sticky top-0 bg-white shadow-sm">
                     <tr className="text-left text-xs font-bold text-gray-400 border-b border-gray-50">
-                      <th className="px-6 py-4 uppercase">Наименование</th>
-                      <th className="px-6 py-4 uppercase text-center">Кол-во</th>
-                      <th className="px-6 py-4 uppercase text-right">Цена</th>
-                      <th className="px-6 py-4 uppercase text-right">Итого</th>
+                      <th className="px-6 py-4 uppercase">{t('retail.itemName')}</th>
+                      <th className="px-6 py-4 uppercase text-center">{t('retail.quantity')}</th>
+                      <th className="px-6 py-4 uppercase text-right">{t('retail.price')}</th>
+                      <th className="px-6 py-4 uppercase text-right">{t('retail.total')}</th>
                       <th className="px-6 py-4 text-right"></th>
                     </tr>
                   </thead>
@@ -372,7 +374,7 @@ const RetailPOS: React.FC = () => {
           <div className="p-8 flex-1 flex flex-col gap-8">
             {/* Payment Method */}
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Способ оплаты</h3>
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('retail.paymentMethod')}</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button 
                   onClick={() => setPaymentMethod('cash')}
@@ -383,7 +385,7 @@ const RetailPOS: React.FC = () => {
                   }`}
                 >
                   <Banknote className={`w-6 h-6 ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-400'}`} />
-                  <span className={`text-xs font-bold ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-500'}`}>Наличные</span>
+                  <span className={`text-xs font-bold ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-500'}`}>{t('retail.cash')}</span>
                 </button>
                 <button 
                   onClick={() => setPaymentMethod('card')}
@@ -394,7 +396,7 @@ const RetailPOS: React.FC = () => {
                   }`}
                 >
                   <CreditCard className={`w-6 h-6 ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-400'}`} />
-                  <span className={`text-xs font-bold ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-500'}`}>Карта</span>
+                  <span className={`text-xs font-bold ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-500'}`}>{t('retail.card')}</span>
                 </button>
               </div>
             </div>
@@ -403,16 +405,16 @@ const RetailPOS: React.FC = () => {
             <div className="space-y-6">
               <div className="space-y-3">
                 <div className="flex justify-between text-gray-500 font-medium">
-                  <span>Подытог:</span>
+                  <span>{t('retail.subtotal')}</span>
                   <span>{(subtotal || 0).toFixed(2)} ₼</span>
                 </div>
                 <div className="flex justify-between text-gray-500 font-medium">
-                  <span>НДС (18%):</span>
+                  <span>{t('retail.tax')}</span>
                   <span>{(tax || 0).toFixed(2)} ₼</span>
                 </div>
                 <div className="h-[1px] bg-gray-100 w-full" />
                 <div className="flex justify-between items-end pt-2">
-                  <span className="text-lg font-bold text-gray-900">ИТОГО К ОПЛАТЕ:</span>
+                  <span className="text-lg font-bold text-gray-900">{t('retail.totalToPay')}</span>
                   <span className="text-4xl font-black text-merkez-blue">{(total || 0).toFixed(2)} ₼</span>
                 </div>
               </div>
@@ -420,7 +422,7 @@ const RetailPOS: React.FC = () => {
               {paymentMethod === 'cash' && (
                 <div className="space-y-4 pt-4 border-t border-gray-100">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Получено</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('retail.received')}</span>
                     <input 
                       type="number"
                       className="w-32 text-right text-2xl font-bold bg-transparent border-b-2 border-gray-100 focus:border-merkez-blue transition-all outline-none"
@@ -430,7 +432,7 @@ const RetailPOS: React.FC = () => {
                     />
                   </div>
                   <div className="flex justify-between items-center py-4 px-6 bg-orange-50 rounded-2xl border border-orange-100">
-                    <span className="font-bold text-orange-700">СДАЧА:</span>
+                    <span className="font-bold text-orange-700">{t('retail.change')}</span>
                     <span className="text-2xl font-black text-orange-700">
                       {change > 0 ? change.toFixed(2) : '0.00'} ₼
                     </span>
@@ -456,12 +458,12 @@ const RetailPOS: React.FC = () => {
               {isProcessing ? (
                 <>
                   <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                  Обработка...
+                  {t('retail.processing')}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-7 h-7" />
-                  ЗАВЕРШИТЬ ПРОДАЖУ
+                  {t('retail.processSale')}
                   <ArrowRight className="w-6 h-6" />
                 </>
               )}

@@ -80,7 +80,7 @@ const RetailHistory: React.FC = () => {
       if (error) throw error;
       setSales(data || []);
     } catch (err: any) {
-      toast.error('Ошибка загрузки истории: ' + err.message);
+      toast.error(t('retail.historyError') || 'Ошибка загрузки истории: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -95,9 +95,9 @@ const RetailHistory: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
       {/* Sub-navigation */}
       <div className="flex items-center gap-2 mb-8 bg-white p-2 rounded-2xl border border-gray-100 w-fit">
-        <NavLink to="/retail" end className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>Касса</NavLink>
-        <NavLink to="/retail/inventory" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>Склад</NavLink>
-        <NavLink to="/retail/history" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>История</NavLink>
+        <NavLink to="/retail" end className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.pos')}</NavLink>
+        <NavLink to="/retail/inventory" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.inventory')}</NavLink>
+        <NavLink to="/retail/history" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.history')}</NavLink>
       </div>
 
       {/* Header */}
@@ -107,20 +107,20 @@ const RetailHistory: React.FC = () => {
             <div className="p-2 bg-merkez-blue/10 rounded-xl">
               <History className="w-8 h-8 text-merkez-blue" />
             </div>
-            История продаж
+            {t('retail.historyTitle')}
           </h1>
-          <p className="text-gray-500 mt-1 font-medium">Полный архив всех кассовых операций</p>
+          <p className="text-gray-500 mt-1 font-medium">{t('retail.historySubtitle')}</p>
         </div>
         
         <div className="flex items-center gap-3">
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-8">
             <div className="text-center">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Всего чеков</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('retail.totalChecks')}</p>
               <p className="text-xl font-black text-gray-900">{sales.length}</p>
             </div>
             <div className="w-[1px] h-8 bg-gray-100" />
             <div className="text-center">
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Выручка</p>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('retail.revenue')}</p>
               <p className="text-xl font-black text-green-600">
                 {sales.reduce((acc, s) => acc + Number(s.total_amount || 0), 0).toFixed(2)} ₼
               </p>
@@ -135,7 +135,7 @@ const RetailHistory: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input 
             type="text"
-            placeholder="Поиск по ID или сумме..."
+            placeholder={t('retail.idOrAmount')}
             className="w-full pl-12 pr-4 py-3 bg-gray-50/50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-merkez-blue/20 transition-all outline-none font-medium"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -145,11 +145,11 @@ const RetailHistory: React.FC = () => {
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-gray-50 text-gray-600 font-bold rounded-2xl hover:bg-gray-100 transition-all">
             <Calendar className="w-4 h-4" />
-            Период
+            {t('retail.period')}
           </button>
           <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-gray-50 text-gray-600 font-bold rounded-2xl hover:bg-gray-100 transition-all">
             <Filter className="w-4 h-4" />
-            Фильтры
+            {t('retail.filters')}
           </button>
         </div>
       </div>
@@ -160,18 +160,18 @@ const RetailHistory: React.FC = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50/50 text-left border-b border-gray-100">
-                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Чек / Время</th>
-                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Способ оплаты</th>
-                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] text-right">Налог (18%)</th>
-                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] text-right">Итого</th>
-                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] text-center">Действия</th>
+                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('retail.currentCheck')} / {t('common.time')}</th>
+                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('retail.paymentMethod')}</th>
+                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] text-right">{t('retail.tax')}</th>
+                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] text-right">{t('retail.total')}</th>
+                <th className="px-8 py-6 text-xs font-black text-gray-400 uppercase tracking-[0.2em] text-center">{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-medium animate-pulse text-lg">Загрузка архива...</td></tr>
+                <tr><td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-medium animate-pulse text-lg">{t('common.loading')}</td></tr>
               ) : filteredSales.length === 0 ? (
-                <tr><td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-medium text-lg">Продаж пока нет</td></tr>
+                <tr><td colSpan={5} className="px-8 py-20 text-center text-gray-400 font-medium text-lg">{t('dashboard.noSales')}</td></tr>
               ) : filteredSales.map(sale => (
                 <tr key={sale.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-8 py-6">
@@ -180,7 +180,7 @@ const RetailHistory: React.FC = () => {
                         <ShoppingCart className="w-6 h-6 text-gray-400 group-hover:text-merkez-blue" />
                       </div>
                       <div>
-                        <p className="font-black text-gray-900 leading-none">Чек #{sale.id?.slice(0, 8).toUpperCase() || '---'}</p>
+                        <p className="font-black text-gray-900 leading-none">{t('retail.currentCheck')} #{sale.id?.slice(0, 8).toUpperCase() || '---'}</p>
                         <p className="text-xs text-gray-500 mt-2 font-bold">
                           {formatDate(sale.created_at)}
                         </p>
@@ -192,7 +192,7 @@ const RetailHistory: React.FC = () => {
                       sale.payment_method === 'card' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
                     }`}>
                       {sale.payment_method === 'card' ? <CreditCard className="w-3 h-3" /> : <Banknote className="w-3 h-3" />}
-                      {sale.payment_method === 'card' ? 'Карта' : 'Наличные'}
+                      {sale.payment_method === 'card' ? t('retail.card') : t('retail.cash')}
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right font-bold text-gray-500">
@@ -228,7 +228,7 @@ const RetailHistory: React.FC = () => {
           <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
-                <h2 className="text-2xl font-black text-gray-900">Детали чека</h2>
+                <h2 className="text-2xl font-black text-gray-900">{t('retail.saleDetails')}</h2>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
                    #{selectedSale.id?.toUpperCase() || '---'}
                 </p>
@@ -243,21 +243,21 @@ const RetailHistory: React.FC = () => {
 
             <div className="p-8 space-y-6">
               <div className="space-y-4">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">Состав покупки</h3>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('retail.composition')}</h3>
                 <div className="bg-gray-50/50 rounded-3xl p-2 border border-gray-100">
                   <table className="w-full">
                     <thead>
                       <tr className="text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        <th className="px-4 py-4">Товар</th>
-                        <th className="px-4 py-4 text-center">Кол-во</th>
-                        <th className="px-4 py-4 text-right">Цена</th>
-                        <th className="px-4 py-4 text-right">Итого</th>
+                        <th className="px-4 py-4">{t('retail.itemName')}</th>
+                        <th className="px-4 py-4 text-center">{t('retail.quantity')}</th>
+                        <th className="px-4 py-4 text-right">{t('retail.price')}</th>
+                        <th className="px-4 py-4 text-right">{t('retail.total')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {selectedSale.retail_sale_items?.map((item: any) => (
                         <tr key={item.id}>
-                          <td className="px-4 py-4 font-bold text-gray-800">{item.products?.name || 'Товар удален'}</td>
+                          <td className="px-4 py-4 font-bold text-gray-800">{item.products?.name || t('retail.itemDeleted')}</td>
                           <td className="px-4 py-4 text-center font-bold text-gray-600">{item.quantity}</td>
                           <td className="px-8 py-4 text-right font-medium text-gray-500">{Number(item.price_at_sale || 0).toFixed(2)}</td>
                           <td className="px-4 py-4 text-right font-black text-gray-900">{Number(item.total || 0).toFixed(2)} ₼</td>
@@ -270,11 +270,11 @@ const RetailHistory: React.FC = () => {
 
               <div className="flex justify-between items-end pt-6 border-t border-gray-100">
                 <div className="space-y-1">
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Метод оплаты</p>
-                  <p className="font-bold text-gray-900">{selectedSale.payment_method === 'card' ? 'Банковская карта' : 'Наличные'}</p>
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('retail.paymentMethod')}</p>
+                  <p className="font-bold text-gray-900">{selectedSale.payment_method === 'card' ? t('retail.card') : t('retail.cash')}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Итоговая сумма</p>
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{t('retail.totalToPay')}</p>
                   <p className="text-4xl font-black text-merkez-blue">{Number(selectedSale.total_amount).toFixed(2)} ₼</p>
                 </div>
               </div>
@@ -282,13 +282,13 @@ const RetailHistory: React.FC = () => {
 
             <div className="p-8 bg-gray-50 border-t border-gray-100 flex gap-4">
               <button className="flex-1 py-4 bg-white border-2 border-gray-100 rounded-2xl font-black text-gray-600 hover:border-merkez-blue/30 transition-all">
-                Печать чека
+                {t('retail.printReceipt')}
               </button>
               <button 
                 onClick={() => setSelectedSale(null)}
                 className="flex-1 py-4 bg-merkez-blue text-white rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all"
               >
-                Закрыть
+                {t('common.close')}
               </button>
             </div>
           </div>
