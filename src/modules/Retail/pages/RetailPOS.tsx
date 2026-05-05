@@ -51,17 +51,18 @@ const RetailPOS: React.FC = () => {
     return () => clearInterval(focusTimer);
   }, []);
 
-  const addToCart = (product: RetailProduct) => {
+  const addToCart = (product: any) => {
+    // Ensure we have a valid price before adding to cart
+    const finalPrice = parseFloat(product.price || product.sale_price || 0);
+    
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
         return prev.map(item => 
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 } 
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + 1, sale_price: finalPrice } : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: 1, sale_price: finalPrice }];
     });
     setBarcodeInput('');
     setSearchQuery('');
@@ -82,12 +83,8 @@ const RetailPOS: React.FC = () => {
       if (error || !data) {
         toast.error('Товар не найден');
       } else {
-        // Map 'price' from database to 'sale_price' for the POS logic
-        const productWithMappedPrice = {
-          ...data,
-          sale_price: data.price || data.sale_price || 0
-        };
-        addToCart(productWithMappedPrice);
+        // Explicitly pass the price fields
+        addToCart(data);
       }
     } catch (err) {
       console.error(err);
@@ -115,11 +112,7 @@ const RetailPOS: React.FC = () => {
       }
 
       if (data) {
-        const mappedData = data.map(p => ({
-          ...p,
-          sale_price: p.price || p.sale_price || 0
-        }));
-        setSearchResults(mappedData as RetailProduct[]);
+        setSearchResults(data as RetailProduct[]);
       }
     } catch (err) {
       console.error('Search crash prevented:', err);
@@ -140,7 +133,7 @@ const RetailPOS: React.FC = () => {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
+  const subtotal = cart.reduce((sum, item) => sum + ((item.sale_price || 0) * item.quantity), 0);
   const tax = subtotal * 0.18; // 18% VAT Azerbaijan
   const total = subtotal; // Assuming VAT included in price for retail
   const change = parseFloat(cashReceived) ? parseFloat(cashReceived) - total : 0;
@@ -212,13 +205,15 @@ const RetailPOS: React.FC = () => {
                 <button 
                   key={p.id}
                   onClick={() => addToCart(p)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-none"
+                  className="w-full flex items-center justify-between p-4 hover:bg-merkez-blue/5 border-b border-gray-50 transition-colors group"
                 >
-                  <div className="flex flex-col items-start">
+                  <div className="flex flex-col text-left">
                     <span className="font-semibold text-gray-800">{p.name}</span>
                     <span className="text-xs text-gray-500">{p.barcode}</span>
                   </div>
-                  <span className="font-bold text-merkez-blue">{(p.sale_price || 0).toFixed(2)} ₼</span>
+                  <span className="font-bold text-merkez-blue">
+                    {(parseFloat(p.price || p.sale_price || 0)).toFixed(2)} ₼
+                  </span>
                 </button>
               ))}
             </div>
