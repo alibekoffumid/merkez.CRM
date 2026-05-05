@@ -11,6 +11,8 @@
     "etaxes": "Vergi",
     "dental": "Stomatologiya",
     "education": "Təhsil",
+    "integrations": "Omnikanallıq",
+    "retail": "Pərakəndə Satış",
     "modules": "Modullar"
   },
   "header": {
@@ -715,6 +717,8 @@
     "restaurantDesc": "Sifariş idarəsi, menyu, stollar və mətbəx",
     "financeDesc": "Gəlir, xərc, hesabatlar və maliyyə analitikası",
     "callCenterDesc": "Zəng idarəsi, skriptlər və müraciət analitikası",
-    "eTaxesDesc": "Elektron vergi hesabatları və bəyannamələr"
+    "eTaxesDesc": "Elektron vergi hesabatları və bəyannamələr",
+    "integrationsDesc": "WhatsApp, Instagram və Telefoniya mesajları üçün vahid mərkəz",
+    "retailDesc": "Mağazalar üçün sürətli pərakəndə satış, ştrix-kod skan edilməsi və inventar idarəedilməsi"
   }
 }
