@@ -35,7 +35,7 @@ const CoreLayout = () => {
         {!isRetail && <Header onMenuClick={toggleMobileSidebar} />}
         <main className={`flex-1 min-h-0 overflow-hidden bg-gray-50/50 ${isRetail ? 'h-full' : ''}`}>
           <div className="h-full overflow-y-auto overflow-x-hidden no-scrollbar">
-            <div className={`${isRetail ? 'p-0' : 'p-4 sm:p-6 lg:p-10 lg:pl-24'} max-w-full mx-auto h-full`}>
+            <div className={`${isRetail ? 'p-2 pl-20 lg:pl-24' : 'p-4 sm:p-6 lg:p-10 lg:pl-24'} max-w-full mx-auto h-full`}>
               <Outlet />
             </div>
           </div>
