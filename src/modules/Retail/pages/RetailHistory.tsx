@@ -16,6 +16,7 @@ import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { NavLink } from 'react-router-dom';
 
 interface SaleItem {
   id: string;
@@ -115,7 +116,7 @@ const RetailHistory: React.FC = () => {
             <div className="text-center">
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Выручка</p>
               <p className="text-xl font-black text-green-600">
-                {sales.reduce((acc, s) => acc + Number(s.total_amount), 0).toFixed(2)} ₼
+                {sales.reduce((acc, s) => acc + Number(s.total_amount || 0), 0).toFixed(2)} ₼
               </p>
             </div>
           </div>
@@ -173,7 +174,7 @@ const RetailHistory: React.FC = () => {
                         <ShoppingCart className="w-6 h-6 text-gray-400 group-hover:text-merkez-blue" />
                       </div>
                       <div>
-                        <p className="font-black text-gray-900 leading-none">Чек #{sale.id.slice(0, 8).toUpperCase()}</p>
+                        <p className="font-black text-gray-900 leading-none">Чек #{sale.id?.slice(0, 8).toUpperCase() || '---'}</p>
                         <p className="text-xs text-gray-500 mt-2 font-bold">
                           {formatDate(sale.created_at)}
                         </p>
@@ -223,7 +224,7 @@ const RetailHistory: React.FC = () => {
               <div>
                 <h2 className="text-2xl font-black text-gray-900">Детали чека</h2>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-1">
-                   #{selectedSale.id.toUpperCase()}
+                   #{selectedSale.id?.toUpperCase() || '---'}
                 </p>
               </div>
               <button 
@@ -248,12 +249,12 @@ const RetailHistory: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {selectedSale.retail_sale_items.map((item: any) => (
+                      {selectedSale.retail_sale_items?.map((item: any) => (
                         <tr key={item.id}>
-                          <td className="px-4 py-4 font-bold text-gray-800">{item.products?.name}</td>
+                          <td className="px-4 py-4 font-bold text-gray-800">{item.products?.name || 'Товар удален'}</td>
                           <td className="px-4 py-4 text-center font-bold text-gray-600">{item.quantity}</td>
-                          <td className="px-8 py-4 text-right font-medium text-gray-500">{Number(item.price_at_sale).toFixed(2)}</td>
-                          <td className="px-4 py-4 text-right font-black text-gray-900">{Number(item.total).toFixed(2)} ₼</td>
+                          <td className="px-8 py-4 text-right font-medium text-gray-500">{Number(item.price_at_sale || 0).toFixed(2)}</td>
+                          <td className="px-4 py-4 text-right font-black text-gray-900">{Number(item.total || 0).toFixed(2)} ₼</td>
                         </tr>
                       ))}
                     </tbody>
