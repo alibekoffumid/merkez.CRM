@@ -10,6 +10,7 @@ export interface RetailProduct {
   category: string;
   purchase_price: number;
   sale_price: number;
+  price?: number; // Main price column from unified products table
   stock_quantity: number;
   critical_stock: number;
   excise_stamp_required: boolean;
