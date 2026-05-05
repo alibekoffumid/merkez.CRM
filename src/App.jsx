@@ -15,7 +15,7 @@ import FinanceModule from './modules/Finance';
 import DentalModule from './modules/Dental';
 import EducationModule from './modules/Education';
 import IntegrationsModule from './modules/Integrations';
-// import RetailModule from './modules/Retail';
+import RetailModule from './modules/Retail';
 import ModuleStore from './pages/ModuleStore';
 import { Toaster } from 'react-hot-toast';
 
@@ -115,11 +115,9 @@ function App() {
           <Route path="integrations" element={
             <ModuleGuard moduleId="integrations"><IntegrationsModule /></ModuleGuard>
           } />
-/*
           <Route path="retail/*" element={
             <ModuleGuard moduleId="retail"><RetailModule /></ModuleGuard>
           } />
-*/
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={
             <div className="flex items-center justify-center h-full text-gray-500">
