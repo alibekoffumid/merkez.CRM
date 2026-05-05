@@ -171,8 +171,8 @@ const RetailPOS: React.FC = () => {
   };
 
   const quickProducts = [
-    { id: 'pkg-1', name: 'Пакет маленький', price: 0.10, barcode: '000001' },
-    { id: 'pkg-2', name: 'Пакет большой', price: 0.20, barcode: '000002' },
+    { id: '00000000-0000-0000-0000-000000000001', name: 'Пакет маленький', price: 0.10, barcode: '000001' },
+    { id: '00000000-0000-0000-0000-000000000002', name: 'Пакет большой', price: 0.20, barcode: '000002' },
   ];
 
   return (
