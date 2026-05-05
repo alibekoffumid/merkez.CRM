@@ -207,7 +207,7 @@ const RetailPOS: React.FC = () => {
                     <span className="font-semibold text-gray-800">{p.name}</span>
                     <span className="text-xs text-gray-500">{p.barcode}</span>
                   </div>
-                  <span className="font-bold text-merkez-blue">{p.sale_price.toFixed(2)} ₼</span>
+                  <span className="font-bold text-merkez-blue">{(p.sale_price || 0).toFixed(2)} ₼</span>
                 </button>
               ))}
             </div>
@@ -387,16 +387,16 @@ const RetailPOS: React.FC = () => {
               <div className="space-y-3">
                 <div className="flex justify-between text-gray-500 font-medium">
                   <span>Подытог:</span>
-                  <span>{subtotal.toFixed(2)} ₼</span>
+                  <span>{(subtotal || 0).toFixed(2)} ₼</span>
                 </div>
                 <div className="flex justify-between text-gray-500 font-medium">
                   <span>НДС (18%):</span>
-                  <span>{tax.toFixed(2)} ₼</span>
+                  <span>{(tax || 0).toFixed(2)} ₼</span>
                 </div>
                 <div className="h-[1px] bg-gray-100 w-full" />
                 <div className="flex justify-between items-end pt-2">
                   <span className="text-lg font-bold text-gray-900">ИТОГО К ОПЛАТЕ:</span>
-                  <span className="text-4xl font-black text-merkez-blue">{total.toFixed(2)} ₼</span>
+                  <span className="text-4xl font-black text-merkez-blue">{(total || 0).toFixed(2)} ₼</span>
                 </div>
               </div>
 
