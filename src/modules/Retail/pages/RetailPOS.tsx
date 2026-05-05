@@ -300,10 +300,10 @@ const RetailPOS: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right font-medium text-gray-600">
-                          {item.sale_price.toFixed(2)} ₼
+                          {(item.sale_price || 0).toFixed(2)} ₼
                         </td>
                         <td className="px-6 py-4 text-right font-bold text-gray-900">
-                          {(item.sale_price * item.quantity).toFixed(2)} ₼
+                          {((item.sale_price || 0) * item.quantity).toFixed(2)} ₼
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button 
@@ -344,7 +344,7 @@ const RetailPOS: React.FC = () => {
                   <Package className="w-5 h-5 text-gray-400 group-hover:text-merkez-blue" />
                 </div>
                 <span className="text-xs font-bold text-gray-700 text-center">{p.name}</span>
-                <span className="text-xs font-black text-merkez-blue">{p.price.toFixed(2)} ₼</span>
+                <span className="text-xs font-black text-merkez-blue">{(p.price || 0).toFixed(2)} ₼</span>
               </button>
             ))}
           </div>

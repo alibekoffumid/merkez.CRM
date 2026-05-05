@@ -254,10 +254,10 @@ const RetailInventory: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right font-medium text-gray-600">
-                    {product.purchase_price.toFixed(2)} ₼
+                    {(product.purchase_price || 0).toFixed(2)} ₼
                   </td>
                   <td className="px-6 py-4 text-right font-black text-gray-900">
-                    {product.sale_price.toFixed(2)} ₼
+                    {(product.sale_price || 0).toFixed(2)} ₼
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className={`
