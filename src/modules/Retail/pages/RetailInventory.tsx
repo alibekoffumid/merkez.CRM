@@ -57,7 +57,11 @@ const RetailInventory: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      const mappedData = (data || []).map(p => ({
+        ...p,
+        sale_price: p.price || p.sale_price || 0
+      }));
+      setProducts(mappedData);
     } catch (err: any) {
       toast.error('Ошибка загрузки: ' + err.message);
     } finally {
@@ -71,7 +75,10 @@ const RetailInventory: React.FC = () => {
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
-          .update(formData)
+          .update({
+            ...formData,
+            price: formData.sale_price // Sync with unified products table
+          })
           .eq('id', editingProduct.id);
         if (error) throw error;
         toast.success('Товар обновлен');
@@ -79,7 +86,11 @@ const RetailInventory: React.FC = () => {
         if (!profile?.id) throw new Error('Пользователь не авторизован');
         const { error } = await supabase
           .from('products')
-          .insert([{ ...formData, user_id: profile.id }]);
+          .insert([{ 
+            ...formData, 
+            price: formData.sale_price, // Sync with unified products table
+            user_id: profile.id 
+          }]);
         if (error) throw error;
         toast.success('Товар добавлен');
       }

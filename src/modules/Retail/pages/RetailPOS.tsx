@@ -82,7 +82,12 @@ const RetailPOS: React.FC = () => {
       if (error || !data) {
         toast.error('Товар не найден');
       } else {
-        addToCart(data);
+        // Map 'price' from database to 'sale_price' for the POS logic
+        const productWithMappedPrice = {
+          ...data,
+          sale_price: data.price || data.sale_price || 0
+        };
+        addToCart(productWithMappedPrice);
       }
     } catch (err) {
       console.error(err);
@@ -109,7 +114,13 @@ const RetailPOS: React.FC = () => {
         return;
       }
 
-      if (data) setSearchResults(data as RetailProduct[]);
+      if (data) {
+        const mappedData = data.map(p => ({
+          ...p,
+          sale_price: p.price || p.sale_price || 0
+        }));
+        setSearchResults(mappedData as RetailProduct[]);
+      }
     } catch (err) {
       console.error('Search crash prevented:', err);
     }
