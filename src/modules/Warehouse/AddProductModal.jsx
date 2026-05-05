@@ -15,7 +15,11 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    category_id: ''
+    purchase_price: '',
+    barcode: '',
+    category_id: '',
+    stock_quantity: '0',
+    critical_stock: '5'
   });
 
   if (!isOpen) return null;
@@ -74,7 +78,11 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
       .insert([{ 
         name: formData.name, 
         price: parseFloat(formData.price), 
+        purchase_price: parseFloat(formData.purchase_price || 0),
+        barcode: formData.barcode,
         category_id: formData.category_id,
+        stock_quantity: parseFloat(formData.stock_quantity || 0),
+        critical_stock: parseFloat(formData.critical_stock || 5),
         image_url: imageUrl
       }])
       .select('*, categories(name)');
@@ -83,7 +91,15 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
     if (!error && data) {
       onProductAdded();
       onClose();
-      setFormData({ name: '', price: '', category_id: '' });
+      setFormData({ 
+        name: '', 
+        price: '', 
+        purchase_price: '',
+        barcode: '',
+        category_id: '',
+        stock_quantity: '0',
+        critical_stock: '5'
+      });
       setImageFile(null);
       setImagePreview(null);
     }
@@ -128,59 +144,108 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
                 </div>
               )}
             </div>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleImageChange} 
-              accept="image/*" 
-              className="hidden" 
-            />
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thName')}</label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                placeholder={t('warehouse.productNamePlaceholder')}
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thBarcode')}</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                  placeholder={t('warehouse.barcodePlaceholder')}
+                  value={formData.barcode}
+                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thPurchasePrice')}</label>
+              <input
+                type="number"
+                step="0.01"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                placeholder={t('warehouse.purchasePricePlaceholder')}
+                value={formData.purchase_price}
+                onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thPrice')}</label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all font-bold text-merkez-blue"
+                placeholder={t('warehouse.salePricePlaceholder')}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.initialStock')}</label>
+              <input
+                type="number"
+                step="0.001"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.stock_quantity}
+                onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.criticalStock')}</label>
+              <input
+                type="number"
+                step="0.001"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.critical_stock}
+                onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.productName')}</label>
-            <input 
-              type="text" 
-              required
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
-              placeholder={t('warehouse.productNamePlaceholder')}
+            <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thCategory')}</label>
+            <Dropdown 
+              value={formData.category_id}
+              onChange={val => setFormData({ ...formData, category_id: val })}
+              options={[
+                { value: '', label: t('warehouse.selectCategory') },
+                ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+              ]}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.productPrice')}</label>
-              <input 
-                type="number" 
-                step="0.01"
-                required
-                value={formData.price}
-                onChange={e => setFormData({...formData, price: e.target.value})}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.thCategory')}</label>
-              <Dropdown 
-                value={formData.category_id}
-                onChange={val => setFormData({...formData, category_id: val})}
-                options={[
-                  { value: '', label: t('warehouse.selectCategory') },
-                  ...categories.map(cat => ({ value: cat.id, label: cat.name }))
-                ]}
-              />
-            </div>
-          </div>
-          <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              {t('common.cancel')}
-            </button>
-            <button type="submit" disabled={loading || uploading} className="px-5 py-2.5 text-sm font-bold text-white bg-merkez-blue rounded-lg hover:bg-blue-600 transition-colors shadow-md flex items-center">
-              {loading ? t('common.loading') : <><Save className="w-4 h-4 mr-2" /> {t('warehouse.saveProduct')}</>}
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            disabled={loading || uploading}
+            className="w-full bg-merkez-blue text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center disabled:opacity-50"
+          >
+            {loading || uploading ? (
+              <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            ) : (
+              <Save className="w-5 h-5 mr-2" />
+            )}
+            {t('warehouse.saveProduct')}
+          </button>
         </form>
       </div>
     </div>

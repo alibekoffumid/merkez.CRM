@@ -238,8 +238,11 @@ const WarehouseModule = () => {
                     <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
                       <th className="font-medium p-4 w-16"></th>
                       <th className="font-medium p-4">{t('warehouse.thName')}</th>
+                      <th className="font-medium p-4">{t('warehouse.thBarcode')}</th>
                       <th className="font-medium p-4">{t('warehouse.thCategory')}</th>
+                      <th className="font-medium p-4">{t('warehouse.thPurchasePrice')}</th>
                       <th className="font-medium p-4">{t('warehouse.thPrice')}</th>
+                      <th className="font-medium p-4">{t('warehouse.thStock')}</th>
                       <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
                       <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
                     </tr>
@@ -260,15 +263,24 @@ const WarehouseModule = () => {
                           <p className="font-medium text-gray-900">{item.name}</p>
                         </td>
                         <td className="p-4">
+                          <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                            {item.barcode || '—'}
+                          </span>
+                        </td>
+                        <td className="p-4">
                           <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium">
                             {item.categories?.name || '—'}
                           </span>
                         </td>
+                        <td className="p-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                         <td className="p-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
+                        <td className="p-4 text-sm font-bold text-gray-900">
+                          {parseFloat(item.stock_quantity || 0).toFixed(2)}
+                        </td>
                         <td className="p-4">
-                          <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock ?? 999)}`}>
-                            {getStatusIcon(item.stock ?? 999)}
-                            <span className="ml-2">{getStatusText(item.stock ?? 999)}</span>
+                          <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
+                            {getStatusIcon(item.stock_quantity, item.critical_stock)}
+                            <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
                           </div>
                         </td>
                         <td className="p-4 text-right">

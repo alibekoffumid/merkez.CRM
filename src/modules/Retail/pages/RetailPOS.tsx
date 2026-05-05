@@ -74,7 +74,7 @@ const RetailPOS: React.FC = () => {
 
     try {
       const { data, error } = await supabase
-        .from('retail_products')
+        .from('products')
         .select('*')
         .eq('barcode', barcodeInput)
         .single();
@@ -98,7 +98,7 @@ const RetailPOS: React.FC = () => {
     }
 
     const { data } = await supabase
-      .from('retail_products')
+      .from('products')
       .select('*')
       .or(`name.ilike.%${query}%,barcode.ilike.%${query}%`)
       .limit(5);

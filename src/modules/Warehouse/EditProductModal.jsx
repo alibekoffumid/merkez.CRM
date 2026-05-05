@@ -13,14 +13,26 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
   const [imageFile, setImageFile] = useState(null);
   const [deleteImage, setDeleteImage] = useState(false);
   
-  const [formData, setFormData] = useState({ name: '', price: '', category_id: '' });
+  const [formData, setFormData] = useState({ 
+    name: '', 
+    price: '', 
+    purchase_price: '',
+    barcode: '',
+    category_id: '',
+    stock_quantity: '',
+    critical_stock: ''
+  });
 
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name || '',
         price: product.price || '',
-        category_id: product.category_id || ''
+        purchase_price: product.purchase_price || '',
+        barcode: product.barcode || '',
+        category_id: product.category_id || '',
+        stock_quantity: product.stock_quantity?.toString() || '0',
+        critical_stock: product.critical_stock?.toString() || '5'
       });
       setImagePreview(product.image_url || null);
       setImageFile(null);
@@ -90,7 +102,11 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
       .update({
         name: formData.name,
         price: parseFloat(formData.price),
+        purchase_price: parseFloat(formData.purchase_price || 0),
+        barcode: formData.barcode,
         category_id: formData.category_id || null,
+        stock_quantity: parseFloat(formData.stock_quantity || 0),
+        critical_stock: parseFloat(formData.critical_stock || 5),
         image_url: finalImageUrl
       })
       .eq('id', product.id);
@@ -114,12 +130,12 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
             <X className="w-5 h-5" />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
           <div className="flex flex-col items-center justify-center">
-            <label className="block text-sm font-semibold text-gray-700 mb-2 w-full">{t('warehouse.productImage')}</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2 w-full">{t('warehouse.productImage')}</label>
             <div 
               onClick={() => fileInputRef.current.click()}
-              className="relative w-full h-40 border-2 border-dashed border-gray-200 rounded-xl hover:border-merkez-blue hover:bg-blue-50/50 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
+              className="relative w-full h-40 border-2 border-dashed border-gray-100 rounded-2xl hover:border-merkez-blue hover:bg-blue-50/50 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
             >
               {imagePreview ? (
                 <>
@@ -148,57 +164,99 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
                 </div>
               )}
             </div>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleImageChange} 
-              accept="image/*" 
-              className="hidden" 
-            />
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.productName')}</label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
-            />
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thName')}</label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thBarcode')}</label>
+              <input
+                type="text"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.barcode}
+                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+              />
+            </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.productPrice')}</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thPurchasePrice')}</label>
+              <input
+                type="number"
+                step="0.01"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.purchase_price}
+                onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thPrice')}</label>
               <input
                 type="number"
                 step="0.01"
                 required
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all font-bold text-merkez-blue"
                 value={formData.price}
-                onChange={e => setFormData({ ...formData, price: e.target.value })}
-                className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thStock')}</label>
+              <input
+                type="number"
+                step="0.001"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.stock_quantity}
+                onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.thCategory')}</label>
-              <Dropdown 
-                value={formData.category_id}
-                onChange={val => setFormData({ ...formData, category_id: val })}
-                options={[
-                  { value: '', label: t('warehouse.selectCategory') },
-                  ...categories.map(cat => ({ value: cat.id, label: cat.name }))
-                ]}
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.criticalStock')}</label>
+              <input
+                type="number"
+                step="0.001"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all"
+                value={formData.critical_stock}
+                onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
               />
             </div>
           </div>
-          <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              {t('common.cancel')}
-            </button>
-            <button type="submit" disabled={loading || uploading} className="px-5 py-2.5 text-sm font-bold text-white bg-merkez-blue rounded-lg hover:bg-blue-600 transition-colors shadow-md flex items-center">
-              {loading ? t('common.loading') : <><Save className="w-4 h-4 mr-2" /> {t('warehouse.saveChanges')}</>}
-            </button>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">{t('warehouse.thCategory')}</label>
+            <Dropdown 
+              value={formData.category_id}
+              onChange={val => setFormData({ ...formData, category_id: val })}
+              options={[
+                { value: '', label: t('warehouse.selectCategory') },
+                ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+              ]}
+            />
           </div>
+
+          <button
+            type="submit"
+            disabled={loading || uploading}
+            className="w-full bg-merkez-blue text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+            {t('common.saveChanges')}
+          </button>
         </form>
       </div>
     </div>

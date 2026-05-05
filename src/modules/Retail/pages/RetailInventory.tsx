@@ -52,7 +52,7 @@ const RetailInventory: React.FC = () => {
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
-        .from('retail_products')
+        .from('products')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -70,7 +70,7 @@ const RetailInventory: React.FC = () => {
     try {
       if (editingProduct) {
         const { error } = await supabase
-          .from('retail_products')
+          .from('products')
           .update(formData)
           .eq('id', editingProduct.id);
         if (error) throw error;
@@ -78,7 +78,7 @@ const RetailInventory: React.FC = () => {
       } else {
         if (!profile?.id) throw new Error('Пользователь не авторизован');
         const { error } = await supabase
-          .from('retail_products')
+          .from('products')
           .insert([{ ...formData, user_id: profile.id }]);
         if (error) throw error;
         toast.success('Товар добавлен');
