@@ -37,9 +37,15 @@ interface Sale {
   retail_sale_items: SaleItem[];
 }
 
+interface UserProfile {
+  id: string;
+  full_name?: string;
+  // ... other fields if needed
+}
+
 const RetailHistory: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile } = useUser() as { profile: UserProfile | null };
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
