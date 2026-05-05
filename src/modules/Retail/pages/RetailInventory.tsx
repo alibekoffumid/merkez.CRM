@@ -121,7 +121,7 @@ const RetailInventory: React.FC = () => {
     if (!confirm('Вы уверены, что хотите удалить этот товар?')) return;
     try {
       const { error } = await supabase
-        .from('retail_products')
+        .from('products')
         .delete()
         .eq('id', id);
       if (error) throw error;
