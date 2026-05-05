@@ -57,7 +57,9 @@
     "printReceipt": "Çeki çap et",
     "itemDeleted": "Məhsul silinib",
     "online": "Onlayn",
-    "offline": "Oflayn"
+    "offline": "Oflayn",
+    "quickSale": "Sürətli ödəniş",
+    "newCheck": "Yeni çek"
   },
   "header": {
     "search": "Axtarış...",

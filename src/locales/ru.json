@@ -57,7 +57,9 @@
     "printReceipt": "Печать чека",
     "itemDeleted": "Товар удален",
     "online": "В сети",
-    "offline": "Оффлайн"
+    "offline": "Оффлайн",
+    "quickSale": "Быстрая оплата",
+    "newCheck": "Новый чек"
   },
   "header": {
     "search": "Поиск...",

@@ -56,7 +56,9 @@
     "printReceipt": "Print Receipt",
     "itemDeleted": "Product deleted",
     "online": "Online",
-    "offline": "Offline"
+    "offline": "Offline",
+    "quickSale": "Quick Pay",
+    "newCheck": "New Check"
   },
   "header": {
     "search": "Search...",

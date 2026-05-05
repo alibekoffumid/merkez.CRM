@@ -163,7 +163,7 @@ const RetailPOS: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Продажа успешно завершена');
+      toast.success(t('retail.saleSuccess'));
       setCart([]);
       setCashReceived('');
       // In real scenario, here we would trigger fiscal print
@@ -175,8 +175,8 @@ const RetailPOS: React.FC = () => {
   };
 
   const quickProducts = [
-    { id: '00000000-0000-0000-0000-000000000001', name: 'Пакет маленький', price: 0.10, barcode: '000001' },
-    { id: '00000000-0000-0000-0000-000000000002', name: 'Пакет большой', price: 0.20, barcode: '000002' },
+    { id: '00000000-0000-0000-0000-000000000001', name: t('retail.pkgSmall'), price: 0.10, barcode: '000001' },
+    { id: '00000000-0000-0000-0000-000000000002', name: t('retail.pkgLarge'), price: 0.20, barcode: '000002' },
   ];
 
   return (
@@ -469,7 +469,7 @@ const RetailPOS: React.FC = () => {
               )}
             </button>
             <p className="text-center mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">
-              F10 - Быстрая оплата | F2 - Новый чек
+              F10 - {t('retail.quickSale')} | F2 - {t('retail.newCheck')}
             </p>
           </div>
         </div>
