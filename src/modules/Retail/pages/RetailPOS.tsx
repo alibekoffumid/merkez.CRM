@@ -97,13 +97,22 @@ const RetailPOS: React.FC = () => {
       return;
     }
 
-    const { data } = await supabase
-      .from('products')
-      .select('*')
-      .or(`name.ilike.%${query}%,barcode.ilike.%${query}%`)
-      .limit(5);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .or(`name.ilike.%${query}%,barcode.ilike.%${query}%`)
+        .limit(5);
 
-    if (data) setSearchResults(data as RetailProduct[]);
+      if (error) {
+        console.error('Search error:', error);
+        return;
+      }
+
+      if (data) setSearchResults(data as RetailProduct[]);
+    } catch (err) {
+      console.error('Search crash prevented:', err);
+    }
   };
 
   const updateQuantity = (id: string, delta: number) => {
