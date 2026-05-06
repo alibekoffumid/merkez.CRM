@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, DollarSign, User, Gauge } from 'lucide-react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { Vehicle, Driver } from '../types/fleet';
 import { toast } from 'react-hot-toast';

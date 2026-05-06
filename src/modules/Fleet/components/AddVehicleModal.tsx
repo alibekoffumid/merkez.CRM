@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Car, Hash, Calendar, Gauge, ShieldCheck } from 'lucide-react';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../types/auth';
