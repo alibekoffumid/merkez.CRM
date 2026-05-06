@@ -39,10 +39,11 @@ const LogShiftModal: React.FC<LogShiftModalProps> = ({ isOpen, onClose, vehicle,
   }, [isOpen, profile, vehicle]);
 
   const fetchDrivers = async () => {
+    const tenantId = profile?.tenant_id || profile?.id;
     const { data } = await supabase
       .from('fleet_drivers')
       .select('*')
-      .eq('tenant_id', profile?.tenant_id)
+      .eq('tenant_id', tenantId)
       .eq('status', 'active');
     setDrivers(data || []);
   };
@@ -51,7 +52,8 @@ const LogShiftModal: React.FC<LogShiftModalProps> = ({ isOpen, onClose, vehicle,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.tenant_id || !formData.driver_id) {
+    const tenantId = profile?.tenant_id || profile?.id;
+    if (!tenantId || !formData.driver_id) {
       toast.error('Выберите водителя');
       return;
     }
@@ -67,7 +69,7 @@ const LogShiftModal: React.FC<LogShiftModalProps> = ({ isOpen, onClose, vehicle,
       const { error: logError } = await supabase
         .from('fleet_rent_logs')
         .insert([{
-          tenant_id: profile.tenant_id,
+          tenant_id: tenantId,
           vehicle_id: vehicle.id,
           driver_id: formData.driver_id,
           daily_plan: plan,

@@ -31,8 +31,9 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.tenant_id) {
-      toast.error('Ошибка авторизации: Tenant ID не найден');
+    const tenantId = profile?.tenant_id || profile?.id;
+    if (!tenantId) {
+      toast.error('Ошибка авторизации: ID не найден');
       return;
     }
 
@@ -41,7 +42,7 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
       const { error } = await supabase
         .from('fleet_vehicles')
         .insert([{
-          tenant_id: profile.tenant_id,
+          tenant_id: tenantId,
           plate_number: formData.plate_number.toUpperCase(),
           brand_model: formData.brand_model,
           year: parseInt(formData.year),

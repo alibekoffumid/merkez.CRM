@@ -29,14 +29,15 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!profile?.tenant_id) return;
+    const tenantId = profile?.tenant_id || profile?.id;
+    if (!tenantId) return;
 
     setLoading(true);
     try {
       const { error } = await supabase
         .from('fleet_drivers')
         .insert([{
-          tenant_id: profile.tenant_id,
+          tenant_id: tenantId,
           full_name: formData.full_name,
           license_number: formData.license_number,
           whatsapp_number: formData.whatsapp_number,
