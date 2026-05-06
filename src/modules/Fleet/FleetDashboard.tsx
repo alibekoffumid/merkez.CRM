@@ -47,7 +47,7 @@ const FleetDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (profile?.tenant_id) {
+    if (profile) {
       fetchFleetData();
     }
   }, [profile]);
