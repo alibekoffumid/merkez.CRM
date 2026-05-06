@@ -13,6 +13,7 @@ import {
   ArrowRight,
   Loader2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { Vehicle, Driver, RentLog, FleetStats } from './types/fleet';
@@ -30,6 +31,7 @@ interface UserContextType {
 }
 
 const FleetDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { profile } = useUser() as UserContextType;
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [stats, setStats] = useState<FleetStats>({
@@ -134,7 +136,7 @@ const FleetDashboard: React.FC = () => {
         </div>
         <div className="flex gap-3">
           <button 
-            onClick={() => setIsDriverModalOpen(true)}
+            onClick={() => navigate('/fleet/drivers')}
             className="flex items-center gap-2 bg-white border border-gray-200 px-6 py-3 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
           >
             <Users className="w-5 h-5" />
