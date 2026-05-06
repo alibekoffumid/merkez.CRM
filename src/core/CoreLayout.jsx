@@ -12,7 +12,7 @@ const CoreLayout = () => {
   const toggleMobileSidebar = () => setIsMobileSidebarOpen(!isMobileSidebarOpen);
 
   return (
-    <div className="h-screen bg-gray-50/50 flex relative overflow-hidden">
+    <div className="h-screen bg-gray-50 flex relative overflow-hidden">
       {/* Sidebar - Desktop and Mobile */}
       <Sidebar 
         onHoverChange={setIsSidebarExpanded} 
@@ -27,9 +27,9 @@ const CoreLayout = () => {
           onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
-
+ 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden overflow-x-hidden transition-all duration-300 bg-gray-50/50 ${
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden overflow-x-hidden transition-all duration-300 bg-gray-50 ${
         isSidebarExpanded ? 'lg:filter lg:blur-sm lg:brightness-90 lg:pointer-events-none' : ''
       }`}>
         {!isRetail && <Header onMenuClick={toggleMobileSidebar} />}
