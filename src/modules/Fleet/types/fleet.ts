@@ -11,6 +11,8 @@ export interface Vehicle {
   current_mileage: number;
   last_oil_change: number;
   insurance_expiry: string;
+  last_lat?: number;
+  last_lng?: number;
   created_at: string;
 }
 
