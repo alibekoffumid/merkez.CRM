@@ -143,7 +143,7 @@ const FleetMap: React.FC = () => {
   };
 
   return (
-    <div className="relative h-[calc(100vh-60px)] -m-6 lg:-m-8 -mb-20 bg-gray-50 overflow-hidden flex flex-col">
+    <div className="fixed inset-0 lg:left-[72px] top-[64px] z-[40] bg-gray-50 overflow-hidden flex flex-col">
       {/* UI Elements (Always visible) */}
       <div className="absolute top-6 left-6 right-6 z-[1000] flex justify-between items-center pointer-events-none">
         <div className="flex items-center gap-4 pointer-events-auto">
