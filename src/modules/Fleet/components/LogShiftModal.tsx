@@ -54,7 +54,7 @@ const LogShiftModal: React.FC<LogShiftModalProps> = ({ isOpen, onClose, vehicle,
       const comm = parseFloat(formData.commission) || 0;
       const endMileage = parseFloat(formData.end_mileage) || vehicle.current_mileage;
 
-      const { error: shiftError } = await supabase.from('fleet_shifts').insert([{
+      const { error: shiftError } = await supabase.from('fleet_rent_logs').insert([{
         tenant_id: tenantId,
         vehicle_id: vehicle.id,
         driver_id: formData.driver_id,

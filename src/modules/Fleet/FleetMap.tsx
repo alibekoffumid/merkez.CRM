@@ -4,7 +4,10 @@ import {
   ArrowLeft, 
   Navigation, 
   Layers,
-  Loader2
+  Loader2,
+  Clock,
+  TrendingUp,
+  History
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
@@ -20,6 +23,14 @@ interface UserContextType {
   profile: UserProfile | null;
 }
 
+interface VehicleWithShift extends Vehicle {
+  currentShift?: {
+    shift_start: string;
+    actual_revenue: number;
+    daily_plan: number;
+  };
+}
+
 const FleetMap: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -28,7 +39,7 @@ const FleetMap: React.FC = () => {
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
   
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicles, setVehicles] = useState<VehicleWithShift[]>([]);
   const [loading, setLoading] = useState(true);
   const [mapType, setMapType] = useState<'streets' | 'satellite'>('streets');
 
@@ -62,9 +73,7 @@ const FleetMap: React.FC = () => {
 
   useEffect(() => {
     if (!mapRef.current) return;
-    const url = mapType === 'streets' 
-      ? 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}' 
-      : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Hybrid for satellite
+    const url = mapType === 'streets' ? 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}' : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
 
     mapRef.current.eachLayer((layer) => {
       if (layer instanceof L.TileLayer) mapRef.current?.removeLayer(layer);
@@ -75,6 +84,15 @@ const FleetMap: React.FC = () => {
       subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(mapRef.current);
   }, [mapType]);
+
+  const calculateDuration = (startTime: string) => {
+    const start = new Date(startTime);
+    const now = new Date();
+    const diff = now.getTime() - start.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}ч ${mins}м`;
+  };
 
   useEffect(() => {
     if (!markersRef.current || !vehicles.length) return;
@@ -92,6 +110,35 @@ const FleetMap: React.FC = () => {
         iconSize: [40, 40],
         iconAnchor: [20, 40]
       });
+
+      const shiftInfo = v.currentShift ? `
+        <div class="mt-6 pt-6 border-t border-gray-100 animate-in slide-in-from-bottom-2 duration-500">
+           <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+             <History className="w-3 h-3" />
+             ТЕКУЩАЯ СМЕНА
+           </p>
+           <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-1">
+                 <div class="flex items-center gap-1.5 text-gray-500">
+                    <Clock className="w-3.5 h-3.5 text-blue-500" />
+                    <span class="text-[10px] font-bold uppercase">В работе</span>
+                 </div>
+                 <p class="text-sm font-black text-gray-900">${calculateDuration(v.currentShift.shift_start)}</p>
+                 <p class="text-[9px] text-gray-400 font-bold">С ${new Date(v.currentShift.shift_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+              <div class="space-y-1">
+                 <div class="flex items-center gap-1.5 text-gray-500">
+                    <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                    <span class="text-[10px] font-bold uppercase">Прибыль</span>
+                 </div>
+                 <p class="text-sm font-black ${v.currentShift.actual_revenue - v.currentShift.daily_plan < 0 ? 'text-red-600' : 'text-green-600'}">
+                   ${(v.currentShift.actual_revenue - v.currentShift.daily_plan).toFixed(2)} ₼
+                 </p>
+                 <p class="text-[9px] text-gray-400 font-bold">${v.currentShift.actual_revenue} ₼ всего</p>
+              </div>
+           </div>
+        </div>
+      ` : '';
 
       const popupContent = `
         <div class="p-6 min-w-[280px] font-sans relative">
@@ -116,7 +163,7 @@ const FleetMap: React.FC = () => {
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${t('fleet.fleetMember')}</p>
           </div>
           
-          <div class="grid grid-cols-2 gap-4 mb-8">
+          <div class="grid grid-cols-2 gap-4">
              <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
                 <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">${t('fleet.mileage')}</p>
                 <p class="text-sm font-black text-gray-900 leading-none">${v.current_mileage.toLocaleString()} км</p>
@@ -126,8 +173,10 @@ const FleetMap: React.FC = () => {
                 <p class="text-sm font-black text-gray-900 leading-none">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
              </div>
           </div>
+
+          ${shiftInfo}
           
-          <button class="w-full py-4 bg-gray-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-blue-600 shadow-xl hover:shadow-blue-600/20 transition-all flex items-center justify-center gap-2 group">
+          <button class="w-full mt-8 py-4 bg-gray-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-blue-600 shadow-xl hover:shadow-blue-600/20 transition-all flex items-center justify-center gap-2 group">
             ${t('fleet.logShift')}
             <svg class="group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
           </button>
@@ -148,14 +197,29 @@ const FleetMap: React.FC = () => {
   const fetchVehicles = async () => {
     try {
       const tenantId = profile?.tenant_id || profile?.id;
-      const { data } = await supabase.from('fleet_vehicles').select('*').eq('tenant_id', tenantId);
+      
+      // 1. Fetch vehicles
+      const { data: vData } = await supabase.from('fleet_vehicles').select('*').eq('tenant_id', tenantId);
+      
+      // 2. Fetch active shifts
+      const { data: sData } = await supabase.from('fleet_rent_logs')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('status', 'open');
+
       const demoCoords: [number, number][] = [[40.4093, 49.8671], [40.3772, 49.8431], [40.3953, 49.8722], [40.3833, 49.8133]];
-      const processed = (data || []).map((v, i) => ({
-        ...v,
-        last_lat: v.last_lat || demoCoords[i % demoCoords.length][0],
-        last_lng: v.last_lng || demoCoords[i % demoCoords.length][1]
-      }));
-      setVehicles(processed as Vehicle[]);
+      
+      const processed = (vData || []).map((v, i) => {
+        const activeShift = sData?.find(s => s.vehicle_id === v.id);
+        return {
+          ...v,
+          last_lat: v.last_lat || demoCoords[i % demoCoords.length][0],
+          last_lng: v.last_lng || demoCoords[i % demoCoords.length][1],
+          currentShift: activeShift
+        };
+      });
+      
+      setVehicles(processed as VehicleWithShift[]);
     } catch (e) {} finally { setLoading(false); }
   };
 
@@ -199,16 +263,16 @@ const FleetMap: React.FC = () => {
           border-radius: 2.5rem !important; 
           padding: 0 !important;
           overflow: hidden !important;
-          box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25) !important;
+          box-shadow: 0 40px 80px -20px rgba(0,0,0,0.3) !important;
           border: 1px solid rgba(0,0,0,0.05) !important;
         }
         .leaflet-popup-content { margin: 0 !important; width: auto !important; }
         .leaflet-popup-tip { display: none !important; }
         .premium-popup .leaflet-popup-close-button {
-          top: 20px !important;
-          right: 20px !important;
+          top: 24px !important;
+          right: 24px !important;
           color: #cbd5e1 !important;
-          font-size: 24px !important;
+          font-size: 22px !important;
           background: #f8fafc !important;
           width: 32px !important;
           height: 32px !important;
