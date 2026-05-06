@@ -90,21 +90,24 @@ const FleetMap: React.FC = () => {
       });
 
       const popupContent = `
-        <div class="p-6 min-w-[280px] font-sans">
-          <!-- Top Row: Spread out correctly -->
-          <div class="flex items-center justify-between mb-6 pr-8">
-             <div class="flex items-center bg-white border-2 border-gray-900 rounded-lg overflow-hidden h-10 shadow-sm">
+        <div class="p-6 min-w-[280px] font-sans relative">
+          <!-- Close button spacer if needed, but close button is absolute -->
+          
+          <div class="flex flex-col items-start gap-3 mb-6">
+             <!-- Plate: Full width available now -->
+             <div class="flex items-center bg-white border-2 border-gray-900 rounded-lg overflow-hidden h-10 shadow-sm pr-4">
                 <div class="bg-blue-700 w-4 h-full flex flex-col items-center justify-center">
                    <span class="text-[7px] text-white font-black leading-none mb-0.5">AZ</span>
                    <div class="w-1.5 h-1.5 bg-red-500 rounded-full shadow-sm"></div>
                 </div>
                 <div class="px-3">
-                   <span class="text-base font-black text-gray-900 tracking-tighter">${v.plate_number}</span>
+                   <span class="text-base font-black text-gray-900 tracking-tighter whitespace-nowrap">${v.plate_number}</span>
                 </div>
              </div>
              
-             <div class="px-3 py-1.5 rounded-xl text-[9px] font-black tracking-widest flex items-center gap-2 whitespace-nowrap" style="background-color: ${color}10; color: ${color}; border: 1px solid ${color}20;">
-                <span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color: ${color};"></span>
+             <!-- Status: Below the plate -->
+             <div class="px-3 py-1.5 rounded-xl text-[9px] font-black tracking-widest flex items-center gap-2" style="background-color: ${color}10; color: ${color}; border: 1px solid ${color}20;">
+                <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${color};"></span>
                 ${statusText}
              </div>
           </div>
@@ -115,11 +118,11 @@ const FleetMap: React.FC = () => {
           </div>
           
           <div class="grid grid-cols-2 gap-3 mb-6">
-             <div class="bg-gray-50/50 p-2.5 rounded-2xl border border-gray-100/50">
+             <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
                 <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">Пробег</p>
                 <p class="text-sm font-black text-gray-900 leading-none">${v.current_mileage.toLocaleString()} км</p>
              </div>
-             <div class="bg-gray-50/50 p-2.5 rounded-2xl border border-gray-100/50">
+             <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
                 <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">Страховка</p>
                 <p class="text-sm font-black text-gray-900 leading-none">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
              </div>
