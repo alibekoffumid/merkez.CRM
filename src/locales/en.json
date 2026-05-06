@@ -12,6 +12,7 @@
     "dental": "Dental",
     "education": "Education",
     "retail": "Retail POS",
+    "fleet": "Fleet Management",
     "modules": "Modules"
   },
   "retail": {
@@ -783,6 +784,9 @@
     "restaurantDesc": "Order management, menus, tables and kitchen",
     "financeDesc": "Revenue, expenses, reports and financial analytics",
     "callCenterDesc": "Call management, scripts and inquiry analytics",
-    "eTaxesDesc": "Electronic tax reports and declarations"
+    "eTaxesDesc": "Electronic tax reports and declarations",
+    "integrationsDesc": "Unified hub for WhatsApp, Instagram and Telephony messages",
+    "retailDesc": "Fast retail sales, barcode scanning and inventory for stores",
+    "fleetDesc": "Complete fleet management for taxi companies, drivers and rent control"
   }
 }

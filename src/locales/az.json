@@ -13,6 +13,7 @@
     "education": "Təhsil",
     "integrations": "Omnikanallıq",
     "retail": "Pərakəndə Satış",
+    "fleet": "Avtopark",
     "modules": "Modullar"
   },
   "retail": {
@@ -777,6 +778,7 @@
     "callCenterDesc": "Zəng idarəsi, skriptlər və müraciət analitikası",
     "eTaxesDesc": "Elektron vergi hesabatları və bəyannamələr",
     "integrationsDesc": "WhatsApp, Instagram və Telefoniya mesajları üçün vahid mərkəz",
-    "retailDesc": "Mağazalar üçün sürətli pərakəndə satış, ştrix-kod skan edilməsi və inventar idarəedilməsi"
+    "retailDesc": "Mağazalar üçün sürətli pərakəndə satış, ştrix-kod skan edilməsi və inventar idarəedilməsi",
+    "fleetDesc": "Taksi parkları, sürücülər və arenda öhdəliklərinin tam idarəetmə sistemi"
   }
 }

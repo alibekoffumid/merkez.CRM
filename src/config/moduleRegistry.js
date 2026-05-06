@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare, ShoppingCart } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare, ShoppingCart, Car } from 'lucide-react';
 
 // Master registry of all available modules in the platform
 // This is the single source of truth for module metadata
