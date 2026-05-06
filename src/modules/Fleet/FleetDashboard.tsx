@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   TrendingUp,
   ArrowRight,
-  Loader2
+  Loader2,
+  Map as MapIcon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
@@ -136,6 +137,13 @@ const FleetDashboard: React.FC = () => {
           <p className="text-gray-500 font-medium mt-1">Управление таксопарком и водителями</p>
         </div>
         <div className="flex gap-3">
+          <button 
+            onClick={() => navigate('/fleet/map')}
+            className="flex items-center gap-2 bg-white border border-gray-200 px-6 py-3 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
+          >
+            <MapIcon className="w-5 h-5 text-blue-500" />
+            Карта
+          </button>
           <button 
             onClick={() => navigate('/fleet/drivers')}
             className="flex items-center gap-2 bg-white border border-gray-200 px-6 py-3 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
