@@ -135,6 +135,18 @@ export const MODULE_REGISTRY = {
     isFree: false,
     isCore: false,
   },
+  fleet: {
+    id: 'fleet',
+    nameKey: 'sidebar.fleet',
+    descriptionKey: 'modules.fleetDesc',
+    icon: Car,
+    path: '/fleet',
+    color: 'hover:text-merkez-blue hover:bg-blue-50',
+    accentColor: 'blue',
+    price: 49,
+    isFree: false,
+    isCore: false,
+  },
 };
 
 // Get the navigation-ready array from active modules
