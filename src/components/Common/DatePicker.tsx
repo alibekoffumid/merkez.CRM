@@ -42,11 +42,23 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
     setViewDate(d);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDateValue = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  const getDisplayDate = (date: Date) => {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    // We can use i18n for months if needed, but manual formatting is more reliable for simple UI
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
   };
 
   const year = viewDate.getFullYear();
@@ -59,7 +71,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
   for (let i = 0; i < firstDay; i++) days.push(<div key={`e${i}`} />);
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(year, month, d);
-    const dateStr = formatDate(date);
+    const dateStr = formatDateValue(date);
     const isToday = date.toDateString() === today.toDateString();
     const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
 
@@ -95,7 +107,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
         className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left relative group"
       >
         <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
-        <span>{selectedDate ? selectedDate.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: 'numeric' }) : 'Select Date'}</span>
+        <span className="font-black tracking-tight">
+          {selectedDate ? getDisplayDate(selectedDate) : 'Select Date'}
+        </span>
       </button>
 
       {isOpen && (
@@ -129,7 +143,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
           <button 
             type="button"
             onClick={() => {
-              onChange(formatDate(new Date()));
+              onChange(formatDateValue(new Date()));
               setIsOpen(false);
             }}
             className="w-full mt-6 py-3 bg-gray-50 hover:bg-gray-100 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
