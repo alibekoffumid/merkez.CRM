@@ -5,6 +5,7 @@ import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
 import EditProductModal from './EditProductModal';
+import EditCategoryModal from './EditCategoryModal';
 import AddIngredientModal from './AddIngredientModal';
 import EditIngredientModal from './EditIngredientModal';
 
@@ -21,6 +22,7 @@ const WarehouseModule = () => {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
@@ -134,6 +136,7 @@ const WarehouseModule = () => {
       <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} onProductAdded={fetchProducts} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
       <EditProductModal isOpen={!!editingProduct} product={editingProduct} onClose={() => setEditingProduct(null)} categories={categories} onProductUpdated={fetchProducts} />
+      <EditCategoryModal isOpen={!!editingCategory} category={editingCategory} onClose={() => setEditingCategory(null)} onCategoryUpdated={fetchCategories} />
       
       <AddIngredientModal 
         isOpen={showAddIngredient} 
@@ -200,14 +203,26 @@ const WarehouseModule = () => {
                 {t('warehouse.allCategories')}
               </div>
               {categories.map(cat => (
-                <div key={cat.id} className={`p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.name ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}>
-                  <div className="flex items-center">
-                    <FolderTree className="w-4 h-4 mr-2 text-gray-400" />
-                    {cat.name}
+                <div 
+                  key={cat.id} 
+                  className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.name ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
+                  onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
+                >
+                  <div className="flex items-center flex-1 truncate">
+                    <FolderTree className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
+                    <span className="truncate">{cat.name}</span>
                   </div>
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                    {products.filter(p => p.categories?.name === cat.name).length}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
+                      {products.filter(p => p.categories?.name === cat.name).length}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
