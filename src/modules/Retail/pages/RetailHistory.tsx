@@ -52,8 +52,9 @@ const RetailHistory: React.FC = () => {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'cash' | 'card'>('all');
 
   const formatDate = (dateString: string) => {
@@ -96,27 +97,64 @@ const RetailHistory: React.FC = () => {
       sale.total_amount.toString().includes(searchQuery);
     const matchesPayment = paymentFilter === 'all' || sale.payment_method === paymentFilter;
     let matchesDate = true;
-    if (dateFrom) {
-      matchesDate = matchesDate && new Date(sale.created_at) >= new Date(dateFrom);
+    if (rangeStart) {
+      const start = new Date(rangeStart); start.setHours(0,0,0,0);
+      matchesDate = matchesDate && new Date(sale.created_at) >= start;
     }
-    if (dateTo) {
-      const endDate = new Date(dateTo);
-      endDate.setHours(23, 59, 59, 999);
-      matchesDate = matchesDate && new Date(sale.created_at) <= endDate;
+    if (rangeEnd) {
+      const end = new Date(rangeEnd); end.setHours(23,59,59,999);
+      matchesDate = matchesDate && new Date(sale.created_at) <= end;
     }
     return matchesSearch && matchesPayment && matchesDate;
   });
 
   const clearFilters = () => {
-    setDateFrom('');
-    setDateTo('');
+    setRangeStart(null);
+    setRangeEnd(null);
     setPaymentFilter('all');
     setSearchQuery('');
     setShowCalendar(false);
     setShowFilter(false);
   };
 
-  const hasActiveFilters = dateFrom || dateTo || paymentFilter !== 'all';
+  const hasActiveFilters = rangeStart || rangeEnd || paymentFilter !== 'all';
+
+  // Calendar helpers
+  const getDaysInMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const getFirstDayOfWeek = (d: Date) => { const day = new Date(d.getFullYear(), d.getMonth(), 1).getDay(); return day === 0 ? 6 : day - 1; };
+  
+  const handleDayClick = (day: number) => {
+    const clicked = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+    if (!rangeStart || (rangeStart && rangeEnd)) {
+      setRangeStart(clicked);
+      setRangeEnd(null);
+    } else {
+      if (clicked < rangeStart) { setRangeEnd(rangeStart); setRangeStart(clicked); }
+      else { setRangeEnd(clicked); }
+    }
+  };
+
+  const isInRange = (day: number) => {
+    if (!rangeStart || !rangeEnd) return false;
+    const d = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+    return d >= rangeStart && d <= rangeEnd;
+  };
+
+  const isStart = (day: number) => rangeStart && day === rangeStart.getDate() && calendarMonth.getMonth() === rangeStart.getMonth() && calendarMonth.getFullYear() === rangeStart.getFullYear();
+  const isEnd = (day: number) => rangeEnd && day === rangeEnd.getDate() && calendarMonth.getMonth() === rangeEnd.getMonth() && calendarMonth.getFullYear() === rangeEnd.getFullYear();
+  const isToday = (day: number) => { const t = new Date(); return day === t.getDate() && calendarMonth.getMonth() === t.getMonth() && calendarMonth.getFullYear() === t.getFullYear(); };
+
+  const monthNames: Record<string, string[]> = {
+    az: ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'],
+    ru: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+    en: ['January','February','March','April','May','June','July','August','September','October','November','December']
+  };
+  const weekDays: Record<string, string[]> = {
+    az: ['B.E','Ç.A','Ç','C.A','C','Ş','B'],
+    ru: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+    en: ['Mo','Tu','We','Th','Fr','Sa','Su']
+  };
+  const lang = i18n.language || 'ru';
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -164,26 +202,42 @@ const RetailHistory: React.FC = () => {
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
-            <button onClick={() => { setShowCalendar(!showCalendar); setShowFilter(false); }} className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-bold rounded-2xl transition-all ${dateFrom || dateTo ? 'bg-merkez-blue/10 text-merkez-blue border border-merkez-blue/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
+            <button onClick={() => { setShowCalendar(!showCalendar); setShowFilter(false); }} className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-bold rounded-2xl transition-all ${rangeStart || rangeEnd ? 'bg-merkez-blue/10 text-merkez-blue border border-merkez-blue/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
               <Calendar className="w-4 h-4" />
               {t('retail.period')}
-              {(dateFrom || dateTo) && <span className="w-2 h-2 rounded-full bg-merkez-blue" />}
+              {(rangeStart || rangeEnd) && <span className="w-2 h-2 rounded-full bg-merkez-blue" />}
             </button>
             {showCalendar && (
-              <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 w-72 animate-in fade-in zoom-in-95 duration-150">
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">{i18n.language === 'az' ? 'Başlanğıc' : i18n.language === 'en' ? 'From' : 'От'}</label>
-                    <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all" />
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 w-[340px] animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-lg font-black text-gray-900">{(monthNames[lang] || monthNames.ru)[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}</span>
+                  <div className="flex gap-1">
+                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1))} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-500 font-bold">&lt;</button>
+                    <button onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1))} className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-500 font-bold">&gt;</button>
                   </div>
-                  <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">{i18n.language === 'az' ? 'Son' : i18n.language === 'en' ? 'To' : 'До'}</label>
-                    <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all" />
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <button onClick={() => { setDateFrom(''); setDateTo(''); }} className="flex-1 py-2.5 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">{t('common.cancel')}</button>
-                    <button onClick={() => setShowCalendar(false)} className="flex-1 py-2.5 text-xs font-bold text-white bg-merkez-blue rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">{t('common.confirm')}</button>
-                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-0 mb-1">
+                  {(weekDays[lang] || weekDays.ru).map(d => (
+                    <div key={d} className="text-center text-[10px] font-black text-gray-400 uppercase tracking-wider py-2">{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-0">
+                  {Array.from({ length: getFirstDayOfWeek(calendarMonth) }).map((_, i) => <div key={`e${i}`} />)}
+                  {Array.from({ length: getDaysInMonth(calendarMonth) }).map((_, i) => {
+                    const day = i + 1;
+                    const selected = isStart(day) || isEnd(day);
+                    const inRange = isInRange(day);
+                    const today = isToday(day);
+                    return (
+                      <button key={day} onClick={() => handleDayClick(day)} className={`relative w-full aspect-square flex items-center justify-center text-sm font-bold transition-all ${selected ? 'bg-merkez-blue text-white rounded-xl z-10 shadow-lg shadow-blue-500/30' : inRange ? 'bg-merkez-blue/10 text-merkez-blue' : today ? 'ring-2 ring-merkez-blue/30 rounded-xl text-merkez-blue' : 'text-gray-700 hover:bg-gray-100 rounded-xl'}`}>
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-2 pt-4 mt-2 border-t border-gray-100">
+                  <button onClick={() => { setRangeStart(null); setRangeEnd(null); }} className="flex-1 py-2.5 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">{lang === 'az' ? 'Təmizlə' : lang === 'en' ? 'Clear' : 'Очистить'}</button>
+                  <button onClick={() => setShowCalendar(false)} className="flex-1 py-2.5 text-xs font-bold text-white bg-merkez-blue rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">{lang === 'az' ? 'Tətbiq et' : lang === 'en' ? 'Apply' : 'Применить'}</button>
                 </div>
               </div>
             )}
