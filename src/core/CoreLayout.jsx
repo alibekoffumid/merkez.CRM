@@ -29,18 +29,17 @@ const CoreLayout = () => {
       )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden overflow-x-hidden transition-all duration-300 ${
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden overflow-x-hidden transition-all duration-300 bg-gray-50/50 ${
         isSidebarExpanded ? 'lg:filter lg:blur-sm lg:brightness-90 lg:pointer-events-none' : ''
       }`}>
         {!isRetail && <Header onMenuClick={toggleMobileSidebar} />}
-        <main className={`flex-1 min-h-0 overflow-hidden bg-gray-50/50 ${isRetail ? 'h-full' : ''}`}>
+        <main className={`flex-1 min-h-0 overflow-hidden ${isRetail ? 'h-full pt-0' : ''}`}>
           <div className="h-full overflow-y-auto overflow-x-hidden no-scrollbar">
-            <div className={`${isRetail ? 'p-2 pl-20 lg:pl-24' : 'p-4 sm:p-6 lg:p-10 lg:pl-24'} max-w-full mx-auto h-full`}>
+            <div className={`${isRetail ? 'p-2 pt-4 pl-20 lg:pl-24' : 'p-4 sm:p-6 lg:p-10 lg:pl-24'} max-w-full mx-auto h-full`}>
               <Outlet />
             </div>
           </div>
         </main>
-
       </div>
     </div>
   );
