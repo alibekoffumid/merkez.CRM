@@ -16,6 +16,7 @@ import DentalModule from './modules/Dental';
 import EducationModule from './modules/Education';
 import IntegrationsModule from './modules/Integrations';
 import RetailModule from './modules/Retail';
+import ScannerModule from './modules/Scanner';
 import ModuleStore from './pages/ModuleStore';
 import { Toaster } from 'react-hot-toast';
 
@@ -71,6 +72,13 @@ function App() {
         <Route path="/modules" element={
           <AuthGuard>
             <ModuleStore />
+          </AuthGuard>
+        } />
+
+        {/* Mobile Scanner — standalone layout, no sidebar/header */}
+        <Route path="/scanner/*" element={
+          <AuthGuard>
+            <ScannerModule />
           </AuthGuard>
         } />
 
