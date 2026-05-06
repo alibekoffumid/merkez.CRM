@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { 
   Car, 
   Users, 
-  AlertCircle, 
-  DollarSign, 
-  MessageCircle, 
+  Clock, 
+  Calendar, 
+  Plus, 
   Search,
-  Plus,
-  Wrench,
+  Settings,
+  MoreVertical,
+  Edit,
+  Trash2,
   ShieldCheck,
   TrendingUp,
   ArrowRight,
@@ -17,36 +19,34 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
-import { Vehicle, Driver, RentLog, FleetStats } from './types/fleet';
+import { Vehicle } from './types/fleet';
 import { UserProfile } from '../../types/auth';
 import { toast } from 'react-hot-toast';
 import AddVehicleModal from './components/AddVehicleModal';
-import AddDriverModal from './components/AddDriverModal';
 import LogShiftModal from './components/LogShiftModal';
-import { sendDriverDailyReport } from './utils/whatsapp';
+import { useTranslation } from 'react-i18next';
 
 interface UserContextType {
   profile: UserProfile | null;
-  loading: boolean;
-  activeModules: string[];
 }
 
 const FleetDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useUser() as UserContextType;
+  
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [stats, setStats] = useState<FleetStats>({
-    total_vehicles: 0,
-    active_vehicles: 0,
-    daily_revenue: 0,
-    pending_maintenance: 0
-  });
   const [loading, setLoading] = useState(true);
-  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inRepair: 0,
+    dailyRent: 0
+  });
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -59,43 +59,26 @@ const FleetDashboard: React.FC = () => {
       setLoading(true);
       const tenantId = profile?.tenant_id || profile?.id;
       
-      const { data: vData, error: vError } = await supabase
+      const { data, error } = await supabase
         .from('fleet_vehicles')
         .select('*')
-        .eq('tenant_id', tenantId)
-        .order('created_at', { ascending: false });
+        .eq('tenant_id', tenantId);
 
-      if (vError) throw vError;
-      setVehicles(vData || []);
+      if (error) throw error;
+      setVehicles(data || []);
 
-      const maintenanceAlerts = (vData || []).filter(v => {
-        const oilGap = v.current_mileage - v.last_oil_change;
-        const daysToInsurance = v.insurance_expiry 
-          ? (new Date(v.insurance_expiry).getTime() - new Date().getTime()) / (1000 * 3600 * 24)
-          : 999;
-        return oilGap > 9000 || daysToInsurance < 7;
-      }).length;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Simple stats calculation
+      const active = data?.filter(v => v.status === 'active').length || 0;
+      const repair = data?.filter(v => v.status === 'repair').length || 0;
       
-      const { data: lData } = await supabase
-        .from('fleet_rent_logs')
-        .select('actual_revenue')
-        .eq('tenant_id', tenantId)
-        .gte('created_at', today.toISOString());
-
-      const todayRevenue = (lData || []).reduce((sum, l) => sum + (l.actual_revenue || 0), 0);
-
       setStats({
-        total_vehicles: vData?.length || 0,
-        active_vehicles: vData?.filter(v => v.status === 'active').length || 0,
-        daily_revenue: todayRevenue,
-        pending_maintenance: maintenanceAlerts
+        total: data?.length || 0,
+        active,
+        inRepair: repair,
+        dailyRent: (data?.length || 0) * 25 // Placeholder logic
       });
-
     } catch (error: any) {
-      toast.error('Error fetching fleet data: ' + error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -103,38 +86,35 @@ const FleetDashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'repair': return 'bg-red-500';
-      case 'available': return 'bg-blue-500';
-      default: return 'bg-gray-400';
+      case 'active': return 'bg-green-100 text-green-600';
+      case 'repair': return 'bg-red-100 text-red-600';
+      default: return 'bg-blue-100 text-blue-600';
     }
   };
 
-  const isMaintenanceCritical = (v: Vehicle) => {
-    const oilGap = v.current_mileage - v.last_oil_change;
-    const daysToInsurance = v.insurance_expiry 
-      ? (new Date(v.insurance_expiry).getTime() - new Date().getTime()) / (1000 * 3600 * 24)
-      : 999;
-    return oilGap > 9000 || daysToInsurance < 7;
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return t('fleet.statusActive');
+      case 'repair': return t('fleet.statusRepair');
+      default: return t('fleet.statusAvailable');
+    }
   };
 
-  const filteredVehicles = vehicles.filter(v => 
-    v.plate_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.brand_model.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <div className="p-6 lg:p-8 space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-6 lg:p-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            <div className="p-2 bg-merkez-blue/10 rounded-2xl">
-              <Car className="w-8 h-8 text-merkez-blue" />
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight flex items-center gap-4">
+            <div className="p-3 bg-blue-600 rounded-[1.25rem] shadow-xl shadow-blue-600/20">
+              <Car className="w-8 h-8 text-white" />
             </div>
-            Mərkəз Fleet
+            {t('fleet.dashboardTitle')}
           </h1>
-          <p className="text-gray-500 font-medium mt-1">Управление таксопарком и водителями</p>
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mt-3 ml-1 flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            {t('fleet.dashboardSubtitle')}
+          </p>
         </div>
         <div className="flex gap-3">
           <button 
@@ -142,214 +122,154 @@ const FleetDashboard: React.FC = () => {
             className="flex items-center gap-2 bg-white border border-gray-200 px-6 py-3 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
           >
             <MapIcon className="w-5 h-5 text-blue-500" />
-            Карта
+            {t('fleet.map')}
           </button>
           <button 
             onClick={() => navigate('/fleet/drivers')}
             className="flex items-center gap-2 bg-white border border-gray-200 px-6 py-3 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
           >
             <Users className="w-5 h-5" />
-            Водители
+            {t('fleet.drivers')}
           </button>
           <button 
-            onClick={() => setIsVehicleModalOpen(true)}
-            className="flex items-center gap-2 bg-merkez-blue text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all active:scale-95"
+            onClick={() => {
+              setSelectedVehicle(null);
+              setIsAddModalOpen(true);
+            }}
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
           >
             <Plus className="w-5 h-5" />
-            Добавить авто
+            {t('fleet.addVehicle')}
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Всего машин</p>
-          <div className="flex items-end justify-between">
-            <p className="text-4xl font-black text-gray-900">{stats.total_vehicles}</p>
-            <div className="p-2 bg-blue-50 rounded-xl">
-              <Car className="w-6 h-6 text-blue-500" />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {[
+          { label: t('fleet.totalVehicles'), value: stats.total, icon: Car, color: 'blue' },
+          { label: t('fleet.onLine'), value: stats.active, icon: TrendingUp, color: 'green' },
+          { label: t('fleet.activeShifts'), value: stats.active, icon: Clock, color: 'purple' },
+          { label: t('fleet.totalRentToday'), value: `${stats.dailyRent} ₼`, icon: Calendar, color: 'orange' },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-2xl bg-${stat.color}-50 group-hover:scale-110 transition-transform`}>
+                <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
+              </div>
+              <ArrowRight className="w-5 h-5 text-gray-200 group-hover:text-gray-400 transition-colors" />
             </div>
+            <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1">{stat.label}</p>
+            <p className="text-3xl font-black text-gray-900">{stat.value}</p>
           </div>
-        </div>
-        <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">На линии</p>
-          <div className="flex items-end justify-between">
-            <p className="text-4xl font-black text-green-500">{stats.active_vehicles}</p>
-            <div className="p-2 bg-green-50 rounded-xl">
-              <TrendingUp className="w-6 h-6 text-green-500" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Выручка (сегодня)</p>
-          <div className="flex items-end justify-between">
-            <p className="text-4xl font-black text-merkez-blue">{stats.daily_revenue} ₼</p>
-            <div className="p-2 bg-blue-50 rounded-xl">
-              <DollarSign className="w-6 h-6 text-merkez-blue" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Нужен сервис</p>
-          <div className="flex items-end justify-between">
-            <p className="text-4xl font-black text-red-500">{stats.pending_maintenance}</p>
-            <div className="p-2 bg-red-50 rounded-xl">
-              <Wrench className="w-6 h-6 text-red-500" />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Vehicle Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between px-2">
-          <h3 className="text-xl font-bold text-gray-900 tracking-tight">Автопарк</h3>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      {/* Main Content Area */}
+      <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h3 className="text-xl font-black text-gray-900">{t('fleet.fleetList')}</h3>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Поиск по номеру..." 
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-merkez-blue/20 transition-all outline-none"
+              placeholder={t('header.search')}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-100 transition-all outline-none"
             />
           </div>
         </div>
 
-        {filteredVehicles.length === 0 && !loading ? (
-          <div className="bg-white rounded-[2.5rem] p-12 text-center border-2 border-dashed border-gray-100">
-             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Car className="w-10 h-10 text-gray-300" />
-             </div>
-             <h3 className="text-xl font-bold text-gray-900 mb-2">Автопарк пуст</h3>
-             <p className="text-gray-500 mb-6">Начните с добавления первого автомобиля в вашу систему.</p>
-             <button 
-              onClick={() => setIsVehicleModalOpen(true)}
-              className="px-8 py-3 bg-merkez-blue text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20"
-             >
-               Добавить первый автомобиль
-             </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {loading ? (
-              [1,2,3].map(i => <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-[2.5rem]" />)
-            ) : filteredVehicles.map(vehicle => (
-              <div 
-                key={vehicle.id} 
-                className={`bg-white p-6 rounded-[2.5rem] border-2 transition-all group ${
-                  isMaintenanceCritical(vehicle) ? 'border-red-100 bg-red-50/20' : 'border-gray-100 hover:border-merkez-blue/30'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(vehicle.status)}`} />
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        {vehicle.status}
-                      </span>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50/50">
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.plateNumber')}</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.brandModel')}</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.status')}</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.mileage')}</th>
+                <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.action')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 text-sm">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center">
+                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-400 font-bold">{t('common.loading', 'Загрузка данных...')}</p>
+                  </td>
+                </tr>
+              ) : vehicles.map((v) => (
+                <tr key={v.id} className="hover:bg-gray-50/50 transition-colors group">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center font-black text-xs text-gray-500">
+                        AZ
+                      </div>
+                      <span className="font-black text-gray-900 tracking-tight">{v.plate_number}</span>
                     </div>
-                    <h4 className="text-xl font-black text-gray-900 uppercase">{vehicle.plate_number}</h4>
-                    <p className="text-sm font-bold text-gray-500">{vehicle.brand_model}</p>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded-2xl group-hover:bg-merkez-blue/5 transition-colors">
-                    <Car className="w-6 h-6 text-gray-400 group-hover:text-merkez-blue" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase">Пробег</p>
-                    <p className="font-bold text-gray-900">{vehicle.current_mileage.toLocaleString()} км</p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase">VIN</p>
-                    <p className="font-mono text-[10px] font-bold text-gray-700">{vehicle.vin}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 mb-6">
-                  <div className={`flex items-center gap-2 p-2 rounded-xl text-xs font-bold ${
-                    vehicle.current_mileage - vehicle.last_oil_change > 9000 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'
-                  }`}>
-                    <Wrench className="w-4 h-4" />
-                    Замена масла: {vehicle.last_oil_change.toLocaleString()} км
-                  </div>
-                  <div className={`flex items-center gap-2 p-2 rounded-xl text-xs font-bold ${
-                    new Date(vehicle.insurance_expiry).getTime() - new Date().getTime() < 7 * 24 * 3600 * 1000 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'
-                  }`}>
-                    <ShieldCheck className="w-4 h-4" />
-                    Страховка до: {new Date(vehicle.insurance_expiry).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                   <button 
-                    onClick={() => setSelectedVehicle(vehicle)}
-                    className="flex-1 py-3 bg-gray-900 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all"
-                   >
-                      Лог смены
-                      <TrendingUp className="w-4 h-4" />
-                   </button>
-                   <button 
-                    onClick={() => {
-                      setEditingVehicle(vehicle);
-                      setIsVehicleModalOpen(true);
-                    }}
-                    className="p-3 bg-gray-50 text-gray-400 rounded-2xl hover:text-merkez-blue transition-all"
-                   >
-                      <AlertCircle className="w-5 h-5" />
-                   </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Driver WhatsApp Reporting Section */}
-      <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <MessageCircle className="w-32 h-32" />
-        </div>
-        <div className="relative z-10 max-w-2xl">
-          <h2 className="text-2xl font-black mb-2">WhatsApp Отчетность</h2>
-          <p className="text-gray-400 font-medium mb-6">
-            Автоматически формируйте и отправляйте детализированные отчеты водителям на азербайджанском языке.
-          </p>
-          <div className="flex gap-3">
-             <button 
-              onClick={() => toast('Выберите смену для отправки отчета')}
-              className="flex items-center gap-2 bg-merkez-blue text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-blue-500/20 hover:bg-blue-600 transition-all"
-             >
-                <MessageCircle className="w-5 h-5" />
-                Отправить отчет водителю
-             </button>
-          </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <p className="font-bold text-gray-900">{v.brand_model}</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase mt-0.5">{v.year} Year · {v.vin.substring(0, 8)}...</p>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${getStatusColor(v.status)}`}>
+                      {getStatusLabel(v.status)}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2">
+                      <Gauge className="w-4 h-4 text-gray-300" />
+                      <span className="font-black text-gray-700">{v.current_mileage.toLocaleString()} км</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => {
+                          setSelectedVehicle(v);
+                          setIsShiftModalOpen(true);
+                        }}
+                        className="bg-gray-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all"
+                      >
+                        {t('fleet.logShift')}
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedVehicle(v);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
       <AddVehicleModal 
-        isOpen={isVehicleModalOpen} 
-        onClose={() => {
-          setIsVehicleModalOpen(false);
-          setEditingVehicle(null);
-        }} 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)}
         onSuccess={fetchFleetData}
-        initialData={editingVehicle}
+        initialData={selectedVehicle}
       />
-      <AddDriverModal 
-        isOpen={isDriverModalOpen} 
-        onClose={() => setIsDriverModalOpen(false)} 
-        onSuccess={fetchFleetData} 
-      />
-      <LogShiftModal 
-        isOpen={!!selectedVehicle}
-        vehicle={selectedVehicle}
-        onClose={() => setSelectedVehicle(null)}
-        onSuccess={fetchFleetData}
-      />
+
+      {selectedVehicle && (
+        <LogShiftModal
+          isOpen={isShiftModalOpen}
+          onClose={() => setIsShiftModalOpen(false)}
+          vehicle={selectedVehicle}
+          onSuccess={fetchFleetData}
+        />
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { Vehicle } from './types/fleet';
 import { UserProfile } from '../../types/auth';
+import { useTranslation } from 'react-i18next';
 
 // Import Leaflet directly
 import * as L from 'leaflet';
@@ -20,6 +21,7 @@ interface UserContextType {
 }
 
 const FleetMap: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { profile } = useUser() as UserContextType;
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,9 @@ const FleetMap: React.FC = () => {
 
   useEffect(() => {
     if (!mapRef.current) return;
-    const url = mapType === 'streets' ? 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}' : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
+    const url = mapType === 'streets' 
+      ? 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}' 
+      : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Hybrid for satellite
 
     mapRef.current.eachLayer((layer) => {
       if (layer instanceof L.TileLayer) mapRef.current?.removeLayer(layer);
@@ -78,7 +82,7 @@ const FleetMap: React.FC = () => {
 
     vehicles.forEach((v) => {
       const color = v.status === 'active' ? '#22c55e' : v.status === 'repair' ? '#ef4444' : '#2563eb';
-      const statusText = v.status === 'active' ? 'НА ЛИНИИ' : v.status === 'repair' ? 'В РЕМОНТЕ' : 'СВОБОДЕН';
+      const statusText = v.status === 'active' ? t('fleet.statusActive') : v.status === 'repair' ? t('fleet.statusRepair') : t('fleet.statusAvailable');
       
       const icon = L.divIcon({
         className: 'custom-div-icon',
@@ -91,10 +95,7 @@ const FleetMap: React.FC = () => {
 
       const popupContent = `
         <div class="p-6 min-w-[280px] font-sans relative">
-          <!-- Close button spacer if needed, but close button is absolute -->
-          
           <div class="flex flex-col items-start gap-3 mb-6">
-             <!-- Plate: Full width available now -->
              <div class="flex items-center bg-white border-2 border-gray-900 rounded-lg overflow-hidden h-10 shadow-sm pr-4">
                 <div class="bg-blue-700 w-4 h-full flex flex-col items-center justify-center">
                    <span class="text-[7px] text-white font-black leading-none mb-0.5">AZ</span>
@@ -104,32 +105,30 @@ const FleetMap: React.FC = () => {
                    <span class="text-base font-black text-gray-900 tracking-tighter whitespace-nowrap">${v.plate_number}</span>
                 </div>
              </div>
-             
-             <!-- Status: Below the plate -->
              <div class="px-3 py-1.5 rounded-xl text-[9px] font-black tracking-widest flex items-center gap-2" style="background-color: ${color}10; color: ${color}; border: 1px solid ${color}20;">
                 <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${color};"></span>
                 ${statusText}
              </div>
           </div>
           
-          <div class="mb-5">
-            <h4 class="text-xl font-black text-gray-900 leading-tight mb-1">${v.brand_model}</h4>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fleet Monitoring System</p>
+          <div class="mb-6">
+            <h4 class="text-xl font-black text-gray-900 leading-none mb-1.5">${v.brand_model}</h4>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${t('fleet.fleetMember')}</p>
           </div>
           
-          <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="grid grid-cols-2 gap-4 mb-8">
              <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
-                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">Пробег</p>
+                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">${t('fleet.mileage')}</p>
                 <p class="text-sm font-black text-gray-900 leading-none">${v.current_mileage.toLocaleString()} км</p>
              </div>
              <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
-                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">Страховка</p>
+                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 leading-none">${t('fleet.insurance')}</p>
                 <p class="text-sm font-black text-gray-900 leading-none">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
              </div>
           </div>
           
-          <button class="w-full py-4 bg-gray-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.1em] hover:bg-blue-600 shadow-xl hover:shadow-blue-600/30 transition-all flex items-center justify-center gap-2 group">
-            Лог смены
+          <button class="w-full py-4 bg-gray-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-blue-600 shadow-xl hover:shadow-blue-600/20 transition-all flex items-center justify-center gap-2 group">
+            ${t('fleet.logShift')}
             <svg class="group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
           </button>
         </div>
@@ -171,7 +170,7 @@ const FleetMap: React.FC = () => {
             <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-3xl shadow-xl border border-white/20">
               <h1 className="text-lg font-black text-gray-900 flex items-center gap-2">
                 <Navigation className="w-5 h-5 text-blue-600 animate-pulse" />
-                Live Monitor
+                {t('fleet.liveMonitor')}
               </h1>
             </div>
           </div>
@@ -180,7 +179,7 @@ const FleetMap: React.FC = () => {
             className="pointer-events-auto p-4 bg-white rounded-3xl shadow-xl border border-gray-100 flex items-center gap-2"
           >
             <Layers className="w-5 h-5 text-gray-600" />
-            <span className="text-xs font-black uppercase">{mapType === 'streets' ? 'SAT' : 'MAP'}</span>
+            <span className="text-xs font-black uppercase">{mapType === 'streets' ? t('fleet.satellite') : t('fleet.streets')}</span>
           </button>
         </div>
 
@@ -200,16 +199,16 @@ const FleetMap: React.FC = () => {
           border-radius: 2.5rem !important; 
           padding: 0 !important;
           overflow: hidden !important;
-          box-shadow: 0 40px 80px -20px rgba(0,0,0,0.3) !important;
+          box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25) !important;
           border: 1px solid rgba(0,0,0,0.05) !important;
         }
         .leaflet-popup-content { margin: 0 !important; width: auto !important; }
         .leaflet-popup-tip { display: none !important; }
         .premium-popup .leaflet-popup-close-button {
-          top: 24px !important;
-          right: 24px !important;
+          top: 20px !important;
+          right: 20px !important;
           color: #cbd5e1 !important;
-          font-size: 22px !important;
+          font-size: 24px !important;
           background: #f8fafc !important;
           width: 32px !important;
           height: 32px !important;

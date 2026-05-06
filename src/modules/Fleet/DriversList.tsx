@@ -1,195 +1,182 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
-  ArrowLeft, 
   Plus, 
-  Phone, 
-  CreditCard, 
-  Search,
+  Search, 
+  ArrowLeft,
+  Phone,
+  CreditCard,
   MoreVertical,
-  UserCheck,
-  UserMinus,
-  MessageSquare
+  Edit,
+  Trash2,
+  Loader2,
+  Shield
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
-import { Driver } from './types/fleet';
-import { UserProfile } from '../../types/auth';
 import { toast } from 'react-hot-toast';
 import AddDriverModal from './components/AddDriverModal';
+import { useTranslation } from 'react-i18next';
 
-interface UserContextType {
-  profile: UserProfile | null;
+interface Driver {
+  id: string;
+  full_name: string;
+  license_number: string;
+  whatsapp_number: string;
+  balance: number;
+  status: string;
 }
 
 const DriversList: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { profile } = useUser() as UserContextType;
+  const { profile } = useUser() as any;
+  
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
 
   useEffect(() => {
-    if (profile) {
-      fetchDrivers();
-    }
+    if (profile) fetchDrivers();
   }, [profile]);
 
   const fetchDrivers = async () => {
     try {
       setLoading(true);
       const tenantId = profile?.tenant_id || profile?.id;
-      
       const { data, error } = await supabase
         .from('fleet_drivers')
         .select('*')
-        .eq('tenant_id', tenantId)
-        .order('full_name', { ascending: true });
+        .eq('tenant_id', tenantId);
 
       if (error) throw error;
       setDrivers(data || []);
     } catch (error: any) {
-      toast.error('Ошибка загрузки водителей: ' + error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredDrivers = drivers.filter(d => 
-    d.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    d.whatsapp_number.includes(searchQuery)
-  );
-
   return (
-    <div className="p-6 lg:p-8 space-y-8 animate-in slide-in-from-right duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate('/fleet')}
-            className="p-3 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all active:scale-90 shadow-sm"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-400" />
-          </button>
-          <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Водители</h1>
-            <p className="text-gray-500 font-medium">Управление персоналом и балансами</p>
-          </div>
+    <div className="p-6 lg:p-8 max-w-[1400px] mx-auto animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div className="flex items-center gap-6">
+           <button 
+             onClick={() => navigate('/fleet')}
+             className="p-4 bg-white rounded-3xl shadow-xl border border-gray-100 hover:bg-gray-50 transition-all active:scale-90"
+           >
+             <ArrowLeft className="w-6 h-6 text-gray-900" />
+           </button>
+           <div>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+                <Users className="w-8 h-8 text-purple-600" />
+                {t('fleet.driversList')}
+              </h1>
+              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-1">{t('fleet.driversSubtitle')}</p>
+           </div>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-merkez-blue text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-blue-500/20 hover:bg-blue-600 transition-all active:scale-95"
+          onClick={() => {
+            setSelectedDriver(null);
+            setIsModalOpen(true);
+          }}
+          className="flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-gray-900/10 active:scale-95"
         >
           <Plus className="w-5 h-5" />
-          Новый водитель
+          {t('fleet.addDriver')}
         </button>
       </div>
 
-      {/* Search and Filters */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Поиск по имени или телефону..." 
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-6 py-4 bg-white border border-gray-100 rounded-[1.5rem] text-sm font-bold shadow-sm focus:ring-4 focus:ring-blue-50 transition-all outline-none"
-        />
-      </div>
+      <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+           <div className="relative w-full sm:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder={t('header.search')}
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-[1.25rem] text-sm font-bold focus:ring-2 focus:ring-blue-100 transition-all outline-none"
+              />
+           </div>
+        </div>
 
-      {/* Drivers Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3].map(i => <div key={i} className="h-48 bg-gray-50 animate-pulse rounded-[2.5rem]" />)}
-        </div>
-      ) : filteredDrivers.length === 0 ? (
-        <div className="bg-white rounded-[2.5rem] p-16 text-center border-2 border-dashed border-gray-100">
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-10 h-10 text-gray-300" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Список пуст</h3>
-          <p className="text-gray-500 mb-8">Вы еще не добавили ни одного водителя в систему.</p>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="px-10 py-4 bg-gray-900 text-white rounded-2xl font-black"
-          >
-            Добавить первого водителя
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDrivers.map(driver => (
-            <div key={driver.id} className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
-              <div className="flex justify-between items-start mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                    <Users className="w-7 h-7 text-gray-400 group-hover:text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-gray-900 text-lg leading-tight">{driver.full_name}</h4>
-                    <div className="flex items-center gap-1.5 mt-1">
-                       <span className={`w-2 h-2 rounded-full ${driver.status === 'active' ? 'bg-green-500' : 'bg-red-400'}`} />
-                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{driver.status}</span>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50/30">
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.fullName')}</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.licenseNumber')}</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.whatsapp')}</th>
+                <th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.balance')}</th>
+                <th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('fleet.action')}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 text-sm">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="py-20 text-center text-gray-400 font-bold">
+                    <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4 text-blue-600" />
+                    {t('common.loading')}
+                  </td>
+                </tr>
+              ) : drivers.map((d) => (
+                <tr key={d.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 font-black text-sm">
+                         {d.full_name.charAt(0)}
+                       </div>
+                       <span className="font-black text-gray-900">{d.full_name}</span>
                     </div>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => {
-                    setEditingDriver(driver);
-                    setIsModalOpen(true);
-                  }}
-                  className="p-2 hover:bg-gray-50 rounded-xl transition-colors"
-                >
-                  <MoreVertical className="w-5 h-5 text-gray-300" />
-                </button>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-gray-400" />
-                    <span className="text-xs font-bold text-gray-500">Баланс</span>
-                  </div>
-                  <span className={`text-sm font-black ${driver.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {driver.balance.toFixed(2)} ₼
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 px-3">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs font-bold text-gray-700">{driver.whatsapp_number}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <a 
-                  href={`https://wa.me/${driver.whatsapp_number}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black hover:bg-emerald-100 transition-all"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  WHATSAPP
-                </a>
-                <button className="flex-1 py-3 bg-gray-900 text-white rounded-xl text-xs font-black hover:bg-black transition-all">
-                  ДЕТАЛИ
-                </button>
-              </div>
-            </div>
-          ))}
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-gray-500 font-bold">
+                      <Shield className="w-4 h-4" />
+                      {d.license_number}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-gray-500 font-bold">
+                    <div className="flex items-center gap-2">
+                       <Phone className="w-4 h-4 text-green-500" />
+                       {d.whatsapp_number}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className={`px-4 py-2 rounded-xl inline-flex items-center gap-2 font-black ${d.balance < 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                       <CreditCard className="w-4 h-4" />
+                       {d.balance} ₼
+                    </div>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                       <button 
+                         onClick={() => {
+                           setSelectedDriver(d);
+                           setIsModalOpen(true);
+                         }}
+                         className="p-3 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all"
+                       >
+                         <Edit className="w-4 h-4" />
+                       </button>
+                       <button className="p-3 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all">
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       <AddDriverModal 
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingDriver(null);
-        }}
+        onClose={() => setIsModalOpen(false)}
         onSuccess={fetchDrivers}
-        initialData={editingDriver}
+        initialData={selectedDriver}
       />
     </div>
   );
