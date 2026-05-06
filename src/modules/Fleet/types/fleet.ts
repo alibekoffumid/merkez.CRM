@@ -2,7 +2,7 @@ export type VehicleStatus = 'active' | 'repair' | 'available';
 
 export interface Vehicle {
   id: string;
-  business_id: string;
+  tenant_id: string;
   plate_number: string;
   brand_model: string;
   year: number;
@@ -16,7 +16,7 @@ export interface Vehicle {
 
 export interface Driver {
   id: string;
-  business_id: string;
+  tenant_id: string;
   full_name: string;
   license_number: string;
   whatsapp_number: string;
@@ -27,7 +27,7 @@ export interface Driver {
 
 export interface RentLog {
   id: string;
-  business_id: string;
+  tenant_id: string;
   vehicle_id: string;
   driver_id: string;
   daily_plan: number;

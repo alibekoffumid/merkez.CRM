@@ -18,7 +18,7 @@ const FleetMobileEntry: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mileage || !profile?.business_id) return;
+    if (!mileage || !profile?.tenant_id) return;
 
     setLoading(true);
     try {
@@ -26,7 +26,7 @@ const FleetMobileEntry: React.FC = () => {
       const { error } = await supabase
         .from('fleet_rent_logs')
         .insert([{
-          business_id: profile.business_id,
+          tenant_id: profile.tenant_id,
           driver_id: profile.id, // Assuming current user is driver
           start_mileage: parseFloat(mileage),
           status: 'open'

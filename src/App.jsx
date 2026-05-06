@@ -16,6 +16,7 @@ import DentalModule from './modules/Dental';
 import EducationModule from './modules/Education';
 import IntegrationsModule from './modules/Integrations';
 import RetailModule from './modules/Retail';
+import FleetModule from './modules/Fleet';
 import ScannerModule from './modules/Scanner';
 import ModuleStore from './pages/ModuleStore';
 import { Toaster } from 'react-hot-toast';
@@ -165,6 +166,9 @@ function App() {
           } />
           <Route path="integrations" element={
             <ModuleGuard moduleId="integrations"><IntegrationsModule /></ModuleGuard>
+          } />
+          <Route path="fleet/*" element={
+            <ModuleGuard moduleId="fleet"><FleetModule /></ModuleGuard>
           } />
           <Route path="retail/*" element={
             <ModuleGuard moduleId="retail"><RetailModule /></ModuleGuard>

@@ -27,7 +27,7 @@ export const sendDriverDailyReport = async (log: RentLog) => {
 ---
 ✅ *Xalis mənfəət:* ${netProfit.toFixed(2)} ₼
 
-Hörmətlə, ${driver.business_id} taksoparkı.
+Hörmətlə, ${driver.tenant_id} taksoparkı.
 `.trim();
 
   try {
