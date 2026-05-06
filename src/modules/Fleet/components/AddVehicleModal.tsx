@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../../types/auth';
 import { Vehicle } from '../types/fleet';
 import { useTranslation } from 'react-i18next';
+import DatePicker from '../../../components/Common/DatePicker';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -159,11 +160,12 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('fleet.insuranceExpiry')}</label>
-              <div className="relative group">
-                 <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                 <input required type="date" className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-transparent rounded-[1.25rem] text-sm font-black focus:bg-white focus:border-blue-100 transition-all outline-none" value={formData.insurance_expiry} onChange={e => setFormData({...formData, insurance_expiry: e.target.value})} />
-              </div>
+              <DatePicker 
+                label={t('fleet.insuranceExpiry')}
+                value={formData.insurance_expiry}
+                onChange={(val) => setFormData({...formData, insurance_expiry: val})}
+                position="top"
+              />
             </div>
 
             <div className="pt-6">
