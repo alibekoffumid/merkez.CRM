@@ -12,13 +12,15 @@ import {
   MoreHorizontal,
   ChevronRight,
   Barcode,
-  ArrowUpDown
+  ArrowUpDown,
+  ChevronDown
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import { RetailProduct } from '../../../types/retail';
 import { UserProfile } from '../../../types/auth';
+import Dropdown from '../../../components/Common/Dropdown';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -362,17 +364,17 @@ const RetailInventory: React.FC = () => {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Категория</label>
-                  <select 
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-bold appearance-none"
+                  <Dropdown 
                     value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  >
-                    <option value="Grocery">Бакалея</option>
-                    <option value="Alcohol">Алкоголь</option>
-                    <option value="Tobacco">Табак</option>
-                    <option value="Beverages">Напитки</option>
-                    <option value="Dairy">Молочные продукты</option>
-                  </select>
+                    onChange={(val) => setFormData({...formData, category: val})}
+                    options={[
+                      { value: 'Grocery', label: 'Бакалея' },
+                      { value: 'Alcohol', label: 'Алкоголь' },
+                      { value: 'Tobacco', label: 'Табак' },
+                      { value: 'Beverages', label: 'Напитки' },
+                      { value: 'Dairy', label: 'Молочные продукты' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-2">
