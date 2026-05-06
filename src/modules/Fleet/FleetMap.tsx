@@ -4,12 +4,7 @@ import {
   ArrowLeft, 
   Navigation, 
   Layers,
-  Loader2,
-  Car,
-  Gauge,
-  ShieldCheck,
-  TrendingUp,
-  ExternalLink
+  Loader2
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
@@ -65,9 +60,9 @@ const FleetMap: React.FC = () => {
 
   useEffect(() => {
     if (!mapRef.current) return;
-    const streetUrl = 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
-    const satUrl = 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
-    const url = mapType === 'streets' ? streetUrl : satUrl;
+    const url = mapType === 'streets' 
+      ? 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}' 
+      : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Hybrid for satellite
 
     mapRef.current.eachLayer((layer) => {
       if (layer instanceof L.TileLayer) mapRef.current?.removeLayer(layer);
@@ -97,33 +92,43 @@ const FleetMap: React.FC = () => {
       });
 
       const popupContent = `
-        <div class="p-4 min-w-[240px] font-sans">
-          <div class="flex items-center justify-between mb-4">
-             <div class="bg-gray-100 px-3 py-1.5 rounded-lg border-2 border-gray-200">
-                <span class="text-sm font-black text-gray-900 tracking-tighter">${v.plate_number}</span>
+        <div class="p-6 min-w-[280px] font-sans">
+          <!-- Plate and Status -->
+          <div class="flex items-start justify-between mb-6">
+             <div class="flex items-center bg-white border-2 border-gray-900 rounded-lg overflow-hidden shadow-sm h-10">
+                <div class="bg-blue-700 w-3 h-full flex flex-col items-center justify-center p-0.5">
+                   <span class="text-[6px] text-white font-bold leading-none mb-0.5">AZ</span>
+                   <div class="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                </div>
+                <div class="px-3">
+                   <span class="text-base font-black text-gray-900 tracking-tighter">${v.plate_number}</span>
+                </div>
              </div>
-             <span class="text-[9px] font-black px-2 py-1 rounded-md bg-opacity-10" style="background-color: ${color}; color: ${color}; border: 1px solid ${color}40;">
+             <div class="px-3 py-1.5 rounded-full text-[9px] font-black tracking-widest flex items-center gap-1.5" style="background-color: ${color}15; color: ${color};">
+                <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${color};"></span>
                 ${statusText}
-             </span>
-          </div>
-          
-          <h4 class="text-base font-black text-gray-900 mb-1">${v.brand_model}</h4>
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Taxi Fleet Member</p>
-          
-          <div class="grid grid-cols-2 gap-3 mb-5">
-             <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-                <p class="text-[8px] font-black text-gray-400 uppercase mb-1">Пробег</p>
-                <p class="text-xs font-black text-gray-800">${v.current_mileage.toLocaleString()} км</p>
-             </div>
-             <div class="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
-                <p class="text-[8px] font-black text-gray-400 uppercase mb-1">Страховка</p>
-                <p class="text-xs font-black text-gray-800">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
              </div>
           </div>
           
-          <button class="w-full py-3 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2">
-            ЛОГ СМЕНЫ
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+          <div class="mb-6">
+            <h4 class="text-xl font-black text-gray-900 leading-none mb-1.5">${v.brand_model}</h4>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mərkəz Fleet Management</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-8">
+             <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">Пробег</p>
+                <p class="text-sm font-black text-gray-900">${v.current_mileage.toLocaleString()} км</p>
+             </div>
+             <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
+                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">Страховка</p>
+                <p class="text-sm font-black text-gray-900">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
+             </div>
+          </div>
+          
+          <button class="w-full py-4 bg-gray-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-600/20 transition-all flex items-center justify-center gap-2 group">
+            Лог смены
+            <svg class="group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
           </button>
         </div>
       `;
@@ -131,8 +136,9 @@ const FleetMap: React.FC = () => {
       L.marker([Number(v.last_lat), Number(v.last_lng)], { icon })
         .bindPopup(popupContent, { 
           className: 'premium-popup',
-          maxWidth: 300,
-          minWidth: 260
+          maxWidth: 320,
+          minWidth: 280,
+          closeButton: true
         })
         .addTo(markersRef.current!);
     });
@@ -142,8 +148,7 @@ const FleetMap: React.FC = () => {
     try {
       const tenantId = profile?.tenant_id || profile?.id;
       const { data } = await supabase.from('fleet_vehicles').select('*').eq('tenant_id', tenantId);
-      
-      const demoCoords: [number, number][] = [[40.4093, 49.8671], [40.3772, 49.8431], [40.3953, 49.8722]];
+      const demoCoords: [number, number][] = [[40.4093, 49.8671], [40.3772, 49.8431], [40.3953, 49.8722], [40.3833, 49.8133]];
       const processed = (data || []).map((v, i) => ({
         ...v,
         last_lat: v.last_lat || demoCoords[i % demoCoords.length][0],
@@ -190,19 +195,31 @@ const FleetMap: React.FC = () => {
         .leaflet-container { background: #f8fafc; outline: none; }
         .custom-div-icon { background: none !important; border: none !important; }
         .leaflet-popup-content-wrapper { 
-          border-radius: 2rem !important; 
+          border-radius: 2.5rem !important; 
           padding: 0 !important;
           overflow: hidden !important;
-          box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25) !important;
-          border: 1px solid rgba(255,255,255,0.1) !important;
+          box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25) !important;
+          border: 1px solid rgba(0,0,0,0.05) !important;
         }
         .leaflet-popup-content { margin: 0 !important; width: auto !important; }
         .leaflet-popup-tip { display: none !important; }
         .premium-popup .leaflet-popup-close-button {
-          top: 15px !important;
-          right: 15px !important;
-          color: #94a3b8 !important;
-          font-size: 20px !important;
+          top: 20px !important;
+          right: 20px !important;
+          color: #cbd5e1 !important;
+          font-size: 24px !important;
+          background: #f8fafc !important;
+          width: 32px !important;
+          height: 32px !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          border-radius: 50% !important;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        }
+        .premium-popup .leaflet-popup-close-button:hover {
+          color: #ef4444 !important;
+          background: #fff !important;
         }
       `}</style>
     </div>
