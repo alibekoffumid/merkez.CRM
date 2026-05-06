@@ -75,13 +75,20 @@ const RetailInventory: React.FC = () => {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const payload = {
+        name: formData.name,
+        barcode: formData.barcode,
+        purchase_price: formData.purchase_price,
+        price: formData.sale_price,
+        stock_quantity: formData.stock_quantity,
+        critical_stock: formData.critical_stock,
+        excise_stamp_required: formData.excise_stamp_required
+      };
+
       if (editingProduct) {
         const { error } = await supabase
           .from('products')
-          .update({
-            ...formData,
-            price: formData.sale_price // Sync with unified products table
-          })
+          .update(payload)
           .eq('id', editingProduct.id);
         if (error) throw error;
         toast.success('Товар обновлен');
@@ -90,8 +97,7 @@ const RetailInventory: React.FC = () => {
         const { error } = await supabase
           .from('products')
           .insert([{ 
-            ...formData, 
-            price: formData.sale_price, // Sync with unified products table
+            ...payload,
             user_id: profile.id 
           }]);
         if (error) throw error;
