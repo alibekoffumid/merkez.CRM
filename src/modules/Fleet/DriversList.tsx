@@ -29,6 +29,7 @@ const DriversList: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -135,7 +136,13 @@ const DriversList: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                <button 
+                  onClick={() => {
+                    setEditingDriver(driver);
+                    setIsModalOpen(true);
+                  }}
+                  className="p-2 hover:bg-gray-50 rounded-xl transition-colors"
+                >
                   <MoreVertical className="w-5 h-5 text-gray-300" />
                 </button>
               </div>
@@ -177,8 +184,12 @@ const DriversList: React.FC = () => {
 
       <AddDriverModal 
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingDriver(null);
+        }}
         onSuccess={fetchDrivers}
+        initialData={editingDriver}
       />
     </div>
   );

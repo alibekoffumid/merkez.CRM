@@ -42,6 +42,7 @@ const FleetDashboard: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -283,7 +284,13 @@ const FleetDashboard: React.FC = () => {
                       Лог смены
                       <TrendingUp className="w-4 h-4" />
                    </button>
-                   <button className="p-3 bg-gray-50 text-gray-400 rounded-2xl hover:text-merkez-blue transition-all">
+                   <button 
+                    onClick={() => {
+                      setEditingVehicle(vehicle);
+                      setIsVehicleModalOpen(true);
+                    }}
+                    className="p-3 bg-gray-50 text-gray-400 rounded-2xl hover:text-merkez-blue transition-all"
+                   >
                       <AlertCircle className="w-5 h-5" />
                    </button>
                 </div>
@@ -317,8 +324,12 @@ const FleetDashboard: React.FC = () => {
 
       <AddVehicleModal 
         isOpen={isVehicleModalOpen} 
-        onClose={() => setIsVehicleModalOpen(false)} 
+        onClose={() => {
+          setIsVehicleModalOpen(false);
+          setEditingVehicle(null);
+        }} 
         onSuccess={fetchFleetData}
+        initialData={editingVehicle}
       />
       <AddDriverModal 
         isOpen={isDriverModalOpen} 

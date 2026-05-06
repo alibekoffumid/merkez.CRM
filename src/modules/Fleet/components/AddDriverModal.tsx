@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { X, User, Phone, CreditCard, Hash } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, User, Phone, CreditCard, Hash, Save, Plus } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../../types/auth';
+import { Driver } from '../types/fleet';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -13,9 +14,10 @@ interface AddDriverModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: Driver | null;
 }
 
-const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSuccess, initialData }) => {
   const { profile } = useUser() as UserContextType;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,6 +26,24 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
     whatsapp_number: '',
     initial_balance: '0'
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        full_name: initialData.full_name,
+        license_number: initialData.license_number,
+        whatsapp_number: initialData.whatsapp_number,
+        initial_balance: initialData.balance.toString()
+      });
+    } else {
+      setFormData({
+        full_name: '',
+        license_number: '',
+        whatsapp_number: '',
+        initial_balance: '0'
+      });
+    }
+  }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -34,19 +54,30 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('fleet_drivers')
-        .insert([{
-          tenant_id: tenantId,
-          full_name: formData.full_name,
-          license_number: formData.license_number,
-          whatsapp_number: formData.whatsapp_number,
-          balance: parseFloat(formData.initial_balance),
-          status: 'active'
-        }]);
+      const payload = {
+        tenant_id: tenantId,
+        full_name: formData.full_name,
+        license_number: formData.license_number,
+        whatsapp_number: formData.whatsapp_number,
+        balance: parseFloat(formData.initial_balance),
+        status: initialData?.status || 'active'
+      };
 
-      if (error) throw error;
-      toast.success('Водитель успешно добавлен!');
+      if (initialData) {
+        const { error } = await supabase
+          .from('fleet_drivers')
+          .update(payload)
+          .eq('id', initialData.id);
+        if (error) throw error;
+        toast.success('Данные водителя обновлены!');
+      } else {
+        const { error } = await supabase
+          .from('fleet_drivers')
+          .insert([payload]);
+        if (error) throw error;
+        toast.success('Водитель успешно добавлен!');
+      }
+
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -65,7 +96,7 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
               <div className="p-2 bg-purple-50 rounded-xl">
                 <User className="w-6 h-6 text-purple-600" />
               </div>
-              Новый водитель
+              {initialData ? 'Редактировать профиль' : 'Новый водитель'}
             </h2>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <X className="w-6 h-6 text-gray-400" />
@@ -117,7 +148,7 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Начальный баланс (Депозит)</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Текущий баланс</label>
               <div className="relative">
                  <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                  <input 
@@ -136,7 +167,12 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
                 disabled={loading}
                 className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black shadow-xl shadow-gray-900/20 hover:bg-gray-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : 'Зарегистрировать водителя'}
+                {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : (
+                  <>
+                    {initialData ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                    {initialData ? 'Обновить данные' : 'Зарегистрировать водителя'}
+                  </>
+                )}
               </button>
             </div>
           </form>

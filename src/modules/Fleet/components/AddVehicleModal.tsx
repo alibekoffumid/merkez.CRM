@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { X, Car, Hash, Calendar, Gauge, ShieldCheck, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Car, Hash, Calendar, Gauge, ShieldCheck, Plus, Save } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import { UserProfile } from '../../../types/auth';
+import { Vehicle } from '../types/fleet';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -13,9 +14,10 @@ interface AddVehicleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: Vehicle | null;
 }
 
-const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSuccess, initialData }) => {
   const { profile } = useUser() as UserContextType;
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,6 +28,28 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
     current_mileage: '',
     insurance_expiry: new Date().toISOString().split('T')[0]
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        plate_number: initialData.plate_number,
+        brand_model: initialData.brand_model,
+        year: initialData.year.toString(),
+        vin: initialData.vin,
+        current_mileage: initialData.current_mileage.toString(),
+        insurance_expiry: initialData.insurance_expiry.split('T')[0]
+      });
+    } else {
+      setFormData({
+        plate_number: '',
+        brand_model: '',
+        year: new Date().getFullYear().toString(),
+        vin: '',
+        current_mileage: '',
+        insurance_expiry: new Date().toISOString().split('T')[0]
+      });
+    }
+  }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
@@ -39,28 +63,37 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('fleet_vehicles')
-        .insert([{
-          tenant_id: tenantId,
-          plate_number: formData.plate_number.toUpperCase(),
-          brand_model: formData.brand_model,
-          year: parseInt(formData.year),
-          vin: formData.vin.toUpperCase(),
-          current_mileage: parseFloat(formData.current_mileage) || 0,
-          last_oil_change: parseFloat(formData.current_mileage) || 0,
-          insurance_expiry: formData.insurance_expiry,
-          status: 'available'
-        }]);
+      const payload = {
+        tenant_id: tenantId,
+        plate_number: formData.plate_number.toUpperCase(),
+        brand_model: formData.brand_model,
+        year: parseInt(formData.year),
+        vin: formData.vin.toUpperCase(),
+        current_mileage: parseFloat(formData.current_mileage) || 0,
+        insurance_expiry: formData.insurance_expiry
+      };
 
-      if (error) throw error;
+      if (initialData) {
+        // Update existing
+        const { error } = await supabase
+          .from('fleet_vehicles')
+          .update(payload)
+          .eq('id', initialData.id);
+        if (error) throw error;
+        toast.success('Данные автомобиля обновлены!');
+      } else {
+        // Create new
+        const { error } = await supabase
+          .from('fleet_vehicles')
+          .insert([{ ...payload, last_oil_change: payload.current_mileage, status: 'available' }]);
+        if (error) throw error;
+        toast.success('Автомобиль успешно добавлен!');
+      }
       
-      toast.success('Автомобиль успешно добавлен!');
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Save error:', error);
-      toast.error('Не удалось сохранить: ' + (error.message || 'Проверьте данные'));
+      toast.error('Ошибка: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -71,15 +104,18 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
       <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="relative p-8 sm:p-10">
           
-          {/* Header */}
           <div className="flex justify-between items-center mb-10">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center shadow-inner">
                 <Car className="w-7 h-7 text-blue-600" />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Новый автомобиль</h2>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">Регистрация в автопарке</p>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+                  {initialData ? 'Редактировать авто' : 'Новый автомобиль'}
+                </h2>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                  {initialData ? 'Обновление информации' : 'Регистрация в автопарке'}
+                </p>
               </div>
             </div>
             <button 
@@ -182,8 +218,8 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
                   <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Plus className="w-5 h-5" />
-                    Сохранить автомобиль
+                    {initialData ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                    {initialData ? 'Сохранить изменения' : 'Сохранить автомобиль'}
                   </>
                 )}
               </button>
