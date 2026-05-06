@@ -20,6 +20,7 @@ import { UserProfile } from '../../types/auth';
 import { toast } from 'react-hot-toast';
 import AddVehicleModal from './components/AddVehicleModal';
 import AddDriverModal from './components/AddDriverModal';
+import LogShiftModal from './components/LogShiftModal';
 import { sendDriverDailyReport } from './utils/whatsapp';
 
 interface UserContextType {
@@ -40,6 +41,7 @@ const FleetDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -60,7 +62,6 @@ const FleetDashboard: React.FC = () => {
       if (vError) throw vError;
       setVehicles(vData || []);
 
-      // Calculate stats based on real data
       const maintenanceAlerts = (vData || []).filter(v => {
         const oilGap = v.current_mileage - v.last_oil_change;
         const daysToInsurance = v.insurance_expiry 
@@ -69,7 +70,6 @@ const FleetDashboard: React.FC = () => {
         return oilGap > 9000 || daysToInsurance < 7;
       }).length;
 
-      // Fetch today's revenue from logs
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -77,7 +77,7 @@ const FleetDashboard: React.FC = () => {
         .from('fleet_rent_logs')
         .select('actual_revenue')
         .eq('tenant_id', profile?.tenant_id)
-        .gte('shift_start', today.toISOString());
+        .gte('created_at', today.toISOString());
 
       const todayRevenue = (lData || []).reduce((sum, l) => sum + (l.actual_revenue || 0), 0);
 
@@ -256,7 +256,6 @@ const FleetDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Maintenance Alerts */}
                 <div className="space-y-2 mb-6">
                   <div className={`flex items-center gap-2 p-2 rounded-xl text-xs font-bold ${
                     vehicle.current_mileage - vehicle.last_oil_change > 9000 ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-600'
@@ -273,7 +272,10 @@ const FleetDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2">
-                   <button className="flex-1 py-3 bg-gray-900 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all">
+                   <button 
+                    onClick={() => setSelectedVehicle(vehicle)}
+                    className="flex-1 py-3 bg-gray-900 text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all"
+                   >
                       Лог смены
                       <TrendingUp className="w-4 h-4" />
                    </button>
@@ -309,7 +311,6 @@ const FleetDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
       <AddVehicleModal 
         isOpen={isVehicleModalOpen} 
         onClose={() => setIsVehicleModalOpen(false)} 
@@ -318,7 +319,13 @@ const FleetDashboard: React.FC = () => {
       <AddDriverModal 
         isOpen={isDriverModalOpen} 
         onClose={() => setIsDriverModalOpen(false)} 
-        onSuccess={() => {}} // Could fetch drivers list if we had one
+        onSuccess={fetchFleetData} 
+      />
+      <LogShiftModal 
+        isOpen={!!selectedVehicle}
+        vehicle={selectedVehicle}
+        onClose={() => setSelectedVehicle(null)}
+        onSuccess={fetchFleetData}
       />
     </div>
   );
