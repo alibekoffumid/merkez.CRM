@@ -48,9 +48,10 @@ const FleetMap: React.FC = () => {
       zoomControl: false
     });
 
-    // Add Tile Layer
-    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
+    // Add Google Maps Tile Layer
+    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
     }).addTo(map);
 
     // Create a group for markers
@@ -69,18 +70,23 @@ const FleetMap: React.FC = () => {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    const url = mapType === 'streets' 
-      ? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' 
-      : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{y}/{x}/{z}';
+    // Google Maps Tile URLs
+    const streetUrl = 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';
+    const satUrl = 'https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}';
 
-    // Remove old tiles and add new
+    const url = mapType === 'streets' ? streetUrl : satUrl;
+
+    // Remove old tiles and add Google tiles
     mapRef.current.eachLayer((layer) => {
       if (layer instanceof L.TileLayer) {
         mapRef.current?.removeLayer(layer);
       }
     });
 
-    L.tileLayer(url).addTo(mapRef.current);
+    L.tileLayer(url, {
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    }).addTo(mapRef.current);
   }, [mapType]);
 
   // 4. Update Markers when vehicles change
