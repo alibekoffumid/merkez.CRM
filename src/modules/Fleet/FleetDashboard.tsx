@@ -53,10 +53,12 @@ const FleetDashboard: React.FC = () => {
   const fetchFleetData = async () => {
     try {
       setLoading(true);
+      const tenantId = profile?.tenant_id || profile?.id;
+      
       const { data: vData, error: vError } = await supabase
         .from('fleet_vehicles')
         .select('*')
-        .eq('tenant_id', profile?.tenant_id)
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false });
 
       if (vError) throw vError;
@@ -76,7 +78,7 @@ const FleetDashboard: React.FC = () => {
       const { data: lData } = await supabase
         .from('fleet_rent_logs')
         .select('actual_revenue')
-        .eq('tenant_id', profile?.tenant_id)
+        .eq('tenant_id', tenantId)
         .gte('created_at', today.toISOString());
 
       const todayRevenue = (lData || []).reduce((sum, l) => sum + (l.actual_revenue || 0), 0);
