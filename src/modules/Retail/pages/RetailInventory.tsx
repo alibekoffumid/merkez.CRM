@@ -34,6 +34,7 @@ const RetailInventory: React.FC = () => {
   const { t } = useTranslation();
   const { profile } = useUser() as UserContextType;
   const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,7 +45,7 @@ const RetailInventory: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     barcode: '',
-    category: 'Grocery',
+    category_id: '',
     purchase_price: 0,
     sale_price: 0,
     stock_quantity: 0,
@@ -53,8 +54,19 @@ const RetailInventory: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchProducts();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([fetchCategories(), fetchProducts()]);
+    setLoading(false);
+  };
+
+  const fetchCategories = async () => {
+    const { data } = await supabase.from('categories').select('*').order('name', { ascending: true });
+    if (data) setCategories(data);
+  };
 
   const fetchProducts = async () => {
     try {
@@ -68,14 +80,12 @@ const RetailInventory: React.FC = () => {
       
       const mappedData = (data || []).map(p => ({
         ...p,
-        category: p.categories?.name || p.category || 'Без категории',
+        category: p.categories?.name || 'Без категории',
         sale_price: p.price || p.sale_price || 0
       }));
       setProducts(mappedData);
     } catch (err: any) {
       toast.error('Ошибка загрузки: ' + err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,6 +95,7 @@ const RetailInventory: React.FC = () => {
       const payload = {
         name: formData.name,
         barcode: formData.barcode,
+        category_id: formData.category_id || null,
         purchase_price: formData.purchase_price,
         price: formData.sale_price,
         stock_quantity: formData.stock_quantity,
@@ -123,7 +134,7 @@ const RetailInventory: React.FC = () => {
     setFormData({
       name: product.name,
       barcode: product.barcode,
-      category: product.category,
+      category_id: product.category_id || '',
       purchase_price: product.purchase_price,
       sale_price: product.sale_price,
       stock_quantity: product.stock_quantity,
@@ -407,14 +418,11 @@ const RetailInventory: React.FC = () => {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Категория</label>
                   <Dropdown 
-                    value={formData.category}
-                    onChange={(val) => setFormData({...formData, category: val})}
+                    value={formData.category_id}
+                    onChange={(val) => setFormData({...formData, category_id: val})}
                     options={[
-                      { value: 'Grocery', label: 'Бакалея' },
-                      { value: 'Alcohol', label: 'Алкоголь' },
-                      { value: 'Tobacco', label: 'Табак' },
-                      { value: 'Beverages', label: 'Напитки' },
-                      { value: 'Dairy', label: 'Молочные продукты' },
+                      { value: '', label: 'Без категории' },
+                      ...categories.map(cat => ({ value: cat.id, label: cat.name })),
                     ]}
                   />
                 </div>
