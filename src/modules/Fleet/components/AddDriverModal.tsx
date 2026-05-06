@@ -88,8 +88,12 @@ const AddDriverModal: React.FC<AddDriverModalProps> = ({ isOpen, onClose, onSucc
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+      <div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-xl transition-opacity"
+        onClick={onClose}
+      />
+      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3">

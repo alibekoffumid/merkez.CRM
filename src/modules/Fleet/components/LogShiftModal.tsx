@@ -117,8 +117,12 @@ const LogShiftModal: React.FC<LogShiftModalProps> = ({ isOpen, onClose, vehicle,
   const netProfit = (parseFloat(formData.actual_revenue) || 0) - (parseFloat(formData.daily_plan) || 0) - (parseFloat(formData.commission) || 0);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+      <div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-xl transition-opacity"
+        onClick={onClose}
+      />
+      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
             <div>

@@ -100,9 +100,13 @@ const AddVehicleModal: React.FC<AddVehicleModalProps> = ({ isOpen, onClose, onSu
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="relative p-8 sm:p-10">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+      <div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-xl transition-opacity"
+        onClick={onClose}
+      />
+      <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="p-8 sm:p-10">
           
           <div className="flex justify-between items-center mb-10">
             <div className="flex items-center gap-4">
