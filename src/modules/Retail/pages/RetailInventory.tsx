@@ -33,11 +33,13 @@ interface UserContextType {
 const RetailInventory: React.FC = () => {
   const { t } = useTranslation();
   const { profile } = useUser() as UserContextType;
-  const [products, setProducts] = useState<RetailProduct[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<RetailProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -58,12 +60,15 @@ const RetailInventory: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select('*, categories(name)')
+        .eq('archived', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
       const mappedData = (data || []).map(p => ({
         ...p,
+        category: p.categories?.name || p.category || 'Без категории',
         sale_price: p.price || p.sale_price || 0
       }));
       setProducts(mappedData);
@@ -113,7 +118,7 @@ const RetailInventory: React.FC = () => {
     }
   };
 
-  const openEdit = (product: RetailProduct) => {
+  const openEdit = (product: any) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
@@ -129,24 +134,45 @@ const RetailInventory: React.FC = () => {
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm('Вы уверены, что хотите удалить этот товар?')) return;
+    if (!confirm('Вы уверены, что хотите архивировать этот товар?')) return;
     try {
       const { error } = await supabase
         .from('products')
-        .delete()
+        .update({ archived: true })
         .eq('id', id);
       if (error) throw error;
-      toast.success('Товар удален');
+      toast.success('Товар архивирован');
       fetchProducts();
     } catch (err: any) {
       toast.error('Ошибка при удалении: ' + err.message);
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    p.barcode.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const toggleSort = (key: 'name' | 'price' | 'stock') => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('asc');
+    }
+  };
+
+  const filteredProducts = products
+    .filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      p.barcode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.category.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      let valA, valB;
+      if (sortBy === 'name') { valA = a.name; valB = b.name; }
+      else if (sortBy === 'price') { valA = a.sale_price; valB = b.sale_price; }
+      else { valA = a.stock_quantity; valB = b.stock_quantity; }
+
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div className="p-8">
@@ -231,13 +257,29 @@ const RetailInventory: React.FC = () => {
             />
           </div>
           <div className="flex items-center gap-3">
+            <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+              <button 
+                onClick={() => toggleSort('name')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === 'name' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Имя {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </button>
+              <button 
+                onClick={() => toggleSort('price')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === 'price' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Цена {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </button>
+              <button 
+                onClick={() => toggleSort('stock')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === 'stock' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Остаток {sortBy === 'stock' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </button>
+            </div>
             <button className="flex items-center gap-2 px-4 py-2 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all">
               <Filter className="w-4 h-4" />
               Фильтры
-            </button>
-            <button className="flex items-center gap-2 px-4 py-2 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all">
-              <ArrowUpDown className="w-4 h-4" />
-              Сортировка
             </button>
           </div>
         </div>
