@@ -62,7 +62,7 @@ const FleetMap: React.FC = () => {
     if (!mapRef.current) return;
     const url = mapType === 'streets' 
       ? 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}' 
-      : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Hybrid for satellite
+      : 'https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
 
     mapRef.current.eachLayer((layer) => {
       if (layer instanceof L.TileLayer) mapRef.current?.removeLayer(layer);
@@ -92,43 +92,43 @@ const FleetMap: React.FC = () => {
       });
 
       const popupContent = `
-        <div class="p-6 min-w-[280px] font-sans">
-          <!-- Plate and Status -->
-          <div class="flex items-start justify-between mb-6">
-             <div class="flex items-center bg-white border-2 border-gray-900 rounded-lg overflow-hidden shadow-sm h-10">
-                <div class="bg-blue-700 w-3 h-full flex flex-col items-center justify-center p-0.5">
-                   <span class="text-[6px] text-white font-bold leading-none mb-0.5">AZ</span>
-                   <div class="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+        <div class="p-5 min-w-[260px] font-sans">
+          <!-- Top Row: Plate and Status -->
+          <div class="flex items-center justify-between mb-4">
+             <div class="flex items-center bg-white border-[1.5px] border-gray-900 rounded-md overflow-hidden h-8">
+                <div class="bg-blue-700 w-2.5 h-full flex flex-col items-center justify-center">
+                   <span class="text-[5px] text-white font-bold leading-none mb-0.5">AZ</span>
+                   <div class="w-1 h-1 bg-red-500 rounded-full"></div>
                 </div>
-                <div class="px-3">
-                   <span class="text-base font-black text-gray-900 tracking-tighter">${v.plate_number}</span>
+                <div class="px-2">
+                   <span class="text-sm font-black text-gray-900 tracking-tighter">${v.plate_number}</span>
                 </div>
              </div>
-             <div class="px-3 py-1.5 rounded-full text-[9px] font-black tracking-widest flex items-center gap-1.5" style="background-color: ${color}15; color: ${color};">
-                <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${color};"></span>
+             <div class="px-2 py-1 rounded-lg text-[8px] font-black tracking-widest flex items-center gap-1.5 mr-6" style="background-color: ${color}15; color: ${color};">
+                <span class="w-1 h-1 rounded-full" style="background-color: ${color};"></span>
                 ${statusText}
              </div>
           </div>
           
-          <div class="mb-6">
-            <h4 class="text-xl font-black text-gray-900 leading-none mb-1.5">${v.brand_model}</h4>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Mərkəz Fleet Management</p>
+          <div class="mb-4">
+            <h4 class="text-lg font-black text-gray-900 leading-tight">${v.brand_model}</h4>
+            <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Mərkəz Fleet Management</p>
           </div>
           
-          <div class="grid grid-cols-2 gap-4 mb-8">
-             <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
-                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">Пробег</p>
-                <p class="text-sm font-black text-gray-900">${v.current_mileage.toLocaleString()} км</p>
+          <div class="grid grid-cols-2 gap-3 mb-6">
+             <div class="bg-gray-50/80 p-2.5 rounded-xl border border-gray-100 flex flex-col justify-center">
+                <p class="text-[8px] font-bold text-gray-400 uppercase leading-none mb-1">Пробег</p>
+                <p class="text-xs font-black text-gray-900 leading-none">${v.current_mileage.toLocaleString()} км</p>
              </div>
-             <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100">
-                <p class="text-[9px] font-bold text-gray-400 uppercase mb-1">Страховка</p>
-                <p class="text-sm font-black text-gray-900">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
+             <div class="bg-gray-50/80 p-2.5 rounded-xl border border-gray-100 flex flex-col justify-center">
+                <p class="text-[8px] font-bold text-gray-400 uppercase leading-none mb-1">Страховка</p>
+                <p class="text-xs font-black text-gray-900 leading-none">${new Date(v.insurance_expiry).toLocaleDateString()}</p>
              </div>
           </div>
           
-          <button class="w-full py-4 bg-gray-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-blue-600 hover:shadow-xl hover:shadow-blue-600/20 transition-all flex items-center justify-center gap-2 group">
+          <button class="w-full py-3.5 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center justify-center gap-2 group">
             Лог смены
-            <svg class="group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            <svg class="group-hover:translate-x-1 transition-transform" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
           </button>
         </div>
       `;
@@ -136,8 +136,8 @@ const FleetMap: React.FC = () => {
       L.marker([Number(v.last_lat), Number(v.last_lng)], { icon })
         .bindPopup(popupContent, { 
           className: 'premium-popup',
-          maxWidth: 320,
-          minWidth: 280,
+          maxWidth: 300,
+          minWidth: 260,
           closeButton: true
         })
         .addTo(markersRef.current!);
@@ -195,31 +195,28 @@ const FleetMap: React.FC = () => {
         .leaflet-container { background: #f8fafc; outline: none; }
         .custom-div-icon { background: none !important; border: none !important; }
         .leaflet-popup-content-wrapper { 
-          border-radius: 2.5rem !important; 
+          border-radius: 2rem !important; 
           padding: 0 !important;
           overflow: hidden !important;
-          box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25) !important;
-          border: 1px solid rgba(0,0,0,0.05) !important;
+          box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2) !important;
         }
         .leaflet-popup-content { margin: 0 !important; width: auto !important; }
         .leaflet-popup-tip { display: none !important; }
         .premium-popup .leaflet-popup-close-button {
-          top: 20px !important;
-          right: 20px !important;
+          top: 16px !important;
+          right: 16px !important;
           color: #cbd5e1 !important;
-          font-size: 24px !important;
+          font-size: 20px !important;
           background: #f8fafc !important;
-          width: 32px !important;
-          height: 32px !important;
+          width: 28px !important;
+          height: 28px !important;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
           border-radius: 50% !important;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         }
         .premium-popup .leaflet-popup-close-button:hover {
           color: #ef4444 !important;
-          background: #fff !important;
         }
       `}</style>
     </div>
