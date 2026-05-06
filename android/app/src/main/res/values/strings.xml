@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Merkez Scanner</string>
+    <string name="title_activity_main">Merkez Scanner</string>
+    <string name="package_name">app.merkez.scanner</string>
+    <string name="custom_url_scheme">app.merkez.scanner</string>
+    <string name="server_client_id">1023780426995-cf4l1e22s69kdroatndm4qf617sj8giv.apps.googleusercontent.com</string>
+</resources>

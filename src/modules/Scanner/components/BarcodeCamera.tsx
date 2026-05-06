@@ -61,8 +61,8 @@ const BarcodeCamera: React.FC<BarcodeCameraProps> = ({ onScan, isActive }) => {
   };
 
   return (
-    <div className="relative w-full flex-1 flex flex-col items-center justify-center">
-      <div id="scanner-viewport" className="w-full h-full rounded-3xl overflow-hidden bg-black" />
+    <div className="absolute inset-0 w-full h-full bg-black">
+      <div id="scanner-viewport" className="w-full h-full" />
       
       {/* Torch button */}
       <button

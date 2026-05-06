@@ -40,6 +40,17 @@ const WarehouseModule = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Realtime updates for products
+  useEffect(() => {
+    const channel = supabase
+      .channel('warehouse-products')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        fetchProducts();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const fetchAll = async () => {
     setLoading(true);
     await Promise.all([fetchCategories(), fetchProducts(), fetchIngredients()]);
@@ -52,7 +63,11 @@ const WarehouseModule = () => {
   };
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('*, categories(name)').order('name', { ascending: true });
+    const { data } = await supabase
+      .from('products')
+      .select('*, categories(name)')
+      .eq('archived', false)
+      .order('name', { ascending: true });
     if (data) setProducts(data);
   };
 
@@ -64,7 +79,10 @@ const WarehouseModule = () => {
   const handleDelete = async (productId) => {
     if (!window.confirm(t('warehouse.confirmDeleteProduct'))) return;
     setOpenMenuId(null);
-    const { error } = await supabase.from('products').delete().eq('id', productId);
+    const { error } = await supabase
+      .from('products')
+      .update({ archived: true })
+      .eq('id', productId);
     if (!error) setProducts(prev => prev.filter(p => p.id !== productId));
   };
 

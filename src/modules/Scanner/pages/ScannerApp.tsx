@@ -21,6 +21,7 @@ const ScannerApp: React.FC = () => {
   const [editProduct, setEditProduct] = useState<ScannedProduct | null>(null);
   const [stockValue, setStockValue] = useState('');
   const [scanCount, setScanCount] = useState(0);
+  const [pendingPOSProduct, setPendingPOSProduct] = useState<ScannedProduct | null>(null);
 
   const [newProduct, setNewProduct] = useState<NewProductForm>({
     name: '', barcode: '', category: 'Grocery',
@@ -102,35 +103,49 @@ const ScannerApp: React.FC = () => {
     const product = await lookupProduct(barcode);
     
     if (product) {
-      await supabase.from('scanner_cart_events').insert({
-        user_id: profile.id,
-        business_id: profile.business_id || profile.id,
-        barcode,
-        product_id: product.id,
-        product_name: product.name,
-        price: product.sale_price,
-        quantity: 1,
-        status: 'pending',
-      });
-      setScanCount(prev => prev + 1);
-      setFeedback({ 
-        type: 'info', 
-        title: t('retail.sendingToPos') || 'Отправка на кассу...', 
-        subtitle: product.name 
-      });
+      setPendingPOSProduct(product);
+      setCameraActive(false);
     } else {
-      await supabase.from('scanner_cart_events').insert({
+      const { error } = await supabase.from('scanner_cart_events').insert({
         user_id: profile.id,
-        business_id: profile.business_id || profile.id,
         barcode,
         status: 'not_found',
       });
+      if (error) alert("Ошибка POS: " + error.message);
       setFeedback({ 
         type: 'error', 
         title: t('retail.productNotFound') || 'Товар не найден', 
         subtitle: barcode 
       });
     }
+  };
+
+  const handleConfirmPOS = async () => {
+    if (!profile?.id || !pendingPOSProduct) return;
+    
+    const { error } = await supabase.from('scanner_cart_events').insert({
+      user_id: profile.id,
+      barcode: pendingPOSProduct.barcode,
+      product_id: pendingPOSProduct.id,
+      product_name: pendingPOSProduct.name,
+      price: pendingPOSProduct.sale_price,
+      quantity: 1,
+      status: 'pending',
+    });
+
+    if (error) {
+      alert("Ошибка POS: " + error.message);
+    } else {
+      setScanCount(prev => prev + 1);
+      setFeedback({ 
+        type: 'success', 
+        title: t('retail.sendingToPos') || 'Отправлено на кассу', 
+        subtitle: pendingPOSProduct.name 
+      });
+    }
+    
+    setPendingPOSProduct(null);
+    setCameraActive(true);
   };
 
   const handleInventoryScan = async (barcode: string) => {
@@ -152,18 +167,32 @@ const ScannerApp: React.FC = () => {
   }, [mode, profile]);
 
   const saveNewProduct = async () => {
-    if (!profile?.id || !newProduct.name) return;
+    if (!profile?.id) {
+      alert("Ошибка авторизации: ID пользователя не найден");
+      return;
+    }
+    if (!newProduct.name.trim()) {
+      alert("Пожалуйста, введите название товара");
+      return;
+    }
+    
     const { error } = await supabase.from('products').insert({
-      ...newProduct,
-      price: newProduct.sale_price,
-      user_id: profile.id,
-      business_id: profile.business_id || profile.id
+      name: newProduct.name,
+      barcode: newProduct.barcode,
+      purchase_price: newProduct.purchase_price || 0,
+      price: newProduct.sale_price || 0,
+      stock_quantity: newProduct.stock_quantity || 0,
+      critical_stock: newProduct.critical_stock || 5,
+      user_id: profile.id
     });
+    
     if (!error) {
       setFeedback({ type: 'success', title: t('retail.productAdded') || '✓ Товар добавлен', subtitle: newProduct.name });
       setShowProductForm(false);
       setCameraActive(true);
       setNewProduct({ name: '', barcode: '', category: 'Grocery', purchase_price: 0, sale_price: 0, stock_quantity: 0, critical_stock: 5 });
+    } else {
+      alert("Ошибка при добавлении в базу: " + error.message);
     }
   };
 
@@ -245,6 +274,43 @@ const ScannerApp: React.FC = () => {
           {mode === 'pos' ? 'Наведите камеру на штрих-код товара' : 'Сканируйте товар для проверки/добавления'}
         </p>
       </div>
+
+      {/* POS: Confirm addition modal */}
+      {pendingPOSProduct && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-gray-900 rounded-t-[2rem] p-6 space-y-5 animate-in slide-in-from-bottom duration-300">
+            <div className="w-12 h-1 bg-white/20 rounded-full mx-auto" />
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-black">{pendingPOSProduct.name}</h2>
+                <p className="text-sm text-white/50 font-mono">{pendingPOSProduct.barcode}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-black text-merkez-blue">{pendingPOSProduct.sale_price} ₼</p>
+                <p className="text-[10px] font-bold text-white/40 uppercase">Цена</p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => { setPendingPOSProduct(null); setCameraActive(true); }} 
+                className="flex-1 py-4 bg-white/10 rounded-2xl font-bold"
+              >
+                Отмена
+              </button>
+              <button 
+                onClick={handleConfirmPOS} 
+                className="flex-1 py-4 bg-merkez-blue rounded-2xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Добавить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Inventory: Edit stock modal */}
       {editProduct && (

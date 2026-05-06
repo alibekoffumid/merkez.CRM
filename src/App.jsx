@@ -61,7 +61,46 @@ const OnboardingGuard = ({ children }) => {
   return children;
 };
 
+// Redirects native mobile apps directly to the scanner
+const NativeRedirect = ({ children }) => {
+  const [isNative, setIsNative] = React.useState(null);
+
+  React.useEffect(() => {
+    import('@capacitor/core').then(({ Capacitor }) => {
+      setIsNative(Capacitor.isNativePlatform());
+    });
+  }, []);
+
+  if (isNative === null) return null;
+
+  if (isNative) {
+    return <Navigate to="/scanner" replace />;
+  }
+
+  return children;
+};
+
+import { App as CapacitorApp } from '@capacitor/app';
+
 function App() {
+  React.useEffect(() => {
+    // Listen for deep links (e.g. returning from Google Auth)
+    const setupListener = async () => {
+      await CapacitorApp.addListener('appUrlOpen', (event) => {
+        try {
+          const url = new URL(event.url);
+          // Supabase puts the auth tokens in the hash (e.g. #access_token=...)
+          if (url.hash) {
+            window.location.hash = url.hash;
+          }
+        } catch (e) {
+          console.error('Invalid deep link URL', e);
+        }
+      });
+    };
+    setupListener();
+  }, []);
+
   return (
     <UserProvider>
       <BrowserRouter>
@@ -71,7 +110,9 @@ function App() {
         {/* Module Store — accessible always (after auth) */}
         <Route path="/modules" element={
           <AuthGuard>
-            <ModuleStore />
+            <NativeRedirect>
+              <ModuleStore />
+            </NativeRedirect>
           </AuthGuard>
         } />
 
@@ -86,9 +127,11 @@ function App() {
           path="/" 
           element={
             <AuthGuard>
-              <OnboardingGuard>
-                <CoreLayout />
-              </OnboardingGuard>
+              <NativeRedirect>
+                <OnboardingGuard>
+                  <CoreLayout />
+                </OnboardingGuard>
+              </NativeRedirect>
             </AuthGuard>
           }
         >

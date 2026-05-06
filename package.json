@@ -11,6 +11,11 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@supabase/supabase-js": "^2.39.0",
     "antd": "^6.3.5",
     "html5-qrcode": "^2.3.8",

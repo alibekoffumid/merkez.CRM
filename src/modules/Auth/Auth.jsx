@@ -72,14 +72,57 @@ const Auth = () => {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
+    setError(null);
+    
+    // Dynamically import Capacitor to check platform
+    let isNative = false;
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      isNative = Capacitor.isNativePlatform();
+    } catch (e) {
+      // Ignore if not found
+    }
+
+    if (isNative) {
+      try {
+        const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+        GoogleAuth.initialize({
+          clientId: '1023780426995-cf4l1e22s69kdroatndm4qf617sj8giv.apps.googleusercontent.com',
+          scopes: ['profile', 'email'],
+          grantOfflineAccess: true,
+        });
+
+        const googleUser = await GoogleAuth.signIn();
+        
+        if (googleUser?.authentication?.idToken) {
+          const { error: supaError } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: googleUser.authentication.idToken,
+          });
+          if (supaError) throw supaError;
+          
+          // Force navigate to scanner after successful native login
+          navigate('/scanner', { replace: true });
+        } else {
+          throw new Error('Google Sign-In failed to return an ID token.');
+        }
+      } catch (err) {
+        console.error('Native Google Login Error:', err);
+        setError('Google Login Error: ' + err.message);
+      } finally {
+        setLoading(false);
       }
-    });
-    if (error) setError(error.message);
-    setLoading(false);
+    } else {
+      // Web Version
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) setError(error.message);
+      setLoading(false);
+    }
   };
 
   if (success) {
