@@ -50,10 +50,15 @@ const RetailHistory: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'cash' | 'card'>('all');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const locale = i18n.language === 'az' ? 'az-AZ' : 'ru-RU';
+    const locale = i18n.language === 'az' ? 'az-AZ' : i18n.language === 'en' ? 'en-US' : 'ru-RU';
     return new Intl.DateTimeFormat(locale, {
       day: 'numeric',
       month: 'long',
@@ -80,16 +85,38 @@ const RetailHistory: React.FC = () => {
       if (error) throw error;
       setSales(data || []);
     } catch (err: any) {
-      toast.error(t('retail.historyError') || 'Ошибка загрузки истории: ' + err.message);
+      toast.error(t('retail.historyError') || 'Error: ' + err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredSales = sales.filter(sale => 
-    sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    sale.total_amount.toString().includes(searchQuery)
-  );
+  const filteredSales = sales.filter(sale => {
+    const matchesSearch = sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sale.total_amount.toString().includes(searchQuery);
+    const matchesPayment = paymentFilter === 'all' || sale.payment_method === paymentFilter;
+    let matchesDate = true;
+    if (dateFrom) {
+      matchesDate = matchesDate && new Date(sale.created_at) >= new Date(dateFrom);
+    }
+    if (dateTo) {
+      const endDate = new Date(dateTo);
+      endDate.setHours(23, 59, 59, 999);
+      matchesDate = matchesDate && new Date(sale.created_at) <= endDate;
+    }
+    return matchesSearch && matchesPayment && matchesDate;
+  });
+
+  const clearFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setPaymentFilter('all');
+    setSearchQuery('');
+    setShowCalendar(false);
+    setShowFilter(false);
+  };
+
+  const hasActiveFilters = dateFrom || dateTo || paymentFilter !== 'all';
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
@@ -130,27 +157,59 @@ const RetailHistory: React.FC = () => {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input 
-            type="text"
-            placeholder={t('retail.idOrAmount')}
-            className="w-full pl-12 pr-4 py-3 bg-gray-50/50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-merkez-blue/20 transition-all outline-none font-medium"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <input type="text" placeholder={t('retail.idOrAmount')} className="w-full pl-12 pr-4 py-3 bg-gray-50/50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-merkez-blue/20 transition-all outline-none font-medium" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
         </div>
-        
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-gray-50 text-gray-600 font-bold rounded-2xl hover:bg-gray-100 transition-all">
-            <Calendar className="w-4 h-4" />
-            {t('retail.period')}
-          </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-gray-50 text-gray-600 font-bold rounded-2xl hover:bg-gray-100 transition-all">
-            <Filter className="w-4 h-4" />
-            {t('retail.filters')}
-          </button>
+          <div className="relative flex-1 md:flex-none">
+            <button onClick={() => { setShowCalendar(!showCalendar); setShowFilter(false); }} className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-bold rounded-2xl transition-all ${dateFrom || dateTo ? 'bg-merkez-blue/10 text-merkez-blue border border-merkez-blue/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
+              <Calendar className="w-4 h-4" />
+              {t('retail.period')}
+              {(dateFrom || dateTo) && <span className="w-2 h-2 rounded-full bg-merkez-blue" />}
+            </button>
+            {showCalendar && (
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 w-72 animate-in fade-in zoom-in-95 duration-150">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">{i18n.language === 'az' ? 'Başlanğıc' : i18n.language === 'en' ? 'From' : 'От'}</label>
+                    <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">{i18n.language === 'az' ? 'Son' : i18n.language === 'en' ? 'To' : 'До'}</label>
+                    <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all" />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button onClick={() => { setDateFrom(''); setDateTo(''); }} className="flex-1 py-2.5 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all">{t('common.cancel')}</button>
+                    <button onClick={() => setShowCalendar(false)} className="flex-1 py-2.5 text-xs font-bold text-white bg-merkez-blue rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20">{t('common.confirm')}</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="relative flex-1 md:flex-none">
+            <button onClick={() => { setShowFilter(!showFilter); setShowCalendar(false); }} className={`w-full flex items-center justify-center gap-2 px-5 py-3 font-bold rounded-2xl transition-all ${paymentFilter !== 'all' ? 'bg-merkez-blue/10 text-merkez-blue border border-merkez-blue/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>
+              <Filter className="w-4 h-4" />
+              {t('retail.filters')}
+              {paymentFilter !== 'all' && <span className="w-2 h-2 rounded-full bg-merkez-blue" />}
+            </button>
+            {showFilter && (
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-56 animate-in fade-in zoom-in-95 duration-150">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('retail.paymentMethod')}</p>
+                <div className="space-y-1.5">
+                  {(['all', 'cash', 'card'] as const).map(method => (
+                    <button key={method} onClick={() => { setPaymentFilter(method); setShowFilter(false); }} className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${paymentFilter === method ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'}`}>
+                      {method === 'all' ? (i18n.language === 'az' ? 'Hamısı' : i18n.language === 'en' ? 'All' : 'Все') : method === 'cash' ? t('retail.cash') : t('retail.card')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="px-4 py-3 text-xs font-bold text-red-500 bg-red-50 rounded-2xl hover:bg-red-100 transition-all">✕</button>
+          )}
         </div>
       </div>
 
