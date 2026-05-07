@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('general');
   const [isSaving, setIsSaving] = useState(false);
