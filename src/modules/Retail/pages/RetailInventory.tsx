@@ -389,10 +389,10 @@ const RetailInventory: React.FC = () => {
 
       {/* Modal for Add/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
-          <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleSave} className="flex flex-col">
+          <div className="relative bg-white w-full max-w-2xl max-h-[calc(100vh-5rem)] rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col">
+            <form onSubmit={handleSave} className="flex flex-col overflow-hidden">
               <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <h2 className="text-2xl font-black text-gray-900">
                   {editingProduct ? t('retail.inventory.editProduct') || t('common.edit') : t('retail.inventory.addProduct')}
@@ -406,7 +406,7 @@ const RetailInventory: React.FC = () => {
                 </button>
               </div>
               
-              <div className="p-8 grid grid-cols-2 gap-6">
+              <div className="p-8 grid grid-cols-2 gap-6 overflow-y-auto flex-1">
                 <div className="col-span-2 space-y-2">
                   <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.productName')}</label>
                   <input 
@@ -497,7 +497,7 @@ const RetailInventory: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-4">
+              <div className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-4 shrink-0">
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}
