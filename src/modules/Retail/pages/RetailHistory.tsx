@@ -342,8 +342,8 @@ const RetailHistory: React.FC = () => {
 
       {/* Sale Details Modal */}
       {selectedSale && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setSelectedSale(null)} />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md" onClick={() => setSelectedSale(null)} />
           <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
