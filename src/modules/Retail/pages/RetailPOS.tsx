@@ -62,6 +62,36 @@ const RetailPOS: React.FC = () => {
     return () => clearInterval(focusTimer);
   }, []);
 
+  // Load persisted data on mount
+  useEffect(() => {
+    const savedParked = localStorage.getItem('retail_parked_transactions');
+    if (savedParked) {
+      try {
+        setParkedTransactions(JSON.parse(savedParked));
+      } catch (e) {
+        console.error('Failed to parse parked transactions');
+      }
+    }
+
+    const savedCart = localStorage.getItem('retail_current_cart');
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error('Failed to parse cart');
+      }
+    }
+  }, []);
+
+  // Persist data on change
+  useEffect(() => {
+    localStorage.setItem('retail_parked_transactions', JSON.stringify(parkedTransactions));
+  }, [parkedTransactions]);
+
+  useEffect(() => {
+    localStorage.setItem('retail_current_cart', JSON.stringify(cart));
+  }, [cart]);
+
   // Realtime: Listen for barcode scans from Mobile Scanner
   useEffect(() => {
     if (!profile?.id) return;
