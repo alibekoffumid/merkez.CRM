@@ -279,10 +279,16 @@ const RetailPOS: React.FC = () => {
         p_total_amount: total,
         p_tax_amount: tax,
         p_payment_method: paymentMethod,
+        p_discount_amount: discountAmount,
+        p_discount_type: globalDiscountType,
         p_items: cart.map(item => ({
           product_id: item.id,
+          product_name: item.name,
           quantity: item.quantity,
-          price_at_sale: item.sale_price,
+          price_at_sale: calculateItemPrice(item),
+          base_price: Number(item.sale_price || item.price || 0),
+          discount_amount: item.discount_value || 0,
+          discount_type: item.discount_type || 'percent',
           excise_stamp: item.excise_stamp || null
         }))
       });

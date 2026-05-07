@@ -21,8 +21,12 @@ import { NavLink } from 'react-router-dom';
 interface SaleItem {
   id: string;
   product_id: string;
+  product_name?: string;
   quantity: number;
   price_at_sale: number;
+  base_price?: number;
+  discount_amount?: number;
+  discount_type?: 'percent' | 'fixed';
   total: number;
   products?: { name: string };
 }
@@ -33,6 +37,8 @@ interface Sale {
   total_amount: number;
   tax_amount: number;
   payment_method: 'cash' | 'card';
+  discount_amount?: number;
+  discount_type?: 'percent' | 'fixed';
   created_at: string;
   retail_sale_items: SaleItem[];
 }
@@ -79,7 +85,7 @@ const RetailHistory: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('retail_sales')
-        .select('*, retail_sale_items(*, products(name))')
+        .select('*, retail_sale_items(*)')
         .eq('user_id', profile.id)
         .order('created_at', { ascending: false });
 
@@ -368,11 +374,27 @@ const RetailHistory: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {selectedSale.retail_sale_items?.map((item: any) => (
+                      {selectedSale.retail_sale_items?.map((item: SaleItem) => (
                         <tr key={item.id}>
-                          <td className="px-4 py-4 font-bold text-gray-800">{item.products?.name || t('retail.itemDeleted')}</td>
+                          <td className="px-4 py-4">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-gray-800">{item.product_name || item.products?.name || t('retail.itemDeleted')}</span>
+                              {item.discount_amount && item.discount_amount > 0 && (
+                                <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">
+                                  {t('retail.discount')} -{item.discount_amount}{item.discount_type === 'percent' ? '%' : ' ₼'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="px-4 py-4 text-center font-bold text-gray-600">{item.quantity}</td>
-                          <td className="px-8 py-4 text-right font-medium text-gray-500">{Number(item.price_at_sale || 0).toFixed(2)}</td>
+                          <td className="px-8 py-4 text-right">
+                            <div className="flex flex-col items-end">
+                              {item.base_price && item.base_price > item.price_at_sale ? (
+                                <span className="text-[10px] text-gray-400 line-through">{Number(item.base_price).toFixed(2)}</span>
+                              ) : null}
+                              <span className="font-medium text-gray-500">{Number(item.price_at_sale || 0).toFixed(2)}</span>
+                            </div>
+                          </td>
                           <td className="px-4 py-4 text-right font-black text-gray-900">{Number(item.total || 0).toFixed(2)} ₼</td>
                         </tr>
                       ))}
@@ -386,9 +408,17 @@ const RetailHistory: React.FC = () => {
                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('retail.paymentMethod')}</p>
                   <p className="font-bold text-gray-900">{selectedSale.payment_method === 'card' ? t('retail.card') : t('retail.cash')}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{t('retail.totalToPay')}</p>
-                  <p className="text-4xl font-black text-merkez-blue">{Number(selectedSale.total_amount).toFixed(2)} ₼</p>
+                <div className="text-right space-y-2">
+                  {selectedSale.discount_amount && selectedSale.discount_amount > 0 && (
+                    <div className="flex justify-between items-center gap-8">
+                      <span className="text-xs font-black text-green-600 uppercase tracking-widest">{t('retail.discount')}</span>
+                      <span className="font-bold text-green-600">-{Number(selectedSale.discount_amount).toFixed(2)} ₼</span>
+                    </div>
+                  )}
+                  <div className="pt-2">
+                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{t('retail.totalToPay')}</p>
+                    <p className="text-4xl font-black text-merkez-blue">{Number(selectedSale.total_amount).toFixed(2)} ₼</p>
+                  </div>
                 </div>
               </div>
             </div>
