@@ -16,7 +16,9 @@ import {
   History as HistoryIcon,
   Smartphone,
   PauseCircle,
-  Play
+  Play,
+  Tag,
+  Percent
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
@@ -49,6 +51,9 @@ const RetailPOS: React.FC = () => {
   const [showScannerQR, setShowScannerQR] = useState(false);
   const [parkedTransactions, setParkedTransactions] = useState<{id: string, items: CartItem[], total: number, timestamp: number}[]>([]);
   const [showParkedList, setShowParkedList] = useState(false);
+  const [globalDiscountType, setGlobalDiscountType] = useState<'percent' | 'fixed'>('percent');
+  const [globalDiscountValue, setGlobalDiscountValue] = useState<number>(0);
+  const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null); // For item level discount
   
   const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -229,9 +234,38 @@ const RetailPOS: React.FC = () => {
     toast.success('Чек восстановлен');
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + ((item.sale_price || 0) * item.quantity), 0);
-  const tax = subtotal * 0.18; // 18% VAT Azerbaijan
-  const total = subtotal; // Assuming VAT included in price for retail
+  const updateItemDiscount = (id: string, type: 'percent' | 'fixed', value: number) => {
+    setCart(prev => prev.map(item => 
+      item.id === id ? { ...item, discount_type: type, discount_value: value } : item
+    ));
+    setEditingDiscountId(null);
+  };
+
+  const calculateItemPrice = (item: CartItem) => {
+    const basePrice = Number(item.sale_price || item.price || 0);
+    if (!item.discount_value) return basePrice;
+    
+    if (item.discount_type === 'percent') {
+      return basePrice * (1 - item.discount_value / 100);
+    } else {
+      return Math.max(0, basePrice - item.discount_value);
+    }
+  };
+
+  const subtotal = cart.reduce((sum, item) => sum + (calculateItemPrice(item) * item.quantity), 0);
+  
+  const calculateGlobalDiscount = (base: number) => {
+    if (!globalDiscountValue) return 0;
+    if (globalDiscountType === 'percent') {
+      return base * (globalDiscountValue / 100);
+    } else {
+      return Math.min(base, globalDiscountValue);
+    }
+  };
+
+  const discountAmount = calculateGlobalDiscount(subtotal);
+  const total = subtotal - discountAmount;
+  const tax = total * 0.18;
   const change = parseFloat(cashReceived) ? parseFloat(cashReceived) - total : 0;
 
   const handleProcessSale = async () => {
@@ -474,11 +508,50 @@ const RetailPOS: React.FC = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-right font-medium text-gray-600">
-                          {(item.sale_price || 0).toFixed(2)} ₼
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex flex-col items-end gap-1">
+                            {item.discount_value && item.discount_value > 0 ? (
+                              <>
+                                <span className="text-xs text-gray-400 line-through">{(item.sale_price || 0).toFixed(2)} ₼</span>
+                                <span className="font-bold text-green-600">{calculateItemPrice(item).toFixed(2)} ₼</span>
+                              </>
+                            ) : (
+                              <span className="font-medium text-gray-600">{(item.sale_price || 0).toFixed(2)} ₼</span>
+                            )}
+                            <button 
+                              onClick={() => setEditingDiscountId(editingDiscountId === item.id ? null : item.id)}
+                              className={`p-1 rounded-md transition-all ${item.discount_value ? 'bg-green-50 text-green-600' : 'text-gray-300 hover:text-merkez-blue hover:bg-blue-50'}`}
+                            >
+                              <Tag className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          
+                          {editingDiscountId === item.id && (
+                            <div className="absolute mt-2 right-12 bg-white rounded-xl shadow-xl border border-gray-100 p-3 z-50 animate-in zoom-in-95">
+                              <div className="flex items-center gap-2 mb-2">
+                                <button 
+                                  onClick={() => updateItemDiscount(item.id, 'percent', item.discount_value || 0)}
+                                  className={`px-2 py-1 rounded-md text-[10px] font-bold ${item.discount_type === 'percent' ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}
+                                >%</button>
+                                <button 
+                                  onClick={() => updateItemDiscount(item.id, 'fixed', item.discount_value || 0)}
+                                  className={`px-2 py-1 rounded-md text-[10px] font-bold ${item.discount_type === 'fixed' ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}
+                                >₼</button>
+                              </div>
+                              <input 
+                                type="number" 
+                                autoFocus
+                                className="w-20 px-2 py-1 bg-gray-50 border-none rounded-md text-xs font-bold focus:ring-2 focus:ring-merkez-blue/20 outline-none"
+                                value={item.discount_value || ''}
+                                onChange={(e) => updateItemDiscount(item.id, item.discount_type || 'percent', parseFloat(e.target.value) || 0)}
+                                onBlur={() => setEditingDiscountId(null)}
+                                onKeyDown={(e) => e.key === 'Enter' && setEditingDiscountId(null)}
+                              />
+                            </div>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-right font-bold text-gray-900">
-                          {((item.sale_price || 0) * item.quantity).toFixed(2)} ₼
+                          {(calculateItemPrice(item) * item.quantity).toFixed(2)} ₼
                         </td>
                         <td className="px-6 py-4 text-right">
                           <button 
@@ -564,9 +637,30 @@ const RetailPOS: React.FC = () => {
                   <span>{t('retail.subtotal')}</span>
                   <span>{(subtotal || 0).toFixed(2)} ₼</span>
                 </div>
-                <div className="flex justify-between text-gray-500 font-medium">
-                  <span>{t('retail.tax')}</span>
-                  <span>{(tax || 0).toFixed(2)} ₼</span>
+                <div className="flex justify-between items-center text-gray-500 font-medium">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-orange-500" />
+                    <span>{t('retail.discount', 'Скидка')}</span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 px-2 py-1 rounded-xl border border-gray-100">
+                    <div className="flex gap-1 border-r border-gray-200 pr-1 mr-1">
+                      <button 
+                        onClick={() => setGlobalDiscountType('percent')}
+                        className={`w-6 h-6 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${globalDiscountType === 'percent' ? 'bg-merkez-blue text-white shadow-sm' : 'text-gray-400'}`}
+                      >%</button>
+                      <button 
+                        onClick={() => setGlobalDiscountType('fixed')}
+                        className={`w-6 h-6 flex items-center justify-center rounded-md text-[10px] font-bold transition-all ${globalDiscountType === 'fixed' ? 'bg-merkez-blue text-white shadow-sm' : 'text-gray-400'}`}
+                      >₼</button>
+                    </div>
+                    <input 
+                      type="number"
+                      className="w-16 bg-transparent border-none text-right font-bold text-gray-800 text-sm focus:ring-0 p-0"
+                      value={globalDiscountValue || ''}
+                      onChange={(e) => setGlobalDiscountValue(parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
                 <div className="h-[1px] bg-gray-100 w-full" />
                 <div className="flex justify-between items-end pt-2">
