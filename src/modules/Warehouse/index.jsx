@@ -165,46 +165,50 @@ const WarehouseModule = () => {
         onIngredientUpdated={fetchIngredients} 
       />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('sidebar.warehouse')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('warehouse.subtitle')}</p>
+      {/* Header & Tabs */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col lg:flex-row items-center justify-between gap-6 shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
+            <Package className="w-6 h-6 text-merkez-blue" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
+            <p className="text-xs text-gray-500">{t('warehouse.subtitle')}</p>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-600 border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-            <FolderTree className="w-4 h-4 mr-2" /> {t('warehouse.manageCategories')}
-          </button>
-          
-          {activeTab === 'finished' ? (
-            <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors flex items-center shadow-sm">
-              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addProduct')}
-            </button>
-          ) : (
-            <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors flex items-center shadow-sm">
-              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addIngredient')}
-            </button>
-          )}
-        </div>
-      </div>
 
-      {/* Tab Switcher */}
-      <div className="sticky top-4 z-20 flex justify-start lg:justify-center w-full pointer-events-none mb-4 px-4 sm:px-0">
-        <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-200 shadow-2xl shadow-blue-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto w-max">
+        {/* Tab Switcher Inline */}
+        <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
           <button 
             onClick={() => setActiveTab('finished')}
-            className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-[1.5rem] text-[11px] sm:text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === 'finished' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
           >
-            <Package className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'finished' ? 'animate-pulse' : ''}`} />
+            <Package className="w-3.5 h-3.5" />
             {t('warehouse.finishedGoods')}
           </button>
           <button 
             onClick={() => setActiveTab('raw')}
-            className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-5 py-2.5 sm:py-3 rounded-[1.5rem] text-[11px] sm:text-xs md:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === 'raw' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 scale-105' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
           >
-            <FolderTree className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'raw' ? 'animate-pulse' : ''}`} />
+            <FolderTree className="w-3.5 h-3.5" />
             {t('warehouse.ingredients')}
           </button>
+        </div>
+
+        <div className="flex gap-2">
+          <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-600 border-gray-200 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+            <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
+          </button>
+          
+          {activeTab === 'finished' ? (
+            <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
+            </button>
+          ) : (
+            <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-lg shadow-green-600/20">
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
+            </button>
+          )}
         </div>
       </div>
 
