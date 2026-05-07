@@ -173,6 +173,7 @@ function App() {
           <Route path="retail/*" element={
             <ModuleGuard moduleId="retail"><RetailModule /></ModuleGuard>
           } />
+          <Route path="settings" element={<Profile />} />
           <Route path="profile" element={<Profile />} />
           <Route path="*" element={
             <div className="flex items-center justify-center h-full text-gray-500">
