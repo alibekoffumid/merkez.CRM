@@ -56,10 +56,10 @@ const Profile = () => {
   };
 
   const tabs = [
-    { id: 'general', name: 'General', icon: Building2 },
-    { id: 'security', name: 'Security', icon: Shield },
-    { id: 'notifications', name: 'Notifications', icon: Bell },
-    { id: 'display', name: 'Display & Language', icon: Globe },
+    { id: 'general', name: t('profile.tabs.general', 'Общее'), icon: Building2 },
+    { id: 'security', name: t('profile.tabs.security', 'Безопасность'), icon: Shield },
+    { id: 'notifications', name: t('profile.tabs.notifications', 'Уведомления'), icon: Bell },
+    { id: 'display', name: t('profile.tabs.display', 'Оформление'), icon: Globe },
   ];
 
   const handleSave = async () => {
@@ -104,11 +104,11 @@ const Profile = () => {
   const initials = profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-end mb-8 px-4 sm:px-0">
+    <div className="max-w-full mx-auto px-4 lg:px-0">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 mb-1 tracking-tight">Management Profile</h1>
-          <p className="text-gray-500 font-medium tracking-tight">Configure your restaurant identity and account preferences</p>
+          <h1 className="text-4xl font-black text-gray-900 mb-2 tracking-tight">{t('sidebar.settings')}</h1>
+          <p className="text-gray-500 font-medium tracking-tight text-lg">{t('profile.subtitle', 'Настройте данные вашего профиля и предпочтения аккаунта')}</p>
         </div>
         <div className="hidden sm:flex items-center space-x-3">
           <button 
@@ -119,16 +119,16 @@ const Profile = () => {
             {isSaving ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
             ) : (
-              <Save className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
+              <Save className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
             )}
-            Save Configuration
+            {t('common.save', 'Сохранить')}
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 px-4 sm:px-0">
+      <div className="flex flex-col lg:flex-row gap-10">
         {/* Left Column: Business Summary Card */}
-        <div className="w-full lg:w-1/3 space-y-6">
+        <div className="w-full lg:w-[380px] shrink-0 space-y-6">
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden group">
             <div className="h-40 bg-gradient-to-br from-merkez-blue to-blue-500 relative">
                <button className="absolute bottom-4 right-4 p-2.5 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-colors">
@@ -180,14 +180,14 @@ const Profile = () => {
             <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
                <div className="flex items-center space-x-2">
                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Partner</span>
+                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('profile.activePartner', 'Активный партнер')}</span>
                </div>
                <span className="text-[10px] font-black bg-white px-2 py-1 rounded-md text-gray-400 border border-gray-100">PRO</span>
             </div>
           </div>
 
           <div className="sm:hidden mb-6">
-            <button onClick={handleSave} className="w-full bg-merkez-blue text-white py-4 rounded-2xl font-bold shadow-lg">Save Configuration</button>
+            <button onClick={handleSave} className="w-full bg-merkez-blue text-white py-4 rounded-2xl font-bold shadow-lg">{t('common.save', 'Сохранить')}</button>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ const Profile = () => {
                         <div className="p-2.5 bg-blue-50 rounded-xl text-merkez-blue">
                           <User className="w-5 h-5" />
                         </div>
-                        <h3 className="text-xl font-black text-gray-900 tracking-tight">Owner Details</h3>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.ownerDetails', 'Личные данные')}</h3>
                      </div>
                      
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -255,12 +255,12 @@ const Profile = () => {
                         <div className="p-2.5 bg-orange-50 rounded-xl text-orange-500">
                           <Building2 className="w-5 h-5" />
                         </div>
-                        <h3 className="text-xl font-black text-gray-900 tracking-tight">Establishment Information</h3>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.businessInfo', 'Информация о бизнесе')}</h3>
                      </div>
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Establishment Name</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.businessName', 'Название заведения')}</label>
                          <input 
                            type="text" 
                            name="business_name"
@@ -271,7 +271,7 @@ const Profile = () => {
                          />
                        </div>
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Business Category</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.businessCategory', 'Категория бизнеса')}</label>
                          <select 
                            name="business_type"
                            value={profile.business_type} 
@@ -287,7 +287,7 @@ const Profile = () => {
                        </div>
 
                        <div className="space-y-2.5 md:col-span-2">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Physical Address</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.address', 'Физический адрес')}</label>
                          <div className="relative">
                             <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                             <input 
@@ -302,7 +302,7 @@ const Profile = () => {
                        </div>
 
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Business Contact Number</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.contactPhone', 'Контактный номер')}</label>
                          <div className="relative">
                             <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                             <input 
@@ -317,7 +317,7 @@ const Profile = () => {
                        </div>
 
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Official Digital Web-Home</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.website', 'Веб-сайт / Digital Home')}</label>
                          <div className="relative">
                             <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                             <input 
@@ -332,7 +332,7 @@ const Profile = () => {
                        </div>
 
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Opening Hours</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.hours', 'Часы работы')}</label>
                          <div className="relative">
                             <Clock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                             <input 
@@ -347,7 +347,7 @@ const Profile = () => {
                        </div>
 
                        <div className="space-y-2.5 md:col-span-2">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">The Essence of Your Brand (About)</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.essence', 'О бренде (Описание)')}</label>
                          <div className="relative">
                             <FileText className="absolute left-6 top-7 w-4 h-4 text-gray-300" />
                             <textarea 
