@@ -9,7 +9,7 @@ import {
   Banknote,
   ChevronRight,
   ArrowUpDown,
-  History,
+  History as HistoryIcon,
   ShoppingCart
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
