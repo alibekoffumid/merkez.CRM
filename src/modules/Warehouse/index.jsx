@@ -196,7 +196,7 @@ const WarehouseModule = () => {
       <div className="flex flex-1 gap-6 overflow-hidden">
         {/* Categories Sidebar - Only for Finished Goods */}
         {activeTab === 'finished' && (
-          <div className="w-64 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 p-4 flex flex-col">
+          <div className="w-72 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 p-4 flex flex-col shrink-0">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{t('warehouse.categories')}</h3>
             <div className="space-y-1 overflow-y-auto flex-1">
               <div className={`p-2 rounded-lg cursor-pointer text-sm font-medium transition-colors ${selectedCategory === null ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(null)}>
@@ -208,7 +208,7 @@ const WarehouseModule = () => {
                   className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.name ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
                   onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
                 >
-                  <div className="flex items-center flex-1 truncate">
+                  <div className="flex items-center flex-1 truncate" title={cat.name}>
                     <FolderTree className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
                     <span className="truncate">{cat.name}</span>
                   </div>
@@ -301,7 +301,7 @@ const WarehouseModule = () => {
                           </span>
                         </td>
                         <td className="p-4">
-                          <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium">
+                          <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
                             {item.categories?.name || '—'}
                           </span>
                         </td>
