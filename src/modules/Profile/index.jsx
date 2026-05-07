@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2 } from 'lucide-react';
+import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2, Languages, Monitor, Moon, Sun, Check } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('general');
   const [isSaving, setIsSaving] = useState(false);
@@ -397,17 +397,102 @@ const Profile = () => {
                 </div>
               )}
 
-              {(activeTab === 'security' || activeTab === 'display') && (
+              {activeTab === 'security' && (
                 <div className="py-24 text-center space-y-6 animate-in fade-in duration-500">
                    <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto text-gray-300 shadow-inner">
-                      {activeTab === 'security' ? <Shield className="w-10 h-10" /> : <Globe className="w-10 h-10" />}
+                      <Shield className="w-10 h-10" />
                    </div>
                    <div>
-                     <h3 className="text-2xl font-black text-gray-900 tracking-tight">{activeTab === 'security' ? 'Vault Protection' : 'Visual Presence'}</h3>
-                     <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-2">Enhanced security features coming soon</p>
+                     <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('profile.vaultProtection', 'Защита аккаунта')}</h3>
+                     <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-2">{t('profile.comingSoon', 'Скоро будет доступно')}</p>
                    </div>
                    <div className="max-w-xs mx-auto py-3 px-6 bg-blue-50 rounded-full inline-block text-merkez-blue text-[10px] font-black uppercase tracking-widest">
-                      Developer Preview Active
+                      {t('profile.devPreview', 'В разработке')}
+                   </div>
+                </div>
+              )}
+
+              {activeTab === 'display' && (
+                <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
+                   {/* Language Section */}
+                   <div>
+                     <div className="flex items-center space-x-3 mb-8">
+                        <div className="p-2.5 bg-violet-50 rounded-xl text-violet-500">
+                          <Languages className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.language', 'Язык интерфейса')}</h3>
+                     </div>
+
+                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                       {[
+                         { code: 'az', label: 'Azərbaycan dili', flag: '🇦🇿', desc: 'Azərbaycan' },
+                         { code: 'ru', label: 'Русский язык', flag: '🇷🇺', desc: 'Россия' },
+                         { code: 'en', label: 'English', flag: '🇬🇧', desc: 'International' },
+                       ].map(lang => (
+                         <button
+                           key={lang.code}
+                           onClick={() => i18n.changeLanguage(lang.code)}
+                           className={`relative p-6 rounded-3xl border-2 transition-all text-left group ${
+                             i18n.language === lang.code
+                               ? 'border-merkez-blue bg-merkez-blue/5 shadow-lg shadow-blue-100'
+                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                           }`}
+                         >
+                           {i18n.language === lang.code && (
+                             <div className="absolute top-4 right-4 w-6 h-6 bg-merkez-blue rounded-full flex items-center justify-center">
+                               <Check className="w-3.5 h-3.5 text-white" />
+                             </div>
+                           )}
+                           <span className="text-3xl mb-3 block">{lang.flag}</span>
+                           <p className="font-black text-gray-900 text-base">{lang.label}</p>
+                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">{lang.desc}</p>
+                         </button>
+                       ))}
+                     </div>
+                   </div>
+
+                   {/* Theme Section */}
+                   <div className="pt-10 border-t border-gray-50">
+                     <div className="flex items-center space-x-3 mb-8">
+                        <div className="p-2.5 bg-amber-50 rounded-xl text-amber-500">
+                          <Monitor className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.theme', 'Тема оформления')}</h3>
+                     </div>
+
+                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                       {[
+                         { id: 'light', icon: Sun, label: t('profile.themeLight', 'Светлая'), active: true },
+                         { id: 'dark', icon: Moon, label: t('profile.themeDark', 'Тёмная'), active: false },
+                         { id: 'system', icon: Monitor, label: t('profile.themeSystem', 'Системная'), active: false },
+                       ].map(theme => (
+                         <button
+                           key={theme.id}
+                           className={`p-6 rounded-3xl border-2 transition-all text-left flex items-center gap-4 ${
+                             theme.active
+                               ? 'border-merkez-blue bg-merkez-blue/5 shadow-lg shadow-blue-100'
+                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md opacity-50 cursor-not-allowed'
+                           }`}
+                           disabled={!theme.active}
+                         >
+                           <div className={`p-3 rounded-2xl ${
+                             theme.active ? 'bg-merkez-blue/10 text-merkez-blue' : 'bg-gray-50 text-gray-300'
+                           }`}>
+                             <theme.icon className="w-6 h-6" />
+                           </div>
+                           <div>
+                             <p className="font-black text-gray-900">{theme.label}</p>
+                             {!theme.active && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{t('profile.comingSoon', 'Скоро')}</p>}
+                             {theme.active && <p className="text-[10px] font-bold text-merkez-blue uppercase tracking-widest mt-0.5">{t('profile.active', 'Активна')}</p>}
+                           </div>
+                           {theme.active && (
+                             <div className="ml-auto w-6 h-6 bg-merkez-blue rounded-full flex items-center justify-center">
+                               <Check className="w-3.5 h-3.5 text-white" />
+                             </div>
+                           )}
+                         </button>
+                       ))}
+                     </div>
                    </div>
                 </div>
               )}
