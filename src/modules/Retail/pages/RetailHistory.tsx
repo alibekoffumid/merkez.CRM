@@ -309,7 +309,7 @@ const RetailHistory: React.FC = () => {
                 <tr>
                   <td colSpan={5} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <History className="w-12 h-12 text-gray-100" />
+                      <HistoryIcon className="w-12 h-12 text-gray-100" />
                       <p className="text-sm font-bold text-gray-400">{t('retail.history.empty')}</p>
                     </div>
                   </td>
