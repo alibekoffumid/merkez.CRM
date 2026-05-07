@@ -431,13 +431,13 @@ const RetailPOS: React.FC = () => {
           {/* Barcode Scanner Input (Hidden or Small) */}
           <form onSubmit={handleBarcodeSubmit} className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              <Barcode className="w-5 h-5 text-merkez-blue" />
-              <span className="h-4 w-[1px] bg-gray-300 mx-1" />
+              <Barcode className="w-4 h-4 text-merkez-blue" />
+              <span className="h-3 w-[1px] bg-gray-300 mx-1" />
             </div>
             <input 
               ref={barcodeRef}
               type="text"
-              className="w-full pl-16 pr-4 py-4 bg-white border-2 border-transparent focus:border-merkez-blue rounded-2xl shadow-sm text-xl font-mono tracking-[0.2em] transition-all outline-none"
+              className="w-full pl-14 pr-4 py-3 bg-white border-2 border-transparent focus:border-merkez-blue rounded-2xl shadow-sm text-lg font-mono tracking-widest transition-all outline-none"
               placeholder={t('retail.scanBarcode')}
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
