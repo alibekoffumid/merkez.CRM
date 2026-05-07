@@ -224,14 +224,14 @@ const RetailPOS: React.FC = () => {
     
     setParkedTransactions(prev => [newParked, ...prev]);
     setCart([]);
-    toast.success('Чек успешно отложен');
+    toast.success(t('retail.receiptParked'));
   };
 
   const handleResumeTransaction = (parked: any) => {
     setCart(parked.items);
     setParkedTransactions(prev => prev.filter(p => p.id !== parked.id));
     setShowParkedList(false);
-    toast.success('Чек восстановлен');
+    toast.success(t('retail.receiptRestored'));
   };
 
   const updateItemDiscount = (id: string, type: 'percent' | 'fixed', value: number) => {
@@ -273,7 +273,7 @@ const RetailPOS: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      if (!profile?.id) throw new Error('Пользователь не авторизован');
+      if (!profile?.id) throw new Error(t('common.unauthorized'));
       const { data, error } = await supabase.rpc('process_retail_sale', {
         p_user_id: profile.id,
         p_total_amount: total,
@@ -300,7 +300,7 @@ const RetailPOS: React.FC = () => {
       setCashReceived('');
       // In real scenario, here we would trigger fiscal print
     } catch (err: any) {
-      toast.error('Ошибка при обработке: ' + err.message);
+      toast.error(t('common.error') + ': ' + err.message);
     } finally {
       setIsProcessing(false);
     }
@@ -358,16 +358,16 @@ const RetailPOS: React.FC = () => {
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
-            <NavLink to="/retail/inventory" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.inventory')}>
+            <NavLink to="/retail/inventory" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.inventory.title')}>
               <Package className="w-5 h-5" />
             </NavLink>
-            <NavLink to="/retail/history" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.history')}>
+            <NavLink to="/retail/history" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.history.title')}>
               <HistoryIcon className="w-5 h-5" />
             </NavLink>
             <button 
               onClick={() => setShowScannerQR(true)}
               className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" 
-              title="Подключить сканер"
+              title={t('retail.connectScanner')}
             >
               <Smartphone className="w-5 h-5" />
             </button>
@@ -376,7 +376,7 @@ const RetailPOS: React.FC = () => {
               <button 
                 onClick={() => setShowParkedList(!showParkedList)}
                 className={`p-2 rounded-lg transition-all relative ${parkedTransactions.length > 0 ? 'text-orange-500 hover:bg-orange-50' : 'text-gray-400 hover:text-merkez-blue hover:bg-white'}`}
-                title="Отложенные чеки"
+                title={t('retail.parkedReceipts')}
               >
                 <PauseCircle className="w-5 h-5" />
                 {parkedTransactions.length > 0 && (
@@ -389,13 +389,13 @@ const RetailPOS: React.FC = () => {
               {showParkedList && (
                 <div className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[100] w-72 overflow-hidden animate-in fade-in slide-in-from-top-2">
                   <div className="p-4 border-b border-gray-50 bg-gray-50/50">
-                    <h3 className="font-bold text-gray-900 text-sm">Отложенные чеки</h3>
+                    <h3 className="font-bold text-gray-900 text-sm">{t('retail.parkedReceipts')}</h3>
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
                     {parkedTransactions.length === 0 ? (
                       <div className="p-8 text-center">
                         <PauseCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                        <p className="text-xs text-gray-400">Нет отложенных чеков</p>
+                        <p className="text-xs text-gray-400">{t('retail.history.empty')}</p>
                       </div>
                     ) : (
                       parkedTransactions.map(p => (
@@ -406,7 +406,7 @@ const RetailPOS: React.FC = () => {
                         >
                           <div>
                             <p className="text-sm font-bold text-gray-800">{p.total.toFixed(2)} ₼</p>
-                            <p className="text-[10px] text-gray-400">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {p.items.length} поз.</p>
+                            <p className="text-[10px] text-gray-400">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {p.items.length} {t('retail.positions')}</p>
                           </div>
                           <Play className="w-4 h-4 text-merkez-blue" />
                         </button>
@@ -448,10 +448,10 @@ const RetailPOS: React.FC = () => {
                 onClick={handleParkTransaction}
                 disabled={cart.length === 0}
                 className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center gap-2"
-                title="Отложить чек (Pause)"
+                title={t('retail.receiptParked')}
               >
                 <PauseCircle className="w-5 h-5" />
-                <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">Отложить</span>
+                <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">{t('retail.park')}</span>
               </button>
             </div>
           </form>
@@ -492,7 +492,7 @@ const RetailPOS: React.FC = () => {
                             {item.excise_stamp_required && (
                               <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded-full w-fit border border-amber-100">
                                 <AlertCircle className="w-3 h-3" />
-                                ТРЕБУЕТСЯ АКЦИЗ
+                                {t('retail.exciseRequiredMsg')}
                               </div>
                             )}
                           </div>
@@ -646,7 +646,7 @@ const RetailPOS: React.FC = () => {
                 <div className="flex justify-between items-center text-gray-500 font-medium">
                   <div className="flex items-center gap-2">
                     <Tag className="w-4 h-4 text-orange-500" />
-                    <span>{t('retail.discount', 'Скидка')}</span>
+                    <span>{t('retail.discount')}</span>
                   </div>
                   <div className="flex items-center gap-2 bg-gray-50 px-2 py-1 rounded-xl border border-gray-100">
                     <div className="flex gap-1 border-r border-gray-200 pr-1 mr-1">

@@ -80,12 +80,12 @@ const RetailInventory: React.FC = () => {
       
       const mappedData = (data || []).map(p => ({
         ...p,
-        category: p.categories?.name || 'Без категории',
+        category: p.categories?.name || t('common.noCategory'),
         sale_price: p.price || p.sale_price || 0
       }));
       setProducts(mappedData);
     } catch (err: any) {
-      toast.error('Ошибка загрузки: ' + err.message);
+      toast.error(t('common.error') + ': ' + err.message);
     }
   };
 
@@ -109,9 +109,9 @@ const RetailInventory: React.FC = () => {
           .update(payload)
           .eq('id', editingProduct.id);
         if (error) throw error;
-        toast.success('Товар обновлен');
+        toast.success(t('common.updated'));
       } else {
-        if (!profile?.id) throw new Error('Пользователь не авторизован');
+        if (!profile?.id) throw new Error(t('common.unauthorized'));
         const { error } = await supabase
           .from('products')
           .insert([{ 
@@ -119,13 +119,13 @@ const RetailInventory: React.FC = () => {
             user_id: profile.id 
           }]);
         if (error) throw error;
-        toast.success('Товар добавлен');
+        toast.success(t('common.added'));
       }
       setIsModalOpen(false);
       setEditingProduct(null);
       fetchProducts();
     } catch (err: any) {
-      toast.error('Ошибка сохранения: ' + err.message);
+      toast.error(t('common.error') + ': ' + err.message);
     }
   };
 
@@ -145,17 +145,17 @@ const RetailInventory: React.FC = () => {
   };
 
   const deleteProduct = async (id: string) => {
-    if (!confirm('Вы уверены, что хотите архивировать этот товар?')) return;
+    if (!confirm(t('common.confirmArchive'))) return;
     try {
       const { error } = await supabase
         .from('products')
         .update({ archived: true })
         .eq('id', id);
       if (error) throw error;
-      toast.success('Товар архивирован');
+      toast.success(t('common.archived'));
       fetchProducts();
     } catch (err: any) {
-      toast.error('Ошибка при удалении: ' + err.message);
+      toast.error(t('common.error') + ': ' + err.message);
     }
   };
 
@@ -201,9 +201,9 @@ const RetailInventory: React.FC = () => {
             <div className="p-2 bg-merkez-blue/10 rounded-xl">
               <Package className="w-6 h-6 text-merkez-blue" />
             </div>
-            Управление инвентарем
+            {t('retail.inventory.title')}
           </h1>
-          <p className="text-gray-500 font-medium mt-1">Отслеживайте остатки и цены в реальном времени</p>
+          <p className="text-gray-500 font-medium mt-1">{t('retail.inventory.subtitle')}</p>
         </div>
         
         <button 
@@ -212,7 +212,7 @@ const RetailInventory: React.FC = () => {
             setFormData({
               name: '',
               barcode: '',
-              category: 'Grocery',
+              category_id: '',
               purchase_price: 0,
               sale_price: 0,
               stock_quantity: 0,
@@ -224,30 +224,30 @@ const RetailInventory: React.FC = () => {
           className="flex items-center gap-2 bg-merkez-blue text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" />
-          Добавить товар
+          {t('retail.inventory.addProduct')}
         </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Всего товаров</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t('retail.inventory.totalProducts')}</p>
           <p className="text-3xl font-black text-gray-900">{products.length}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Критический остаток</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t('retail.inventory.criticalStock')}</p>
           <p className="text-3xl font-black text-red-500">
             {products.filter(p => p.stock_quantity <= p.critical_stock).length}
           </p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Сумма склада (зак.)</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t('retail.inventory.stockValue')}</p>
           <p className="text-3xl font-black text-green-600">
             {products.reduce((sum, p) => sum + (p.purchase_price * p.stock_quantity), 0).toLocaleString()} ₼
           </p>
         </div>
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Ожидаемая выручка</p>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{t('retail.inventory.expectedRevenue')}</p>
           <p className="text-3xl font-black text-blue-600">
             {products.reduce((sum, p) => sum + (p.sale_price * p.stock_quantity), 0).toLocaleString()} ₼
           </p>
@@ -255,13 +255,13 @@ const RetailInventory: React.FC = () => {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
         <div className="p-6 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text"
-              placeholder="Поиск по названию или штрих-коду..."
+              placeholder={t('retail.inventory.searchPlaceholder')}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-merkez-blue/20 transition-all font-medium"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -273,96 +273,108 @@ const RetailInventory: React.FC = () => {
                 onClick={() => toggleSort('name')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === 'name' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               >
-                Имя {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t('retail.inventory.sortName')} {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
               </button>
               <button 
                 onClick={() => toggleSort('price')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === 'price' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               >
-                Цена {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t('retail.inventory.sortPrice')} {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
               </button>
               <button 
                 onClick={() => toggleSort('stock')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${sortBy === 'stock' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               >
-                Остаток {sortBy === 'stock' && (sortOrder === 'asc' ? '↑' : '↓')}
+                {t('retail.inventory.sortStock')} {sortBy === 'stock' && (sortOrder === 'asc' ? '↑' : '↓')}
               </button>
             </div>
             <button className="flex items-center gap-2 px-4 py-2 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all">
               <Filter className="w-4 h-4" />
-              Фильтры
+              {t('retail.inventory.filters')}
             </button>
           </div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-left">
             <thead>
-              <tr className="bg-gray-50/50 text-left">
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Товар</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Категория</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Закупка</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Продажа</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Остаток</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Действия</th>
+              <tr className="bg-gray-50/50">
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('retail.inventory.tableProduct')}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('retail.inventory.tableCategory')}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tablePurchase')}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tableSale')}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">{t('retail.inventory.tableStock')}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tableActions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">Загрузка...</td>
+                  <td colSpan={6} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-4 border-merkez-blue/20 border-t-merkez-blue rounded-full animate-spin" />
+                      <p className="text-xs font-bold text-gray-400">{t('common.loading')}</p>
+                    </div>
+                  </td>
                 </tr>
               ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400">Товары не найдены</td>
+                  <td colSpan={6} className="px-8 py-20 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <Package className="w-12 h-12 text-gray-100" />
+                      <p className="text-xs font-bold text-gray-400">{t('retail.inventory.empty') || t('common.noData')}</p>
+                    </div>
+                  </td>
                 </tr>
               ) : filteredProducts.map(product => (
-                <tr key={product.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-4">
+                <tr key={product.id} className="hover:bg-gray-50/30 transition-colors group">
+                  <td className="px-8 py-5">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                        <Barcode className="w-5 h-5 text-gray-400" />
+                      <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-merkez-blue/10 transition-colors shrink-0">
+                        <Barcode className="w-5 h-5 text-gray-400 group-hover:text-merkez-blue" />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 leading-none">{product.name}</p>
-                        <p className="text-xs text-gray-500 mt-1 font-mono">{product.barcode}</p>
+                        <p className="font-bold text-gray-900 leading-tight">{product.name}</p>
+                        <p className="text-[10px] text-gray-500 mt-1 font-mono tracking-wider">{product.barcode}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-wider">
-                      {product.category}
+                  <td className="px-8 py-5">
+                    <span className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                      {product.categories?.name || t('common.noCategory')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right font-medium text-gray-600">
+                  <td className="px-8 py-5 text-right font-bold text-gray-500 tabular-nums">
                     {(product.purchase_price || 0).toFixed(2)} ₼
                   </td>
-                  <td className="px-6 py-4 text-right font-black text-gray-900">
+                  <td className="px-8 py-5 text-right font-black text-gray-900 tabular-nums">
                     {(product.sale_price || 0).toFixed(2)} ₼
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-8 py-5 text-center">
                     <div className={`
-                      inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold
+                      inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest
                       ${product.stock_quantity <= product.critical_stock 
                         ? 'bg-red-50 text-red-600' 
                         : 'bg-green-50 text-green-700'}
                     `}>
                       {product.stock_quantity <= product.critical_stock && <AlertTriangle className="w-3 h-3" />}
-                      {product.stock_quantity} шт
+                      {product.stock_quantity} {t('common.unit')}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => openEdit(product)}
-                        className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-2.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-xl transition-all"
+                        title={t('common.edit')}
                       >
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => deleteProduct(product.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        title={t('common.delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -377,38 +389,42 @@ const RetailInventory: React.FC = () => {
 
       {/* Modal for Add/Edit */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)} />
+          <div className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <form onSubmit={handleSave} className="flex flex-col">
-              <div className="px-8 py-6 border-b border-gray-50 flex items-center justify-between">
-                <h2 className="text-xl font-black text-gray-900">
-                  {editingProduct ? 'Редактировать товар' : 'Добавить новый товар'}
+              <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <h2 className="text-2xl font-black text-gray-900">
+                  {editingProduct ? t('retail.inventory.editProduct') || t('common.edit') : t('retail.inventory.addProduct')}
                 </h2>
-                <button type="button" onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="p-3 hover:bg-white rounded-2xl transition-all text-gray-400 hover:text-gray-900"
+                >
                   <Plus className="w-6 h-6 rotate-45" />
                 </button>
               </div>
               
               <div className="p-8 grid grid-cols-2 gap-6">
                 <div className="col-span-2 space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Наименование товара</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.productName')}</label>
                   <input 
                     required
                     type="text" 
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-bold"
-                    placeholder="Например: Coca-Cola 0.5L"
+                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold outline-none"
+                    placeholder="Coca-Cola 0.5L"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Штрих-код (EAN-13)</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.barcode')}</label>
                   <input 
                     required
                     type="text" 
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-mono"
+                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-mono outline-none"
                     placeholder="0000000000000"
                     value={formData.barcode}
                     onChange={(e) => setFormData({...formData, barcode: e.target.value})}
@@ -416,84 +432,84 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Категория</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.category')}</label>
                   <Dropdown 
                     value={formData.category_id}
                     onChange={(val) => setFormData({...formData, category_id: val})}
                     options={[
-                      { value: '', label: 'Без категории' },
+                      { value: '', label: t('common.noCategory') },
                       ...categories.map(cat => ({ value: cat.id, label: cat.name })),
                     ]}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Цена закупки</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.purchasePrice')}</label>
                   <input 
                     type="number" step="0.01"
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-bold"
+                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold outline-none"
                     value={formData.purchase_price}
                     onChange={(e) => setFormData({...formData, purchase_price: parseFloat(e.target.value)})}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Цена продажи</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.salePrice')}</label>
                   <input 
                     type="number" step="0.01"
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-bold"
+                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold outline-none"
                     value={formData.sale_price}
                     onChange={(e) => setFormData({...formData, sale_price: parseFloat(e.target.value)})}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Текущий остаток</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.stock')}</label>
                   <input 
                     type="number"
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-bold text-merkez-blue"
+                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold text-merkez-blue outline-none"
                     value={formData.stock_quantity}
                     onChange={(e) => setFormData({...formData, stock_quantity: parseFloat(e.target.value)})}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Критический порог</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.criticalStock')}</label>
                   <input 
                     type="number"
-                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-merkez-blue/20 transition-all font-bold text-red-500"
+                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold text-red-500 outline-none"
                     value={formData.critical_stock}
                     onChange={(e) => setFormData({...formData, critical_stock: parseFloat(e.target.value)})}
                   />
                 </div>
 
-                <div className="col-span-2 flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                <div className="col-span-2 flex items-center gap-4 p-5 bg-amber-50 rounded-[2rem] border border-amber-100">
                   <input 
                     type="checkbox" 
                     id="excise"
-                    className="w-5 h-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+                    className="w-6 h-6 rounded-lg border-amber-300 text-amber-600 focus:ring-amber-500"
                     checked={formData.excise_stamp_required}
                     onChange={(e) => setFormData({...formData, excise_stamp_required: e.target.checked})}
                   />
-                  <label htmlFor="excise" className="text-sm font-bold text-amber-800">
-                    Требовать сканирование акцизной марки (для алкоголя/табака)
+                  <label htmlFor="excise" className="text-sm font-bold text-amber-800 cursor-pointer select-none">
+                    {t('retail.exciseRequired')}
                   </label>
                 </div>
               </div>
 
-              <div className="px-8 py-6 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-3">
+              <div className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-4">
                 <button 
                   type="button" 
                   onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
+                  className="px-8 py-4 rounded-2xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
                 >
-                  Отмена
+                  {t('common.cancel')}
                 </button>
                 <button 
                   type="submit"
-                  className="px-10 py-3 bg-merkez-blue text-white rounded-xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all"
+                  className="px-12 py-4 bg-merkez-blue text-white rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all"
                 >
-                  {editingProduct ? 'Сохранить изменения' : 'Создать товар'}
+                  {editingProduct ? t('common.save') : t('common.create')}
                 </button>
               </div>
             </form>
