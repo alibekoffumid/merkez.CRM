@@ -369,10 +369,10 @@ const WarehouseModule = () => {
                             </button>
 
                             {openMenuId === item.id && (
-                              <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
                                 <button
                                   onClick={() => handleEdit(item)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                 >
                                   <Pencil className="w-4 h-4 text-merkez-blue" />
                                   {t('warehouse.editProduct')}
@@ -380,7 +380,7 @@ const WarehouseModule = () => {
                                 <div className="mx-3 my-1 border-t border-gray-100" />
                                 <button
                                   onClick={() => handleDelete(item.id)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium"
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                   {t('warehouse.deleteProduct')}
@@ -441,10 +441,10 @@ const WarehouseModule = () => {
                             </button>
 
                             {openMenuId === item.id && (
-                              <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
                                 <button
                                   onClick={() => handleEditIngredient(item)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                 >
                                   <Pencil className="w-4 h-4 text-merkez-green" />
                                   {t('warehouse.editIngredient')}
@@ -452,7 +452,7 @@ const WarehouseModule = () => {
                                 <div className="mx-3 my-1 border-t border-gray-100" />
                                 <button
                                   onClick={() => handleDeleteIngredient(item.id)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium"
+                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                   {t('warehouse.deleteIngredient')}
