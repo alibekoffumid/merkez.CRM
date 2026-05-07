@@ -10,7 +10,7 @@ import AddIngredientModal from './AddIngredientModal';
 import EditIngredientModal from './EditIngredientModal';
 
 const WarehouseModule = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('finished'); // 'finished' | 'raw'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -25,7 +25,10 @@ const WarehouseModule = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const menuRef = useRef(null);
+  const filterRef = useRef(null);
 
   useEffect(() => {
     fetchAll();
@@ -36,6 +39,9 @@ const WarehouseModule = () => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpenMenuId(null);
+      }
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setShowFilterDropdown(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -125,7 +131,16 @@ const WarehouseModule = () => {
 
   const filteredProducts = products
     .filter(p => selectedCategory ? p.categories?.name === selectedCategory : true)
-    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(p => {
+      if (statusFilter === 'all') return true;
+      const stock = parseFloat(p.stock_quantity || 0);
+      const min = parseFloat(p.critical_stock || 15);
+      if (statusFilter === 'in') return stock >= min;
+      if (statusFilter === 'low') return stock > 0 && stock < min;
+      if (statusFilter === 'out') return stock === 0;
+      return true;
+    });
 
   const filteredIngredients = ingredients
     .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -245,9 +260,37 @@ const WarehouseModule = () => {
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
               />
             </div>
-            <button className="bg-gray-50 border border-gray-100 p-2 rounded-lg text-gray-500 hover:text-gray-700 transition-colors">
-              <Filter className="w-5 h-5" />
-            </button>
+            <div className="relative" ref={filterRef}>
+              <button 
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
+              >
+                <Filter className="w-5 h-5" />
+              </button>
+              
+              {showFilterDropdown && (
+                <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-xl shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                  <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                  {[
+                    { id: 'all', label: t('az' === i18n.language ? 'Hamısı' : 'ru' === i18n.language ? 'Все' : 'All') },
+                    { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
+                    { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
+                    { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
+                        {item.label}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-auto" ref={menuRef}>
