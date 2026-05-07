@@ -14,7 +14,9 @@ import {
   Delete,
   CheckCircle2,
   History as HistoryIcon,
-  Smartphone
+  Smartphone,
+  PauseCircle,
+  Play
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
@@ -45,6 +47,8 @@ const RetailPOS: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<RetailProduct[]>([]);
   const [showScannerQR, setShowScannerQR] = useState(false);
+  const [parkedTransactions, setParkedTransactions] = useState<{id: string, items: CartItem[], total: number, timestamp: number}[]>([]);
+  const [showParkedList, setShowParkedList] = useState(false);
   
   const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -172,6 +176,29 @@ const RetailPOS: React.FC = () => {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
+  const handleParkTransaction = () => {
+    if (cart.length === 0) return;
+    
+    const currentTotal = cart.reduce((sum, item) => sum + ((item.sale_price || 0) * item.quantity), 0);
+    const newParked = {
+      id: Math.random().toString(36).substr(2, 9),
+      items: [...cart],
+      total: currentTotal,
+      timestamp: Date.now()
+    };
+    
+    setParkedTransactions(prev => [newParked, ...prev]);
+    setCart([]);
+    toast.success('Чек успешно отложен');
+  };
+
+  const handleResumeTransaction = (parked: any) => {
+    setCart(parked.items);
+    setParkedTransactions(prev => prev.filter(p => p.id !== parked.id));
+    setShowParkedList(false);
+    toast.success('Чек восстановлен');
+  };
+
   const subtotal = cart.reduce((sum, item) => sum + ((item.sale_price || 0) * item.quantity), 0);
   const tax = subtotal * 0.18; // 18% VAT Azerbaijan
   const total = subtotal; // Assuming VAT included in price for retail
@@ -274,6 +301,51 @@ const RetailPOS: React.FC = () => {
             >
               <Smartphone className="w-5 h-5" />
             </button>
+            
+            <div className="relative">
+              <button 
+                onClick={() => setShowParkedList(!showParkedList)}
+                className={`p-2 rounded-lg transition-all relative ${parkedTransactions.length > 0 ? 'text-orange-500 hover:bg-orange-50' : 'text-gray-400 hover:text-merkez-blue hover:bg-white'}`}
+                title="Отложенные чеки"
+              >
+                <PauseCircle className="w-5 h-5" />
+                {parkedTransactions.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">
+                    {parkedTransactions.length}
+                  </span>
+                )}
+              </button>
+
+              {showParkedList && (
+                <div className="absolute top-full right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[100] w-72 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  <div className="p-4 border-b border-gray-50 bg-gray-50/50">
+                    <h3 className="font-bold text-gray-900 text-sm">Отложенные чеки</h3>
+                  </div>
+                  <div className="max-h-[300px] overflow-y-auto">
+                    {parkedTransactions.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <PauseCircle className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                        <p className="text-xs text-gray-400">Нет отложенных чеков</p>
+                      </div>
+                    ) : (
+                      parkedTransactions.map(p => (
+                        <button 
+                          key={p.id}
+                          onClick={() => handleResumeTransaction(p)}
+                          className="w-full p-4 border-b border-gray-50 hover:bg-merkez-blue/5 flex items-center justify-between transition-colors text-left"
+                        >
+                          <div>
+                            <p className="text-sm font-bold text-gray-800">{p.total.toFixed(2)} ₼</p>
+                            <p className="text-[10px] text-gray-400">{new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {p.items.length} поз.</p>
+                          </div>
+                          <Play className="w-4 h-4 text-merkez-blue" />
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="px-4 py-2 bg-green-50 rounded-lg flex items-center gap-2 border border-green-100">
@@ -300,6 +372,18 @@ const RetailPOS: React.FC = () => {
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
             />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <button 
+                type="button"
+                onClick={handleParkTransaction}
+                disabled={cart.length === 0}
+                className="p-2.5 bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed group flex items-center gap-2"
+                title="Отложить чек (Pause)"
+              >
+                <PauseCircle className="w-5 h-5" />
+                <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">Отложить</span>
+              </button>
+            </div>
           </form>
 
           {/* Cart Table */}
