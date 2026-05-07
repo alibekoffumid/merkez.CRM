@@ -541,7 +541,7 @@ const RetailPOS: React.FC = () => {
                               <input 
                                 type="number" 
                                 autoFocus
-                                className="w-20 px-2 py-1 bg-gray-50 border-none rounded-md text-xs font-bold focus:ring-2 focus:ring-merkez-blue/20 outline-none"
+                                className="w-20 px-2 py-1 bg-gray-50 border-none rounded-md text-xs font-bold focus:ring-2 focus:ring-merkez-blue/20 outline-none no-spinner"
                                 value={item.discount_value || ''}
                                 onChange={(e) => updateItemDiscount(item.id, item.discount_type || 'percent', parseFloat(e.target.value) || 0)}
                                 onBlur={() => setEditingDiscountId(null)}
@@ -655,7 +655,7 @@ const RetailPOS: React.FC = () => {
                     </div>
                     <input 
                       type="number"
-                      className="w-16 bg-transparent border-none text-right font-bold text-gray-800 text-sm focus:ring-0 p-0"
+                      className="w-16 bg-transparent border-none text-right font-bold text-gray-800 text-sm focus:ring-0 p-0 no-spinner"
                       value={globalDiscountValue || ''}
                       onChange={(e) => setGlobalDiscountValue(parseFloat(e.target.value) || 0)}
                       placeholder="0"
@@ -675,7 +675,7 @@ const RetailPOS: React.FC = () => {
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('retail.received')}</span>
                     <input 
                       type="number"
-                      className="w-32 text-right text-2xl font-bold bg-transparent border-b-2 border-gray-100 focus:border-merkez-blue transition-all outline-none"
+                      className="w-32 text-right text-2xl font-bold bg-transparent border-b-2 border-gray-100 focus:border-merkez-blue transition-all outline-none no-spinner"
                       value={cashReceived}
                       onChange={(e) => setCashReceived(e.target.value)}
                       placeholder="0.00"
