@@ -60,7 +60,8 @@
     "online": "В сети",
     "offline": "Оффлайн",
     "quickSale": "Быстрая оплата",
-    "newCheck": "Новый чек"
+    "newCheck": "Новый чек",
+    "discount": "Скидка"
   },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",

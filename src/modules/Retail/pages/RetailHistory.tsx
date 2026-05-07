@@ -379,9 +379,9 @@ const RetailHistory: React.FC = () => {
                           <td className="px-4 py-4">
                             <div className="flex flex-col">
                               <span className="font-bold text-gray-800">{item.product_name || item.products?.name || t('retail.itemDeleted')}</span>
-                              {item.discount_amount && item.discount_amount > 0 && (
+                              {!!item.discount_amount && item.discount_amount > 0 && (
                                 <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">
-                                  {t('retail.discount')} -{item.discount_amount}{item.discount_type === 'percent' ? '%' : ' ₼'}
+                                  {t('retail.discount')} -{Number(item.discount_amount).toFixed(2)}{item.discount_type === 'percent' ? '%' : ' ₼'}
                                 </span>
                               )}
                             </div>

@@ -59,7 +59,8 @@
     "online": "Online",
     "offline": "Offline",
     "quickSale": "Quick Pay",
-    "newCheck": "New Check"
+    "newCheck": "New Check",
+    "discount": "Discount"
   },
   "fleet": {
     "dashboardTitle": "Merkez Fleet",

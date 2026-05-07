@@ -65,7 +65,8 @@
     "online": "Onlayn",
     "offline": "Oflayn",
     "quickSale": "Sürətli ödəniş",
-    "newCheck": "Yeni çek"
+    "newCheck": "Yeni çek",
+    "discount": "Endirim"
   },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",
