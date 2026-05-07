@@ -43,4 +43,6 @@ export interface RetailSaleItem {
 export interface CartItem extends RetailProduct {
   quantity: number;
   excise_stamp?: string;
+  discount_type?: 'percent' | 'fixed';
+  discount_value?: number;
 }
