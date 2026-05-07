@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Save, Image as ImageIcon, Upload, Loader2, Trash2 } from 'lucide-react';
+import { X, Save, Image as ImageIcon, Upload, Loader2, Trash2, Pencil } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
