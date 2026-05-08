@@ -7,6 +7,7 @@ import ETaxesModule from './modules/ETaxes';
 import CRMModule from './modules/CRM';
 import WarehouseModule from './modules/Warehouse';
 import RestaurantModule from './modules/Restaurant';
+import PublicMenu from './modules/Restaurant/PublicMenu';
 import CallCenterModule from './modules/CallCenter';
 import Auth from './modules/Auth/Auth';
 import AuthGuard from './components/Auth/AuthGuard';
@@ -107,6 +108,7 @@ function App() {
       <BrowserRouter>
       <Routes>
         <Route path="/auth" element={<Auth />} />
+        <Route path="/m/:businessId" element={<PublicMenu />} />
         
         {/* Module Store — accessible always (after auth) */}
         <Route path="/modules" element={

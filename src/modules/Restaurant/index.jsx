@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Layout, ChefHat, UtensilsCrossed, Users, Settings, Package, BarChart3 } from 'lucide-react';
+import { Layout, ChefHat, UtensilsCrossed, Users, Settings, Package, BarChart3, QrCode } from 'lucide-react';
 import FloorPlan from './components/FloorPlan';
 import MenuManager from './components/MenuManager';
 import StaffManager from './components/StaffManager';
@@ -8,6 +8,7 @@ import TableSettings from './components/TableSettings';
 import Analytics from './components/Analytics';
 import KitchenDisplay from './components/KitchenDisplay';
 import InventoryManager from './components/InventoryManager';
+import QRMenu from './components/QRMenu';
 
 const RestaurantModule = () => {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ const RestaurantModule = () => {
     { id: 'staff', label: t('restaurant.staffWaiters'), icon: Users },
     { id: 'settings', label: t('restaurant.tablesSettings'), icon: Settings },
     { id: 'inventory', label: t('restaurant.inventory'), icon: Package },
+    { id: 'qrmenu', label: 'QR Menyu', icon: QrCode },
     { id: 'analytics', label: t('restaurant.reportsAnalytics'), icon: BarChart3 },
   ];
 
@@ -62,6 +64,7 @@ const RestaurantModule = () => {
         {activeTab === 'staff' && <StaffManager />}
         {activeTab === 'settings' && <TableSettings />}
         {activeTab === 'inventory' && <InventoryManager />}
+        {activeTab === 'qrmenu' && <QRMenu />}
         {activeTab === 'analytics' && <Analytics />}
       </div>
     </div>
