@@ -27,6 +27,7 @@ const WarehouseModule = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -84,21 +85,30 @@ const WarehouseModule = () => {
     if (data) setIngredients(data);
   };
 
-  const handleDelete = async (productId) => {
-    if (!window.confirm(t('warehouse.confirmDeleteProduct'))) return;
+  const requestDeleteProduct = (productId) => {
+    setConfirmDelete({ type: 'product', id: productId });
     setOpenMenuId(null);
-    const { error } = await supabase
-      .from('products')
-      .update({ archived: true })
-      .eq('id', productId);
-    if (!error) setProducts(prev => prev.filter(p => p.id !== productId));
   };
 
-  const handleDeleteIngredient = async (id) => {
-    if (!window.confirm(t('warehouse.confirmDeleteIngredient'))) return;
+  const requestDeleteIngredient = (id) => {
+    setConfirmDelete({ type: 'ingredient', id });
     setOpenMenuId(null);
-    const { error } = await supabase.from('ingredients').delete().eq('id', id);
-    if (!error) setIngredients(prev => prev.filter(i => i.id !== id));
+  };
+
+  const executeDelete = async () => {
+    if (!confirmDelete) return;
+    
+    if (confirmDelete.type === 'product') {
+      const { error } = await supabase
+        .from('products')
+        .update({ archived: true })
+        .eq('id', confirmDelete.id);
+      if (!error) setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
+    } else {
+      const { error } = await supabase.from('ingredients').delete().eq('id', confirmDelete.id);
+      if (!error) setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
+    }
+    setConfirmDelete(null);
   };
 
   const handleEdit = (product) => {
@@ -385,7 +395,7 @@ const WarehouseModule = () => {
                                 </button>
                                 <div className="mx-3 my-1 border-t border-gray-100" />
                                 <button
-                                  onClick={() => handleDelete(item.id)}
+                                  onClick={() => requestDeleteProduct(item.id)}
                                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -457,7 +467,7 @@ const WarehouseModule = () => {
                                 </button>
                                 <div className="mx-3 my-1 border-t border-gray-100" />
                                 <button
-                                  onClick={() => handleDeleteIngredient(item.id)}
+                                  onClick={() => requestDeleteIngredient(item.id)}
                                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -476,6 +486,38 @@ const WarehouseModule = () => {
           </div>
         </div>
       </div>
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[150] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="flex flex-col items-center justify-center text-center space-y-3 mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                <Trash2 className="w-6 h-6 text-red-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">
+                {t('common.confirmDelete') || 'Подтверждение удаления'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {confirmDelete.type === 'product' ? t('warehouse.confirmDeleteProduct') : t('warehouse.confirmDeleteIngredient')}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setConfirmDelete(null)}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors"
+              >
+                {t('common.cancel') || 'Отмена'}
+              </button>
+              <button 
+                onClick={executeDelete}
+                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                {t('common.delete') || 'Удалить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
