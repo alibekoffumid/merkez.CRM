@@ -26,7 +26,7 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
     // Fetch existing recipe for this product
     const { data: existingRecipe } = await supabase
       .from('product_recipes')
-      .select('*, ingredients(name, unit, cost_price)')
+      .select('*, ingredients(name, unit, cost_price, quantity)')
       .eq('product_id', product.id);
     
     if (existingRecipe) {
@@ -36,6 +36,7 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
         name: item.ingredients.name,
         unit: item.ingredients.unit,
         cost_per_unit: item.ingredients.cost_price,
+        stock: item.ingredients.quantity,
         quantity: item.quantity
       })));
     } else {
@@ -51,6 +52,7 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
       name: ing.name,
       unit: ing.unit,
       cost_per_unit: ing.cost_price,
+      stock: ing.quantity,
       quantity: 0
     }]);
     setSearchTerm('');
@@ -67,6 +69,11 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
   };
 
   const totalPrice = recipeItems.reduce((sum, item) => sum + (item.cost_per_unit * item.quantity), 0);
+
+  const validItems = recipeItems.filter(item => item.quantity > 0);
+  const maxPortions = validItems.length > 0
+    ? Math.floor(Math.min(...validItems.map(item => (item.stock || 0) / item.quantity)))
+    : 0;
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -175,7 +182,9 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
                   <div key={item.ingredient_id} className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                     <div className="flex-1">
                       <p className="text-sm font-bold text-gray-900">{item.name}</p>
-                      <p className="text-xs text-gray-500">${item.cost_per_unit.toFixed(2)} / {item.unit}</p>
+                      <p className="text-xs text-gray-500">
+                        ${item.cost_per_unit.toFixed(2)} / {item.unit} &bull; {t('warehouse.inStock') || 'Stock'}: {parseFloat(item.stock || 0).toFixed(2)} {item.unit}
+                      </p>
                     </div>
                     <div className="w-32 flex items-center gap-2">
                       <input
@@ -203,7 +212,7 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
         {/* Footer with Calculations */}
         <div className="p-6 border-t border-gray-100 bg-gray-50/50 shrink-0">
           <div className="flex justify-between items-center mb-6">
-            <div className="flex gap-8">
+            <div className="flex gap-6">
               <div>
                 <p className="text-xs text-gray-500 uppercase font-bold mb-1">{t('restaurant.sellingPrice')}</p>
                 <div className="flex items-center text-lg font-bold text-gray-900">
@@ -222,6 +231,12 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
                 <p className="text-xs text-merkez-green uppercase font-bold mb-1">{t('restaurant.margin')}</p>
                 <div className="flex items-center text-lg font-bold text-merkez-green">
                    {((parseFloat(product.price) - totalPrice) / parseFloat(product.price) * 100).toFixed(1)}%
+                </div>
+              </div>
+              <div className="pl-4 border-l border-gray-200">
+                <p className="text-xs text-orange-500 uppercase font-bold mb-1">{t('restaurant.maxPortions') || 'Max Portions'}</p>
+                <div className="flex items-center text-lg font-bold text-orange-600">
+                   {maxPortions}
                 </div>
               </div>
             </div>

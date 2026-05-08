@@ -106,7 +106,7 @@ const MenuManager = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('products')
       .insert([{
         name: newDish.name,
@@ -114,12 +114,18 @@ const MenuManager = () => {
         category_id: newDish.category_id,
         description: 'Added via UI',
         user_id: user.id
-      }]);
+      }])
+      .select()
+      .single();
     
-    if (!error) {
+    if (!error && data) {
       setIsAddDishModalOpen(false);
       setNewDish({ name: '', price: '', category_id: categories[0]?.id, status: 'Available' });
       fetchData();
+      
+      // Automatically open recipe modal for the newly added dish
+      setSelectedProductForRecipe(data);
+      setIsRecipeModalOpen(true);
     }
   };
 
