@@ -124,9 +124,9 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
         }}
         className="w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-blue-500 hover:bg-white rounded-2xl px-4 py-2.5 transition-all group shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
       >
-        <div className="flex items-center gap-3">
-          {selectedOption.icon && <selectedOption.icon className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />}
-          <span className="text-sm font-bold text-gray-700">{selectedOption.label}</span>
+        <div className="flex items-center gap-3 overflow-hidden">
+          {selectedOption.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors" />}
+          <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">{selectedOption.label}</span>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
       </button>

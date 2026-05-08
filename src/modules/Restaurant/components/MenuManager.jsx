@@ -203,7 +203,7 @@ const MenuManager = () => {
                { value: 'All', label: t('restaurant.allCategories') },
                ...categories.map(cat => ({ value: cat.name, label: cat.name }))
              ]}
-             className="w-44"
+             className="min-w-[190px]"
           />
           
           <Dropdown 
@@ -213,7 +213,7 @@ const MenuManager = () => {
                value: stat, 
                label: stat === 'All' ? t('restaurant.allStatuses') : t('restaurant.' + stat.toLowerCase().replace(' ', ''))
              }))}
-             className="w-44"
+             className="min-w-[190px]"
           />
         </div>
 
