@@ -659,10 +659,15 @@ const FloorPlan = () => {
       // 3. Deduct ingredients & Fiscalize each order
       if (activeOrders && activeOrders.length > 0) {
         for (const order of activeOrders) {
-          // Deduct from inventory
-          await InventoryService.deductIngredientsFromOrder(order.id);
-          // Send to E-taxes
-          await etaxesService.fiscalizeOrder(order.id, 'cash');
+          try {
+            // Deduct from inventory
+            await InventoryService.deductIngredientsFromOrder(order.id);
+            // Send to E-taxes
+            await etaxesService.fiscalizeOrder(order.id, 'cash');
+          } catch (fiscalErr) {
+            console.error('Fiscalization or inventory deduction failed for order:', order.id, fiscalErr);
+            // We continue so the table can be freed even if fiscal fails
+          }
         }
       }
 

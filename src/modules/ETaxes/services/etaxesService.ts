@@ -87,7 +87,7 @@ export const etaxesService = {
         fiscal_id: mockFiscalId,
         fiscal_status: 'success',
         payment_type: paymentType,
-        fiscal_at: new Date().toISOString(),
+        // fiscal_at: new Date().toISOString(), // Temporarily disabled if column missing
       })
       .eq('id', orderId);
 
@@ -101,7 +101,7 @@ export const etaxesService = {
       .from('orders')
       .select('*')
       .not('fiscal_id', 'is', null)
-      .order('fiscal_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data.map(item => ({
@@ -118,7 +118,7 @@ export const etaxesService = {
       .from('orders')
       .select('total_amount, payment_type, fiscal_status')
       .not('fiscal_id', 'is', null)
-      .gte('fiscal_at', today.toISOString());
+      .gte('created_at', today.toISOString());
 
     if (error) throw error;
 
