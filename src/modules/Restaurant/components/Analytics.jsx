@@ -307,7 +307,8 @@ const Analytics = () => {
 
   const generateHourlyBuckets = (orders) => {
     const buckets = {};
-    for (let i = 10; i <= 22; i++) {
+    // Full 24-hour cycle for precision
+    for (let i = 0; i < 24; i++) {
       buckets[`${i}:00`] = 0;
     }
 
@@ -319,6 +320,8 @@ const Analytics = () => {
       }
     });
 
+    // Only show hours that have data or a reasonable window for a restaurant (e.g., 08:00 - 02:00)
+    // But to be "Real", let's show the whole day or at least where activity is
     return Object.entries(buckets).map(([time, revenue]) => ({ time, revenue }));
   };
 
@@ -558,31 +561,31 @@ const Analytics = () => {
             </div>
          </div>
          
-         <div className="w-full overflow-x-auto pt-10 -mt-6 no-scrollbar">
-            <div className="flex items-end gap-1.5 sm:gap-3 h-52 border-b border-gray-100 pb-2 min-w-min sm:min-w-0">
+          <div className="w-full overflow-x-auto pt-10 -mt-6 no-scrollbar">
+            <div className="flex items-end gap-1 h-52 border-b border-gray-100 pb-2 min-w-max">
                {chartData.map((d, index) => {
                   const heightPercent = maxRevenue > 0 ? (d.revenue / maxRevenue) * 100 : 0;
                   return (
-                    <div key={index} className="flex-1 flex flex-col items-center group relative min-w-[30px] h-full">
+                    <div key={index} className="flex flex-col items-center group relative w-8 h-full">
                        {/* Tooltip on hover */}
                        <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-1 px-2 rounded-md whitespace-nowrap pointer-events-none transition-opacity z-10 shadow-lg">
                          ${d.revenue.toFixed(2)}
                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                        </div>
                        {/* Bar Line bg */}
-                       <div className="w-full sm:w-8 h-full bg-blue-50/50 rounded-t-md relative flex items-end">
+                       <div className="w-full h-full bg-blue-50/30 rounded-t-lg relative flex items-end overflow-hidden hover:bg-blue-100/50 transition-colors">
                           {/* Animated Bar fill */}
                           <div 
-                            className="w-full bg-merkez-blue rounded-t-md transition-all duration-500 group-hover:bg-blue-600" 
-                            style={{ height: `${heightPercent}%`, minHeight: '4px' }}
+                            className="w-full bg-blue-600 rounded-t-lg transition-all duration-700 ease-out" 
+                            style={{ height: `${heightPercent}%`, minHeight: d.revenue > 0 ? '4px' : '0' }}
                           />
                        </div>
-                       <span className="text-[9px] sm:text-[10px] text-gray-400 font-medium mt-3 whitespace-nowrap">{d.time}</span>
+                       <span className="text-[9px] text-gray-400 font-bold mt-3 transform -rotate-45 sm:rotate-0">{d.time}</span>
                     </div>
                   );
                })}
             </div>
-         </div>
+          </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

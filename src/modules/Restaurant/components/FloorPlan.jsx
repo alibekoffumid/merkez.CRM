@@ -262,7 +262,9 @@ const FloorPlan = () => {
           total_amount: orderTotal - finalDiscount - bonusesUsed,
           customer_id: selectedCustomer?.id,
           discount_amount: finalDiscount + bonusesUsed,
-          points_earned: pointsEarned
+          points_earned: pointsEarned,
+          waiter_name: activeWaiter?.name || t('restaurant.staff'),
+          waiter_id: activeWaiter?.id
         }])
         .select()
         .single();
