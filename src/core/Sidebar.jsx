@@ -68,14 +68,14 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
         </button>
       </div>
 
-      <nav className="flex-1 px-4 mt-6 space-y-2 overflow-y-auto no-scrollbar">
+      <nav className="flex-1 px-3 mt-6 space-y-2 overflow-y-auto no-scrollbar">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             onClick={onCloseMobile}
             className={({ isActive }) =>
-              `flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+              `flex items-center px-2.5 py-2 rounded-xl transition-all duration-200 ${
                 isActive 
                   ? `${item.activeText} font-bold` 
                   : `text-gray-500 hover:text-gray-800 ${item.color}`
@@ -138,13 +138,15 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
         </div>
       </div>
 
-      <div className="p-4 border-t border-gray-100 shrink-0">
+      <div className="p-3 border-t border-gray-100 shrink-0">
         <NavLink
           to="/modules"
           onClick={onCloseMobile}
-          className="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+          className="flex items-center px-2.5 py-2 text-gray-600 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
         >
-          <LayoutGrid className="w-5 h-5 mr-3 shrink-0" />
+          <div className="p-2 mr-3 shrink-0 rounded-xl transition-colors">
+            <LayoutGrid className="w-5 h-5" />
+          </div>
           <span className={`
             transition-opacity duration-300 whitespace-nowrap
             ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
@@ -155,9 +157,11 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
         <NavLink
           to="/settings"
           onClick={onCloseMobile}
-          className="flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+          className="flex items-center px-2.5 py-2 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors duration-200"
         >
-          <Settings className="w-5 h-5 mr-3 shrink-0" />
+          <div className="p-2 mr-3 shrink-0 rounded-xl transition-colors">
+            <Settings className="w-5 h-5" />
+          </div>
           <span className={`
             transition-opacity duration-300 whitespace-nowrap
             ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
@@ -170,9 +174,11 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             onCloseMobile();
             supabase.auth.signOut();
           }}
-          className="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2"
+          className="w-full flex items-center px-2.5 py-2 text-gray-600 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2"
         >
-          <LogOut className="w-5 h-5 mr-3 shrink-0" />
+          <div className="p-2 mr-3 shrink-0 rounded-xl transition-colors">
+            <LogOut className="w-5 h-5" />
+          </div>
           <span className={`
             transition-opacity duration-300 whitespace-nowrap
             ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
