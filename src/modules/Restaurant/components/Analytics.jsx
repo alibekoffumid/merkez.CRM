@@ -611,7 +611,10 @@ const Analytics = () => {
               <tbody className="divide-y divide-gray-50">
                 {waiterStats.length === 0 ? (
                   <tr><td colSpan="4" className="p-8 text-center text-gray-400 text-sm">{t('common.noData')}</td></tr>
-                ) : waiterStats.sort((a,b) => b.revenue - a.revenue).map((waiter, idx) => (
+                ) : waiterStats
+                    .filter(w => w.name !== 'Staff') // Hide fallback staff
+                    .sort((a,b) => b.revenue - a.revenue)
+                    .map((waiter, idx) => (
                   <tr key={waiter.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 font-medium text-gray-900 flex items-center">
                       <div className="w-8 h-8 rounded-full bg-blue-100 text-merkez-blue flex items-center justify-center text-xs font-bold mr-3 border border-blue-200">
