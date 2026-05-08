@@ -201,8 +201,8 @@ const Profile = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all ${
                   activeTab === tab.id 
-                  ? 'bg-gray-900 text-white shadow-xl shadow-gray-200' 
-                  : 'text-gray-400 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-merkez-blue text-white shadow-xl shadow-blue-200/50' 
+                  : 'text-gray-400 hover:text-merkez-blue hover:bg-blue-50/50'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
