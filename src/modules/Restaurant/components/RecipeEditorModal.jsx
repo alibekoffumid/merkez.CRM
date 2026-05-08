@@ -10,6 +10,7 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
   const [ingredients, setIngredients] = useState([]); // All available ingredients
   const [recipeItems, setRecipeItems] = useState([]); // Current recipe items
   const [searchTerm, setSearchTerm] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   useEffect(() => {
     if (isOpen && product) {
@@ -140,10 +141,12 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
                 placeholder={t('restaurant.searchIngredientsPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
               />
             </div>
-            {searchTerm && (
-              <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+            {(searchTerm || isInputFocused) && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto custom-scrollbar">
                 {filteredIngredients.length === 0 ? (
                   <div className="p-4 text-sm text-gray-500 text-center">{t('common.noResults')}</div>
                 ) : (
@@ -252,10 +255,10 @@ const RecipeEditorModal = ({ isOpen, product, onClose, onRecipeUpdated }) => {
             <button
               onClick={handleSubmit}
               disabled={loading || recipeItems.length === 0}
-              className="flex-2 py-3 bg-merkez-blue text-white rounded-xl text-sm font-extrabold hover:bg-blue-600 transition-all shadow-md flex items-center justify-center disabled:opacity-50"
+              className="flex-[2] px-6 py-3 bg-merkez-blue text-white rounded-xl text-sm font-extrabold hover:bg-blue-600 transition-all shadow-md flex items-center justify-center disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-              {t('restaurant.saveRecipe')}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2 shrink-0" /> : <Save className="w-5 h-5 mr-2 shrink-0" />}
+              <span className="truncate">{t('restaurant.saveRecipe')}</span>
             </button>
           </div>
         </div>
