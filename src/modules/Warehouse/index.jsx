@@ -196,9 +196,11 @@ const WarehouseModule = () => {
         </div>
 
         <div className="flex gap-2">
-          <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-600 border-gray-200 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-            <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
-          </button>
+          {activeTab === 'finished' && (
+            <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-600 border-gray-200 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
+            </button>
+          )}
           
           {activeTab === 'finished' ? (
             <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
