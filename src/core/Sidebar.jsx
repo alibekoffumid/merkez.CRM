@@ -77,7 +77,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             className={({ isActive }) =>
               `flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive 
-                  ? 'text-merkez-blue font-bold' 
+                  ? `${item.activeText} font-bold` 
                   : `text-gray-500 hover:text-gray-800 ${item.color}`
               }`
             }
@@ -87,7 +87,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
                 <div className="relative shrink-0">
                   <div className={`p-2 rounded-xl mr-3 transition-all duration-200 ${
                     isActive 
-                      ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/30' 
+                      ? `${item.activeBg} text-white shadow-lg ${item.activeShadow}` 
                       : 'text-gray-400 group-hover:text-gray-600'
                   }`}>
                     <item.icon className="w-5 h-5" />
