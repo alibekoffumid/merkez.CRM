@@ -21,7 +21,6 @@ const RestaurantModule = () => {
     { id: 'staff', label: t('restaurant.staffWaiters'), icon: Users },
     { id: 'settings', label: t('restaurant.tablesSettings'), icon: Settings },
     { id: 'inventory', label: t('restaurant.inventory'), icon: Package },
-    { id: 'qrmenu', label: 'QR Menyu', icon: QrCode },
     { id: 'analytics', label: t('restaurant.reportsAnalytics'), icon: BarChart3 },
   ];
 
@@ -64,7 +63,6 @@ const RestaurantModule = () => {
         {activeTab === 'staff' && <StaffManager />}
         {activeTab === 'settings' && <TableSettings />}
         {activeTab === 'inventory' && <InventoryManager />}
-        {activeTab === 'qrmenu' && <QRMenu />}
         {activeTab === 'analytics' && <Analytics />}
       </div>
     </div>

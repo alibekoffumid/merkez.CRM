@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X, Utensils } from 'lucide-react';
+import { Search, Filter, Plus, FilePlus, Edit2, Trash2, X, Utensils, QrCode } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import RecipeEditorModal from './RecipeEditorModal';
+import QRMenu from './QRMenu';
 import Dropdown from '../../../components/Common/Dropdown';
 
 const MenuManager = () => {
   const { t } = useTranslation();
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
+  const [isQRMenuOpen, setIsQRMenuOpen] = useState(false);
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
   const [selectedProductForRecipe, setSelectedProductForRecipe] = useState(null);
   
@@ -195,7 +197,6 @@ const MenuManager = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          {/* ... (selects) ... */}
           <Dropdown 
              value={categoryFilter}
              onChange={(val) => setCategoryFilter(val)}
@@ -217,6 +218,12 @@ const MenuManager = () => {
           />
         </div>
 
+        <button 
+           onClick={() => setIsQRMenuOpen(true)}
+           className="px-4 py-2 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg text-sm font-bold hover:bg-blue-100 flex items-center transition-colors shadow-sm"
+        >
+          <QrCode className="w-4 h-4 mr-2" /> QR Menyu
+        </button>
         <button 
            onClick={() => setIsAddCategoryModalOpen(true)}
            className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center transition-colors shadow-sm"
@@ -308,6 +315,25 @@ const MenuManager = () => {
         </table>
         </div>
       </div>
+
+      {/* QR Menu Modal */}
+      {isQRMenuOpen && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsQRMenuOpen(false)}>
+           <div className="w-full max-w-5xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="bg-white rounded-[3rem] overflow-hidden relative">
+                 <button 
+                   onClick={() => setIsQRMenuOpen(false)}
+                   className="absolute top-8 right-8 z-50 p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"
+                 >
+                    <X className="w-6 h-6" />
+                 </button>
+                 <div className="p-8 md:p-12">
+                   <QRMenu />
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
 
       <RecipeEditorModal 
         isOpen={isRecipeModalOpen}
@@ -470,6 +496,34 @@ const MenuManager = () => {
           </div>
         </div>,
         document.body
+      )}
+
+      {/* QR Menu Modal */}
+      {isQRMenuOpen && (
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsQRMenuOpen(false)}>
+           <div className="w-full max-w-5xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+              <div className="bg-white rounded-[3rem] overflow-hidden relative">
+                 <button 
+                   onClick={() => setIsQRMenuOpen(false)}
+                   className="absolute top-8 right-8 z-50 p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"
+                 >
+                    <X className="w-6 h-6" />
+                 </button>
+                 <div className="p-8 md:p-12">
+                   <QRMenu />
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {isRecipeModalOpen && (
+        <RecipeEditorModal 
+          isOpen={isRecipeModalOpen}
+          product={selectedProductForRecipe}
+          onClose={() => setIsRecipeModalOpen(false)}
+          onRecipeUpdated={fetchData}
+        />
       )}
 
       {/* Confirmation Modal */}
