@@ -187,6 +187,7 @@
     "noSales": "Hələ satış yoxdur"
   },
   "common": {
+    "confirmDelete": "Silinməni təsdiqlə",
     "save": "Yadda saxla",
     "cancel": "Ləğv et",
     "delete": "Sil",
@@ -248,6 +249,7 @@
     "viewAllOrders": "Bütün sifarişlər",
     "tableStatus": "Masa statusu",
     "maxCapacity": "Tutumu",
+    "maxPortions": "Maks. porsiya",
     "assignedWaiter": "Ofisiant",
     "currentBill": "Cari hesab",
     "timeSeated": "Açılma vaxtı",
@@ -520,6 +522,7 @@
     "deleteIngredient": "İnqrediyenti Sil",
     "confirmDeleteProduct": "Bu məhsulu silmək istədiyinizə əminsiniz?",
     "confirmDeleteIngredient": "Bu inqrediyenti silmək istədiyinizə əminsiniz?",
+    "confirmDeleteCategory": "Əminsiniz? Bu kateqoriyadakı məhsullar kateqoriyasız qalacaq.",
     "noIngredientsFound": "İnqrediyent tapılmadı",
     "addFirstIngredient": "İlk İnqrediyenti Əlavə Et"
   },

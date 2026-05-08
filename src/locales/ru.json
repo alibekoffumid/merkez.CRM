@@ -186,6 +186,7 @@
     "noSales": "Нет продаж"
   },
   "common": {
+    "confirmDelete": "Подтверждение удаления",
     "save": "Сохранить",
     "cancel": "Отмена",
     "delete": "Удалить",
@@ -247,6 +248,7 @@
     "viewAllOrders": "Все заказы",
     "tableStatus": "Статус стола",
     "maxCapacity": "Вместимость",
+    "maxPortions": "Макс. порций",
     "assignedWaiter": "Официант",
     "currentBill": "Текущий счет",
     "timeSeated": "Время открытия",
@@ -557,6 +559,7 @@
     "deleteIngredient": "Удалить ингредиент",
     "confirmDeleteProduct": "Удалить этот товар?",
     "confirmDeleteIngredient": "Удалить этот ингредиент?",
+    "confirmDeleteCategory": "Вы уверены? Товары этой категории останутся без категории.",
     "noIngredientsFound": "Ингредиенты не найдены",
     "addFirstIngredient": "Добавить первый ингредиент"
   },

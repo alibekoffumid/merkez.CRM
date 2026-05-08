@@ -186,6 +186,7 @@
     "noSales": "No sales yet"
   },
   "common": {
+    "confirmDelete": "Confirm Deletion",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -247,6 +248,7 @@
     "viewAllOrders": "View All Orders",
     "tableStatus": "Table Status",
     "maxCapacity": "Max Capacity",
+    "maxPortions": "Max Portions",
     "assignedWaiter": "Assigned Waiter",
     "currentBill": "Current Bill",
     "timeSeated": "Time Seated",
@@ -535,6 +537,7 @@
     "deleteIngredient": "Delete Ingredient",
     "confirmDeleteProduct": "Delete this product?",
     "confirmDeleteIngredient": "Delete this ingredient?",
+    "confirmDeleteCategory": "Are you sure? Products in this category will become uncategorized.",
     "noIngredientsFound": "No ingredients found",
     "addFirstIngredient": "Add first ingredient"
   },
