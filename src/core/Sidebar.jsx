@@ -75,37 +75,45 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             to={item.path}
             onClick={onCloseMobile}
             className={({ isActive }) =>
-              `flex items-center px-4 py-3 rounded-lg transition-colors duration-200 ${
+              `flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive 
-                  ? 'bg-gray-50 text-gray-900 font-medium' 
-                  : `text-gray-600 ${item.color}`
+                  ? 'text-merkez-blue font-bold' 
+                  : `text-gray-500 hover:text-gray-800 ${item.color}`
               }`
             }
           >
-            <div className="relative shrink-0">
-              <item.icon className="w-5 h-5 mr-3" />
-              {item.id === 'integrations' && unreadCount > 0 && (
-                <span className="absolute -top-2.5 -right-1.5 flex items-center justify-center">
-                  {/* Outer ping ring */}
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-60 animate-ping" />
-                  {/* Inner badge */}
-                  <span className="relative min-w-[20px] h-[20px] flex items-center justify-center rounded-full px-1.5 text-[10px] font-black text-white"
-                    style={{
-                      background: 'linear-gradient(135deg, #ef4444, #ec4899)',
-                      boxShadow: '0 0 12px rgba(239, 68, 68, 0.5), 0 2px 6px rgba(236, 72, 153, 0.3)'
-                    }}
-                  >
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </span>
+            {({ isActive }) => (
+              <>
+                <div className="relative shrink-0">
+                  <div className={`p-2 rounded-xl mr-3 transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/30' 
+                      : 'text-gray-400 group-hover:text-gray-600'
+                  }`}>
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  {item.id === 'integrations' && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-0.5 flex items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-60 animate-ping" />
+                      <span className="relative min-w-[20px] h-[20px] flex items-center justify-center rounded-full px-1.5 text-[10px] font-black text-white"
+                        style={{
+                          background: 'linear-gradient(135deg, #ef4444, #ec4899)',
+                          boxShadow: '0 0 12px rgba(239, 68, 68, 0.5), 0 2px 6px rgba(236, 72, 153, 0.3)'
+                        }}
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    </span>
+                  )}
+                </div>
+                <span className={`
+                  transition-opacity duration-300 whitespace-nowrap font-bold
+                  ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
+                `}>
+                  {item.name}
                 </span>
-              )}
-            </div>
-            <span className={`
-              transition-opacity duration-300 whitespace-nowrap
-              ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
-            `}>
-              {item.name}
-            </span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
