@@ -2,11 +2,14 @@
  import { useTranslation } from 'react-i18next';
  import { X, Plus, Save, FolderTree } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
+import { useUser } from '../../core/UserContext';
+import { toast } from 'react-hot-toast';
 
  const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
-   const { t } = useTranslation();
-   const [loading, setLoading] = useState(false); 
-   const [formData, setFormData] = useState({ name: '' }); 
+  const { t } = useTranslation();
+  const { profile } = useUser();
+  const [loading, setLoading] = useState(false); 
+  const [formData, setFormData] = useState({ name: '' }); 
 
   if (!isOpen) return null;
 
@@ -17,14 +20,21 @@ import { supabase } from '../../supabaseClient';
     setLoading(true);
     const { data, error } = await supabase
       .from('categories')
-      .insert([{ name: formData.name }])
+      .insert([{ 
+        name: formData.name.trim(),
+        user_id: profile?.id 
+      }])
       .select();
 
     setLoading(false);
-    if (!error && data) {
+    if (error) {
+      console.error('Error adding category:', error);
+      toast.error(error.message);
+    } else if (data) {
       onCategoryAdded();
       onClose();
       setFormData({ name: '' });
+      toast.success(t('common.added') || 'Добавлено');
     }
   };
 

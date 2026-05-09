@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 
 const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => {
   const { t } = useTranslation();
+  const { profile } = useUser();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -25,13 +27,16 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
     if (!name.trim()) return;
     
     setLoading(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('categories')
       .update({ name: name.trim() })
-      .eq('id', category.id);
+      .eq('id', category.id)
+      .select();
 
     if (error) {
       toast.error(error.message);
+    } else if (!data || data.length === 0) {
+      toast.error('У вас нет прав на редактирование этой категории');
     } else {
       toast.success(t('warehouse.categoryUpdated') || 'Категория обновлена');
       onCategoryUpdated();
@@ -68,6 +73,10 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
       if (deleteError) {
         console.error('Error deleting category row:', deleteError);
         throw deleteError;
+      }
+
+      if (!deleteData || deleteData.length === 0) {
+        throw new Error('У вас нет прав на удаление этой категории или она не найдена');
       }
 
       console.log('Category deleted successfully from DB', deleteData);
