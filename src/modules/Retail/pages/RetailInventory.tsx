@@ -42,6 +42,7 @@ const RetailInventory: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -154,15 +155,16 @@ const RetailInventory: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const deleteProduct = async (id: string) => {
-    if (!confirm(t('common.confirmArchive'))) return;
+  const executeDelete = async () => {
+    if (!confirmDeleteId) return;
     try {
       const { error } = await supabase
         .from('products')
         .update({ archived: true })
-        .eq('id', id);
+        .eq('id', confirmDeleteId);
       if (error) throw error;
       toast.success(t('common.archived'));
+      setConfirmDeleteId(null);
       fetchProducts();
     } catch (err: any) {
       toast.error(t('common.error') + ': ' + err.message);
@@ -414,7 +416,7 @@ const RetailInventory: React.FC = () => {
                         <Edit3 className="w-4 h-4" />
                       </button>
                       <button 
-                        onClick={() => deleteProduct(product.id)}
+                        onClick={() => setConfirmDeleteId(product.id)}
                         className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                         title={t('common.delete')}
                       >
@@ -588,6 +590,39 @@ const RetailInventory: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Confirmation Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4">
+          <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md" onClick={() => setConfirmDeleteId(null)} />
+          <div className="relative bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-red-50 rounded-3xl flex items-center justify-center">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-gray-900">{t('common.confirmDelete')}</h3>
+                <p className="text-gray-500 font-medium mt-2 leading-relaxed">
+                  {t('common.confirmArchive')}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3 w-full mt-4">
+                <button 
+                  onClick={() => setConfirmDeleteId(null)}
+                  className="px-6 py-4 bg-gray-50 text-gray-500 rounded-2xl font-bold hover:bg-gray-100 transition-all"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button 
+                  onClick={executeDelete}
+                  className="px-6 py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all active:scale-95"
+                >
+                  {t('common.delete')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
