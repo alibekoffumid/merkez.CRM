@@ -23,7 +23,15 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const [monthIndex, setMonthIndex] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
-  const [clickStep, setClickStep] = useState(0);
+  
+  // Internal state to hold temporary selection before "Apply"
+  const [tempStart, setTempStart] = useState(startDate);
+  const [tempEnd, setTempEnd] = useState(endDate);
+
+  useEffect(() => {
+    setTempStart(startDate);
+    setTempEnd(endDate);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,18 +71,16 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     const clickedDate = new Date(year, monthIndex, day);
     const dateStr = clickedDate.toISOString().split('T')[0];
 
-    if (clickStep === 0) {
-      onChange(dateStr, '');
-      setClickStep(1);
+    if (!tempStart || (tempStart && tempEnd)) {
+      setTempStart(dateStr);
+      setTempEnd('');
     } else {
-      const start = new Date(startDate);
+      const start = new Date(tempStart);
       if (clickedDate < start) {
-        onChange(dateStr, '');
-        setClickStep(1);
+        setTempStart(dateStr);
+        setTempEnd('');
       } else {
-        onChange(startDate, dateStr);
-        setClickStep(0);
-        setIsOpen(false);
+        setTempEnd(dateStr);
       }
     }
   };
@@ -82,14 +88,17 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   const formatDateDisplay = (dateStr: string) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' });
+    const monthKey = monthsList[date.getMonth()];
+    const monthName = t(`restaurant.${monthKey}`).slice(0, 3);
+    const day = date.getDate();
+    return `${monthName} ${day}`;
   };
 
   const daysInCurrentMonth = getDaysInMonth(monthIndex, year);
   const firstDayOfMonth = (new Date(year, monthIndex, 1).getDay() + 6) % 7;
 
-  const refStart = startDate ? new Date(startDate).getTime() : null;
-  const refEnd = endDate ? new Date(endDate).getTime() : null;
+  const refStart = tempStart ? new Date(tempStart).getTime() : null;
+  const refEnd = tempEnd ? new Date(tempEnd).getTime() : null;
 
   return (
     <div className="relative w-full" ref={containerRef}>
@@ -116,7 +125,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               onChange('', '');
-              setClickStep(0);
+              setTempStart('');
+              setTempEnd('');
             }}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-red-500 transition-colors"
           >
@@ -126,17 +136,17 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-[2rem] shadow-2xl z-50 p-6 w-[320px] animate-in fade-in zoom-in-95 duration-200 origin-top">
+        <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-3xl shadow-2xl z-50 p-6 w-[320px] animate-in fade-in zoom-in-95 duration-200 origin-top">
           <div className="flex justify-between items-center mb-6">
             <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
               {t(`restaurant.${monthsList[monthIndex]}`)} {year}
             </span>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <button onClick={() => changeMonth(-1)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500 transition-colors">
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
               <button onClick={() => changeMonth(1)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500 transition-colors">
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -178,6 +188,27 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 </div>
               );
             })}
+          </div>
+
+          <div className="mt-6 pt-5 border-t border-gray-100 flex items-center justify-between">
+            <button 
+              onClick={() => {
+                setTempStart('');
+                setTempEnd('');
+              }}
+              className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
+            >
+              {t('restaurant.clear') || 'Clear'}
+            </button>
+            <button 
+              onClick={() => {
+                onChange(tempStart, tempEnd);
+                setIsOpen(false);
+              }}
+              className="bg-merkez-blue text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-merkez-blue/20 hover:bg-blue-600 transition-all active:scale-95"
+            >
+              {t('restaurant.applyRange') || 'Apply'}
+            </button>
           </div>
         </div>
       )}
