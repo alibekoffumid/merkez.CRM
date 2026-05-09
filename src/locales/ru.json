@@ -604,7 +604,19 @@
     "stockReceivedSuccess": "Товар успешно принят",
     "receiveStockDesc": "Зафиксируйте поступление товара от поставщика",
     "selectSupplier": "Выберите поставщика",
-    "selectProduct": "Выберите товар"
+    "selectProduct": "Выберите товар",
+    "supplierDetailsDesc": "Введите информацию о поставщике",
+    "supplierName": "Название поставщика",
+    "supplierNamePlaceholder": "напр. ООО Глобал Саплай",
+    "contactPerson": "Контактное лицо",
+    "contactPersonPlaceholder": "напр. Иван Иванов",
+    "supplierPhone": "Телефон",
+    "supplierEmail": "Email",
+    "supplierAddress": "Адрес",
+    "supplierAddressPlaceholder": "напр. г. Баку, ул. Низами, 12",
+    "addedDate": "Добавлен",
+    "viewHistory": "История",
+    "noContactPerson": "Контактное лицо не указано"
   },
   "crm": {
     "title": "CRM",

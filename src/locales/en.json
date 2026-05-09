@@ -599,7 +599,19 @@
     "stockReceivedSuccess": "Stock received successfully",
     "receiveStockDesc": "Record the arrival of goods from a supplier",
     "selectSupplier": "Select Supplier",
-    "selectProduct": "Select Product"
+    "selectProduct": "Select Product",
+    "supplierDetailsDesc": "Enter the supplier information below",
+    "supplierName": "Supplier Name",
+    "supplierNamePlaceholder": "e.g. Global Supply LLC",
+    "contactPerson": "Contact Person",
+    "contactPersonPlaceholder": "e.g. John Doe",
+    "supplierPhone": "Phone",
+    "supplierEmail": "Email",
+    "supplierAddress": "Address",
+    "supplierAddressPlaceholder": "e.g. 12 Nizami St, Baku",
+    "addedDate": "Added on",
+    "viewHistory": "History",
+    "noContactPerson": "No contact person specified"
   },
   "crm": {
     "title": "CRM",

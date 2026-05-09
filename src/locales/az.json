@@ -593,7 +593,19 @@
     "stockReceivedSuccess": "Məhsul uğurla qəbul edildi",
     "receiveStockDesc": "Tədarükçüdən gələn malların daxil olmasını qeyd edin",
     "selectSupplier": "Tədarükçü seçin",
-    "selectProduct": "Məhsul seçin"
+    "selectProduct": "Məhsul seçin",
+    "supplierDetailsDesc": "Tədarükçü haqqında məlumatları daxil edin",
+    "supplierName": "Tədarükçü adı",
+    "supplierNamePlaceholder": "məs. Global Supply LLC",
+    "contactPerson": "Məsul şəxs",
+    "contactPersonPlaceholder": "məs. Əli Məmmədov",
+    "supplierPhone": "Telefon",
+    "supplierEmail": "E-poçt",
+    "supplierAddress": "Ünvan",
+    "supplierAddressPlaceholder": "məs. Bakı şəh., Nizami küç. 12",
+    "addedDate": "Əlavə edilib",
+    "viewHistory": "Tarixçə",
+    "noContactPerson": "Məsul şəxs qeyd edilməyib"
   },
   "crm": {
     "title": "CRM",
