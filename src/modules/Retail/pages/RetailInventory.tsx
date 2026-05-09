@@ -317,7 +317,7 @@ const RetailInventory: React.FC = () => {
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tablePurchase')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tableSale')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">{t('retail.inventory.tableStock')}</th>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">{t('retail.inventory.status')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tableActions')}</th>
               </tr>
             </thead>
@@ -392,11 +392,11 @@ const RetailInventory: React.FC = () => {
                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                         if (diffDays < 0) {
-                          return <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider">Bitib</span>;
+                          return <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider">{t('retail.inventory.expired')}</span>;
                         } else if (diffDays <= 10) {
-                          return <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider">Az qalıb ({diffDays} gün)</span>;
+                          return <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider">{t('retail.inventory.expiringSoon', { count: diffDays })}</span>;
                         } else {
-                          return <span className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase tracking-wider">OK ({diffDays} gün)</span>;
+                          return <span className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase tracking-wider">{t('retail.inventory.ok', { count: diffDays })}</span>;
                         }
                       })() : (
                         <span className="text-gray-300">—</span>
@@ -449,7 +449,7 @@ const RetailInventory: React.FC = () => {
               
               <div className="p-8 grid grid-cols-2 gap-6 overflow-y-auto flex-1">
                 <div className="col-span-2 space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.productName')}</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.tableProduct')}</label>
                   <input 
                     required
                     type="text" 
@@ -461,7 +461,7 @@ const RetailInventory: React.FC = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.barcode')}</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.tableBarcode')}</label>
                   <input 
                     required
                     type="text" 
@@ -473,7 +473,7 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.category')}</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.tableCategory')}</label>
                   <Dropdown 
                     value={formData.category_id}
                     onChange={(val) => setFormData({...formData, category_id: val})}
@@ -485,7 +485,7 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.purchasePrice')}</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.tablePurchase')}</label>
                   <input 
                     type="number" step="0.01"
                     className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold outline-none"
@@ -495,7 +495,7 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.salePrice')}</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.tableSale')}</label>
                   <input 
                     type="number" step="0.01"
                     className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold outline-none"
@@ -505,7 +505,7 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.stock')}</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.tableStock')}</label>
                   <input 
                     type="number"
                     className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold text-merkez-blue outline-none"
@@ -515,7 +515,7 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Крит. запас</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('retail.inventory.criticalStock')}</label>
                   <input 
                     type="number" 
                     className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-merkez-blue focus:bg-white rounded-2xl outline-none transition-all font-bold"
@@ -525,7 +525,7 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Срок годности</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('retail.inventory.expiryDate')}</label>
                   <input 
                     type="date" 
                     className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-merkez-blue focus:bg-white rounded-2xl outline-none transition-all font-bold"
@@ -535,20 +535,20 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">Discount Type</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.discountType')}</label>
                   <Dropdown 
                     value={formData.discount_type}
                     onChange={(val) => setFormData({...formData, discount_type: val})}
                     options={[
-                      { value: 'none', label: 'No Discount' },
-                      { value: 'percent', label: 'Percentage (%)' },
-                      { value: 'fixed', label: 'Fixed Amount (₼)' }
+                      { value: 'none', label: t('retail.inventory.noDiscount') },
+                      { value: 'percent', label: t('retail.inventory.percentage') },
+                      { value: 'fixed', label: t('retail.inventory.fixedAmount') }
                     ]}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">Discount Value</label>
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('retail.inventory.discountValue')}</label>
                   <input 
                     type="number" step="0.01"
                     disabled={formData.discount_type === 'none'}
