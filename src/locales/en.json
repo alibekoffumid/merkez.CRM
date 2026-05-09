@@ -242,6 +242,7 @@
     "create": "Create",
     "unauthorized": "User unauthorized",
     "total": "Total",
+    "showAll": "Show All",
     "confirmArchive": "Are you sure you want to archive this product?",
     "archived": "Product archived"
   },

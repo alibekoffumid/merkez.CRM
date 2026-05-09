@@ -243,6 +243,7 @@
     "create": "Yarat",
     "unauthorized": "İstifadəçi icazəsi yoxdur",
     "total": "Cəmi",
+    "showAll": "Hamısını göstər",
     "confirmArchive": "Bu məhsulu arxivləşdirməyə əminsiniz?",
     "archived": "Məhsul arxivləşdirildi"
   },

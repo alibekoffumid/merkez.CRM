@@ -17,7 +17,7 @@ import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 
-const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd }) => {
+const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHistory }) => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -124,7 +124,10 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd }) => {
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">
                     {t('warehouse.addedDate') || 'Добавлен'}: {new Date(supplier.created_at).toLocaleDateString()}
                   </span>
-                  <button className="bg-blue-50 text-merkez-blue px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-merkez-blue hover:text-white transition-all">
+                  <button 
+                    onClick={() => onViewHistory(supplier.id)}
+                    className="bg-blue-50 text-merkez-blue px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-merkez-blue hover:text-white transition-all"
+                  >
                     {t('warehouse.viewHistory') || 'История'} <ExternalLink className="w-3 h-3" />
                   </button>
                 </div>

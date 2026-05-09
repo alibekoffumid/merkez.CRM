@@ -28,6 +28,7 @@ const WarehouseModule = () => {
   const [ingredients, setIngredients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [receipts, setReceipts] = useState([]);
+  const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -360,14 +361,31 @@ const WarehouseModule = () => {
             onEdit={setEditingSupplier}
             onDelete={requestDeleteSupplier}
             onAdd={() => setShowAddSupplier(true)}
+            onViewHistory={(id) => {
+              setHistoryFilter(id);
+              setActiveTab('history');
+            }}
           />
         ) : activeTab === 'history' ? (
           <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">{t('warehouse.receiptHistory') || 'История приёмок'}</h3>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {historyFilter 
+                    ? `${t('warehouse.receiptHistory')} — ${suppliers.find(s => s.id === historyFilter)?.name}` 
+                    : t('warehouse.receiptHistory') || 'История приёмок'}
+                </h3>
                 <p className="text-xs text-gray-500 mt-1">{t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков'}</p>
               </div>
+              {historyFilter && (
+                <button 
+                  onClick={() => setHistoryFilter(null)}
+                  className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  {t('common.showAll') || 'Показать все'}
+                </button>
+              )}
             </div>
             <div className="flex-1 overflow-auto">
               <table className="w-full text-left">
@@ -382,7 +400,10 @@ const WarehouseModule = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {receipts.length === 0 ? (
+                  {(historyFilter 
+                    ? receipts.filter(r => r.supplier_id === historyFilter)
+                    : receipts
+                  ).length === 0 ? (
                     <tr>
                       <td colSpan="6" className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center gap-3 text-gray-400">
