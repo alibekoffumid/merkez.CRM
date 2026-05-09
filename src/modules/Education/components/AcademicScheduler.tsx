@@ -52,7 +52,7 @@ const AcademicScheduler = () => {
 
   const dayLessons = lessons?.filter(l => isSameDay(new Date(l.start_time), selectedDate)) || [];
   const START_HOUR = 8;
-  const TOTAL_HOURS = 12; // 8 AM to 8 PM
+  const TOTAL_HOURS = 16; // 8 AM to 12 AM
 
   const getRoomName = (roomValue: string) => {
     if (!roomValue) return '—';
