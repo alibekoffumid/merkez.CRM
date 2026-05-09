@@ -584,6 +584,7 @@
     "productAdded": "Product added successfully",
     "productDeleted": "Product deleted successfully",
     "suppliers": "Suppliers",
+    "history": "History",
     "addSupplier": "Add Supplier",
     "editSupplier": "Edit Supplier",
     "receiveStock": "Receive Stock",
