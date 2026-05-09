@@ -580,7 +580,12 @@
     "viewAll": "Hamısına bax",
     "thId": "Tranzaksiya ID",
     "thDate": "Tarix",
-    "thDesc": "Təsvir"
+    "thDesc": "Təsvir",
+    "rent": "Kirayə",
+    "utilities": "Kommunal",
+    "supplies": "Təchizat",
+    "marketing": "Marketinq",
+    "other": "Digər"
   },
   "callCenter": {
     "title": "Zəng Mərkəzi",

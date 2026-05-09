@@ -700,11 +700,11 @@ const Analytics = () => {
                       value={expenseForm.category}
                       onChange={val => setExpenseForm({...expenseForm, category: val})}
                       options={[
-                        { value: 'Rent', label: 'Rent' },
-                        { value: 'Utilities', label: 'Utilities' },
-                        { value: 'Supplies', label: 'Supplies' },
-                        { value: 'Marketing', label: 'Marketing' },
-                        { value: 'Other', label: 'Other' }
+                        { value: 'Rent', label: t('finance.rent') },
+                        { value: 'Utilities', label: t('finance.utilities') },
+                        { value: 'Supplies', label: t('finance.supplies') },
+                        { value: 'Marketing', label: t('finance.marketing') },
+                        { value: 'Other', label: t('finance.other') }
                       ]}
                     />
                   </div>

@@ -586,7 +586,12 @@
     "viewAll": "View All",
     "thId": "Transaction ID",
     "thDate": "Date",
-    "thDesc": "Description"
+    "thDesc": "Description",
+    "rent": "Rent",
+    "utilities": "Utilities",
+    "supplies": "Supplies",
+    "marketing": "Marketing",
+    "other": "Other"
   },
   "callCenter": {
     "title": "Call Center",
