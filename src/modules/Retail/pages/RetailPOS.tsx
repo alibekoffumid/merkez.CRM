@@ -147,15 +147,16 @@ const RetailPOS: React.FC = () => {
     setSearchResults([]);
   };
 
-  const handleBarcodeSubmit = async (e?: React.FormEvent) => {
+  const handleBarcodeSubmit = async (e?: React.FormEvent, scannedCode?: string) => {
     if (e) e.preventDefault();
-    if (!barcodeInput) return;
+    const targetBarcode = scannedCode || barcodeInput;
+    if (!targetBarcode) return;
 
     try {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .eq('barcode', barcodeInput)
+        .eq('barcode', targetBarcode)
         .single();
 
       if (error || !data) {
@@ -169,6 +170,52 @@ const RetailPOS: React.FC = () => {
     }
     setBarcodeInput('');
   };
+
+  // Ref to hold the latest submit function to avoid stale closures in the event listener
+  const handleBarcodeSubmitRef = useRef(handleBarcodeSubmit);
+  useEffect(() => {
+    handleBarcodeSubmitRef.current = handleBarcodeSubmit;
+  }, [handleBarcodeSubmit]);
+
+  // Global Hardware Scanner Listener
+  useEffect(() => {
+    let barcodeString = '';
+    let lastKeyTime = Date.now();
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept if user is typing in another input (like search or discount)
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' && target.id !== 'main-barcode-input') {
+        return;
+      }
+
+      const currentTime = Date.now();
+      
+      // Hardware scanners type very fast (usually < 30ms per char)
+      // Human typing is slower. If gap is > 50ms, reset the string.
+      if (currentTime - lastKeyTime > 50) {
+        barcodeString = '';
+      }
+      lastKeyTime = currentTime;
+
+      if (e.key === 'Enter') {
+        if (barcodeString.length > 3) {
+          e.preventDefault();
+          handleBarcodeSubmitRef.current(undefined, barcodeString);
+          barcodeString = '';
+        }
+        return;
+      }
+
+      // Accumulate characters
+      if (e.key.length === 1) {
+        barcodeString += e.key;
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -435,6 +482,7 @@ const RetailPOS: React.FC = () => {
               <span className="h-3 w-[1px] bg-gray-300 mx-1" />
             </div>
             <input 
+              id="main-barcode-input"
               ref={barcodeRef}
               type="text"
               className="w-full pl-14 pr-4 py-3 bg-white border-2 border-transparent focus:border-merkez-blue rounded-2xl shadow-sm text-lg font-mono tracking-widest transition-all outline-none"
