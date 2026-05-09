@@ -21,6 +21,20 @@ const Profile = () => {
     avatar_url: ''
   });
 
+  const [themePreference, setThemePreference] = useState(() => {
+    return localStorage.getItem('merkez_theme') || 'light';
+  });
+
+  const [notificationPrefs, setNotificationPrefs] = useState(() => {
+    const saved = localStorage.getItem('merkez_notifications');
+    return saved ? JSON.parse(saved) : {
+      operational: true,
+      realtime: true,
+      community: false,
+      security: true
+    };
+  });
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -93,6 +107,31 @@ const Profile = () => {
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
+
+  const handleThemeChange = (newTheme) => {
+    setThemePreference(newTheme);
+    localStorage.setItem('merkez_theme', newTheme);
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else if (newTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      // system
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  };
+
+  const toggleNotification = (key) => {
+    setNotificationPrefs(prev => {
+      const updated = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('merkez_notifications', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   if (loading) {
@@ -378,12 +417,12 @@ const Profile = () => {
                    
                    <div className="space-y-4">
                      {[
-                       { title: 'Operational Digest', desc: 'Receive daily summaries and critical inventory alerts.', active: true },
-                       { title: 'Real-time Push', desc: 'Show desktop alerts for mentions, orders and urgent tasks.', active: true },
-                       { title: 'Community & Ecosystem', desc: 'Stay updated with new features, benchmarks and tips.', active: false },
-                       { title: 'Cyber-Security Ledger', desc: 'Priority alerts for new logins and permission changes.', active: true },
+                       { key: 'operational', title: 'Operational Digest', desc: 'Receive daily summaries and critical inventory alerts.', active: notificationPrefs.operational },
+                       { key: 'realtime', title: 'Real-time Push', desc: 'Show desktop alerts for mentions, orders and urgent tasks.', active: notificationPrefs.realtime },
+                       { key: 'community', title: 'Community & Ecosystem', desc: 'Stay updated with new features, benchmarks and tips.', active: notificationPrefs.community },
+                       { key: 'security', title: 'Cyber-Security Ledger', desc: 'Priority alerts for new logins and permission changes.', active: notificationPrefs.security },
                      ].map((item, idx) => (
-                       <div key={idx} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100/30 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all cursor-pointer">
+                       <div key={idx} onClick={() => toggleNotification(item.key)} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100/30 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all cursor-pointer">
                          <div>
                            <p className="font-black text-gray-900 tracking-tight">{item.title}</p>
                            <p className="text-xs text-gray-400 font-bold mt-1 opacity-70 uppercase tracking-wide">{item.desc}</p>
@@ -462,36 +501,37 @@ const Profile = () => {
 
                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                        {[
-                         { id: 'light', icon: Sun, label: t('profile.themeLight', 'Светлая'), active: true },
-                         { id: 'dark', icon: Moon, label: t('profile.themeDark', 'Тёмная'), active: false },
-                         { id: 'system', icon: Monitor, label: t('profile.themeSystem', 'Системная'), active: false },
-                       ].map(theme => (
+                         { id: 'light', icon: Sun, label: t('profile.themeLight', 'Светлая') },
+                         { id: 'dark', icon: Moon, label: t('profile.themeDark', 'Тёмная') },
+                         { id: 'system', icon: Monitor, label: t('profile.themeSystem', 'Системная') },
+                       ].map(theme => {
+                         const isActive = themePreference === theme.id;
+                         return (
                          <button
                            key={theme.id}
+                           onClick={() => handleThemeChange(theme.id)}
                            className={`p-6 rounded-3xl border-2 transition-all text-left flex items-center gap-4 ${
-                             theme.active
+                             isActive
                                ? 'border-merkez-blue bg-merkez-blue/5 shadow-lg shadow-blue-100'
-                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md opacity-50 cursor-not-allowed'
+                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
                            }`}
-                           disabled={!theme.active}
                          >
                            <div className={`p-3 rounded-2xl ${
-                             theme.active ? 'bg-merkez-blue/10 text-merkez-blue' : 'bg-gray-50 text-gray-300'
+                             isActive ? 'bg-merkez-blue/10 text-merkez-blue' : 'bg-gray-50 text-gray-500'
                            }`}>
                              <theme.icon className="w-6 h-6" />
                            </div>
                            <div>
                              <p className="font-black text-gray-900">{theme.label}</p>
-                             {!theme.active && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{t('profile.comingSoon', 'Скоро')}</p>}
-                             {theme.active && <p className="text-[10px] font-bold text-merkez-blue uppercase tracking-widest mt-0.5">{t('profile.active', 'Активна')}</p>}
+                             {isActive && <p className="text-[10px] font-bold text-merkez-blue uppercase tracking-widest mt-0.5">{t('profile.active', 'Активна')}</p>}
                            </div>
-                           {theme.active && (
+                           {isActive && (
                              <div className="ml-auto w-6 h-6 bg-merkez-blue rounded-full flex items-center justify-center">
                                <Check className="w-3.5 h-3.5 text-white" />
                              </div>
                            )}
                          </button>
-                       ))}
+                       )})}
                      </div>
                    </div>
                 </div>
