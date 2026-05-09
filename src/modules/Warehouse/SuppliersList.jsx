@@ -61,8 +61,8 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd }) => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
             {filteredSuppliers.map(supplier => (
-              <div key={supplier.id} className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-xl hover:shadow-gray-200/50 transition-all group relative">
-                <div className="absolute right-4 top-4">
+              <div key={supplier.id} className="bg-white border border-gray-100 rounded-[2rem] p-7 hover:shadow-2xl hover:shadow-gray-200/50 transition-all group relative border-b-4 border-b-transparent hover:border-b-merkez-blue">
+                <div className="absolute right-6 top-7">
                   <button 
                     onClick={() => setOpenMenuId(openMenuId === supplier.id ? null : supplier.id)}
                     className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
@@ -89,42 +89,42 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd }) => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-merkez-blue/10 flex items-center justify-center text-merkez-blue">
-                    <User className="w-6 h-6" />
+                <div className="flex items-center gap-5 mb-6">
+                  <div className="w-14 h-14 rounded-[1.25rem] bg-merkez-blue/5 flex items-center justify-center text-merkez-blue group-hover:bg-merkez-blue group-hover:text-white transition-all duration-300">
+                    <User className="w-7 h-7" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-merkez-blue transition-colors">{supplier.name}</h3>
-                    <p className="text-xs text-gray-500 font-medium">{supplier.contact_person || t('warehouse.noContactPerson') || 'Контактное лицо не указано'}</p>
+                    <h3 className="font-bold text-gray-900 text-lg group-hover:text-merkez-blue transition-colors leading-tight">{supplier.name}</h3>
+                    <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-wider">{supplier.contact_person || t('warehouse.noContactPerson') || 'Контактное лицо не указано'}</p>
                   </div>
                 </div>
 
-                <div className="space-y-2.5 pt-4 border-t border-gray-50">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                      <Phone className="w-4 h-4 text-gray-400" />
+                <div className="space-y-4 pt-6 border-t border-gray-100/50">
+                  <div className="flex items-center gap-4 text-sm text-gray-600 group/item">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 group-hover/item:bg-blue-50 transition-colors">
+                      <Phone className="w-4 h-4 text-gray-400 group-hover/item:text-merkez-blue" />
                     </div>
-                    <span className="font-medium">{supplier.phone || '—'}</span>
+                    <span className="font-bold text-gray-700">{supplier.phone || '—'}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                      <Mail className="w-4 h-4 text-gray-400" />
+                  <div className="flex items-center gap-4 text-sm text-gray-600 group/item">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 group-hover/item:bg-blue-50 transition-colors">
+                      <Mail className="w-4 h-4 text-gray-400 group-hover/item:text-merkez-blue" />
                     </div>
-                    <span className="font-medium truncate">{supplier.email || '—'}</span>
+                    <span className="font-bold text-gray-700 truncate">{supplier.email || '—'}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-                      <MapPin className="w-4 h-4 text-gray-400" />
+                  <div className="flex items-center gap-4 text-sm text-gray-600 group/item">
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 group-hover/item:bg-blue-50 transition-colors">
+                      <MapPin className="w-4 h-4 text-gray-400 group-hover/item:text-merkez-blue" />
                     </div>
-                    <span className="font-medium truncate">{supplier.address || '—'}</span>
+                    <span className="font-bold text-gray-700 truncate">{supplier.address || '—'}</span>
                   </div>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-gray-50 flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                <div className="mt-7 pt-6 border-t border-gray-100/50 flex justify-between items-center">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">
                     {t('warehouse.addedDate') || 'Добавлен'}: {new Date(supplier.created_at).toLocaleDateString()}
                   </span>
-                  <button className="text-merkez-blue text-xs font-bold flex items-center gap-1 hover:underline">
+                  <button className="bg-blue-50 text-merkez-blue px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-merkez-blue hover:text-white transition-all">
                     {t('warehouse.viewHistory') || 'История'} <ExternalLink className="w-3 h-3" />
                   </button>
                 </div>
