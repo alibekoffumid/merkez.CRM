@@ -605,7 +605,10 @@
     "supplierAddressPlaceholder": "məs. Bakı şəh., Nizami küç. 12",
     "addedDate": "Əlavə edilib",
     "viewHistory": "Tarixçə",
-    "noContactPerson": "Məsul şəxs qeyd edilməyib"
+    "noContactPerson": "Məsul şəxs qeyd edilməyib",
+    "receiptHistory": "Qəbul tarixçəsi",
+    "receiptHistoryDesc": "Tədarükçülərdən gələn malların tam siyahısı",
+    "noReceiptsFound": "Hələ ki, heç bir qəbul qeydə alınmayıb"
   },
   "crm": {
     "title": "CRM",

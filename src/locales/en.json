@@ -611,7 +611,10 @@
     "supplierAddressPlaceholder": "e.g. 12 Nizami St, Baku",
     "addedDate": "Added on",
     "viewHistory": "History",
-    "noContactPerson": "No contact person specified"
+    "noContactPerson": "No contact person specified",
+    "receiptHistory": "Receipt History",
+    "receiptHistoryDesc": "Complete list of goods received from suppliers",
+    "noReceiptsFound": "No receipts recorded yet"
   },
   "crm": {
     "title": "CRM",

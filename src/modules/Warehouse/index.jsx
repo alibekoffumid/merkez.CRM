@@ -20,13 +20,14 @@ const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules } = useUser();
   const isRestaurantActive = activeModules.includes('restaurant');
-  const [activeTab, setActiveTab] = useState('finished'); // 'finished' | 'raw'
+  const [activeTab, setActiveTab] = useState('finished'); // 'finished' | 'suppliers' | 'history'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -94,8 +95,24 @@ const WarehouseModule = () => {
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchCategories(), fetchProducts(), fetchIngredients(), fetchSuppliers()]);
+    await Promise.all([
+      fetchCategories(), 
+      fetchProducts(), 
+      fetchIngredients(), 
+      fetchSuppliers(),
+      fetchReceipts()
+    ]);
     setLoading(false);
+  };
+
+  const fetchReceipts = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase
+      .from('stock_receipts')
+      .select('*, products(name, barcode), suppliers(name)')
+      .eq('user_id', profile.id)
+      .order('received_at', { ascending: false });
+    if (data) setReceipts(data);
   };
 
   const fetchSuppliers = async () => {
@@ -265,6 +282,13 @@ const WarehouseModule = () => {
               <Truck className="w-3.5 h-3.5" />
               {t('warehouse.suppliers') || 'Поставщики'}
             </button>
+            <button 
+              onClick={() => setActiveTab('history')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Search className="w-3.5 h-3.5" />
+              {t('warehouse.history') || 'История'}
+            </button>
           </div>
         )}
 
@@ -283,6 +307,13 @@ const WarehouseModule = () => {
             >
               <Truck className="w-3.5 h-3.5" />
               {t('warehouse.suppliers') || 'Поставщики'}
+            </button>
+            <button 
+              onClick={() => setActiveTab('history')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Search className="w-3.5 h-3.5" />
+              {t('warehouse.history') || 'История'}
             </button>
           </div>
         )}
@@ -330,6 +361,75 @@ const WarehouseModule = () => {
             onDelete={requestDeleteSupplier}
             onAdd={() => setShowAddSupplier(true)}
           />
+        ) : activeTab === 'history' ? (
+          <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">{t('warehouse.receiptHistory') || 'История приёмок'}</h3>
+                <p className="text-xs text-gray-500 mt-1">{t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков'}</p>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto">
+              <table className="w-full text-left">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.receivedDate')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.supplier')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.product')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('warehouse.quantity')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('warehouse.unitPrice')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('common.total') || 'Итого'}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {receipts.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-20 text-center">
+                        <div className="flex flex-col items-center gap-3 text-gray-400">
+                          <Package className="w-12 h-12 text-gray-100" />
+                          <p className="font-medium">{t('warehouse.noReceiptsFound') || 'История приёмок пуста'}</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    receipts.map(receipt => (
+                      <tr key={receipt.id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-bold text-gray-700">{new Date(receipt.received_at).toLocaleDateString()}</span>
+                          {receipt.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{receipt.notes}</p>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-merkez-blue">
+                              <Truck className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm font-bold text-gray-900">{receipt.suppliers?.name || '—'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-gray-900">{receipt.products?.name || '—'}</span>
+                            <span className="text-[10px] text-gray-400 font-mono">{receipt.products?.barcode || '—'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <span className="text-sm font-black text-gray-900">{receipt.quantity}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right font-bold text-gray-600 text-sm">
+                          ₼{receipt.unit_price || '0.00'}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <span className="text-sm font-black text-merkez-blue">
+                            ₼{(receipt.quantity * (receipt.unit_price || 0)).toFixed(2)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : (
           <>
             {/* Categories Sidebar - Only for Finished Goods */}

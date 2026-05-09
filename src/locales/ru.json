@@ -616,7 +616,10 @@
     "supplierAddressPlaceholder": "напр. г. Баку, ул. Низами, 12",
     "addedDate": "Добавлен",
     "viewHistory": "История",
-    "noContactPerson": "Контактное лицо не указано"
+    "noContactPerson": "Контактное лицо не указано",
+    "receiptHistory": "История приёмок",
+    "receiptHistoryDesc": "Полный список поступлений товаров от поставщиков",
+    "noReceiptsFound": "История приёмок пока пуста"
   },
   "crm": {
     "title": "CRM",
