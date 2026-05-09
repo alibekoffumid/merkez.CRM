@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   const { t } = useTranslation();
@@ -116,7 +117,8 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={onClose}>
+    <ModalPortal>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div 
         className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -278,6 +280,7 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 };
 

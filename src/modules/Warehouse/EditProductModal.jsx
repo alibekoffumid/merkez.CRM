@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdated }) => {
   const { t } = useTranslation();
@@ -134,11 +135,12 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={onClose}>
-      <div 
-        className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <ModalPortal>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+        <div 
+          className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
@@ -297,6 +299,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
         </form>
       </div>
     </div>
+    </ModalPortal>
   );
 };
 

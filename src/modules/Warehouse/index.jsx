@@ -8,6 +8,7 @@ import EditProductModal from './EditProductModal';
 import EditCategoryModal from './EditCategoryModal';
 import AddIngredientModal from './AddIngredientModal';
 import EditIngredientModal from './EditIngredientModal';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -498,36 +499,38 @@ const WarehouseModule = () => {
         </div>
       </div>
       {confirmDelete && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
-            <div className="flex flex-col items-center justify-center text-center space-y-3 mb-6">
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
-                <Trash2 className="w-6 h-6 text-red-500" />
+        <ModalPortal>
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+              <div className="flex flex-col items-center justify-center text-center space-y-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                  <Trash2 className="w-6 h-6 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {t('common.confirmDelete') || 'Подтверждение удаления'}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {confirmDelete.type === 'product' ? t('warehouse.confirmDeleteProduct') : t('warehouse.confirmDeleteIngredient')}
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-gray-900">
-                {t('common.confirmDelete') || 'Подтверждение удаления'}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {confirmDelete.type === 'product' ? t('warehouse.confirmDeleteProduct') : t('warehouse.confirmDeleteIngredient')}
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setConfirmDelete(null)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors"
-              >
-                {t('common.cancel') || 'Отмена'}
-              </button>
-              <button 
-                onClick={executeDelete}
-                className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                {t('common.delete') || 'Удалить'}
-              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setConfirmDelete(null)}
+                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors"
+                >
+                  {t('common.cancel') || 'Отмена'}
+                </button>
+                <button 
+                  onClick={executeDelete}
+                  className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {t('common.delete') || 'Удалить'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );
