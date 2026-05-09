@@ -233,9 +233,16 @@ const WarehouseModule = () => {
   return (
     <div className="space-y-6 flex flex-col h-full">
       {/* Modals */}
-      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} onProductAdded={fetchProducts} />
+      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
-      <EditProductModal isOpen={!!editingProduct} product={editingProduct} onClose={() => setEditingProduct(null)} categories={categories} onProductUpdated={fetchProducts} />
+      <EditProductModal 
+        isOpen={!!editingProduct} 
+        product={editingProduct} 
+        onClose={() => setEditingProduct(null)} 
+        categories={categories} 
+        suppliers={suppliers}
+        onProductUpdated={fetchProducts} 
+      />
       <EditCategoryModal isOpen={!!editingCategory} category={editingCategory} onClose={() => setEditingCategory(null)} onCategoryUpdated={fetchCategories} />
       
       <AddIngredientModal 

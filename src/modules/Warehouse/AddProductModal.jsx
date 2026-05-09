@@ -7,7 +7,7 @@ import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
-const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
+const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -23,7 +23,8 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
     barcode: '',
     category_id: '',
     stock_quantity: '0',
-    critical_stock: '5'
+    critical_stock: '5',
+    supplier_id: ''
   });
 
   if (!isOpen) return null;
@@ -87,6 +88,7 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
         category_id: formData.category_id,
         stock_quantity: parseFloat(formData.stock_quantity || 0),
         critical_stock: parseFloat(formData.critical_stock || 5),
+        supplier_id: formData.supplier_id || null,
         image_url: imageUrl,
         user_id: profile?.id
       }])
@@ -260,6 +262,18 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
                       onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
+                  <Dropdown 
+                    value={formData.supplier_id}
+                    onChange={val => setFormData({ ...formData, supplier_id: val })}
+                    options={[
+                      { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
+                      ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                  />
                 </div>
               </div>
 
