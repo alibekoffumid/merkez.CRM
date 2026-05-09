@@ -73,12 +73,6 @@ const SuppliersList = ({ onEdit, onDelete, onAdd }) => {
             className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue transition-colors" 
           />
         </div>
-        <button 
-          onClick={onAdd}
-          className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20"
-        >
-          <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier') || 'Добавить поставщика'}
-        </button>
       </div>
 
       <div className="flex-1 overflow-auto">

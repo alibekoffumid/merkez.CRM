@@ -273,13 +273,21 @@ const WarehouseModule = () => {
             </button>
           )}
           
-          {activeTab === 'finished' ? (
+          {activeTab === 'finished' && (
             <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
               <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
             </button>
-          ) : (
+          )}
+
+          {activeTab === 'raw' && isRestaurantActive && (
             <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-lg shadow-green-600/20">
               <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
+            </button>
+          )}
+
+          {activeTab === 'suppliers' && (
+            <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
+              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
             </button>
           )}
           
