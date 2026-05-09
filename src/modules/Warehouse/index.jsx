@@ -15,6 +15,7 @@ import AddSupplierModal from './AddSupplierModal';
 import EditSupplierModal from './EditSupplierModal';
 import ReceiveStockModal from './ReceiveStockModal';
 import DateRangePicker from '../../components/Common/DateRangePicker';
+import Dropdown from '../../components/Common/Dropdown';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -395,16 +396,19 @@ const WarehouseModule = () => {
               <div className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
-                  <select 
+                  <Dropdown 
                     value={historyFilter || ''} 
-                    onChange={(e) => setHistoryFilter(e.target.value || null)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-merkez-blue/10 outline-none transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="">{t('common.all') || 'Все'}</option>
-                    {suppliers.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setHistoryFilter(val || null)}
+                    options={[
+                      { value: '', label: t('common.all') || 'Все', icon: Truck },
+                      ...suppliers.map(s => ({
+                        value: s.id,
+                        label: s.name,
+                        icon: Truck
+                      }))
+                    ]}
+                    className="w-full"
+                  />
                 </div>
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
