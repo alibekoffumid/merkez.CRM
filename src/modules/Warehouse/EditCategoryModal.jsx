@@ -42,28 +42,46 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
 
   const handleDelete = async () => {
     setDeleting(true);
+    console.log('Attempting to delete category:', category.id, category.name);
+    
     try {
       // 1. Remove category reference from all products in this category
-      const { error: updateError } = await supabase
+      const { error: updateError, data: updateData } = await supabase
         .from('products')
         .update({ category_id: null })
-        .eq('category_id', category.id);
+        .eq('category_id', category.id)
+        .select();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error unlinking products:', updateError);
+        throw updateError;
+      }
+      console.log('Products unlinked successfully');
 
       // 2. Delete the category
-      const { error: deleteError } = await supabase
+      const { error: deleteError, data: deleteData } = await supabase
         .from('categories')
         .delete()
-        .eq('id', category.id);
+        .eq('id', category.id)
+        .select();
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Error deleting category row:', deleteError);
+        throw deleteError;
+      }
 
+      console.log('Category deleted successfully from DB', deleteData);
+      
       toast.success(t('warehouse.categoryDeleted') || 'Категория удалена');
-      onCategoryUpdated();
-      onClose();
+      
+      // Small delay to ensure DB consistency before refresh
+      setTimeout(() => {
+        onCategoryUpdated();
+        onClose();
+      }, 500);
+      
     } catch (error) {
-      console.error('Delete error:', error);
+      console.error('Final delete error caught:', error);
       toast.error(error.message || 'Error deleting category');
     } finally {
       setDeleting(false);

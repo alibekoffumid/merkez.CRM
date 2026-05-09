@@ -532,6 +532,8 @@
     "confirmDeleteProduct": "Bu məhsulu silmək istədiyinizə əminsiniz?",
     "confirmDeleteIngredient": "Bu inqrediyenti silmək istədiyinizə əminsiniz?",
     "confirmDeleteCategory": "Əminsiniz? Bu kateqoriyadakı məhsullar kateqoriyasız qalacaq.",
+    "categoryDeleted": "Kateqoriya uğurla silindi",
+    "categoryUpdated": "Kateqoriya yeniləndi",
     "noIngredientsFound": "İnqrediyent tapılmadı",
     "addFirstIngredient": "İlk İnqrediyenti Əlavə Et"
   },

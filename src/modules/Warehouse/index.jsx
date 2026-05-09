@@ -51,13 +51,24 @@ const WarehouseModule = () => {
 
   // Realtime updates for products
   useEffect(() => {
-    const channel = supabase
+    const prodChannel = supabase
       .channel('warehouse-products')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
         fetchProducts();
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    const catChannel = supabase
+      .channel('warehouse-categories')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => {
+        fetchCategories();
+      })
+      .subscribe();
+
+    return () => { 
+      supabase.removeChannel(prodChannel); 
+      supabase.removeChannel(catChannel);
+    };
   }, []);
 
   const fetchAll = async () => {

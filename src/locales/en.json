@@ -538,6 +538,8 @@
     "confirmDeleteProduct": "Delete this product?",
     "confirmDeleteIngredient": "Delete this ingredient?",
     "confirmDeleteCategory": "Are you sure? Products in this category will become uncategorized.",
+    "categoryDeleted": "Category deleted successfully",
+    "categoryUpdated": "Category updated successfully",
     "noIngredientsFound": "No ingredients found",
     "addFirstIngredient": "Add first ingredient"
   },

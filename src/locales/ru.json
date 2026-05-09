@@ -560,6 +560,8 @@
     "confirmDeleteProduct": "Удалить этот товар?",
     "confirmDeleteIngredient": "Удалить этот ингредиент?",
     "confirmDeleteCategory": "Вы уверены? Товары этой категории останутся без категории.",
+    "categoryDeleted": "Категория успешно удалена",
+    "categoryUpdated": "Категория обновлена",
     "noIngredientsFound": "Ингредиенты не найдены",
     "addFirstIngredient": "Добавить первый ингредиент"
   },
