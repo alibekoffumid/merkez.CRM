@@ -258,6 +258,7 @@ const TeacherManagement = () => {
               </button>
             </form>
           </div>
+        </div>
         </ModalPortal>
       )}
     </div>
