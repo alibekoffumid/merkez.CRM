@@ -296,23 +296,23 @@ const WarehouseModule = () => {
           <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
             <button 
               onClick={() => setActiveTab('finished')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Package className="w-3.5 h-3.5" />
+              <Package className="w-4 h-4" />
               {t('warehouse.finishedGoods')}
             </button>
             <button 
               onClick={() => setActiveTab('suppliers')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Truck className="w-3.5 h-3.5" />
+              <Truck className="w-4 h-4" />
               {t('warehouse.suppliers') || 'Поставщики'}
             </button>
             <button 
               onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-4 h-4" />
               {t('warehouse.history') || 'История'}
             </button>
           </div>
@@ -320,34 +320,34 @@ const WarehouseModule = () => {
 
         <div className="flex gap-2">
           {activeTab === 'finished' && (
-            <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-600 border-gray-200 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
+            <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addCategory')}
             </button>
           )}
           
           {activeTab === 'finished' && (
-            <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
+            <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
+              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addProduct')}
             </button>
           )}
 
           {activeTab === 'raw' && isRestaurantActive && (
-            <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-lg shadow-green-600/20">
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
+            <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors flex items-center shadow-lg shadow-green-600/20">
+              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addIngredient')}
             </button>
           )}
 
           {activeTab === 'suppliers' && (
-            <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
+            <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
+              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addSupplier')}
             </button>
           )}
           
           <button 
             onClick={() => setShowReceiveStock(true)} 
-            className="bg-white border border-merkez-green text-merkez-green px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
+            className="bg-white border border-merkez-green text-merkez-green px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
           >
-            <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
+            <Truck className="w-4 h-4 mr-2" /> {t('warehouse.receiveStock') || 'Приемка'}
           </button>
         </div>
       </div>
