@@ -9,9 +9,12 @@ import EditCategoryModal from './EditCategoryModal';
 import AddIngredientModal from './AddIngredientModal';
 import EditIngredientModal from './EditIngredientModal';
 import ModalPortal from '../../components/Common/ModalPortal';
+import { useUser } from '../../core/UserContext';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
+  const { activeModules } = useUser();
+  const isRestaurantActive = activeModules.includes('restaurant');
   const [activeTab, setActiveTab] = useState('finished'); // 'finished' | 'raw'
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -35,6 +38,12 @@ const WarehouseModule = () => {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  useEffect(() => {
+    if (!isRestaurantActive && activeTab === 'raw') {
+      setActiveTab('finished');
+    }
+  }, [isRestaurantActive]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -199,23 +208,25 @@ const WarehouseModule = () => {
           </div>
         </div>
 
-        {/* Tab Switcher Inline */}
-        <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
-          <button 
-            onClick={() => setActiveTab('finished')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-          >
-            <Package className="w-3.5 h-3.5" />
-            {t('warehouse.finishedGoods')}
-          </button>
-          <button 
-            onClick={() => setActiveTab('raw')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-          >
-            <FolderTree className="w-3.5 h-3.5" />
-            {t('warehouse.ingredients')}
-          </button>
-        </div>
+        {/* Tab Switcher Inline - Only if Restaurant is active */}
+        {isRestaurantActive && (
+          <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
+            <button 
+              onClick={() => setActiveTab('finished')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Package className="w-3.5 h-3.5" />
+              {t('warehouse.finishedGoods')}
+            </button>
+            <button 
+              onClick={() => setActiveTab('raw')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <FolderTree className="w-3.5 h-3.5" />
+              {t('warehouse.ingredients')}
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-2">
           {activeTab === 'finished' && (
