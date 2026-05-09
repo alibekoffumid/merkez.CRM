@@ -47,6 +47,8 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
 
   const handleDelete = async () => {
     setDeleting(true);
+    console.log('Current profile:', profile);
+    console.log('Target category:', category);
     console.log('Attempting to delete category:', category.id, category.name);
     
     try {
