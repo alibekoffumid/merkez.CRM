@@ -36,7 +36,9 @@ interface Sale {
   user_id: string;
   total_amount: number;
   tax_amount: number;
-  payment_method: 'cash' | 'card';
+  payment_method: 'cash' | 'card' | 'split';
+  split_cash?: number;
+  split_card?: number;
   discount_amount?: number;
   discount_type?: 'percent' | 'fixed';
   created_at: string;
@@ -61,7 +63,7 @@ const RetailHistory: React.FC = () => {
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [paymentFilter, setPaymentFilter] = useState<'all' | 'cash' | 'card'>('all');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'cash' | 'card' | 'split'>('all');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -267,9 +269,9 @@ const RetailHistory: React.FC = () => {
               <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-56 animate-in fade-in zoom-in-95 duration-150">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">{t('retail.paymentMethod')}</p>
                 <div className="space-y-1.5">
-                  {(['all', 'cash', 'card'] as const).map(method => (
+                  {(['all', 'cash', 'card', 'split'] as const).map(method => (
                     <button key={method} onClick={() => { setPaymentFilter(method); setShowFilter(false); }} className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${paymentFilter === method ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-600 hover:bg-gray-50'}`}>
-                      {method === 'all' ? (i18n.language === 'az' ? 'Hamısı' : i18n.language === 'en' ? 'All' : 'Все') : method === 'cash' ? t('retail.cash') : t('retail.card')}
+                      {method === 'all' ? (i18n.language === 'az' ? 'Hamısı' : i18n.language === 'en' ? 'All' : 'Все') : method === 'cash' ? t('retail.cash') : method === 'card' ? t('retail.card') : 'Split'}
                     </button>
                   ))}
                 </div>
@@ -331,10 +333,18 @@ const RetailHistory: React.FC = () => {
                   </td>
                   <td className="px-8 py-5">
                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                      sale.payment_method === 'card' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'
+                      sale.payment_method === 'card' ? 'bg-blue-50 text-blue-700' : 
+                      sale.payment_method === 'split' ? 'bg-purple-50 text-purple-700' : 'bg-orange-50 text-orange-700'
                     }`}>
-                      {sale.payment_method === 'card' ? <CreditCard className="w-3 h-3" /> : <Banknote className="w-3 h-3" />}
-                      {sale.payment_method === 'card' ? t('retail.card') : t('retail.cash')}
+                      {sale.payment_method === 'card' ? <CreditCard className="w-3 h-3" /> : 
+                       sale.payment_method === 'split' ? (
+                         <div className="flex items-center -space-x-1">
+                           <Banknote className="w-2.5 h-2.5" />
+                           <CreditCard className="w-2.5 h-2.5" />
+                         </div>
+                       ) : <Banknote className="w-3 h-3" />}
+                      {sale.payment_method === 'card' ? t('retail.card') : 
+                       sale.payment_method === 'split' ? 'Split' : t('retail.cash')}
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right font-bold text-gray-500 tabular-nums">
@@ -433,7 +443,21 @@ const RetailHistory: React.FC = () => {
               <div className="flex justify-between items-end pt-6 border-t border-gray-100">
                 <div className="space-y-1">
                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('retail.paymentMethod')}</p>
-                  <p className="font-bold text-gray-900">{selectedSale.payment_method === 'card' ? t('retail.card') : t('retail.cash')}</p>
+                  {selectedSale.payment_method === 'split' ? (
+                    <div className="space-y-1">
+                      <p className="font-bold text-gray-900">Split Payment</p>
+                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2 py-1 rounded-lg w-fit">
+                        <Banknote className="w-3 h-3" />
+                        {Number(selectedSale.split_cash || 0).toFixed(2)} ₼
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-lg w-fit">
+                        <CreditCard className="w-3 h-3" />
+                        {Number(selectedSale.split_card || 0).toFixed(2)} ₼
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="font-bold text-gray-900">{selectedSale.payment_method === 'card' ? t('retail.card') : t('retail.cash')}</p>
+                  )}
                 </div>
                 <div className="text-right space-y-2">
                   {selectedSale.discount_amount && selectedSale.discount_amount > 0 && (
