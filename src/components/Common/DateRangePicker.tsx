@@ -68,14 +68,16 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   };
 
   const handleDateClick = (day: number) => {
+    const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const clickedDate = new Date(year, monthIndex, day);
-    const dateStr = clickedDate.toISOString().split('T')[0];
+    clickedDate.setHours(0, 0, 0, 0);
 
     if (!tempStart || (tempStart && tempEnd)) {
       setTempStart(dateStr);
       setTempEnd('');
     } else {
       const start = new Date(tempStart);
+      start.setHours(0, 0, 0, 0);
       if (clickedDate < start) {
         setTempStart(dateStr);
         setTempEnd('');
