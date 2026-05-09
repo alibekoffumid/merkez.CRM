@@ -220,7 +220,7 @@ const PublicMenu = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1115] text-white selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#0f1115] text-white selection:bg-blue-500/30 overflow-x-hidden">
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[150px] rounded-full" />
