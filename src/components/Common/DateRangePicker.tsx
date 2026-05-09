@@ -163,11 +163,17 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             ))}
             {Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1).map(day => {
               const cellDate = new Date(year, monthIndex, day);
+              cellDate.setHours(0, 0, 0, 0);
               const cellTime = cellDate.getTime();
               
-              const isStart = refStart === cellTime;
-              const isEnd = refEnd === cellTime;
-              const isInRange = refStart && refEnd && cellTime > refStart && cellTime < refEnd;
+              const startD = tempStart ? new Date(tempStart) : null;
+              if (startD) startD.setHours(0, 0, 0, 0);
+              const endD = tempEnd ? new Date(tempEnd) : null;
+              if (endD) endD.setHours(0, 0, 0, 0);
+
+              const isStart = startD && startD.getTime() === cellTime;
+              const isEnd = endD && endD.getTime() === cellTime;
+              const isInRange = startD && endD && cellTime > startD.getTime() && cellTime < endD.getTime();
               
               let classes = 'h-9 w-full flex items-center justify-center text-xs font-bold rounded-xl transition-all cursor-pointer ';
               if (isStart || isEnd) {
