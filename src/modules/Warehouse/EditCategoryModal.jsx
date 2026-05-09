@@ -50,20 +50,8 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
     console.log('Attempting to delete category:', category.id, category.name);
     
     try {
-      // 1. Remove category reference from all products in this category
-      const { error: updateError, data: updateData } = await supabase
-        .from('products')
-        .update({ category_id: null })
-        .eq('category_id', category.id)
-        .select();
-
-      if (updateError) {
-        console.error('Error unlinking products:', updateError);
-        throw updateError;
-      }
-      console.log('Products unlinked successfully');
-
-      // 2. Delete the category
+      // Deleting the category will now automatically set category_id to NULL 
+      // for all products thanks to the ON DELETE SET NULL constraint.
       const { error: deleteError, data: deleteData } = await supabase
         .from('categories')
         .delete()
@@ -76,7 +64,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
       }
 
       if (!deleteData || deleteData.length === 0) {
-        throw new Error('У вас нет прав на удаление этой категории или она не найдена');
+        throw new Error('У вас нет прав на удаление этой категории. Убедитесь, что вы применили SQL-миграцию 00025.');
       }
 
       console.log('Category deleted successfully from DB', deleteData);
