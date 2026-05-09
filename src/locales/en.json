@@ -241,6 +241,7 @@
     "unit": "pcs",
     "create": "Create",
     "unauthorized": "User unauthorized",
+    "total": "Total",
     "confirmArchive": "Are you sure you want to archive this product?",
     "archived": "Product archived"
   },
