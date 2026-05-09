@@ -33,10 +33,10 @@ const CoreLayout = () => {
       <div className={`flex-1 flex flex-col h-screen overflow-hidden overflow-x-hidden transition-all duration-300 bg-gray-50 ${
         isSidebarExpanded ? 'lg:filter lg:blur-sm lg:brightness-90 lg:pointer-events-none' : ''
       }`}>
-        {!isFullScreen && <Header onMenuClick={toggleMobileSidebar} />}
-        <main className={`flex-1 min-h-0 overflow-hidden ${isFullScreen ? 'h-full pt-0' : ''}`}>
+        {isDashboard && <Header onMenuClick={toggleMobileSidebar} />}
+        <main className={`flex-1 min-h-0 overflow-hidden ${!isDashboard ? 'h-full pt-0' : ''}`}>
           <div className="h-full overflow-y-auto overflow-x-hidden no-scrollbar">
-            <div className={`${isFullScreen ? 'pl-14 lg:pl-20 h-full' : 'p-4 sm:p-6 lg:p-10 lg:pl-24'} max-w-full mx-auto h-full`}>
+            <div className={`${isFullScreen ? 'pl-14 lg:pl-20 h-full' : isDashboard ? 'p-4 sm:p-6 lg:p-10 lg:pl-24' : 'p-2 pt-4 pl-20 lg:pl-24'} max-w-full mx-auto h-full`}>
               <Outlet />
             </div>
           </div>
