@@ -565,19 +565,21 @@ const RetailPOS: React.FC = () => {
                         <td className="px-6 py-4 text-right">
                           <div className="flex flex-col items-end gap-1">
                             {item.discount_value && item.discount_value > 0 ? (
-                              <>
-                                <span className="text-xs text-gray-400 line-through">{(item.sale_price || 0).toFixed(2)} ₼</span>
+                              <span className="text-xs text-gray-400 line-through">{(item.sale_price || 0).toFixed(2)} ₼</span>
+                            ) : null}
+                            <div className="flex items-center justify-end gap-2">
+                              {item.discount_value && item.discount_value > 0 ? (
                                 <span className="font-bold text-green-600">{calculateItemPrice(item).toFixed(2)} ₼</span>
-                              </>
-                            ) : (
-                              <span className="font-medium text-gray-600">{(item.sale_price || 0).toFixed(2)} ₼</span>
-                            )}
-                            <button 
-                              onClick={() => setEditingDiscountId(editingDiscountId === item.id ? null : item.id)}
-                              className={`p-1 rounded-md transition-all ${item.discount_value ? 'bg-green-50 text-green-600' : 'text-gray-300 hover:text-merkez-blue hover:bg-blue-50'}`}
-                            >
-                              <Tag className="w-3.5 h-3.5" />
-                            </button>
+                              ) : (
+                                <span className="font-medium text-gray-600">{(item.sale_price || 0).toFixed(2)} ₼</span>
+                              )}
+                              <button 
+                                onClick={() => setEditingDiscountId(editingDiscountId === item.id ? null : item.id)}
+                                className={`p-1 rounded-md transition-all ${item.discount_value ? 'bg-green-50 text-green-600' : 'text-gray-300 hover:text-merkez-blue hover:bg-blue-50'}`}
+                              >
+                                <Tag className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
                           
                           {editingDiscountId === item.id && (
