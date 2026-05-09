@@ -42,20 +42,33 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
 
   const handleDelete = async () => {
     setDeleting(true);
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', category.id);
+    try {
+      // 1. Remove category reference from all products in this category
+      const { error: updateError } = await supabase
+        .from('products')
+        .update({ category_id: null })
+        .eq('category_id', category.id);
 
-    if (error) {
-      toast.error(error.message);
-    } else {
+      if (updateError) throw updateError;
+
+      // 2. Delete the category
+      const { error: deleteError } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', category.id);
+
+      if (deleteError) throw deleteError;
+
       toast.success(t('warehouse.categoryDeleted') || 'Категория удалена');
       onCategoryUpdated();
       onClose();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error.message || 'Error deleting category');
+    } finally {
+      setDeleting(false);
+      setShowConfirmDelete(false);
     }
-    setDeleting(false);
-    setShowConfirmDelete(false);
   };
 
   return (
