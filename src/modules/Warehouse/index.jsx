@@ -14,7 +14,7 @@ import SuppliersList from './SuppliersList';
 import AddSupplierModal from './AddSupplierModal';
 import EditSupplierModal from './EditSupplierModal';
 import ReceiveStockModal from './ReceiveStockModal';
-import { Truck } from 'lucide-react';
+import DateRangePicker from '../../components/Common/DateRangePicker';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -392,13 +392,13 @@ const WarehouseModule = () => {
               </div>
 
               {/* Filters Bar */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('warehouse.supplier')}</label>
+              <div className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
                   <select 
                     value={historyFilter || ''} 
                     onChange={(e) => setHistoryFilter(e.target.value || null)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all"
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-merkez-blue/10 outline-none transition-all appearance-none cursor-pointer"
                   >
                     <option value="">{t('common.all') || 'Все'}</option>
                     {suppliers.map(s => (
@@ -406,22 +406,16 @@ const WarehouseModule = () => {
                     ))}
                   </select>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('common.startDate') || 'От'}</label>
-                  <input 
-                    type="date" 
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('common.endDate') || 'До'}</label>
-                  <input 
-                    type="date" 
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all"
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
+                  <DateRangePicker 
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(start, end) => {
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                    placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
                   />
                 </div>
               </div>
