@@ -250,6 +250,8 @@ const RetailPOS: React.FC = () => {
         .from('products')
         .select('*')
         .or(`name.ilike.%${query}%,barcode.ilike.%${query}%`)
+        .not('barcode', 'is', null)
+        .neq('barcode', '')
         .limit(5);
 
       if (error) {
