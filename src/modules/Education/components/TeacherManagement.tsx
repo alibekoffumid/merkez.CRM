@@ -7,7 +7,7 @@ import ModalPortal from '../../../components/Common/ModalPortal';
 
 const TeacherManagement = () => {
   const { t } = useTranslation();
-  const { teachers, refreshAll, tenantId } = useEducation();
+  const { teachers, courses, refreshAll, tenantId } = useEducation();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,11 +19,21 @@ const TeacherManagement = () => {
     lastName: '',
     email: '',
     phone: '',
-    specialization: 'Piano'
+    specialization: courses?.[0]?.title || 'Piano'
   });
 
   const [showSpecDropdown, setShowSpecDropdown] = useState(false);
-  const specializations = ['Piano', 'Vocal', 'Fine Arts', 'Theory', 'Guitar', 'Violin'];
+  
+  // Use unique titles from courses or fallback to defaults
+  const specializations = courses?.length > 0 
+    ? Array.from(new Set(courses.map(c => c.title)))
+    : ['Piano', 'Vocal', 'Fine Arts', 'Theory', 'Guitar', 'Violin'];
+
+  useEffect(() => {
+    if (courses?.length > 0 && !formData.specialization) {
+      setFormData(prev => ({ ...prev, specialization: courses[0].title }));
+    }
+  }, [courses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
