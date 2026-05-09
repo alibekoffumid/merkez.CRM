@@ -50,7 +50,9 @@ const RetailInventory: React.FC = () => {
     sale_price: 0,
     stock_quantity: 0,
     critical_stock: 5,
-    excise_stamp_required: false
+    excise_stamp_required: false,
+    discount_type: 'none',
+    discount_value: 0
   });
 
   useEffect(() => {
@@ -100,7 +102,9 @@ const RetailInventory: React.FC = () => {
         price: formData.sale_price,
         stock_quantity: formData.stock_quantity,
         critical_stock: formData.critical_stock,
-        excise_stamp_required: formData.excise_stamp_required
+        excise_stamp_required: formData.excise_stamp_required,
+        discount_type: formData.discount_type,
+        discount_value: formData.discount_value
       };
 
       if (editingProduct) {
@@ -137,9 +141,11 @@ const RetailInventory: React.FC = () => {
       category_id: product.category_id || '',
       purchase_price: product.purchase_price,
       sale_price: product.sale_price,
-      stock_quantity: product.stock_quantity,
-      critical_stock: product.critical_stock,
-      excise_stamp_required: product.excise_stamp_required
+      stock_quantity: product.stock_quantity || 0,
+      critical_stock: product.critical_stock || 5,
+      excise_stamp_required: product.excise_stamp_required || false,
+      discount_type: product.discount_type || 'none',
+      discount_value: product.discount_value || 0
     });
     setIsModalOpen(true);
   };
@@ -217,7 +223,9 @@ const RetailInventory: React.FC = () => {
               sale_price: 0,
               stock_quantity: 0,
               critical_stock: 5,
-              excise_stamp_required: false
+              excise_stamp_required: false,
+              discount_type: 'none',
+              discount_value: 0
             });
             setIsModalOpen(true);
           }}
@@ -349,7 +357,14 @@ const RetailInventory: React.FC = () => {
                     {(product.purchase_price || 0).toFixed(2)} ₼
                   </td>
                   <td className="px-8 py-5 text-right font-black text-gray-900 tabular-nums">
-                    {(product.sale_price || 0).toFixed(2)} ₼
+                    <div className="flex flex-col items-end">
+                      <span>{(product.sale_price || 0).toFixed(2)} ₼</span>
+                      {product.discount_type !== 'none' && product.discount_value > 0 && (
+                        <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full mt-1">
+                          -{product.discount_value}{product.discount_type === 'percent' ? '%' : '₼'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-8 py-5 text-center">
                     <div className={`
@@ -480,6 +495,30 @@ const RetailInventory: React.FC = () => {
                     className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold text-red-500 outline-none"
                     value={formData.critical_stock}
                     onChange={(e) => setFormData({...formData, critical_stock: parseFloat(e.target.value)})}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">Discount Type</label>
+                  <Dropdown 
+                    value={formData.discount_type}
+                    onChange={(val) => setFormData({...formData, discount_type: val})}
+                    options={[
+                      { value: 'none', label: 'No Discount' },
+                      { value: 'percent', label: 'Percentage (%)' },
+                      { value: 'fixed', label: 'Fixed Amount (₼)' }
+                    ]}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">Discount Value</label>
+                  <input 
+                    type="number" step="0.01"
+                    disabled={formData.discount_type === 'none'}
+                    className={`w-full px-6 py-4 border-transparent border rounded-2xl transition-all font-bold outline-none ${formData.discount_type === 'none' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 focus:bg-white focus:border-merkez-blue text-green-600'}`}
+                    value={formData.discount_value}
+                    onChange={(e) => setFormData({...formData, discount_value: parseFloat(e.target.value) || 0})}
                   />
                 </div>
 
