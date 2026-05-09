@@ -201,12 +201,12 @@ const IntegrationsModule = () => {
       {/* 1. Contact List (Left Sidebar) */}
       <div className="w-80 border-r border-gray-100 flex flex-col bg-gray-50/20">
         <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-black text-gray-900 mb-4">Omnichannel</h2>
+          <h2 className="text-xl font-black text-gray-900 mb-4">{t('integrations.title')}</h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Söhbətlərdə axtar..." 
+              placeholder={t('integrations.searchPlaceholder')} 
               className="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
             />
           </div>
@@ -252,7 +252,7 @@ const IntegrationsModule = () => {
               </div>
               <div>
                 <h3 className="text-sm font-black text-gray-900 leading-none mb-1">{selectedContact.name}</h3>
-                <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Online</span>
+                <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">{t('integrations.online')}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ const IntegrationsModule = () => {
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Mesaj yazın..." 
+                placeholder={t('integrations.messagePlaceholder')} 
                 className="flex-1 bg-transparent border-none outline-none px-4 text-sm font-medium"
               />
               <button 
@@ -295,8 +295,8 @@ const IntegrationsModule = () => {
            <div className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-6 animate-bounce">
               <LayoutGrid className="w-10 h-10 text-blue-600" />
            </div>
-           <h3 className="text-xl font-black text-gray-900 mb-2">Omnichannel Mərkəzi</h3>
-           <p className="text-sm text-gray-500 max-w-xs mx-auto">Müştərilərinizlə bütün kanallar vasitəsilə vahid interfeysdən ünsiyyət qurun.</p>
+           <h3 className="text-xl font-black text-gray-900 mb-2">{t('integrations.emptyTitle')}</h3>
+           <p className="text-sm text-gray-500 max-w-xs mx-auto">{t('integrations.emptyDescription')}</p>
         </div>
       )}
     </div>
