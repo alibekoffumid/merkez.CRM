@@ -320,16 +320,19 @@ const MenuManager = () => {
       {isQRMenuOpen && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsQRMenuOpen(false)}>
            <div className="w-full max-w-5xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-              <div className="bg-white rounded-[3rem] overflow-hidden relative">
-                 <button 
-                   onClick={() => setIsQRMenuOpen(false)}
-                   className="absolute top-8 right-8 z-50 p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"
-                 >
-                    <X className="w-6 h-6" />
-                 </button>
-                 <div className="p-8 md:p-12">
-                   <QRMenu />
-                 </div>
+              <div className="bg-white rounded-[3rem] overflow-hidden">
+                  <div className="p-4 md:p-6 bg-gray-50 flex items-center justify-between border-b border-gray-100">
+                    <h2 className="text-xl font-black text-gray-900 ml-4">QR Menyu</h2>
+                    <button 
+                      onClick={() => setIsQRMenuOpen(false)}
+                      className="p-3 bg-white hover:bg-red-50 hover:text-red-600 rounded-2xl text-gray-400 transition-all border border-gray-100"
+                    >
+                       <X className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <div className="p-6 md:p-12 max-h-[80vh] overflow-y-auto">
+                    <QRMenu />
+                  </div>
               </div>
            </div>
         </div>
@@ -498,24 +501,6 @@ const MenuManager = () => {
         document.body
       )}
 
-      {/* QR Menu Modal */}
-      {isQRMenuOpen && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 overflow-y-auto" onClick={() => setIsQRMenuOpen(false)}>
-           <div className="w-full max-w-5xl animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-              <div className="bg-white rounded-[3rem] overflow-hidden relative">
-                 <button 
-                   onClick={() => setIsQRMenuOpen(false)}
-                   className="absolute top-8 right-8 z-50 p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl text-gray-400 hover:text-gray-900 transition-all"
-                 >
-                    <X className="w-6 h-6" />
-                 </button>
-                 <div className="p-8 md:p-12">
-                   <QRMenu />
-                 </div>
-              </div>
-           </div>
-        </div>
-      )}
 
       {isRecipeModalOpen && (
         <RecipeEditorModal 

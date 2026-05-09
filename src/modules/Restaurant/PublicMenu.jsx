@@ -22,7 +22,7 @@ const PublicMenu = () => {
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
-        .or(`id.eq.${businessId},tenant_id.eq.${businessId}`)
+        .eq('id', businessId)
         .single();
 
       if (profileData) {
