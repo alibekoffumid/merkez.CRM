@@ -349,31 +349,67 @@ const AcademicScheduler = () => {
                 </div>
 
                 {/* Render Lessons */}
-                {dayLessons.map((lesson: any, i: number) => {
-                  const startDate = new Date(lesson.start_time);
-                  const endDate = new Date(lesson.end_time);
+                {(() => {
+                  const sortedDayLessons = [...dayLessons].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+                  const columns: any[][] = [];
                   
-                  const startDec = startDate.getHours() + startDate.getMinutes() / 60;
-                  const endDec = endDate.getHours() + endDate.getMinutes() / 60;
-                  
-                  const top = Math.max(0, (startDec - START_HOUR) * 80);
-                  const height = Math.max(20, (endDec - startDec) * 80);
-                  
-                  const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
-                  const colorClass = colors[i % colors.length];
+                  sortedDayLessons.forEach(lesson => {
+                    let placed = false;
+                    for (let i = 0; i < columns.length; i++) {
+                      const lastInCol = columns[i][columns[i].length - 1];
+                      if (new Date(lesson.start_time).getTime() >= new Date(lastInCol.end_time).getTime()) {
+                        columns[i].push(lesson);
+                        placed = true;
+                        break;
+                      }
+                    }
+                    if (!placed) columns.push([lesson]);
+                  });
 
-                  return (
-                    <div 
-                      key={lesson.id} 
-                      onClick={() => handleEdit(lesson)}
-                      className={`absolute left-4 right-4 rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden ${colorClass}`}
-                      style={{ top: `${top}px`, height: `${height}px` }}
-                    >
-                      <h4 className="font-bold text-sm truncate">{lesson.education_courses?.title}</h4>
-                      <p className="text-xs opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {getRoomName(lesson.room)}</p>
-                    </div>
-                  );
-                })}
+                  const lessonToLayout = new Map();
+                  columns.forEach((col, colIdx) => {
+                    col.forEach(lesson => {
+                      lessonToLayout.set(lesson.id, { colIdx, totalCols: columns.length });
+                    });
+                  });
+
+                  return sortedDayLessons.map((lesson: any, i: number) => {
+                    const startDate = new Date(lesson.start_time);
+                    const endDate = new Date(lesson.end_time);
+                    
+                    const startDec = startDate.getHours() + startDate.getMinutes() / 60;
+                    const endDec = endDate.getHours() + endDate.getMinutes() / 60;
+                    
+                    const top = Math.max(0, (startDec - START_HOUR) * 80);
+                    const height = Math.max(20, (endDec - startDec) * 80);
+                    
+                    const layout = lessonToLayout.get(lesson.id) || { colIdx: 0, totalCols: 1 };
+                    const widthPercent = 100 / layout.totalCols;
+                    const leftPercent = layout.colIdx * widthPercent;
+
+                    const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
+                    const colorClass = colors[i % colors.length];
+
+                    return (
+                      <div 
+                        key={lesson.id} 
+                        onClick={() => handleEdit(lesson)}
+                        className={`absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden ${colorClass}`}
+                        style={{ 
+                          top: `${top}px`, 
+                          height: `${height}px`,
+                          left: `${leftPercent}%`,
+                          width: `calc(${widthPercent}% - ${layout.totalCols > 1 ? '4px' : '0px'})`,
+                          marginLeft: layout.colIdx > 0 ? '4px' : '4px',
+                          marginRight: '4px'
+                        }}
+                      >
+                        <h4 className="font-bold text-xs sm:text-sm truncate">{lesson.education_courses?.title}</h4>
+                        <p className="text-[10px] opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {getRoomName(lesson.room)}</p>
+                      </div>
+                    );
+                  });
+                })()}
                 
                 {/* Current Time Indicator (if today) */}
                 {isSameDay(selectedDate, new Date()) && (() => {
