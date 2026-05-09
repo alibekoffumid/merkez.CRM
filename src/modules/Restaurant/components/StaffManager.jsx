@@ -575,7 +575,7 @@ const StaffManager = () => {
       )}
 
       {/* Confirmation Modal */}
-      {confirmDeleteId && (
+      {confirmDeleteId && createPortal(
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeleteId(null)}>
           <div 
             className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"

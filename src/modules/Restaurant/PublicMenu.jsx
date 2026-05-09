@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
-import { Utensils, Info, MapPin, Phone, Globe, ChevronRight, Star, Heart, Clock } from 'lucide-react';
+import { Utensils, Info, MapPin, Phone, ChevronRight, Star, Heart, Clock } from 'lucide-react';
 
 const PublicMenu = () => {
   const { businessId } = useParams();
@@ -12,6 +12,7 @@ const PublicMenu = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [productIngredients, setProductIngredients] = useState([]);
   const [loadingIngredients, setLoadingIngredients] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
 
   useEffect(() => {
     fetchMenuData();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Clock, Receipt, X, Plus, Minus, CreditCard, UserPlus, ShoppingCart, Search, UserCheck, User, Gift, Star, Repeat, Move, ChevronRight, CheckCircle2, ChefHat, ArrowRight, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { InventoryService } from '../../../services/InventoryService';
 import { etaxesService } from '../../ETaxes/services/etaxesService';
