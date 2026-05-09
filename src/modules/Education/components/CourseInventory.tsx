@@ -57,11 +57,7 @@ const CourseInventory = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-        <div>
-          <h2 className="text-2xl font-black text-gray-900">{t('education.programsAndCourses')}</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.managePrograms')}</p>
-        </div>
+      <div className="flex justify-end p-6 bg-white rounded-[2rem] border border-gray-100 shadow-sm">
         <button 
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 shadow-lg shadow-gray-900/20 font-bold text-sm transition-all active:scale-95"

@@ -19,10 +19,6 @@ const AcademicJournal = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h2 className="text-2xl font-black text-gray-900">{t('education.journalTitle')}</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.journalSubtitle')}</p>
-        </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
           <div className="relative w-full sm:w-64">

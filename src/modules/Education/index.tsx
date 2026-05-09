@@ -64,31 +64,6 @@ const EducationModuleContent = () => {
         </button>
       )}
 
-      {!isFullPage && (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <GraduationCap className="w-7 h-7" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{t('education.title')}</h1>
-              <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.subtitle')}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-             <button 
-               onClick={() => setIsFullPage(!isFullPage)}
-               className="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-gray-50 border border-gray-100 rounded-2xl transition-all"
-               title="Maximize"
-             >
-               <Maximize2 className="w-5 h-5" />
-             </button>
-             <button className="w-12 h-12 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-gray-50 border border-gray-100 rounded-2xl transition-all">
-               <Settings className="w-5 h-5" />
-             </button>
-          </div>
-        </div>
-      )}
 
       <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-6 px-4' : 'p-6 md:p-12'}`}>
         <div>
@@ -100,7 +75,6 @@ const EducationModuleContent = () => {
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-black text-gray-900">{t('education.studentDirectory')}</h2>
               {loading ? (
                 <p className="text-gray-500 font-bold">{t('education.loadingStudents')}</p>
               ) : students?.length > 0 ? (
