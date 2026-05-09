@@ -563,7 +563,10 @@
     "categoryDeleted": "Категория успешно удалена",
     "categoryUpdated": "Категория обновлена",
     "noIngredientsFound": "Ингредиенты не найдены",
-    "addFirstIngredient": "Добавить первый ингредиент"
+    "addFirstIngredient": "Добавить первый ингредиент",
+    "productUpdated": "Товар успешно обновлен",
+    "productAdded": "Товар успешно добавлен",
+    "productDeleted": "Товар успешно удален"
   },
   "crm": {
     "title": "CRM",

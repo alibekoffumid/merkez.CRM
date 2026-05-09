@@ -541,7 +541,10 @@
     "categoryDeleted": "Category deleted successfully",
     "categoryUpdated": "Category updated successfully",
     "noIngredientsFound": "No ingredients found",
-    "addFirstIngredient": "Add first ingredient"
+    "addFirstIngredient": "Add first ingredient",
+    "productUpdated": "Product updated successfully",
+    "productAdded": "Product added successfully",
+    "productDeleted": "Product deleted successfully"
   },
   "crm": {
     "title": "CRM",

@@ -535,7 +535,10 @@
     "categoryDeleted": "Kateqoriya uğurla silindi",
     "categoryUpdated": "Kateqoriya yeniləndi",
     "noIngredientsFound": "İnqrediyent tapılmadı",
-    "addFirstIngredient": "İlk İnqrediyenti Əlavə Et"
+    "addFirstIngredient": "İlk İnqrediyenti Əlavə Et",
+    "productUpdated": "Məhsul uğurla yeniləndi",
+    "productAdded": "Məhsul uğurla əlavə edildi",
+    "productDeleted": "Məhsul uğurla silindi"
   },
   "crm": {
     "title": "CRM",
