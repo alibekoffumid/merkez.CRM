@@ -44,7 +44,8 @@ const RetailPOS: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [cashReceived, setCashReceived] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'split'>('cash');
+  const [splitCash, setSplitCash] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<RetailProduct[]>([]);
@@ -328,6 +329,8 @@ const RetailPOS: React.FC = () => {
         p_payment_method: paymentMethod,
         p_discount_amount: discountAmount,
         p_discount_type: globalDiscountType,
+        p_split_cash: paymentMethod === 'split' ? (parseFloat(splitCash) || 0) : (paymentMethod === 'cash' ? total : 0),
+        p_split_card: paymentMethod === 'split' ? Math.max(0, total - (parseFloat(splitCash) || 0)) : (paymentMethod === 'card' ? total : 0),
         p_items: cart.map(item => ({
           product_id: item.id,
           product_name: item.name,
@@ -345,6 +348,7 @@ const RetailPOS: React.FC = () => {
       toast.success(t('retail.saleSuccess'));
       setCart([]);
       setCashReceived('');
+      setSplitCash('');
       // In real scenario, here we would trigger fiscal print
     } catch (err: any) {
       toast.error(t('common.error') + ': ' + err.message);
@@ -660,28 +664,42 @@ const RetailPOS: React.FC = () => {
             {/* Payment Method */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('retail.paymentMethod')}</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button 
                   onClick={() => setPaymentMethod('cash')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                  className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
                     paymentMethod === 'cash' 
                     ? 'border-merkez-blue bg-blue-50/50' 
                     : 'border-gray-100 hover:border-gray-200'
                   }`}
                 >
-                  <Banknote className={`w-6 h-6 ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-400'}`} />
-                  <span className={`text-xs font-bold ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-500'}`}>{t('retail.cash')}</span>
+                  <Banknote className={`w-5 h-5 ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-400'}`} />
+                  <span className={`text-[10px] uppercase tracking-widest font-bold ${paymentMethod === 'cash' ? 'text-merkez-blue' : 'text-gray-500'}`}>{t('retail.cash')}</span>
                 </button>
                 <button 
                   onClick={() => setPaymentMethod('card')}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                  className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
                     paymentMethod === 'card' 
                     ? 'border-merkez-blue bg-blue-50/50' 
                     : 'border-gray-100 hover:border-gray-200'
                   }`}
                 >
-                  <CreditCard className={`w-6 h-6 ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-400'}`} />
-                  <span className={`text-xs font-bold ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-500'}`}>{t('retail.card')}</span>
+                  <CreditCard className={`w-5 h-5 ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-400'}`} />
+                  <span className={`text-[10px] uppercase tracking-widest font-bold ${paymentMethod === 'card' ? 'text-merkez-blue' : 'text-gray-500'}`}>{t('retail.card')}</span>
+                </button>
+                <button 
+                  onClick={() => setPaymentMethod('split')}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all ${
+                    paymentMethod === 'split' 
+                    ? 'border-merkez-blue bg-blue-50/50' 
+                    : 'border-gray-100 hover:border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center -space-x-2">
+                    <Banknote className={`w-5 h-5 z-10 bg-white rounded-full ${paymentMethod === 'split' ? 'text-merkez-blue' : 'text-gray-400'}`} />
+                    <CreditCard className={`w-5 h-5 ${paymentMethod === 'split' ? 'text-merkez-blue' : 'text-gray-400'}`} />
+                  </div>
+                  <span className={`text-[10px] uppercase tracking-widest font-bold ${paymentMethod === 'split' ? 'text-merkez-blue' : 'text-gray-500'}`}>Split</span>
                 </button>
               </div>
             </div>
@@ -741,6 +759,27 @@ const RetailPOS: React.FC = () => {
                     <span className="font-bold text-orange-700">{t('retail.change')}</span>
                     <span className="text-2xl font-black text-orange-700">
                       {change > 0 ? change.toFixed(2) : '0.00'} ₼
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {paymentMethod === 'split' && (
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Наличными</span>
+                    <input 
+                      type="number"
+                      className="w-32 text-right text-2xl font-bold text-green-600 bg-transparent border-b-2 border-gray-100 focus:border-merkez-blue transition-all outline-none no-spinner px-2"
+                      value={splitCash}
+                      onChange={(e) => setSplitCash(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center py-4 px-6 bg-blue-50 rounded-2xl border border-blue-100">
+                    <span className="font-bold text-blue-700">Картой (остаток)</span>
+                    <span className="text-2xl font-black text-blue-700">
+                      {Math.max(0, total - (parseFloat(splitCash) || 0)).toFixed(2)} ₼
                     </span>
                   </div>
                 </div>
