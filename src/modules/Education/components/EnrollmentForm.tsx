@@ -81,6 +81,13 @@ const EnrollmentForm = () => {
   };
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm">
+      <div className="mb-10 text-center">
+        <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+          <UserPlus className="w-10 h-10 text-blue-600" />
+        </div>
+        <h2 className="text-3xl font-black text-gray-900 tracking-tight">{t('education.newEnrollment')}</h2>
+        <p className="text-gray-500 text-sm mt-2 font-medium">{t('education.registerStudent')}</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

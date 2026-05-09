@@ -81,7 +81,11 @@ const TeacherManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-black text-gray-900">{t('education.tabTeachers')}</h2>
+          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.manageTeachers')}</p>
+        </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"

@@ -65,7 +65,8 @@ const EducationModuleContent = () => {
       )}
 
 
-      <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-6 px-4' : 'p-6 md:p-12'}`}>
+
+      <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-2 px-4' : 'p-6 md:p-12'}`}>
         <div>
           {activeTab === 'scheduler' && <AcademicScheduler />}
           {activeTab === 'courses' && <CourseInventory />}
@@ -75,6 +76,7 @@ const EducationModuleContent = () => {
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
+              <h2 className="text-2xl font-black text-gray-900">{t('education.studentDirectory')}</h2>
               {loading ? (
                 <p className="text-gray-500 font-bold">{t('education.loadingStudents')}</p>
               ) : students?.length > 0 ? (
