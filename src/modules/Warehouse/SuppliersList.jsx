@@ -17,44 +17,18 @@ import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 
-const SuppliersList = ({ onEdit, onDelete, onAdd }) => {
+const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd }) => {
   const { t } = useTranslation();
-  const { profile } = useUser();
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
 
-  useEffect(() => {
-    if (profile?.id) {
-      fetchSuppliers();
-    }
-  }, [profile?.id]);
-
-  const fetchSuppliers = async () => {
-    if (!profile?.id) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('suppliers')
-      .select('*')
-      .eq('user_id', profile.id)
-      .order('name', { ascending: true });
-    
-    if (error) {
-      toast.error(error.message);
-    } else {
-      setSuppliers(data || []);
-    }
-    setLoading(false);
-  };
-
-  const filteredSuppliers = suppliers.filter(s => 
+  const filteredSuppliers = (suppliers || []).filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.contact_person?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (loading && (!suppliers || suppliers.length === 0)) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
         <Loader2 className="w-8 h-8 animate-spin" />

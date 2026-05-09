@@ -26,6 +26,7 @@ const WarehouseModule = () => {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [ingredients, setIngredients] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -93,8 +94,18 @@ const WarehouseModule = () => {
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchCategories(), fetchProducts(), fetchIngredients()]);
+    await Promise.all([fetchCategories(), fetchProducts(), fetchIngredients(), fetchSuppliers()]);
     setLoading(false);
+  };
+
+  const fetchSuppliers = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase
+      .from('suppliers')
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('name', { ascending: true });
+    if (data) setSuppliers(data);
   };
 
   const fetchCategories = async () => {
@@ -127,6 +138,11 @@ const WarehouseModule = () => {
 
   const requestDeleteIngredient = (id) => {
     setConfirmDelete({ type: 'ingredient', id });
+    setOpenMenuId(null);
+  };
+
+  const requestDeleteSupplier = (id) => {
+    setConfirmDelete({ type: 'supplier', id });
     setOpenMenuId(null);
   };
 
@@ -307,13 +323,13 @@ const WarehouseModule = () => {
 
       <div className="flex flex-1 gap-6 overflow-hidden">
         {activeTab === 'suppliers' ? (
-          <div className="flex-1 min-h-0">
-            <SuppliersList 
-              onAdd={() => setShowAddSupplier(true)}
-              onEdit={(s) => setEditingSupplier(s)}
-              onDelete={(id) => setConfirmDelete({ type: 'supplier', id })}
-            />
-          </div>
+          <SuppliersList 
+            suppliers={suppliers}
+            loading={loading}
+            onEdit={setEditingSupplier}
+            onDelete={requestDeleteSupplier}
+            onAdd={() => setShowAddSupplier(true)}
+          />
         ) : (
           <>
             {/* Categories Sidebar - Only for Finished Goods */}

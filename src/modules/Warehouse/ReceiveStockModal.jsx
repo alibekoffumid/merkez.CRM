@@ -32,12 +32,14 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
   }, [isOpen]);
 
   const fetchSuppliers = async () => {
-    const { data } = await supabase.from('suppliers').select('id, name').order('name');
+    if (!profile?.id) return;
+    const { data } = await supabase.from('suppliers').select('id, name').eq('user_id', profile.id).order('name');
     if (data) setSuppliers(data);
   };
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price').order('name');
+    if (!profile?.id) return;
+    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price').eq('user_id', profile.id).eq('archived', false).order('name');
     if (data) setProducts(data);
   };
 
