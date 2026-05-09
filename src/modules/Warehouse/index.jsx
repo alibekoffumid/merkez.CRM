@@ -18,7 +18,7 @@ import { Truck } from 'lucide-react';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
-  const { user, activeModules } = useUser();
+  const { profile, activeModules } = useUser();
   const isRestaurantActive = activeModules.includes('restaurant');
   const [activeTab, setActiveTab] = useState('finished'); // 'finished' | 'raw'
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,8 +44,10 @@ const WarehouseModule = () => {
   const filterRef = useRef(null);
 
   useEffect(() => {
-    fetchAll();
-  }, []);
+    if (profile?.id) {
+      fetchAll();
+    }
+  }, [profile?.id]);
 
   useEffect(() => {
     if (!isRestaurantActive && activeTab === 'raw') {
@@ -96,22 +98,25 @@ const WarehouseModule = () => {
   };
 
   const fetchCategories = async () => {
-    const { data } = await supabase.from('categories').select('*').eq('user_id', user.id).order('name', { ascending: true });
+    if (!profile?.id) return;
+    const { data } = await supabase.from('categories').select('*').eq('user_id', profile.id).order('name', { ascending: true });
     if (data) setCategories(data);
   };
 
   const fetchProducts = async () => {
+    if (!profile?.id) return;
     const { data } = await supabase
       .from('products')
       .select('*, categories(name)')
       .eq('archived', false)
-      .eq('user_id', user.id)
+      .eq('user_id', profile.id)
       .order('name', { ascending: true });
     if (data) setProducts(data);
   };
 
   const fetchIngredients = async () => {
-    const { data } = await supabase.from('ingredients').select('*').eq('user_id', user.id).order('name', { ascending: true });
+    if (!profile?.id) return;
+    const { data } = await supabase.from('ingredients').select('*').eq('user_id', profile.id).order('name', { ascending: true });
     if (data) setIngredients(data);
   };
 

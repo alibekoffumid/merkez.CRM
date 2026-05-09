@@ -19,22 +19,25 @@ import { useUser } from '../../core/UserContext';
 
 const SuppliersList = ({ onEdit, onDelete, onAdd }) => {
   const { t } = useTranslation();
-  const { user } = useUser();
+  const { profile } = useUser();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
-    fetchSuppliers();
-  }, []);
+    if (profile?.id) {
+      fetchSuppliers();
+    }
+  }, [profile?.id]);
 
   const fetchSuppliers = async () => {
+    if (!profile?.id) return;
     setLoading(true);
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', profile.id)
       .order('name', { ascending: true });
     
     if (error) {
