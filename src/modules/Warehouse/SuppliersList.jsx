@@ -15,9 +15,11 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
+import { useUser } from '../../core/UserContext';
 
 const SuppliersList = ({ onEdit, onDelete, onAdd }) => {
   const { t } = useTranslation();
+  const { user } = useUser();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +34,7 @@ const SuppliersList = ({ onEdit, onDelete, onAdd }) => {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
+      .eq('user_id', user.id)
       .order('name', { ascending: true });
     
     if (error) {

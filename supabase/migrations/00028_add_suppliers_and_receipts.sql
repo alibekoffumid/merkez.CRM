@@ -33,10 +33,10 @@ ALTER TABLE stock_receipts ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage their own suppliers" ON suppliers;
 CREATE POLICY "Users can manage their own suppliers" ON suppliers
-FOR ALL USING (auth.uid() = user_id OR user_id IS NULL)
-WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+FOR ALL USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users can manage their own stock receipts" ON stock_receipts;
 CREATE POLICY "Users can manage their own stock receipts" ON stock_receipts
-FOR ALL USING (auth.uid() = user_id OR user_id IS NULL)
-WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+FOR ALL USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
