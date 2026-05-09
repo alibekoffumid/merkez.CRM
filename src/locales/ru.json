@@ -601,7 +601,10 @@
     "notesPlaceholder": "Заметки...",
     "searchSuppliers": "Поиск поставщиков...",
     "noSuppliersFound": "Поставщики не найдены",
-    "stockReceivedSuccess": "Товар успешно принят"
+    "stockReceivedSuccess": "Товар успешно принят",
+    "receiveStockDesc": "Зафиксируйте поступление товара от поставщика",
+    "selectSupplier": "Выберите поставщика",
+    "selectProduct": "Выберите товар"
   },
   "crm": {
     "title": "CRM",

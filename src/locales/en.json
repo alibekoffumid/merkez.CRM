@@ -596,7 +596,10 @@
     "notesPlaceholder": "Notes...",
     "searchSuppliers": "Search suppliers...",
     "noSuppliersFound": "No suppliers found",
-    "stockReceivedSuccess": "Stock received successfully"
+    "stockReceivedSuccess": "Stock received successfully",
+    "receiveStockDesc": "Record the arrival of goods from a supplier",
+    "selectSupplier": "Select Supplier",
+    "selectProduct": "Select Product"
   },
   "crm": {
     "title": "CRM",

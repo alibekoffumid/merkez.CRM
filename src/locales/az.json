@@ -590,7 +590,10 @@
     "notesPlaceholder": "Qeydlər...",
     "searchSuppliers": "Tədarükçüləri axtar...",
     "noSuppliersFound": "Tədarükçü tapılmadı",
-    "stockReceivedSuccess": "Məhsul uğurla qəbul edildi"
+    "stockReceivedSuccess": "Məhsul uğurla qəbul edildi",
+    "receiveStockDesc": "Tədarükçüdən gələn malların daxil olmasını qeyd edin",
+    "selectSupplier": "Tədarükçü seçin",
+    "selectProduct": "Məhsul seçin"
   },
   "crm": {
     "title": "CRM",

@@ -6,6 +6,7 @@ import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import Dropdown from '../../components/Common/Dropdown';
+import DatePicker from '../../components/Common/DatePicker';
 
 const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
   const { t } = useTranslation();
@@ -187,28 +188,22 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{t('warehouse.receivedDate') || 'Дата приема'}</label>
-                <div className="relative">
-                  <Calendar className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="date" 
-                    required
-                    value={formData.received_at}
-                    onChange={e => setFormData({...formData, received_at: e.target.value})}
-                    className="w-full bg-gray-50 border-transparent border focus:bg-white focus:border-merkez-blue rounded-2xl pl-12 pr-6 py-4 outline-none transition-all font-bold"
+              <div className="grid grid-cols-2 gap-4">
+                <DatePicker 
+                  label={t('warehouse.receivedDate')}
+                  value={formData.received_at}
+                  onChange={val => setFormData({...formData, received_at: val})}
+                />
+                
+                <div className="pt-6">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{t('common.notes') || 'Заметки'}</label>
+                  <textarea 
+                    value={formData.notes}
+                    onChange={e => setFormData({...formData, notes: e.target.value})}
+                    className="w-full bg-gray-50 border-transparent border focus:bg-white focus:border-merkez-blue rounded-2xl px-6 py-3 outline-none transition-all font-medium resize-none h-14"
+                    placeholder={t('warehouse.notesPlaceholder') || 'Номер накладной, комментарии...'}
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{t('common.notes') || 'Заметки'}</label>
-                <textarea 
-                  value={formData.notes}
-                  onChange={e => setFormData({...formData, notes: e.target.value})}
-                  className="w-full bg-gray-50 border-transparent border focus:bg-white focus:border-merkez-blue rounded-2xl px-6 py-4 outline-none transition-all font-medium resize-none h-24"
-                  placeholder={t('warehouse.notesPlaceholder') || 'Номер накладной, комментарии...'}
-                />
               </div>
             </div>
 
