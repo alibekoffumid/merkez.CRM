@@ -130,6 +130,12 @@ const Profile = () => {
     setNotificationPrefs(prev => {
       const updated = { ...prev, [key]: !prev[key] };
       localStorage.setItem('merkez_notifications', JSON.stringify(updated));
+      
+      // If operational digest is turned ON, clear the last shown date so it triggers immediately
+      if (key === 'operational' && updated.operational) {
+        localStorage.removeItem('merkez_last_digest_date');
+      }
+      
       return updated;
     });
   };

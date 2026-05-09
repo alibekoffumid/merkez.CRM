@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { useOperationalDigest } from '../hooks/useOperationalDigest';
 
 const CoreLayout = () => {
   const location = useLocation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Trigger Operational Digest if enabled
+  useOperationalDigest();
 
   const isDashboard = location.pathname === '/' || location.pathname === '/dashboard';
   const isFullScreen = location.pathname.startsWith('/retail') || location.pathname.includes('/map');
