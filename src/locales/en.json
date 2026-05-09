@@ -113,9 +113,7 @@
       "ok": "OK ({{count}} days)",
       "daysLeft": "{{count}} days"
     },
-    "split": "Split",
-    "splitCash": "Cash Amount",
-    "splitCard": "Card (Remainder)"
+    "split": "Split"
   },
   "fleet": {
     "dashboardTitle": "Merkez Fleet",
@@ -607,7 +605,6 @@
     "noSuppliersFound": "No suppliers found",
     "stockReceivedSuccess": "Stock received successfully",
     "receiveStockDesc": "Record the arrival of goods from a supplier",
-    "selectSupplier": "Select Supplier",
     "selectProduct": "Select Product",
     "supplierDetailsDesc": "Enter the supplier information below",
     "supplierName": "Supplier Name",

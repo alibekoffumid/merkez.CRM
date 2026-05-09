@@ -114,9 +114,7 @@
       "ok": "OK ({{count}} gün)",
       "daysLeft": "{{count}} gün"
     },
-    "split": "Split",
-    "splitCash": "Nağd",
-    "splitCard": "Kartla (qalıq)"
+    "split": "Split"
   },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",
@@ -601,7 +599,6 @@
     "noSuppliersFound": "Tədarükçü tapılmadı",
     "stockReceivedSuccess": "Məhsul uğurla qəbul edildi",
     "receiveStockDesc": "Tədarükçüdən gələn malların daxil olmasını qeyd edin",
-    "selectSupplier": "Tədarükçü seçin",
     "selectProduct": "Məhsul seçin",
     "supplierDetailsDesc": "Tədarükçü haqqında məlumatları daxil edin",
     "supplierName": "Tədarükçü adı",

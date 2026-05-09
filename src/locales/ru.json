@@ -113,9 +113,7 @@
       "ok": "ОК ({{count}} дн.)",
       "daysLeft": "{{count}} дн."
     },
-    "split": "Сплит",
-    "splitCash": "Наличными",
-    "splitCard": "Картой (остаток)"
+    "split": "Сплит"
   },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",
@@ -612,7 +610,6 @@
     "noSuppliersFound": "Поставщики не найдены",
     "stockReceivedSuccess": "Товар успешно принят",
     "receiveStockDesc": "Зафиксируйте поступление товара от поставщика",
-    "selectSupplier": "Выберите поставщика",
     "selectProduct": "Выберите товар",
     "supplierDetailsDesc": "Введите информацию о поставщике",
     "supplierName": "Название поставщика",
