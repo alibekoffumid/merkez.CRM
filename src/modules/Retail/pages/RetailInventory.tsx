@@ -21,6 +21,7 @@ import { toast } from 'react-hot-toast';
 import { RetailProduct } from '../../../types/retail';
 import { UserProfile } from '../../../types/auth';
 import Dropdown from '../../../components/Common/Dropdown';
+import DatePicker from '../../../components/Common/DatePicker';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -525,12 +526,11 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('retail.inventory.expiryDate')}</label>
-                  <input 
-                    type="date" 
-                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-merkez-blue focus:bg-white rounded-2xl outline-none transition-all font-bold"
+                  <DatePicker 
+                    label={t('retail.inventory.expiryDate')}
                     value={formData.expiry_date}
-                    onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+                    onChange={(val) => setFormData({ ...formData, expiry_date: val })}
+                    position="top"
                   />
                 </div>
 
