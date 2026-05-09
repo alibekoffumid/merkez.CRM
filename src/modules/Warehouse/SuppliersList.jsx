@@ -93,8 +93,8 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd }) => {
                   <div className="w-14 h-14 rounded-[1.25rem] bg-merkez-blue/5 flex items-center justify-center text-merkez-blue group-hover:bg-merkez-blue group-hover:text-white transition-all duration-300">
                     <User className="w-7 h-7" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-lg group-hover:text-merkez-blue transition-colors leading-tight">{supplier.name}</h3>
+                  <div className="flex-1 pr-10">
+                    <h3 className="font-bold text-gray-900 text-lg group-hover:text-merkez-blue transition-colors leading-tight break-words">{supplier.name}</h3>
                     <p className="text-xs text-gray-400 font-bold mt-1 uppercase tracking-wider">{supplier.contact_person || t('warehouse.noContactPerson') || 'Контактное лицо не указано'}</p>
                   </div>
                 </div>
