@@ -516,7 +516,7 @@ const RetailPOS: React.FC = () => {
               value={barcodeInput}
               onChange={(e) => setBarcodeInput(e.target.value)}
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <button 
                 type="button"
                 onClick={handleParkTransaction}
