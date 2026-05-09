@@ -60,6 +60,8 @@
     "composition": "Alış tərkibi",
     "printReceipt": "Çeki çap et",
     "itemDeleted": "Məhsul silinib",
+    "splitCash": "Nağd məbləğ",
+    "splitCard": "Kartla (qalıq)",
     "history": {
       "title": "Satış tarixçəsi",
       "subtitle": "Bütün kassa əməliyyatlarının tam arxivi",

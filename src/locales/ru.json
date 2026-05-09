@@ -57,9 +57,11 @@
     "newCheck": "Новый чек",
     "discount": "Скидка",
     "saleDetails": "Детали чека",
-    "composition": "Состав покупки",
+    "composition": "Состав чека",
     "printReceipt": "Печать чека",
     "itemDeleted": "Товар удален",
+    "splitCash": "Наличными",
+    "splitCard": "Картой (остаток)",
     "history": {
       "title": "История продаж",
       "subtitle": "Полный архив всех кассовых операций",

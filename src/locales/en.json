@@ -56,9 +56,11 @@
     "newCheck": "New Receipt",
     "discount": "Discount",
     "saleDetails": "Receipt Details",
-    "composition": "Purchase Items",
+    "composition": "Receipt Content",
     "printReceipt": "Print Receipt",
-    "itemDeleted": "Product deleted",
+    "itemDeleted": "Item removed",
+    "splitCash": "Cash Amount",
+    "splitCard": "Card (Remainder)",
     "history": {
       "title": "Sales History",
       "subtitle": "Complete archive of all cash operations",

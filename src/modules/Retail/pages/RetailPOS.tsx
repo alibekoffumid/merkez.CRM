@@ -789,7 +789,7 @@ const RetailPOS: React.FC = () => {
               {paymentMethod === 'split' && (
                 <div className="space-y-4 pt-4 border-t border-gray-100">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Наличными</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{t('retail.splitCash') || 'Наличными'}</span>
                     <input 
                       type="number"
                       className="w-32 text-right text-2xl font-bold text-green-600 bg-transparent border-b-2 border-gray-100 focus:border-merkez-blue transition-all outline-none no-spinner px-2"
@@ -799,9 +799,9 @@ const RetailPOS: React.FC = () => {
                     />
                   </div>
                   <div className="flex justify-between items-center py-4 px-6 bg-blue-50 rounded-2xl border border-blue-100">
-                    <span className="font-bold text-blue-700">Картой (остаток)</span>
+                    <span className="font-bold text-blue-700">{t('retail.splitCard') || 'Картой (остаток)'}</span>
                     <span className="text-2xl font-black text-blue-700">
-                      {Math.max(0, total - (parseFloat(splitCash) || 0)).toFixed(2)} ₼
+                      {(total - (parseFloat(splitCash) || 0) > 0 ? total - (parseFloat(splitCash) || 0) : 0).toFixed(2)} ₼
                     </span>
                   </div>
                 </div>
