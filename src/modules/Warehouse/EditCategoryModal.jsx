@@ -89,7 +89,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
           <h3 className="text-lg font-bold text-gray-900">{showConfirmDelete ? t('common.confirmDelete') || 'Подтверждение удаления' : (t('warehouse.editCategory') || 'Редактировать категорию')}</h3>

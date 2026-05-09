@@ -116,7 +116,7 @@ const AddProductModal = ({ isOpen, onClose, categories, onProductAdded }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={onClose}>
       <div 
         className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
         onClick={(e) => e.stopPropagation()}

@@ -498,7 +498,7 @@ const WarehouseModule = () => {
         </div>
       </div>
       {confirmDelete && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[150] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
             <div className="flex flex-col items-center justify-center text-center space-y-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
