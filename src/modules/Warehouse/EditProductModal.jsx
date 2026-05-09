@@ -123,7 +123,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
     }
 
     if (!data || data.length === 0) {
-        toast.error('У вас нет прав на редактирование этого товара или он не найден');
+        toast.error(t('warehouse.noProductEditPermission'));
         setLoading(false);
         return;
     }

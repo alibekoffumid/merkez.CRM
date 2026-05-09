@@ -300,7 +300,7 @@ const WarehouseModule = () => {
                 <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-xl shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
                   <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
                   {[
-                    { id: 'all', label: t('az' === i18n.language ? 'Hamısı' : 'ru' === i18n.language ? 'Все' : 'All') },
+                    { id: 'all', label: t('common.all') },
                     { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
                     { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
                     { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }

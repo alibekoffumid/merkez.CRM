@@ -37,7 +37,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
     if (error) {
       toast.error(error.message);
     } else if (!data || data.length === 0) {
-      toast.error('У вас нет прав на редактирование этой категории');
+      toast.error(t('warehouse.noEditPermission'));
     } else {
       toast.success(t('warehouse.categoryUpdated') || 'Категория обновлена');
       onCategoryUpdated();
@@ -67,7 +67,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
       }
 
       if (!deleteData || deleteData.length === 0) {
-        throw new Error('У вас нет прав на удаление этой категории. Убедитесь, что вы применили SQL-миграцию 00025.');
+        throw new Error(t('warehouse.noDeletePermission'));
       }
 
       console.log('Category deleted successfully from DB', deleteData);
@@ -94,7 +94,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
-          <h3 className="text-lg font-bold text-gray-900">{showConfirmDelete ? t('common.confirmDelete') || 'Подтверждение удаления' : (t('warehouse.editCategory') || 'Редактировать категорию')}</h3>
+          <h3 className="text-lg font-bold text-gray-900">{showConfirmDelete ? t('common.confirmDelete') : t('warehouse.editCategory')}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -107,7 +107,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 <Trash2 className="w-6 h-6 text-red-500" />
               </div>
               <p className="text-sm text-gray-600">
-                {t('warehouse.confirmDeleteCategory') || 'Вы уверены? Товары этой категории останутся без категории.'}
+                {t('warehouse.confirmDeleteCategory')}
               </p>
             </div>
             <div className="flex gap-3 pt-2">
@@ -117,7 +117,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 disabled={deleting}
                 className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
               >
-                {t('common.cancel') || 'Отмена'}
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -126,7 +126,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
               >
                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                {t('common.delete') || 'Удалить'}
+                {t('common.delete')}
               </button>
             </div>
           </div>
@@ -134,7 +134,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
           <form onSubmit={handleUpdate} className="p-6 space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
-                {t('warehouse.categoryName') || 'Название категории'}
+                {t('warehouse.categoryName')}
               </label>
               <input
                 type="text"
@@ -154,7 +154,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 className="flex-1 flex items-center justify-center gap-2 py-3 border border-red-100 text-red-500 rounded-xl text-sm font-bold hover:bg-red-50 transition-all"
               >
                 <Trash2 className="w-4 h-4" />
-                {t('common.delete') || 'Удалить'}
+                {t('common.delete')}
               </button>
               <button
                 type="submit"
@@ -162,7 +162,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 className="flex-[2] flex items-center justify-center gap-2 py-3 bg-merkez-blue text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-lg shadow-blue-600/20"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                {t('common.save') || 'Сохранить'}
+                {t('common.save')}
               </button>
             </div>
           </form>
