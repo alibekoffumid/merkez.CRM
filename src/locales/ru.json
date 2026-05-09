@@ -98,7 +98,10 @@
       "tableSale": "Продажа",
       "tableStock": "Остаток",
       "tableActions": "Действия"
-    }
+    },
+    "split": "Сплит",
+    "splitCash": "Наличными",
+    "splitCard": "Картой (остаток)"
   },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",
@@ -989,4 +992,4 @@
     "noMessages": "Нет сообщений",
     "selectChat": "Выберите чат для начала общения"
   }
-}
+}
