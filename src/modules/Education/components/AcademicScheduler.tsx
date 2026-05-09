@@ -610,14 +610,14 @@ const AcademicScheduler = () => {
                 >
                   {t('common.cancel')}
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting || success}
-                  className={`flex-1 py-4 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-2
-                    ${success ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'}
-                    ${isSubmitting ? 'opacity-80 cursor-not-allowed' : ''}
-                  `}
-                >
+    <button 
+      type="submit" 
+      disabled={isSubmitting || success}
+      className={`flex-1 py-4 px-8 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3
+        ${success ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'}
+        ${isSubmitting ? 'opacity-80 cursor-not-allowed' : ''}
+      `}
+    >
                   {isSubmitting ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing') || 'Processing...'}</>
                   ) : success ? (

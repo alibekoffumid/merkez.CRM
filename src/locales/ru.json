@@ -879,6 +879,8 @@
     "attendance": "Посещаемость",
     "oneCourse": "1 Курс",
     "enrolledSuccessfully": "УСПЕШНО ЗАЧИСЛЕН!",
+    "savedSuccessfully": "СОХРАНЕНО!",
+    "editLesson": "Изменить урок",
     "processing": "ОБРАБОТКА...",
     "manageTeachers": "Управление преподавательским составом академии",
     "addTeacher": "Добавить преподавателя",
