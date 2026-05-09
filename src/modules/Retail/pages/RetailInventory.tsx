@@ -357,10 +357,10 @@ const RetailInventory: React.FC = () => {
                     {(product.purchase_price || 0).toFixed(2)} ₼
                   </td>
                   <td className="px-8 py-5 text-right font-black text-gray-900 tabular-nums">
-                    <div className="flex flex-col items-end">
+                    <div className="flex items-center justify-end gap-2">
                       <span>{(product.sale_price || 0).toFixed(2)} ₼</span>
                       {product.discount_type !== 'none' && product.discount_value > 0 && (
-                        <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full mt-1">
+                        <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                           -{product.discount_value}{product.discount_type === 'percent' ? '%' : '₼'}
                         </span>
                       )}
