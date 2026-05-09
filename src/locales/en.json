@@ -243,6 +243,9 @@
     "unauthorized": "User unauthorized",
     "total": "Total",
     "showAll": "Show All",
+    "clearFilters": "Clear Filters",
+    "startDate": "Start Date",
+    "endDate": "End Date",
     "confirmArchive": "Are you sure you want to archive this product?",
     "archived": "Product archived"
   },

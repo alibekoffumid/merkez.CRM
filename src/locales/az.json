@@ -244,6 +244,9 @@
     "unauthorized": "İstifadəçi icazəsi yoxdur",
     "total": "Cəmi",
     "showAll": "Hamısını göstər",
+    "clearFilters": "Filtrləri sıfırla",
+    "startDate": "Başlanğıc tarixi",
+    "endDate": "Son tarix",
     "confirmArchive": "Bu məhsulu arxivləşdirməyə əminsiniz?",
     "archived": "Məhsul arxivləşdirildi"
   },

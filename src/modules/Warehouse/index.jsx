@@ -29,6 +29,8 @@ const WarehouseModule = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -368,24 +370,61 @@ const WarehouseModule = () => {
           />
         ) : activeTab === 'history' ? (
           <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {historyFilter 
-                    ? `${t('warehouse.receiptHistory')} — ${suppliers.find(s => s.id === historyFilter)?.name}` 
-                    : t('warehouse.receiptHistory') || 'История приёмок'}
-                </h3>
-                <p className="text-xs text-gray-500 mt-1">{t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков'}</p>
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">{t('warehouse.receiptHistory') || 'История приёмок'}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков'}</p>
+                </div>
+                {(historyFilter || startDate || endDate) && (
+                  <button 
+                    onClick={() => {
+                      setHistoryFilter(null);
+                      setStartDate('');
+                      setEndDate('');
+                    }}
+                    className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    {t('common.clearFilters') || 'Сбросить фильтры'}
+                  </button>
+                )}
               </div>
-              {historyFilter && (
-                <button 
-                  onClick={() => setHistoryFilter(null)}
-                  className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                  {t('common.showAll') || 'Показать все'}
-                </button>
-              )}
+
+              {/* Filters Bar */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('warehouse.supplier')}</label>
+                  <select 
+                    value={historyFilter || ''} 
+                    onChange={(e) => setHistoryFilter(e.target.value || null)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all"
+                  >
+                    <option value="">{t('common.all') || 'Все'}</option>
+                    {suppliers.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('common.startDate') || 'От'}</label>
+                  <input 
+                    type="date" 
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('common.endDate') || 'До'}</label>
+                  <input 
+                    type="date" 
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-merkez-blue/20 outline-none transition-all"
+                  />
+                </div>
+              </div>
             </div>
             <div className="flex-1 overflow-auto">
               <table className="w-full text-left">
@@ -400,10 +439,16 @@ const WarehouseModule = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {(historyFilter 
-                    ? receipts.filter(r => r.supplier_id === historyFilter)
-                    : receipts
-                  ).length === 0 ? (
+                  {receipts.filter(receipt => {
+                    if (historyFilter && receipt.supplier_id !== historyFilter) return false;
+                    if (startDate && new Date(receipt.received_at) < new Date(startDate)) return false;
+                    if (endDate) {
+                      const end = new Date(endDate);
+                      end.setHours(23, 59, 59, 999);
+                      if (new Date(receipt.received_at) > end) return false;
+                    }
+                    return true;
+                  }).length === 0 ? (
                     <tr>
                       <td colSpan="6" className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center gap-3 text-gray-400">
