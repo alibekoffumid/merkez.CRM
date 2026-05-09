@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Users, Plus, X, Trash2, Edit2, Mail, Phone, GraduationCap, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useEducation } from '../hooks/useEducation';
+import ModalPortal from '../../../components/Common/ModalPortal';
 
 const TeacherManagement = () => {
   const { t } = useTranslation();
@@ -140,7 +141,8 @@ const TeacherManagement = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
           <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <button 
@@ -256,7 +258,7 @@ const TeacherManagement = () => {
               </button>
             </form>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );

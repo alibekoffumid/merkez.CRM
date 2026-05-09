@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Plus, X, Trash2, Edit2, Users, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
+import ModalPortal from '../../../components/Common/ModalPortal';
 
 const RoomManagement = () => {
   const { t } = useTranslation();
@@ -134,8 +135,9 @@ const RoomManagement = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
           <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <button 
               onClick={() => setIsModalOpen(false)}
@@ -227,6 +229,7 @@ const RoomManagement = () => {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );

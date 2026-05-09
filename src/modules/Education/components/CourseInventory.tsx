@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BookOpen, Plus, Tag, X, Loader2, CheckCircle2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
+import ModalPortal from '../../../components/Common/ModalPortal';
 
 const CourseInventory = () => {
   const { t } = useTranslation();
@@ -101,8 +102,9 @@ const CourseInventory = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
           <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <button 
               onClick={() => setIsModalOpen(false)}
@@ -203,6 +205,7 @@ const CourseInventory = () => {
             </form>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );
