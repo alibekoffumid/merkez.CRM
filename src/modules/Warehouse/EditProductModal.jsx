@@ -100,7 +100,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
         if (uploadedUrl) finalImageUrl = uploadedUrl;
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('products')
       .update({
         name: formData.name,
@@ -113,7 +113,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
         image_url: finalImageUrl
       })
       .eq('id', product.id)
-      .eq('user_id', profile?.id);
+      .select();
 
     if (error) {
         toast.error(error.message);
@@ -121,11 +121,16 @@ const EditProductModal = ({ isOpen, onClose, product, categories, onProductUpdat
         return;
     }
 
-    setLoading(false);
-    if (!error) {
-      onProductUpdated();
-      onClose();
+    if (!data || data.length === 0) {
+        toast.error('У вас нет прав на редактирование этого товара или он не найден');
+        setLoading(false);
+        return;
     }
+
+    toast.success(t('warehouse.productUpdated') || 'Товар обновлен');
+    setLoading(false);
+    onProductUpdated();
+    onClose();
   };
 
   return (
