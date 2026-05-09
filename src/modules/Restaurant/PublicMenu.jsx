@@ -9,11 +9,39 @@ const PublicMenu = () => {
   const [business, setBusiness] = useState(null);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productIngredients, setProductIngredients] = useState([]);
+  const [loadingIngredients, setLoadingIngredients] = useState(false);
 
   useEffect(() => {
     fetchMenuData();
   }, [businessId]);
+
+  const fetchIngredients = async (productId) => {
+    setLoadingIngredients(true);
+    try {
+      const { data } = await supabase
+        .from('product_recipes')
+        .select('*, ingredients(name)')
+        .eq('product_id', productId);
+      
+      if (data) {
+        setProductIngredients(data.map(d => d.ingredients?.name).filter(Boolean));
+      } else {
+        setProductIngredients([]);
+      }
+    } catch (err) {
+      console.error('Error fetching ingredients:', err);
+    } finally {
+      setLoadingIngredients(false);
+    }
+  };
+
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+    fetchIngredients(product.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const fetchMenuData = async () => {
     setLoading(true);
@@ -88,6 +116,107 @@ const PublicMenu = () => {
   const filteredProducts = activeCategory === 'All' 
     ? products 
     : products.filter(p => p.categories?.name === activeCategory);
+
+  if (selectedProduct) {
+    return (
+      <div className="min-h-screen bg-[#0f1115] animate-in fade-in duration-500 overflow-x-hidden">
+         {/* Hero Image Section */}
+         <div className="relative h-[55vh] w-full">
+            <button 
+              onClick={() => setSelectedProduct(null)}
+              className="absolute top-8 left-8 z-50 p-4 bg-black/20 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] text-white hover:bg-white hover:text-black transition-all active:scale-90"
+            >
+               <ChevronRight className="w-6 h-6 rotate-180" />
+            </button>
+            
+            <div className="absolute inset-0">
+               {selectedProduct.image_url ? (
+                 <img src={selectedProduct.image_url} alt={selectedProduct.name} className="w-full h-full object-cover" />
+               ) : (
+                 <div className="w-full h-full bg-gradient-to-br from-[#1c2128] to-[#0a0a0b] flex items-center justify-center">
+                    <Utensils className="w-32 h-32 text-white/[0.03]" />
+                 </div>
+               )}
+               <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-[#0f1115]/20 to-transparent" />
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12">
+               <span className="inline-block px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-6">
+                 {selectedProduct.categories?.name || 'Yemək'}
+               </span>
+               <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white mb-4">{selectedProduct.name}</h1>
+               <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2 text-blue-500 font-black text-2xl">
+                    <span className="text-sm opacity-50 mt-1">$</span>
+                    {parseFloat(selectedProduct.price).toFixed(2)}
+                  </div>
+                  <div className="h-4 w-[1px] bg-white/10"></div>
+                  <div className="flex items-center gap-2 text-white/40 text-xs font-bold uppercase tracking-widest">
+                     <Clock className="w-4 h-4" />
+                     15-20 Min
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         {/* Content Section */}
+         <div className="max-w-4xl mx-auto px-8 py-12 space-y-12">
+            <section className="space-y-4">
+               <h3 className="text-xs font-black text-white/20 uppercase tracking-[0.3em]">Təsvir</h3>
+               <p className="text-lg text-white/70 leading-relaxed font-medium">
+                 {selectedProduct.description || 'Bu yemək sizin üçün ən təzə və keyfiyyətli inqrediyentlərdən, aşpazımızın xüsusi resepti ilə hazırlanmışdır. Hər dişləmdə əsl dad və ləzzət dünyasına səyahət edəcəksiniz.'}
+               </p>
+            </section>
+
+            <section className="space-y-6">
+               <h3 className="text-xs font-black text-white/20 uppercase tracking-[0.3em]">Tərkibi</h3>
+               {loadingIngredients ? (
+                 <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
+                    {[1,2,3].map(i => (
+                      <div key={i} className="w-32 h-12 bg-white/5 rounded-2xl animate-pulse" />
+                    ))}
+                 </div>
+               ) : (
+                 <div className="flex flex-wrap gap-3">
+                    {productIngredients.length > 0 ? productIngredients.map((ing, i) => (
+                      <div key={i} className="bg-white/5 border border-white/5 px-6 py-4 rounded-[1.5rem] flex items-center gap-3 group hover:bg-white/10 hover:border-blue-500/30 transition-all">
+                         <div className="w-2 h-2 bg-blue-500 rounded-full group-hover:scale-150 transition-transform"></div>
+                         <span className="text-sm font-bold text-white/60 group-hover:text-white transition-colors">{ing}</span>
+                      </div>
+                    )) : (
+                      <p className="text-white/20 text-sm italic">Tərkibi haqqında əlavə məlumat qeyd edilməyib.</p>
+                    )}
+                 </div>
+               )}
+            </section>
+
+            {/* Recommendations / Fun Fact */}
+            <section className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-[2.5rem] p-8 border border-white/5 relative overflow-hidden">
+               <div className="relative z-10">
+                  <div className="flex items-center gap-3 text-blue-500 mb-4">
+                    <Star className="w-5 h-5 fill-current" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Aşpazın qeydi</span>
+                  </div>
+                  <p className="text-white/60 text-sm leading-relaxed font-medium">
+                    Bu yeməyin dadını tam hiss etmək üçün yanında təzə sıxılmış limon şirəsi və ya ev sayğı limonadımızı sifariş etməyi tövsiyə edirik.
+                  </p>
+               </div>
+               <Utensils className="absolute -bottom-10 -right-10 w-40 h-40 text-white/5 -rotate-12" />
+            </section>
+         </div>
+
+         {/* Fixed Action Bar */}
+         <div className="fixed bottom-10 left-0 right-0 px-8 flex justify-center z-50">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-[2rem] shadow-2xl shadow-blue-600/30 flex items-center gap-4 transition-all active:scale-95">
+               <span className="text-xs font-black uppercase tracking-[0.2em]">Ofisiantı çağır</span>
+               <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+                  <ChevronRight className="w-4 h-4" />
+               </div>
+            </button>
+         </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-white selection:bg-blue-500/30">
@@ -181,7 +310,11 @@ const PublicMenu = () => {
                
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {catProducts.map(product => (
-                    <div key={product.id} className="group relative bg-[#16191f] rounded-[2.5rem] p-5 border border-white/[0.03] hover:border-blue-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 active:scale-[0.98] overflow-hidden">
+                    <div 
+                      key={product.id} 
+                      onClick={() => handleProductClick(product)}
+                      className="group relative bg-[#16191f] rounded-[2.5rem] p-5 border border-white/[0.03] hover:border-blue-500/30 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 active:scale-[0.98] overflow-hidden cursor-pointer"
+                    >
                        {/* Subtle Background Glow on Hover */}
                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/0 via-transparent to-transparent group-hover:from-blue-600/[0.03] transition-colors duration-700"></div>
                        
@@ -203,7 +336,7 @@ const PublicMenu = () => {
                                  </div>
                                </div>
                                <p className="text-[13px] text-white/30 font-medium line-clamp-2 leading-relaxed mb-4 group-hover:text-white/40 transition-colors">
-                                 {product.description || 'Sizin üçün xüsusi seçilmiş təzə və ləzzətli inqrediyentlərlə hazırlanmış möhtəşəm seçim.'}
+                                 {product.description || 'Sizin üçün xüsusi seçilmiş təзə və ləzzətli inqrediyentlərlə hazırlanmış möhtəşəm seçim.'}
                                </p>
                             </div>
                             
