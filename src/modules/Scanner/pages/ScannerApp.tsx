@@ -25,7 +25,7 @@ const ScannerApp: React.FC = () => {
 
   const [newProduct, setNewProduct] = useState<NewProductForm>({
     name: '', barcode: '', category: 'Grocery',
-    purchase_price: 0, sale_price: 0, stock_quantity: 0, critical_stock: 5
+    purchase_price: 0, sale_price: 0, stock_quantity: 0, critical_stock: 5, expiry_date: ''
   });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
@@ -95,6 +95,7 @@ const ScannerApp: React.FC = () => {
       stock_quantity: data.stock_quantity || 0,
       critical_stock: data.critical_stock || 5,
       excise_stamp_required: data.excise_stamp_required || false,
+      expiry_date: data.expiry_date || '',
     } as ScannedProduct;
   };
 
@@ -183,6 +184,7 @@ const ScannerApp: React.FC = () => {
       price: newProduct.sale_price || 0,
       stock_quantity: newProduct.stock_quantity || 0,
       critical_stock: newProduct.critical_stock || 5,
+      expiry_date: newProduct.expiry_date || null,
       user_id: profile.id
     });
     
@@ -190,7 +192,7 @@ const ScannerApp: React.FC = () => {
       setFeedback({ type: 'success', title: t('retail.productAdded') || '✓ Товар добавлен', subtitle: newProduct.name });
       setShowProductForm(false);
       setCameraActive(true);
-      setNewProduct({ name: '', barcode: '', category: 'Grocery', purchase_price: 0, sale_price: 0, stock_quantity: 0, critical_stock: 5 });
+      setNewProduct({ name: '', barcode: '', category: 'Grocery', purchase_price: 0, sale_price: 0, stock_quantity: 0, critical_stock: 5, expiry_date: '' });
     } else {
       alert("Ошибка при добавлении в базу: " + error.message);
     }
@@ -199,7 +201,10 @@ const ScannerApp: React.FC = () => {
   const updateStock = async () => {
     if (!editProduct) return;
     const { error } = await supabase.from('products')
-      .update({ stock_quantity: parseInt(stockValue) || 0 })
+      .update({ 
+        stock_quantity: parseInt(stockValue) || 0,
+        expiry_date: editProduct.expiry_date || null
+      })
       .eq('id', editProduct.id);
     if (!error) {
       setFeedback({ type: 'success', title: t('retail.stockUpdated') || '✓ Остаток обновлён', subtitle: `${editProduct.name}: ${stockValue}` });
@@ -324,6 +329,15 @@ const ScannerApp: React.FC = () => {
               <input type="number" value={stockValue} onChange={(e) => setStockValue(e.target.value)}
                 className="flex-1 bg-white/10 rounded-2xl px-5 py-4 text-2xl font-black text-center border border-white/10 focus:border-merkez-blue outline-none" />
             </div>
+            <div className="flex items-center gap-4">
+              <label className="text-xs font-black text-white/40 uppercase tracking-widest shrink-0">Срок</label>
+              <input 
+                type="date" 
+                value={editProduct.expiry_date ? editProduct.expiry_date.split('T')[0] : ''} 
+                onChange={(e) => setEditProduct(p => p ? ({ ...p, expiry_date: e.target.value }) : null)}
+                className="flex-1 bg-white/10 rounded-2xl px-5 py-4 text-lg font-bold text-center border border-white/10 focus:border-merkez-blue outline-none" 
+              />
+            </div>
             <div className="flex gap-3">
               <button onClick={() => { setEditProduct(null); setCameraActive(true); }} className="flex-1 py-4 bg-white/10 rounded-2xl font-bold">Отмена</button>
               <button onClick={updateStock} className="flex-1 py-4 bg-merkez-blue rounded-2xl font-bold shadow-lg shadow-blue-500/30">Сохранить</button>
@@ -365,6 +379,15 @@ const ScannerApp: React.FC = () => {
               <label className="text-[10px] font-black text-white/40 uppercase mb-1 block">Начальный остаток</label>
               <input type="number" value={newProduct.stock_quantity || ''} onChange={(e) => setNewProduct(p => ({ ...p, stock_quantity: parseInt(e.target.value) || 0 }))}
                 className="w-full bg-white/10 rounded-xl px-4 py-3 font-bold border border-white/10 focus:border-merkez-blue outline-none" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-white/40 uppercase mb-1 block">Срок годности</label>
+              <input 
+                type="date" 
+                value={newProduct.expiry_date || ''} 
+                onChange={(e) => setNewProduct(p => ({ ...p, expiry_date: e.target.value }))}
+                className="w-full bg-white/10 rounded-xl px-4 py-3 font-bold border border-white/10 focus:border-merkez-blue outline-none" 
+              />
             </div>
             <div className="flex gap-3 pt-2">
               <button onClick={() => { setShowProductForm(false); setCameraActive(true); }} className="flex-1 py-4 bg-white/10 rounded-2xl font-bold">Отмена</button>

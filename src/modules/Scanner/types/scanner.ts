@@ -25,6 +25,7 @@ export interface ScannedProduct {
   critical_stock: number;
   category: string;
   excise_stamp_required: boolean;
+  expiry_date?: string;
 }
 
 export type ScannerMode = 'pos' | 'inventory';
@@ -44,6 +45,7 @@ export interface NewProductForm {
   sale_price: number;
   stock_quantity: number;
   critical_stock: number;
+  expiry_date?: string;
 }
 
 export interface InventoryUpdate {

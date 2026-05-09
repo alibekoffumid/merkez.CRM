@@ -55,6 +55,8 @@ const RetailPOS: React.FC = () => {
   const [globalDiscountType, setGlobalDiscountType] = useState<'percent' | 'fixed'>('percent');
   const [globalDiscountValue, setGlobalDiscountValue] = useState<number>(0);
   const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null); // For item level discount
+  const [expiredProduct, setExpiredProduct] = useState<any | null>(null);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
   
   const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -111,12 +113,13 @@ const RetailPOS: React.FC = () => {
       }, async (payload: { new: Record<string, unknown> }) => {
         const event = payload.new;
         if (event.status === 'pending' && event.product_id) {
-          addToCart({
+          handleProductSelection({
             id: event.product_id as string,
             name: event.product_name as string,
             price: event.price as number,
             sale_price: event.price as number,
             barcode: event.barcode as string,
+            expiry_date: event.expiry_date as string,
           });
           // Mark event as processed
           await supabase.from('scanner_cart_events')
@@ -146,6 +149,23 @@ const RetailPOS: React.FC = () => {
     setBarcodeInput('');
     setSearchQuery('');
     setSearchResults([]);
+    setShowExpiredModal(false);
+    setExpiredProduct(null);
+  };
+
+  const handleProductSelection = (product: any) => {
+    if (product.expiry_date) {
+      const expiry = new Date(product.expiry_date);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      
+      if (expiry < today) {
+        setExpiredProduct(product);
+        setShowExpiredModal(true);
+        return;
+      }
+    }
+    addToCart(product);
   };
 
   const handleBarcodeSubmit = async (e?: React.FormEvent, scannedCode?: string) => {
@@ -164,7 +184,7 @@ const RetailPOS: React.FC = () => {
         toast.error(t('retail.productNotFound'));
       } else {
         // Explicitly pass the price fields
-        addToCart(data);
+        handleProductSelection(data);
       }
     } catch (err) {
       console.error(err);
@@ -391,7 +411,7 @@ const RetailPOS: React.FC = () => {
               {searchResults.map(p => (
                 <button 
                   key={p.id}
-                  onClick={() => addToCart(p)}
+                  onClick={() => handleProductSelection(p)}
                   className="w-full flex items-center justify-between p-4 hover:bg-merkez-blue/5 border-b border-gray-50 transition-colors group"
                 >
                   <div className="flex flex-col text-left">
@@ -824,6 +844,40 @@ const RetailPOS: React.FC = () => {
       {showScannerQR && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <ScannerQRWidget onClose={() => setShowScannerQR(false)} />
+        </div>
+      )}
+
+      {/* Expiry Warning Modal */}
+      {showExpiredModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-gray-950/40 backdrop-blur-sm p-4 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border border-red-100 flex flex-col items-center text-center gap-6">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center">
+              <AlertCircle className="w-10 h-10 text-red-500 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-gray-900 mb-2">Məhsulun vaxtı bitib!</h2>
+              <p className="text-sm text-gray-500 font-medium">
+                <span className="font-bold text-red-600">"{expiredProduct?.name}"</span> məhsulunun istifadə müddəti başa çatıb. Satış risklidir.
+              </p>
+              <p className="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">
+                Bitmə tarixi: {new Date(expiredProduct?.expiry_date).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 w-full">
+              <button 
+                onClick={() => { setShowExpiredModal(false); setExpiredProduct(null); }}
+                className="py-4 bg-gray-100 text-gray-600 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
+              >
+                Ləğv et
+              </button>
+              <button 
+                onClick={() => addToCart(expiredProduct)}
+                className="py-4 bg-red-600 text-white rounded-2xl font-black text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-500/20"
+              >
+                Yenə də sat
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

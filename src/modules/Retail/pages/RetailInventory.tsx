@@ -50,6 +50,7 @@ const RetailInventory: React.FC = () => {
     sale_price: 0,
     stock_quantity: 0,
     critical_stock: 5,
+    expiry_date: '',
     excise_stamp_required: false,
     discount_type: 'none',
     discount_value: 0
@@ -102,6 +103,7 @@ const RetailInventory: React.FC = () => {
         price: formData.sale_price,
         stock_quantity: formData.stock_quantity,
         critical_stock: formData.critical_stock,
+        expiry_date: formData.expiry_date || null,
         excise_stamp_required: formData.excise_stamp_required,
         discount_type: formData.discount_type,
         discount_value: formData.discount_value
@@ -143,6 +145,7 @@ const RetailInventory: React.FC = () => {
       sale_price: product.sale_price,
       stock_quantity: product.stock_quantity || 0,
       critical_stock: product.critical_stock || 5,
+      expiry_date: product.expiry_date ? product.expiry_date.split('T')[0] : '',
       excise_stamp_required: product.excise_stamp_required || false,
       discount_type: product.discount_type || 'none',
       discount_value: product.discount_value || 0
@@ -223,6 +226,7 @@ const RetailInventory: React.FC = () => {
               sale_price: 0,
               stock_quantity: 0,
               critical_stock: 5,
+              expiry_date: '',
               excise_stamp_required: false,
               discount_type: 'none',
               discount_value: 0
@@ -313,13 +317,14 @@ const RetailInventory: React.FC = () => {
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tablePurchase')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tableSale')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">{t('retail.inventory.tableStock')}</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Status</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.inventory.tableActions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
+                  <td colSpan={7} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-4 border-merkez-blue/20 border-t-merkez-blue rounded-full animate-spin" />
                       <p className="text-xs font-bold text-gray-400">{t('common.loading')}</p>
@@ -328,7 +333,7 @@ const RetailInventory: React.FC = () => {
                 </tr>
               ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
+                  <td colSpan={7} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <Package className="w-12 h-12 text-gray-100" />
                       <p className="text-xs font-bold text-gray-400">{t('retail.inventory.empty') || t('common.noData')}</p>
@@ -375,6 +380,27 @@ const RetailInventory: React.FC = () => {
                     `}>
                       {product.stock_quantity <= product.critical_stock && <AlertTriangle className="w-3 h-3" />}
                       {product.stock_quantity} {t('common.unit')}
+                    </div>
+                  </td>
+                  <td className="px-8 py-5">
+                    <div className="flex justify-center">
+                      {product.expiry_date ? (() => {
+                        const expiry = new Date(product.expiry_date);
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+                        const diffTime = expiry.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays < 0) {
+                          return <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider">Bitib</span>;
+                        } else if (diffDays <= 10) {
+                          return <span className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider">Az qalıb ({diffDays} gün)</span>;
+                        } else {
+                          return <span className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase tracking-wider">OK ({diffDays} gün)</span>;
+                        }
+                      })() : (
+                        <span className="text-gray-300">—</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-8 py-5 text-right">
@@ -489,12 +515,22 @@ const RetailInventory: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-gray-400 uppercase tracking-widest px-1">{t('warehouse.criticalStock')}</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Крит. запас</label>
                   <input 
-                    type="number"
-                    className="w-full px-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-merkez-blue border rounded-2xl transition-all font-bold text-red-500 outline-none"
+                    type="number" 
+                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-merkez-blue focus:bg-white rounded-2xl outline-none transition-all font-bold"
                     value={formData.critical_stock}
-                    onChange={(e) => setFormData({...formData, critical_stock: parseFloat(e.target.value)})}
+                    onChange={(e) => setFormData({ ...formData, critical_stock: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Срок годности</label>
+                  <input 
+                    type="date" 
+                    className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-merkez-blue focus:bg-white rounded-2xl outline-none transition-all font-bold"
+                    value={formData.expiry_date}
+                    onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
                   />
                 </div>
 
