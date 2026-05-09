@@ -561,12 +561,12 @@ const Analytics = () => {
             </div>
          </div>
          
-          <div className="w-full overflow-x-auto pt-10 -mt-6 no-scrollbar">
-            <div className="flex items-end gap-1 h-52 border-b border-gray-100 pb-2 min-w-max">
+          <div className="w-full pt-10 -mt-6">
+            <div className="flex items-end gap-1 sm:gap-2 h-52 border-b border-gray-100 pb-2 w-full">
                {chartData.map((d, index) => {
                   const heightPercent = maxRevenue > 0 ? (d.revenue / maxRevenue) * 100 : 0;
                   return (
-                    <div key={index} className="flex flex-col items-center group relative w-8 h-full">
+                    <div key={index} className="flex-1 flex flex-col items-center group relative h-full">
                        {/* Tooltip on hover */}
                        <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-1 px-2 rounded-md whitespace-nowrap pointer-events-none transition-opacity z-10 shadow-lg">
                          ${d.revenue.toFixed(2)}
@@ -580,10 +580,16 @@ const Analytics = () => {
                             style={{ height: `${heightPercent}%`, minHeight: d.revenue > 0 ? '4px' : '0' }}
                           />
                        </div>
-                       <span className="text-[9px] text-gray-400 font-bold mt-3 transform -rotate-45 sm:rotate-0">{d.time}</span>
+                       <span className="text-[9px] text-gray-400 font-bold mt-3 transform -rotate-45 sm:rotate-0 hidden sm:block">{d.time}</span>
                     </div>
                   );
                })}
+            </div>
+            {/* Mobile labels - separate row to avoid overlap if too many */}
+            <div className="flex justify-between mt-2 sm:hidden px-2">
+               <span className="text-[9px] text-gray-400 font-bold">0:00</span>
+               <span className="text-[9px] text-gray-400 font-bold">12:00</span>
+               <span className="text-[9px] text-gray-400 font-bold">23:00</span>
             </div>
           </div>
       </div>
