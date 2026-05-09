@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 import TimePicker from '../../../components/Common/TimePicker';
@@ -22,6 +22,7 @@ const AcademicScheduler = () => {
     startTime: '10:00',
     endTime: '11:00'
   });
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -53,6 +54,12 @@ const AcademicScheduler = () => {
   const START_HOUR = 8;
   const TOTAL_HOURS = 12; // 8 AM to 8 PM
 
+  const getRoomName = (roomValue: string) => {
+    if (!roomValue) return '—';
+    const room = rooms?.find(r => r.id === roomValue);
+    return room ? room.name : roomValue;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.courseId || !formData.teacherName || !formData.room) return;
@@ -64,16 +71,28 @@ const AcademicScheduler = () => {
       const startDateTime = new Date(`${formData.date}T${formData.startTime}:00`).toISOString();
       const endDateTime = new Date(`${formData.date}T${formData.endTime}:00`).toISOString();
 
-      const { error: insertError } = await supabase.from('education_lessons').insert([{
+      const lessonData = {
         tenant_id: tenantId || '00000000-0000-0000-0000-000000000000',
         course_id: formData.courseId,
         teacher_name: formData.teacherName,
         room: formData.room,
         start_time: startDateTime,
         end_time: endDateTime
-      }]);
+      };
 
-      if (insertError) throw insertError;
+      let res;
+      if (editingLessonId) {
+        res = await supabase
+          .from('education_lessons')
+          .update(lessonData)
+          .eq('id', editingLessonId);
+      } else {
+        res = await supabase
+          .from('education_lessons')
+          .insert([lessonData]);
+      }
+
+      if (res.error) throw res.error;
       
       setSuccess(true);
       refreshAll();
@@ -81,6 +100,7 @@ const AcademicScheduler = () => {
       setTimeout(() => {
         setSuccess(false);
         setIsModalOpen(false);
+        setEditingLessonId(null);
         setFormData({
           courseId: '',
           teacherName: '',
@@ -93,10 +113,49 @@ const AcademicScheduler = () => {
       
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Error creating lesson');
+      setError(err.message || 'Error saving lesson');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDelete = async () => {
+    if (!editingLessonId) return;
+    if (!window.confirm(t('common.confirmDelete') || 'Are you sure?')) return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('education_lessons')
+        .delete()
+        .eq('id', editingLessonId);
+
+      if (error) throw error;
+
+      refreshAll();
+      setIsModalOpen(false);
+      setEditingLessonId(null);
+    } catch (err: any) {
+      setError(err.message || 'Error deleting lesson');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (lesson: any) => {
+    const start = new Date(lesson.start_time);
+    const end = new Date(lesson.end_time);
+    
+    setFormData({
+      courseId: lesson.course_id,
+      teacherName: lesson.teacher_name,
+      room: lesson.room,
+      date: start.toISOString().split('T')[0],
+      startTime: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+    });
+    setEditingLessonId(lesson.id);
+    setIsModalOpen(true);
   };
 
   return (
@@ -196,7 +255,18 @@ const AcademicScheduler = () => {
             {t('education.today')}
           </button>
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setEditingLessonId(null);
+              setFormData({
+                courseId: '',
+                teacherName: '',
+                room: '',
+                date: selectedDate.toISOString().split('T')[0],
+                startTime: '10:00',
+                endTime: '11:00'
+              });
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" /> {t('education.newLesson')}
@@ -295,11 +365,12 @@ const AcademicScheduler = () => {
                   return (
                     <div 
                       key={lesson.id} 
-                      className={`absolute left-4 right-4 rounded-xl border p-3 shadow-sm hover:shadow-md transition-shadow overflow-hidden ${colorClass}`}
+                      onClick={() => handleEdit(lesson)}
+                      className={`absolute left-4 right-4 rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden ${colorClass}`}
                       style={{ top: `${top}px`, height: `${height}px` }}
                     >
                       <h4 className="font-bold text-sm truncate">{lesson.education_courses?.title}</h4>
-                      <p className="text-xs opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {lesson.room}</p>
+                      <p className="text-xs opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {getRoomName(lesson.room)}</p>
                     </div>
                   );
                 })}
@@ -340,12 +411,16 @@ const AcademicScheduler = () => {
               const textClass = colorClass.split(' ')[1];
 
               return (
-                <div key={lesson.id} className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${colorClass.split(' ')[0]}`}>
+                <div 
+                  key={lesson.id} 
+                  onClick={() => handleEdit(lesson)}
+                  className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${colorClass.split(' ')[0]} cursor-pointer hover:shadow-md transition-all`}
+                >
                   <p className={`text-[10px] font-black uppercase tracking-widest ${textClass} mb-1`}>{timeString}</p>
                   <h4 className="font-bold text-gray-900">{lesson.education_courses?.title || 'Course'}</h4>
                   <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
                     <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {lesson.teacher_name}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {lesson.room}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {getRoomName(lesson.room)}</span>
                   </div>
                 </div>
               );
@@ -373,7 +448,7 @@ const AcademicScheduler = () => {
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
                 <CalendarIcon className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{t('education.newLesson')}</h2>
+              <h2 className="text-2xl font-black text-gray-900">{editingLessonId ? t('education.editLesson', 'Edit Lesson') : t('education.newLesson')}</h2>
               <p className="text-gray-500 text-sm mt-1">{t('education.manageClasses')}</p>
             </div>
 
@@ -546,12 +621,24 @@ const AcademicScheduler = () => {
                   {isSubmitting ? (
                     <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing') || 'Processing...'}</>
                   ) : success ? (
-                    <><CheckCircle2 className="w-5 h-5" /> {t('education.enrolledSuccessfully') || 'Success!'}</>
+                    <><CheckCircle2 className="w-5 h-5" /> {t('education.savedSuccessfully') || 'Success!'}</>
                   ) : (
                     t('common.save')
                   )}
                 </button>
               </div>
+
+              {editingLessonId && (
+                <div className="pt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    className="w-full py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" /> {t('common.delete') || 'Delete Lesson'}
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         </div>
