@@ -10,6 +10,11 @@ import AddIngredientModal from './AddIngredientModal';
 import EditIngredientModal from './EditIngredientModal';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
+import SuppliersList from './SuppliersList';
+import AddSupplierModal from './AddSupplierModal';
+import EditSupplierModal from './EditSupplierModal';
+import ReceiveStockModal from './ReceiveStockModal';
+import { Truck } from 'lucide-react';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -25,9 +30,12 @@ const WarehouseModule = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddIngredient, setShowAddIngredient] = useState(false);
+  const [showAddSupplier, setShowAddSupplier] = useState(false);
+  const [showReceiveStock, setShowReceiveStock] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
+  const [editingSupplier, setEditingSupplier] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
@@ -125,9 +133,12 @@ const WarehouseModule = () => {
         .update({ archived: true })
         .eq('id', confirmDelete.id);
       if (!error) setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
-    } else {
+    } else if (confirmDelete.type === 'ingredient') {
       const { error } = await supabase.from('ingredients').delete().eq('id', confirmDelete.id);
       if (!error) setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
+    } else if (confirmDelete.type === 'supplier') {
+      const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
+      if (!error) fetchAll();
     }
     setConfirmDelete(null);
   };
@@ -225,6 +236,32 @@ const WarehouseModule = () => {
               <FolderTree className="w-3.5 h-3.5" />
               {t('warehouse.ingredients')}
             </button>
+            <button 
+              onClick={() => setActiveTab('suppliers')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Truck className="w-3.5 h-3.5" />
+              {t('warehouse.suppliers') || 'Поставщики'}
+            </button>
+          </div>
+        )}
+
+        {!isRestaurantActive && (
+          <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
+            <button 
+              onClick={() => setActiveTab('finished')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Package className="w-3.5 h-3.5" />
+              {t('warehouse.finishedGoods')}
+            </button>
+            <button 
+              onClick={() => setActiveTab('suppliers')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Truck className="w-3.5 h-3.5" />
+              {t('warehouse.suppliers') || 'Поставщики'}
+            </button>
           </div>
         )}
 
@@ -244,11 +281,28 @@ const WarehouseModule = () => {
               <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
             </button>
           )}
+          
+          <button 
+            onClick={() => setShowReceiveStock(true)} 
+            className="bg-white border border-merkez-green text-merkez-green px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
+          >
+            <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
+          </button>
         </div>
       </div>
 
       <div className="flex flex-1 gap-6 overflow-hidden">
-        {/* Categories Sidebar - Only for Finished Goods */}
+        {activeTab === 'suppliers' ? (
+          <div className="flex-1 min-h-0">
+            <SuppliersList 
+              onAdd={() => setShowAddSupplier(true)}
+              onEdit={(s) => setEditingSupplier(s)}
+              onDelete={(id) => setConfirmDelete({ type: 'supplier', id })}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Categories Sidebar - Only for Finished Goods */}
         {activeTab === 'finished' && (
           <div className="w-72 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 p-4 flex flex-col shrink-0">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{t('warehouse.categories')}</h3>
@@ -508,7 +562,30 @@ const WarehouseModule = () => {
             )}
           </div>
         </div>
-      </div>
+      </>
+    )}
+  </div>
+
+      <AddSupplierModal 
+        isOpen={showAddSupplier}
+        onClose={() => setShowAddSupplier(false)}
+        onSupplierAdded={fetchAll}
+      />
+
+      {editingSupplier && (
+        <EditSupplierModal 
+          isOpen={!!editingSupplier}
+          onClose={() => setEditingSupplier(null)}
+          supplier={editingSupplier}
+          onSupplierUpdated={fetchAll}
+        />
+      )}
+
+      <ReceiveStockModal 
+        isOpen={showReceiveStock}
+        onClose={() => setShowReceiveStock(false)}
+        onStockReceived={fetchAll}
+      />
       {confirmDelete && (
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
@@ -521,7 +598,11 @@ const WarehouseModule = () => {
                   {t('common.confirmDelete') || 'Подтверждение удаления'}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {confirmDelete.type === 'product' ? t('warehouse.confirmDeleteProduct') : t('warehouse.confirmDeleteIngredient')}
+                  {confirmDelete.type === 'product' 
+                    ? t('warehouse.confirmDeleteProduct') 
+                    : confirmDelete.type === 'supplier' 
+                      ? t('warehouse.confirmDeleteSupplier') 
+                      : t('warehouse.confirmDeleteIngredient')}
                 </p>
               </div>
               <div className="flex gap-3">
