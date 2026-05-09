@@ -4,10 +4,13 @@ import { Search, Bell, User, Menu, X, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useUser } from './UserContext';
+import { ShoppingCart, AlertTriangle, TrendingUp } from 'lucide-react';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
   const { profile, loading } = useUser();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [digestData, setDigestData] = useState({ totalSales: 0, lowStockItems: [], loaded: false });
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -17,6 +20,57 @@ const Header = ({ onMenuClick }) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   };
+
+  const fetchDigestData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: criticalItems } = await supabase
+        .from('products')
+        .select('id, name, stock_quantity, critical_stock')
+        .eq('user_id', user.id)
+        .lte('stock_quantity', 5);
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const { data: salesToday } = await supabase
+        .from('retail_sales')
+        .select('total_amount')
+        .eq('user_id', user.id)
+        .gte('created_at', startOfDay.toISOString());
+
+      let totalSales = 0;
+      if (salesToday) {
+        totalSales = salesToday.reduce((sum, sale) => sum + Number(sale.total_amount), 0);
+      }
+
+      const lowStockItems = (criticalItems || []).filter(item => item.stock_quantity <= (item.critical_stock || 5));
+
+      setDigestData({ totalSales, lowStockItems, loaded: true });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toggleNotifications = () => {
+    if (!isNotificationsOpen && !digestData.loaded) {
+      fetchDigestData();
+    }
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isNotificationsOpen && !e.target.closest('#notification-container')) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNotificationsOpen]);
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-30 w-full lg:pl-28 transition-all duration-300">
@@ -68,10 +122,80 @@ const Header = ({ onMenuClick }) => {
         </div>
 
         <div className="flex items-center space-x-1 sm:space-x-4">
-          <button className="relative p-2 text-gray-400 hover:text-gray-600 transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-          </button>
+          <div id="notification-container" className="relative">
+            <button 
+              onClick={toggleNotifications}
+              className={`relative p-2 transition-colors rounded-full ${isNotificationsOpen ? 'bg-blue-50 text-merkez-blue' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+
+            {isNotificationsOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform opacity-100 scale-100 origin-top-right transition-all">
+                <div className="p-4 bg-gradient-to-r from-merkez-blue to-blue-600 text-white flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-blue-100" />
+                    <h3 className="font-black text-sm tracking-tight">Operational Digest</h3>
+                  </div>
+                </div>
+                
+                <div className="p-4 flex flex-col gap-3 max-h-[70vh] overflow-y-auto no-scrollbar">
+                  {!digestData.loaded ? (
+                    <div className="flex justify-center p-4">
+                      <div className="w-6 h-6 border-2 border-merkez-blue border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Sales Summary */}
+                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
+                          <ShoppingCart className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Today's Sales</p>
+                          <p className="text-lg font-black text-gray-900 leading-none">${digestData.totalSales.toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      {/* Critical Inventory */}
+                      {digestData.lowStockItems.length > 0 ? (
+                        <div className="flex items-start gap-3 bg-red-50 p-3 rounded-xl border border-red-100">
+                          <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center text-red-600 shrink-0 mt-1">
+                            <AlertTriangle className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1.5">Critical Stock Alerts</p>
+                            <ul className="text-xs font-bold text-gray-800 space-y-1">
+                              {digestData.lowStockItems.slice(0, 5).map(item => (
+                                <li key={item.id} className="flex justify-between items-center bg-white/50 p-1.5 rounded-lg">
+                                  <span className="truncate max-w-[120px]">{item.name}</span>
+                                  <span className="text-red-600 bg-red-100 px-1.5 py-0.5 rounded text-[10px]">{item.stock_quantity} left</span>
+                                </li>
+                              ))}
+                              {digestData.lowStockItems.length > 5 && (
+                                <li className="text-[10px] text-red-500 mt-1">+{digestData.lowStockItems.length - 5} more items</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                          <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-600 shrink-0">
+                            <AlertTriangle className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Inventory Status</p>
+                            <p className="text-xs font-bold text-gray-800">All stock levels are optimal.</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           
           <Link to="/profile" className="flex items-center space-x-2 cursor-pointer p-1 rounded-full border border-gray-100 hover:bg-gray-50 transition-colors no-underline">
             <div className="w-8 h-8 rounded-full bg-merkez-blue flex items-center justify-center text-white font-medium text-sm shadow-sm">
