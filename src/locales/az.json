@@ -116,6 +116,13 @@
     },
     "split": "Split"
   },
+  "sync": {
+    "synced": "Sinxron",
+    "pending": "gözləyir",
+    "syncing": "Sinxronlaşır...",
+    "offline": "Oflayn",
+    "cachedProducts": "Kеşlənmiş məhsullar"
+  },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",
     "dashboardSubtitle": "Avtoparkın idarə edilməsi və monitorinqi",

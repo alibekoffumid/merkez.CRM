@@ -115,6 +115,13 @@
     },
     "split": "Split"
   },
+  "sync": {
+    "synced": "Synced",
+    "pending": "pending",
+    "syncing": "Syncing...",
+    "offline": "Offline",
+    "cachedProducts": "Cached products"
+  },
   "fleet": {
     "dashboardTitle": "Merkez Fleet",
     "dashboardSubtitle": "Fleet management and monitoring",

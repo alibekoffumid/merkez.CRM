@@ -115,6 +115,13 @@
     },
     "split": "Сплит"
   },
+  "sync": {
+    "synced": "Синхронизировано",
+    "pending": "ожидает",
+    "syncing": "Синхронизация...",
+    "offline": "Офлайн",
+    "cachedProducts": "Кэшированные товары"
+  },
   "fleet": {
     "dashboardTitle": "Mərkəz Fleet",
     "dashboardSubtitle": "Управление и мониторинг автопарка",
