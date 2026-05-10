@@ -69,6 +69,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
       </div>
 
       <nav className="flex-1 px-3 mt-6 space-y-2 overflow-y-auto no-scrollbar">
+        {navItems.map((item) => (
           <div key={item.path}>
             <NavLink
               to={item.path}
