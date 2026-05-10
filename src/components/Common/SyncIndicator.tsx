@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cloud, CloudOff, Loader2, CloudAlert } from 'lucide-react';
+import { Cloud, CloudOff, Loader2, CloudDrizzle } from 'lucide-react';
 import { useSyncStatus } from '../../hooks/useSyncStatus';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +19,7 @@ const SyncIndicator: React.FC = () => {
       label: t('sync.synced') || 'Synced',
     },
     pending: {
-      icon: <CloudAlert className="w-4 h-4" />,
+      icon: <CloudDrizzle className="w-4 h-4" />,
       color: 'text-amber-500',
       bg: 'bg-amber-50 border-amber-200',
       label: `${pendingCount} ${t('sync.pending') || 'pending'}`,
