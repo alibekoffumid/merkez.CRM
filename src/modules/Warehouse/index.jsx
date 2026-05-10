@@ -340,7 +340,7 @@ const WarehouseModule = () => {
           
           {activeTab === 'finished' && (
             <button onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-              <Upload className="w-4 h-4 mr-2" /> Импорт
+              <Upload className="w-4 h-4 mr-2" /> {t('warehouse.import')}
             </button>
           )}
 

@@ -125,7 +125,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
               <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
                 <Upload className="w-6 h-6 text-merkez-blue" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">Импорт базы товаров</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('warehouse.importProducts')}</h3>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
               <X className="w-6 h-6" />
@@ -139,10 +139,10 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-white transition-colors">
                   <FileText className="w-8 h-8 text-gray-400 group-hover:text-merkez-blue" />
                 </div>
-                <p className="text-lg font-bold text-gray-900 mb-2">Выберите CSV файл</p>
-                <p className="text-sm text-gray-500 text-center">Перетащите файл сюда или нажмите для выбора</p>
+                <p className="text-lg font-bold text-gray-900 mb-2">{t('warehouse.chooseCsv')}</p>
+                <p className="text-sm text-gray-500 text-center">{t('warehouse.dragAndDrop')}</p>
                 <div className="mt-6 px-4 py-2 bg-white border border-gray-100 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  Заголовки: barcode, name, sale_price, stock_quantity, expiry_date
+                  {t('warehouse.csvFormatHeaders')}: barcode, name, sale_price, stock_quantity, expiry_date
                 </div>
               </div>
             )}
@@ -150,8 +150,8 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
             {isProcessing && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="w-12 h-12 text-merkez-blue animate-spin mb-6" />
-                <p className="text-lg font-bold text-gray-900 mb-2">Обработка данных...</p>
-                <p className="text-sm text-gray-500 mb-8">{progress}% завершено</p>
+                <p className="text-lg font-bold text-gray-900 mb-2">{t('warehouse.processingData')}</p>
+                <p className="text-sm text-gray-500 mb-8">{progress}%</p>
                 
                 <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
                   <div 
@@ -169,16 +169,16 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
                 ) : (
                   <AlertCircle className="w-16 h-16 text-amber-500 mb-4" />
                 )}
-                <h4 className="text-xl font-bold text-gray-900 mb-6">Импорт завершен</h4>
+                <h4 className="text-xl font-bold text-gray-900 mb-6">{t('warehouse.importCompleted')}</h4>
                 
                 <div className="grid grid-cols-2 gap-4 w-full mb-8">
                   <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex flex-col items-center">
                     <span className="text-2xl font-black text-green-600">{result.success}</span>
-                    <span className="text-[10px] font-black text-green-600/60 uppercase tracking-widest">Успешно</span>
+                    <span className="text-[10px] font-black text-green-600/60 uppercase tracking-widest">{t('warehouse.success')}</span>
                   </div>
                   <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex flex-col items-center">
                     <span className="text-2xl font-black text-red-600">{result.error}</span>
-                    <span className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">Ошибки</span>
+                    <span className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">{t('warehouse.errors')}</span>
                   </div>
                 </div>
 
@@ -186,7 +186,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
                   onClick={onClose}
                   className="w-full py-4 bg-merkez-blue text-white rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all"
                 >
-                  Готово
+                  {t('warehouse.done')}
                 </button>
               </div>
             )}
