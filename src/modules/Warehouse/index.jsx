@@ -431,15 +431,15 @@ const WarehouseModule = () => {
               </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <table className="w-full text-left table-fixed">
+              <table className="w-full text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[15%]">{t('warehouse.receivedDate')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[20%]">{t('warehouse.supplier')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.product')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">{t('warehouse.quantity')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">{t('warehouse.unitPrice')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">{t('common.total') || 'Итого'}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.receivedDate')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.product')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -602,24 +602,24 @@ const WarehouseModule = () => {
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse table-fixed">
+                <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                    <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-                      <th className="font-medium p-4 w-16"></th>
-                      <th className="font-medium p-4">{t('warehouse.thName')}</th>
-                      <th className="font-medium p-4 w-[15%]">{t('warehouse.thBarcode')}</th>
-                      <th className="font-medium p-4 w-[15%]">{t('warehouse.thCategory')}</th>
-                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thPurchasePrice')}</th>
-                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thPrice')}</th>
-                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thStock')}</th>
-                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thStatus')}</th>
-                      <th className="font-medium p-4 w-[10%] text-right">{t('warehouse.thActions')}</th>
+                    <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
+                      <th className="font-medium px-2 py-4 w-16"></th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
+                      <th className="font-medium px-2 py-4 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredProducts.map(item => (
                       <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-4">
+                        <td className="px-2 py-4">
                           <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-200">
                             {item.image_url ? (
                               <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
@@ -628,31 +628,31 @@ const WarehouseModule = () => {
                             )}
                           </div>
                         </td>
-                        <td className="p-4">
+                        <td className="px-2 py-4">
                           <p className="font-medium text-gray-900">{item.name}</p>
                         </td>
-                        <td className="p-4">
+                        <td className="px-2 py-4">
                           <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
                             {item.barcode || '—'}
                           </span>
                         </td>
-                        <td className="p-4">
+                        <td className="px-2 py-4">
                           <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
                             {item.categories?.name || '—'}
                           </span>
                         </td>
-                        <td className="p-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
-                        <td className="p-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
-                        <td className="p-4 text-sm font-bold text-gray-900">
+                        <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
+                        <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
+                        <td className="px-2 py-4 text-sm font-bold text-gray-900">
                           {parseFloat(item.stock_quantity || 0).toFixed(2)}
                         </td>
-                        <td className="p-4">
+                        <td className="px-2 py-4">
                           <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
                             {getStatusIcon(item.stock_quantity, item.critical_stock)}
                             <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
                           </div>
                         </td>
-                        <td className="p-4 text-right">
+                        <td className="px-2 py-4 text-right">
                           <div className="relative inline-block">
                             <button
                               onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
@@ -698,7 +698,7 @@ const WarehouseModule = () => {
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse min-w-[700px]">
+                <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
                       <th className="font-medium p-4">{t('warehouse.thName')}</th>
