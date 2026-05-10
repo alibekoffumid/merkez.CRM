@@ -21,7 +21,17 @@
     "adminLock": "Admin Kilidi",
     "enterPinToAccess": "Bu bölməyə daxil olmaq üçün 4 rəqəmli PIN kodu daxil edin",
     "wrongPin": "Yanlış PIN kod",
-    "saveSuccess": "Tənzimləmələr uğurla yadda saxlanıldı!"
+    "saveSuccess": "Tənzimləmələr uğurla yadda saxlanıldı!",
+    "noCategory": "Kateqoriya yoxdur",
+    "create": "Yarat",
+    "add": "Əlavə et",
+    "category": "Kateqoriya",
+    "price": "Qiymət",
+    "period": "Dövr",
+    "generated": "Yaradılıb",
+    "unauthorized": "İcazəsiz giriş",
+    "selectEndDate": "Bitmə tarixini seçin",
+    "selectDateRange": "Tarix aralığını seçin"
   },
   "sidebar": {
     "dashboard": "Panel",

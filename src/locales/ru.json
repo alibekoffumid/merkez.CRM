@@ -21,7 +21,17 @@
     "adminLock": "Админ. замок",
     "enterPinToAccess": "Введите 4-значный PIN для доступа",
     "wrongPin": "Неверный PIN-код",
-    "saveSuccess": "Настройки успешно сохранены!"
+    "saveSuccess": "Настройки успешно сохранены!",
+    "noCategory": "Без категории",
+    "create": "Создать",
+    "add": "Добавить",
+    "category": "Категория",
+    "price": "Цена",
+    "period": "Период",
+    "generated": "Сгенерировано",
+    "unauthorized": "Нет доступа",
+    "selectEndDate": "Выберите конечную дату",
+    "selectDateRange": "Выберите диапазон дат"
   },
   "sidebar": {
     "dashboard": "Дашборд",

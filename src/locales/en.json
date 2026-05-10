@@ -21,7 +21,17 @@
     "adminLock": "Admin Lock",
     "enterPinToAccess": "Enter 4-digit PIN to access this section",
     "wrongPin": "Wrong PIN code",
-    "saveSuccess": "Settings saved successfully!"
+    "saveSuccess": "Settings saved successfully!",
+    "noCategory": "No Category",
+    "create": "Create",
+    "add": "Add",
+    "category": "Category",
+    "price": "Price",
+    "period": "Period",
+    "generated": "Generated",
+    "unauthorized": "Unauthorized",
+    "selectEndDate": "Select end date",
+    "selectDateRange": "Select date range"
   },
   "sidebar": {
     "dashboard": "Dashboard",
