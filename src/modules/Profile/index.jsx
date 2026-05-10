@@ -473,11 +473,10 @@ const Profile = () => {
                           name="admin_pin"
                           maxLength={4}
                           value={profile.admin_pin} 
+                          onFocus={(e) => e.target.select()}
                           onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '');
-                            if (val.length <= 4) {
-                              setProfile({ ...profile, admin_pin: val });
-                            }
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            setProfile({ ...profile, admin_pin: val });
                           }}
                           className="block w-full px-8 py-5 bg-white border-2 border-amber-100 rounded-2xl text-2xl font-black tracking-[1em] text-center text-amber-600 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all shadow-sm"
                           placeholder="0000"
