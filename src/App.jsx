@@ -84,6 +84,22 @@ const NativeRedirect = ({ children }) => {
 
 import { App as CapacitorApp } from '@capacitor/app';
 
+// Dynamic landing page redirect based on active modules
+const DynamicRedirect = () => {
+  const { activeModules } = useUser();
+  
+  if (activeModules.length > 0) {
+    // Redirect to the first active module's path
+    const firstModuleId = activeModules[0];
+    const module = MODULE_REGISTRY[firstModuleId];
+    if (module) {
+      return <Navigate to={module.path} replace />;
+    }
+  }
+  
+  return <Navigate to="/modules" replace />;
+};
+
 function App() {
   React.useEffect(() => {
     // Listen for deep links (e.g. returning from Google Auth)
@@ -138,9 +154,9 @@ function App() {
             </AuthGuard>
           }
         >
-          <Route index element={<Navigate to="/modules" replace />} />
+          <Route index element={<DynamicRedirect />} />
           <Route path="dashboard">
-            <Route index element={<Navigate to="/modules" replace />} />
+            <Route index element={<DynamicRedirect />} />
             <Route path="e-taxes" element={
               <ModuleGuard moduleId="eTaxes"><ETaxesModule /></ModuleGuard>
             } />

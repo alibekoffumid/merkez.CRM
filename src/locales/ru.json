@@ -15,6 +15,7 @@
     "error": "Ошибка",
     "all": "Все",
     "filter": "Фильтр",
+    "back": "Назад",
     "adminLock": "Админ. замок",
     "enterPinToAccess": "Введите 4-значный PIN для доступа",
     "wrongPin": "Неверный PIN-код",

@@ -15,6 +15,7 @@
     "error": "Error",
     "all": "All",
     "filter": "Filter",
+    "back": "Back",
     "adminLock": "Admin Lock",
     "enterPinToAccess": "Enter 4-digit PIN to access this section",
     "wrongPin": "Wrong PIN code",
