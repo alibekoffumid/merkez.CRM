@@ -944,12 +944,12 @@ const RetailPOS: React.FC = () => {
               <AlertCircle className="w-10 h-10 text-red-500 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-gray-900 mb-2">Məhsulun vaxtı bitib!</h2>
+              <h2 className="text-xl font-black text-gray-900 mb-2">{t('retail.productExpired')}</h2>
               <p className="text-sm text-gray-500 font-medium">
-                <span className="font-bold text-red-600">"{expiredProduct?.name}"</span> məhsulunun istifadə müddəti başa çatıb. Satış risklidir.
+                <span className="font-bold text-red-600">"{expiredProduct?.name}"</span> {t('retail.exciseRequiredMsg')}
               </p>
               <p className="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">
-                Bitmə tarixi: {new Date(expiredProduct?.expiry_date).toLocaleDateString()}
+                {t('retail.expiryDate')}: {new Date(expiredProduct?.expiry_date).toLocaleDateString()}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3 w-full">
@@ -957,13 +957,13 @@ const RetailPOS: React.FC = () => {
                 onClick={() => { setShowExpiredModal(false); setExpiredProduct(null); }}
                 className="py-4 bg-gray-100 text-gray-600 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
               >
-                Ləğv et
+                {t('retail.cancel')}
               </button>
               <button 
                 onClick={() => addToCart(expiredProduct)}
                 className="py-4 bg-red-600 text-white rounded-2xl font-black text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-500/20"
               >
-                Yenə də sat
+                {t('retail.sellAnyway')}
               </button>
             </div>
           </div>
