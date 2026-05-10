@@ -379,7 +379,7 @@ const Analytics = () => {
   const formatBtnDate = (dObj) => dObj ? `${monthsList[dObj.m].slice(0,3)} ${String(dObj.d).padStart(2,'0')}` : '';
   const buttonText = rangeEnd 
      ? `${formatBtnDate(rangeStart)} - ${formatBtnDate(rangeEnd)}, ${rangeEnd.y}`
-     : (rangeStart ? `${formatBtnDate(rangeStart)}, ${rangeStart.y} (${t('common.selectEndDate') || 'Select end date'})` : t('common.selectDateRange'));"}
+     : (rangeStart ? `${formatBtnDate(rangeStart)}, ${rangeStart.y} (${t('restaurant.selectEndDate')})` : t('restaurant.selectDateRange'));
 
   return (
     <div className="space-y-6 pb-12">
