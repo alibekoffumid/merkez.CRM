@@ -371,7 +371,7 @@ const RetailPOS: React.FC = () => {
   const change = parseFloat(cashReceived) ? parseFloat(cashReceived) - total : 0;
 
   const handleProcessSale = async () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || isProcessing) return;
     setIsProcessing(true);
 
     try {
@@ -574,10 +574,14 @@ const RetailPOS: React.FC = () => {
             </div>
           </div>
           
-          <div className="px-4 py-2 bg-green-50 rounded-lg flex items-center gap-2 border border-green-100">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs font-bold text-green-700 uppercase tracking-wider">{t('retail.online')}</span>
-          </div>
+          {!isElectron() && (
+            <div className={`px-4 py-2 rounded-lg flex items-center gap-2 border ${isOnline ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+              <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+              <span className={`text-xs font-bold uppercase tracking-wider ${isOnline ? 'text-green-700' : 'text-red-700'}`}>
+                {isOnline ? t('retail.online') : 'OFFLINE'}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
