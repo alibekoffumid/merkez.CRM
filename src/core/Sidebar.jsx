@@ -127,14 +127,21 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
                     key={sub.id}
                     to={sub.path}
                     className={({ isActive }) => 
-                      `block py-1.5 px-3 rounded-lg text-[13px] font-medium transition-all ${
+                      `flex items-center py-1.5 px-3 rounded-lg text-[13px] font-medium transition-all mb-0.5 ${
                         isActive 
-                          ? `${item.activeText} bg-gray-50 font-bold` 
-                          : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50/50'
+                          ? `${item.activeText} bg-white shadow-sm ring-1 ring-gray-200/50 font-black translate-x-1` 
+                          : 'text-gray-500/70 hover:text-gray-900 hover:bg-gray-50'
                       }`
                     }
                   >
-                    {t(sub.nameKey) || sub.id}
+                    {({ isActive }) => (
+                      <>
+                        <div className={`w-1.5 h-1.5 rounded-full mr-2.5 transition-all ${
+                          isActive ? item.activeBg : 'bg-gray-200 group-hover:bg-gray-300'
+                        }`} />
+                        {t(sub.nameKey) || sub.id}
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </div>
