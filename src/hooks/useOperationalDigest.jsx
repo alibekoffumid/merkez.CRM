@@ -28,6 +28,7 @@ export const useOperationalDigest = () => {
           .from('products')
           .select('id, name, stock_quantity, critical_stock')
           .eq('user_id', user.id)
+          .eq('archived', false)
           .lte('stock_quantity', 5); // Simplification, ideally use critical_stock column but lte needs a value. Let's fetch all and filter in JS.
 
         // Fetch Today's Sales Summary
