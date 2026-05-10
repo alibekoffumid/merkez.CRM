@@ -83,7 +83,7 @@ const NativeRedirect = ({ children }) => {
   return children;
 };
 
-import { App as CapacitorApp } from '@capacitor/app';
+
 
 // Dynamic landing page redirect based on active modules
 const DynamicRedirect = () => {
@@ -105,17 +105,22 @@ function App() {
   React.useEffect(() => {
     // Listen for deep links (e.g. returning from Google Auth)
     const setupListener = async () => {
-      await CapacitorApp.addListener('appUrlOpen', (event) => {
-        try {
-          const url = new URL(event.url);
-          // Supabase puts the auth tokens in the hash (e.g. #access_token=...)
-          if (url.hash) {
-            window.location.hash = url.hash;
+      try {
+        const { App: CapacitorApp } = await import('@capacitor/app');
+        await CapacitorApp.addListener('appUrlOpen', (event) => {
+          try {
+            const url = new URL(event.url);
+            if (url.hash) {
+              window.location.hash = url.hash;
+            }
+          } catch (e) {
+            console.error('Invalid deep link URL', e);
           }
-        } catch (e) {
-          console.error('Invalid deep link URL', e);
-        }
-      });
+        });
+      } catch (e) {
+        // Fallback if @capacitor/app is not available or not on native
+        console.log('Capacitor App plugin not available');
+      }
     };
     setupListener();
   }, []);
