@@ -48,6 +48,7 @@ const WarehouseModule = () => {
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -186,6 +187,39 @@ const WarehouseModule = () => {
       if (!error) fetchAll();
     }
     setConfirmDelete(null);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.length === 0) return;
+    
+    setLoading(true);
+    const { error } = await supabase
+      .from('products')
+      .update({ archived: true })
+      .in('id', selectedItems);
+
+    if (!error) {
+      setProducts(prev => prev.filter(p => !selectedItems.includes(p.id)));
+      setSelectedItems([]);
+      setConfirmDelete(null);
+    } else {
+      toast.error(error.message);
+    }
+    setLoading(false);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.length === filteredProducts.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(filteredProducts.map(p => p.id));
+    }
+  };
+
+  const toggleSelectItem = (id) => {
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const handleEdit = (product) => {
@@ -359,6 +393,15 @@ const WarehouseModule = () => {
           {activeTab === 'suppliers' && (
             <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
               <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addSupplier')}
+            </button>
+          )}
+
+          {selectedItems.length > 0 && activeTab === 'finished' && (
+            <button 
+              onClick={() => setConfirmDelete({ type: 'bulk' })} 
+              className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
             </button>
           )}
           
@@ -614,7 +657,15 @@ const WarehouseModule = () => {
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
-                      <th className="font-medium px-2 py-4 pl-6 whitespace-nowrap">{t('warehouse.thName')}</th>
+                      <th className="pl-8 pr-2 py-4 w-10">
+                        <input 
+                          type="checkbox" 
+                          className="w-4 h-4 rounded border-gray-300 text-merkez-blue focus:ring-merkez-blue cursor-pointer"
+                          checked={selectedItems.length === filteredProducts.length && filteredProducts.length > 0}
+                          onChange={toggleSelectAll}
+                        />
+                      </th>
+                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
@@ -626,8 +677,16 @@ const WarehouseModule = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredProducts.map(item => (
-                      <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-2 py-4 pl-6">
+                      <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
+                        <td className="pl-8 pr-2 py-4">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-gray-300 text-merkez-blue focus:ring-merkez-blue cursor-pointer"
+                            checked={selectedItems.includes(item.id)}
+                            onChange={() => toggleSelectItem(item.id)}
+                          />
+                        </td>
+                        <td className="px-2 py-4">
                           <p className="font-medium text-gray-900">{item.name}</p>
                         </td>
                         <td className="px-2 py-4">
@@ -789,35 +848,35 @@ const WarehouseModule = () => {
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
-              <div className="flex flex-col items-center justify-center text-center space-y-3 mb-6">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-2">
-                  <Trash2 className="w-6 h-6 text-red-500" />
+              <div className="p-8 flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
+                  <Trash2 className="w-10 h-10 text-red-500" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  {t('common.confirmDelete') || 'Подтверждение удаления'}
+                <h3 className="text-2xl font-black text-gray-900 mb-2">
+                  {confirmDelete.type === 'bulk' 
+                    ? (i18n.language === 'az' ? 'Seçilənləri silmək?' : 'Удалить выбранные?') 
+                    : t('warehouse.deleteProduct')}
                 </h3>
-                <p className="text-sm text-gray-600">
-                  {confirmDelete.type === 'product' 
-                    ? t('warehouse.confirmDeleteProduct') 
-                    : confirmDelete.type === 'supplier' 
-                      ? t('warehouse.confirmDeleteSupplier') 
-                      : t('warehouse.confirmDeleteIngredient')}
+                <p className="text-gray-500 font-medium mb-8">
+                  {confirmDelete.type === 'bulk'
+                    ? (i18n.language === 'az' ? `${selectedItems.length} məhsul arxivə göndəriləcək. Bu əməliyyat geri qaytarıla bilməz.` : `${selectedItems.length} товаров будут отправлены в архив. Это действие нельзя отменить.`)
+                    : t('warehouse.confirmDeleteProduct')}
                 </p>
-              </div>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setConfirmDelete(null)}
-                  className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-200 transition-colors"
-                >
-                  {t('common.cancel') || 'Отмена'}
-                </button>
-                <button 
-                  onClick={executeDelete}
-                  className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors shadow-sm flex items-center justify-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {t('common.delete') || 'Удалить'}
-                </button>
+                
+                <div className="flex gap-4 w-full">
+                  <button 
+                    onClick={() => setConfirmDelete(null)}
+                    className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-2xl font-black hover:bg-gray-100 transition-all"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button 
+                    onClick={confirmDelete.type === 'bulk' ? handleBulkDelete : executeDelete}
+                    className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all"
+                  >
+                    {t('common.delete')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
