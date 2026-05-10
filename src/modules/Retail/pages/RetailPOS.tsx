@@ -585,7 +585,7 @@ const RetailPOS: React.FC = () => {
         {/* Left Side: Cart & Quick Buttons */}
         <div className="flex-1 flex flex-col p-4 gap-4 overflow-hidden">
           {/* Barcode Scanner Input (Hidden or Small) */}
-          <form onSubmit={handleBarcodeSubmit} className="relative">
+          <form onSubmit={(e) => handleBarcodeSubmitRef.current(e)} className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <Barcode className="w-4 h-4 text-merkez-blue" />
               <span className="h-3 w-[1px] bg-gray-300 mx-1" />
