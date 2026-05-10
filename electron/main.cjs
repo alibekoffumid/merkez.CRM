@@ -34,8 +34,9 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
-  // Show window when ready
+  // Show window when ready and maximize it
   mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
     mainWindow.show();
   });
 
