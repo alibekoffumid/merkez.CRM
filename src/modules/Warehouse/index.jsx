@@ -258,14 +258,13 @@ const WarehouseModule = () => {
       />
 
       {/* Header & Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col lg:flex-row items-center justify-between gap-6 shrink-0">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col lg:flex-row flex-wrap items-center justify-between gap-6 shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
             <Package className="w-6 h-6 text-merkez-blue" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
-            <p className="text-xs text-gray-500">{t('warehouse.subtitle')}</p>
           </div>
         </div>
 
