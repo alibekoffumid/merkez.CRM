@@ -605,20 +605,20 @@ const WarehouseModule = () => {
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
+                      <th className="font-medium px-2 py-4 pl-6 whitespace-nowrap">{t('warehouse.thName')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
-                      <th className="font-medium px-2 py-4 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
+                      <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filteredProducts.map(item => (
                       <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-2 py-4">
+                        <td className="px-2 py-4 pl-6">
                           <p className="font-medium text-gray-900">{item.name}</p>
                         </td>
                         <td className="px-2 py-4">
@@ -642,7 +642,7 @@ const WarehouseModule = () => {
                             <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
                           </div>
                         </td>
-                        <td className="px-2 py-4 text-right">
+                        <td className="px-2 py-4 pr-6 text-right">
                           <div className="relative inline-block">
                             <button
                               onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
