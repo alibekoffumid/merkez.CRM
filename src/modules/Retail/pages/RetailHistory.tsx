@@ -51,6 +51,18 @@ interface UserProfile {
   // ... other fields if needed
 }
 
+const monthNames: Record<string, string[]> = {
+  az: ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'],
+  ru: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+  en: ['January','February','March','April','May','June','July','August','September','October','November','December']
+};
+
+const weekDays: Record<string, string[]> = {
+  az: ['B.E','Ç.A','Ç','C.A','C','Ş','B'],
+  ru: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+  en: ['Mo','Tu','We','Th','Fr','Sa','Su']
+};
+
 const RetailHistory: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser() as { profile: UserProfile | null };
@@ -67,14 +79,14 @@ const RetailHistory: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const locale = i18n.language === 'az' ? 'az-AZ' : i18n.language === 'en' ? 'en-US' : 'ru-RU';
-    return new Intl.DateTimeFormat(locale, {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    const d = date.getDate();
+    const m = date.getMonth();
+    const y = date.getFullYear();
+    const h = date.getHours().toString().padStart(2, '0');
+    const min = date.getMinutes().toString().padStart(2, '0');
+    
+    const months = monthNames[i18n.language] || monthNames.az;
+    return `${d} ${months[m]} ${y} ${h}:${min}`;
   };
 
   useEffect(() => {
@@ -152,16 +164,7 @@ const RetailHistory: React.FC = () => {
   const isEnd = (day: number) => rangeEnd && day === rangeEnd.getDate() && calendarMonth.getMonth() === rangeEnd.getMonth() && calendarMonth.getFullYear() === rangeEnd.getFullYear();
   const isToday = (day: number) => { const t = new Date(); return day === t.getDate() && calendarMonth.getMonth() === t.getMonth() && calendarMonth.getFullYear() === t.getFullYear(); };
 
-  const monthNames: Record<string, string[]> = {
-    az: ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'],
-    ru: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
-    en: ['January','February','March','April','May','June','July','August','September','October','November','December']
-  };
-  const weekDays: Record<string, string[]> = {
-    az: ['B.E','Ç.A','Ç','C.A','C','Ş','B'],
-    ru: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
-    en: ['Mo','Tu','We','Th','Fr','Sa','Su']
-  };
+
   const lang = i18n.language || 'ru';
 
   return (
