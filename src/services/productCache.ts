@@ -1,80 +1,57 @@
 import { supabase } from '../supabaseClient';
-import {
-  offlineDB,
-  refreshProductCache,
-  getLastCacheTime,
-  type CachedProduct,
-} from './offlineDB';
+import { db } from './offlineDB';
+import { RetailProduct } from '../types/retail';
 
-const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+export const syncProductsToLocal = async (userId: string) => {
+  if (!userId || !navigator.onLine) return false;
 
-/**
- * ProductCache — manages local caching of the products table.
- * On app start (or when cache is stale), downloads all products
- * with valid barcodes and stores them in IndexedDB.
- * All barcode/search lookups hit the local cache first.
- */
-
-/** Fetch all retail products from Supabase and cache locally */
-export async function cacheAllProducts(userId: string): Promise<number> {
   try {
-    const { data, error } = await supabase
+    // Fetch all active products for the user
+    const { data: products, error } = await supabase
       .from('products')
-      .select('*, categories(name)')
+      .select('*')
       .eq('user_id', userId)
       .eq('archived', false)
       .not('barcode', 'is', null)
       .neq('barcode', '');
 
-    if (error) throw error;
-    if (!data || data.length === 0) return 0;
-
-    const products: CachedProduct[] = data.map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      purchase_price: p.purchase_price || 0,
-      sale_price: p.price, // sale_price = price for retail
-      barcode: p.barcode,
-      category_id: p.category_id || '',
-      category_name: p.categories?.name || '',
-      stock_quantity: p.stock_quantity || 0,
-      critical_stock: p.critical_stock || 5,
-      image_url: p.image_url || '',
-      expiry_date: p.expiry_date || null,
-      discount_type: p.discount_type || null,
-      discount_value: p.discount_value || 0,
-      excise_required: p.excise_required || false,
-      cached_at: Date.now(),
-    }));
-
-    await refreshProductCache(products);
-    console.log(`[ProductCache] Cached ${products.length} products`);
-    return products.length;
-  } catch (err) {
-    console.error('[ProductCache] Failed to cache products:', err);
-    return -1;
-  }
-}
-
-/** Check if cache is stale and refresh if needed */
-export async function ensureCacheFresh(userId: string): Promise<void> {
-  const lastCache = await getLastCacheTime();
-  const now = Date.now();
-
-  if (!lastCache || now - lastCache > CACHE_TTL) {
-    if (navigator.onLine) {
-      console.log('[ProductCache] Cache is stale, refreshing...');
-      await cacheAllProducts(userId);
-    } else {
-      console.log('[ProductCache] Offline, using existing cache');
+    if (error) {
+      console.error('Error fetching products from Supabase:', error);
+      return false;
     }
-  } else {
-    console.log(`[ProductCache] Cache is fresh (${Math.round((now - lastCache) / 1000)}s old)`);
-  }
-}
 
-/** Get total cached product count */
-export async function getCachedProductCount(): Promise<number> {
-  return offlineDB.products.count();
-}
+    if (products && products.length > 0) {
+      // Use a transaction for bulk operations
+      await db.transaction('rw', db.products, async () => {
+        // We could clear and rewrite, or bulkPut to update/insert. bulkPut is better.
+        await db.products.clear(); // Clear old to handle deleted items
+        await db.products.bulkAdd(products as RetailProduct[]);
+      });
+      console.log(`Locally cached ${products.length} products.`);
+      return true;
+    }
+    return true;
+  } catch (err) {
+    console.error('Failed to sync products locally:', err);
+    return false;
+  }
+};
+
+export const searchLocalProducts = async (query: string): Promise<RetailProduct[]> => {
+  if (query.length < 2) return [];
+
+  // Dexie case-insensitive search is a bit manual, but we can filter the collection
+  const lowerQuery = query.toLowerCase();
+  
+  return await db.products
+    .filter(product => 
+      (product.name && product.name.toLowerCase().includes(lowerQuery)) ||
+      (product.barcode && product.barcode.toLowerCase().includes(lowerQuery))
+    )
+    .limit(5)
+    .toArray();
+};
+
+export const getLocalProductByBarcode = async (barcode: string): Promise<RetailProduct | undefined> => {
+  return await db.products.where('barcode').equals(barcode).first();
+};

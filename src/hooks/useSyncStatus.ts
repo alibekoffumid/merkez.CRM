@@ -1,26 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
-import { syncManager, type SyncStatus } from '../services/syncManager';
+import { useState, useEffect } from 'react';
+import { db } from '../services/offlineDB';
+import { useLiveQuery } from 'dexie-react-hooks';
 
-/**
- * React hook for tracking sync status.
- * Returns the current status and pending sale count.
- */
-export function useSyncStatus() {
-  const [status, setStatus] = useState<SyncStatus>('synced');
-  const [pendingCount, setPendingCount] = useState(0);
+export const useSyncStatus = () => {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    const unsubscribe = syncManager.subscribe((newStatus, count) => {
-      setStatus(newStatus);
-      setPendingCount(count);
-    });
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    return unsubscribe;
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
-  const forceSync = useCallback(async () => {
-    await syncManager.syncAll();
-  }, []);
+  // Use dexie-react-hooks to automatically re-render when pendingSales changes
+  const pendingCount = useLiveQuery(
+    async () => {
+      const all = await db.pendingSales.toArray();
+      return all.filter(s => !s.synced).length;
+    },
+    [],
+    0
+  );
 
-  return { status, pendingCount, forceSync };
-}
+  return { isOnline, pendingCount };
+};

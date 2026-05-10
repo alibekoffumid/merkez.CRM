@@ -28,11 +28,11 @@ import { UserProfile } from '../../../types/auth';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ScannerQRWidget from '../components/ScannerQRWidget';
-import SyncIndicator from '../../../components/Common/SyncIndicator';
-import { findProductByBarcode, searchProductsOffline, saveSaleLocally } from '../../../services/offlineDB';
-import { ensureCacheFresh, getCachedProductCount } from '../../../services/productCache';
-import { syncManager } from '../../../services/syncManager';
 import { useSyncStatus } from '../../../hooks/useSyncStatus';
+import { isElectron, initSyncManager } from '../../../services/syncManager';
+import { searchLocalProducts, getLocalProductByBarcode, syncProductsToLocal } from '../../../services/productCache';
+import { db } from '../../../services/offlineDB';
+import { Cloud, CloudOff, CloudCog } from 'lucide-react';
 
 interface UserContextType {
   profile: UserProfile | null;
@@ -62,8 +62,6 @@ const RetailPOS: React.FC = () => {
   const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null); // For item level discount
   const [expiredProduct, setExpiredProduct] = useState<any | null>(null);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
-  const { status: syncStatus } = useSyncStatus();
-  const [cachedCount, setCachedCount] = useState(0);
   
   const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -98,22 +96,15 @@ const RetailPOS: React.FC = () => {
     }
   }, []);
 
-  // Initialize offline cache & sync manager
+  // Initialize Sync Manager & Cache for Electron
   useEffect(() => {
-    if (!profile?.id) return;
-    
-    // Init sync manager
-    syncManager.init(profile.id);
-
-    // Cache products locally
-    ensureCacheFresh(profile.id).then(async () => {
-      const count = await getCachedProductCount();
-      setCachedCount(count);
-      console.log(`[RetailPOS] ${count} products cached locally`);
-    });
-
-    return () => { syncManager.destroy(); };
+    if (isElectron() && profile?.id) {
+      initSyncManager();
+      syncProductsToLocal(profile.id);
+    }
   }, [profile?.id]);
+
+  const { isOnline, pendingCount } = useSyncStatus();
 
   // Persist data on change
   useEffect(() => {
@@ -192,47 +183,45 @@ const RetailPOS: React.FC = () => {
     addToCart(product);
   };
 
-  const handleBarcodeSubmit = async (e?: React.FormEvent, scannedCode?: string) => {
+  const handleBarcodeSubmitRef = useRef(async (e?: React.FormEvent, barcodeOverride?: string) => {
     if (e) e.preventDefault();
-    const targetBarcode = scannedCode || barcodeInput;
-    if (!targetBarcode) return;
+    const barcode = barcodeOverride || barcodeInput.trim();
+    if (!barcode) return;
+
+    if (!profile?.id) {
+      toast.error(t('common.unauthorized'));
+      return;
+    }
 
     try {
-      // 1. Try local cache first (instant, works offline)
-      const localProduct = await findProductByBarcode(targetBarcode);
-      if (localProduct) {
-        handleProductSelection(localProduct as any);
-        setBarcodeInput('');
-        return;
-      }
+      let productData = null;
 
-      // 2. Fallback to Supabase (online only)
-      if (navigator.onLine) {
+      if (isElectron() || !isOnline) {
+        // Search locally
+        productData = await getLocalProductByBarcode(barcode);
+      } else {
+        // Search Supabase
         const { data, error } = await supabase
           .from('products')
           .select('*')
-          .eq('barcode', targetBarcode)
+          .eq('user_id', profile.id)
+          .eq('barcode', barcode)
+          .eq('archived', false)
           .single();
+        if (!error && data) productData = data;
+      }
 
-        if (error || !data) {
-          toast.error(t('retail.productNotFound'));
-        } else {
-          handleProductSelection(data);
-        }
+      if (productData) {
+        handleProductSelection(productData);
       } else {
-        toast.error(t('retail.productNotFound'));
+        toast.error(t('retail.barcodeNotFound'));
       }
     } catch (err) {
       console.error(err);
+      toast.error(t('retail.barcodeNotFound'));
     }
     setBarcodeInput('');
-  };
-
-  // Ref to hold the latest submit function to avoid stale closures in the event listener
-  const handleBarcodeSubmitRef = useRef(handleBarcodeSubmit);
-  useEffect(() => {
-    handleBarcodeSubmitRef.current = handleBarcodeSubmit;
-  }, [handleBarcodeSubmit]);
+  });
 
   // Global Hardware Scanner Listener
   useEffect(() => {
@@ -282,27 +271,29 @@ const RetailPOS: React.FC = () => {
     }
 
     try {
-      // 1. Try local cache first (works offline)
-      const localResults = await searchProductsOffline(query);
-      if (localResults.length > 0) {
-        setSearchResults(localResults as any[]);
-        return;
-      }
+      let results: RetailProduct[] = [];
 
-      // 2. Fallback to Supabase if online
-      if (navigator.onLine) {
+      if (isElectron() || !isOnline) {
+        results = await searchLocalProducts(query);
+      } else {
         const { data, error } = await supabase
           .from('products')
           .select('*')
+          .eq('user_id', profile?.id || '')
+          .eq('archived', false)
           .or(`name.ilike.%${query}%,barcode.ilike.%${query}%`)
           .not('barcode', 'is', null)
           .neq('barcode', '')
           .limit(5);
 
-        if (!error && data) {
-          setSearchResults(data as RetailProduct[]);
+        if (error) {
+          console.error('Search error:', error);
+          return;
         }
+        if (data) results = data as RetailProduct[];
       }
+
+      setSearchResults(results);
     } catch (err) {
       console.error('Search crash prevented:', err);
     }
@@ -383,65 +374,63 @@ const RetailPOS: React.FC = () => {
     if (cart.length === 0) return;
     setIsProcessing(true);
 
-    const saleData = {
-      local_id: crypto.randomUUID(),
-      user_id: profile?.id || '',
-      total_amount: total,
-      tax_amount: tax,
-      payment_method: paymentMethod,
-      discount_amount: discountAmount,
-      discount_type: globalDiscountType,
-      split_cash: paymentMethod === 'split' ? (parseFloat(splitCash) || 0) : (paymentMethod === 'cash' ? total : 0),
-      split_card: paymentMethod === 'split' ? Math.max(0, total - (parseFloat(splitCash) || 0)) : (paymentMethod === 'card' ? total : 0),
-      items: cart.map(item => ({
-        product_id: item.id,
-        product_name: item.name,
-        quantity: item.quantity,
-        price_at_sale: calculateItemPrice(item),
-        base_price: Number(item.sale_price || item.price || 0),
-        discount_amount: item.discount_value || 0,
-        discount_type: item.discount_type || 'percent',
-        excise_stamp: item.excise_stamp || null
-      })),
-      created_at: new Date().toISOString(),
-      synced: false,
-      retry_count: 0,
-    };
-
     try {
-      // 1. Always save locally first (instant)
-      await saveSaleLocally(saleData);
+      if (!profile?.id) throw new Error(t('common.unauthorized'));
 
-      // 2. If online, try to sync immediately via the RPC
-      if (navigator.onLine && profile?.id) {
-        try {
-          const { error } = await supabase.rpc('process_retail_sale', {
-            p_user_id: profile.id,
-            p_total_amount: total,
-            p_tax_amount: tax,
-            p_payment_method: paymentMethod,
-            p_discount_amount: discountAmount,
-            p_discount_type: globalDiscountType,
-            p_split_cash: saleData.split_cash,
-            p_split_card: saleData.split_card,
-            p_items: saleData.items,
-          });
+      const saleData = {
+        p_user_id: profile.id,
+        p_total_amount: total,
+        p_tax_amount: tax,
+        p_payment_method: paymentMethod,
+        p_discount_amount: discountAmount,
+        p_discount_type: globalDiscountType,
+        p_split_cash: paymentMethod === 'split' ? (parseFloat(splitCash) || 0) : (paymentMethod === 'cash' ? total : 0),
+        p_split_card: paymentMethod === 'split' ? Math.max(0, total - (parseFloat(splitCash) || 0)) : (paymentMethod === 'card' ? total : 0),
+        p_items: cart.map(item => ({
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          price_at_sale: calculateItemPrice(item),
+          base_price: Number(item.sale_price || item.price || 0),
+          discount_amount: item.discount_value || 0,
+          discount_type: item.discount_type || 'percent',
+          excise_stamp: item.excise_stamp || null
+        }))
+      };
 
-          if (error) throw error;
-
-          // Mark as synced in local DB
-          const { markSaleSynced } = await import('../../../services/offlineDB');
-          await markSaleSynced(saleData.local_id);
-        } catch (syncErr) {
-          // Sale is saved locally, will sync later
-          console.warn('[RetailPOS] Online sync failed, will retry later:', syncErr);
-        }
+      if (isElectron() || !isOnline) {
+        // Offline / Electron mode - save to local DB
+        await db.pendingSales.add({
+          user_id: saleData.p_user_id,
+          total_amount: saleData.p_total_amount,
+          tax_amount: saleData.p_tax_amount,
+          payment_method: saleData.p_payment_method,
+          discount_amount: saleData.p_discount_amount,
+          discount_type: saleData.p_discount_type,
+          split_cash: saleData.p_split_cash,
+          split_card: saleData.p_split_card,
+          items: saleData.p_items,
+          created_at: new Date().toISOString(),
+          synced: false
+        });
+        toast.success(isOnline ? t('retail.saleSuccess') : 'Чек сохранен локально (Оффлайн)');
+      } else {
+        // Standard Web mode - save to Supabase directly
+        const { error } = await supabase.rpc('process_retail_sale', saleData);
+        if (error) throw error;
+        toast.success(t('retail.saleSuccess'));
       }
 
-      toast.success(t('retail.saleSuccess'));
       setCart([]);
       setCashReceived('');
       setSplitCash('');
+      // Trigger background sync if online in Electron
+      if (isElectron() && isOnline) {
+        // Slight delay to allow UI to update
+        setTimeout(() => {
+          window.dispatchEvent(new Event('online'));
+        }, 500);
+      }
     } catch (err: any) {
       toast.error(t('common.error') + ': ' + err.message);
     } finally {
@@ -466,6 +455,30 @@ const RetailPOS: React.FC = () => {
             <h1 className="text-lg font-bold text-gray-900">{t('retail.posTitle')}</h1>
             <p className="text-xs text-gray-500 font-medium">{t('retail.cashier')}: {profile?.full_name || 'Admin'}</p>
           </div>
+          
+          {/* Offline Sync Indicator */}
+          {isElectron() && (
+            <div className="ml-4 flex items-center bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100 shadow-inner">
+              {isOnline ? (
+                pendingCount > 0 ? (
+                  <div className="flex items-center gap-1.5 text-yellow-600" title="Syncing...">
+                    <CloudCog className="w-4 h-4 animate-pulse" />
+                    <span className="text-xs font-bold">{pendingCount}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-green-500" title="Synced">
+                    <Cloud className="w-4 h-4" />
+                    <span className="text-[10px] font-bold uppercase">Online</span>
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center gap-1.5 text-red-500" title="Offline Mode">
+                  <CloudOff className="w-4 h-4" />
+                  <span className="text-xs font-bold">{pendingCount > 0 && pendingCount}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         <div className="flex-1 max-w-xl mx-8 relative">
@@ -500,7 +513,6 @@ const RetailPOS: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <SyncIndicator />
           <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-100">
             <NavLink to="/retail/inventory" className="p-2 text-gray-500 hover:text-merkez-blue hover:bg-white rounded-lg transition-all" title={t('retail.inventory.title')}>
               <Package className="w-5 h-5" />

@@ -1,179 +1,79 @@
+import { db } from './offlineDB';
 import { supabase } from '../supabaseClient';
-import {
-  getUnsyncedSales,
-  markSaleSynced,
-  markSaleFailed,
-  getPendingCount,
-  type PendingSale,
-} from './offlineDB';
-import { cacheAllProducts } from './productCache';
+import toast from 'react-hot-toast';
 
-export type SyncStatus = 'synced' | 'pending' | 'offline' | 'syncing';
+export const isElectron = () => {
+  return navigator.userAgent.toLowerCase().includes('electron');
+};
 
-type SyncListener = (status: SyncStatus, pendingCount: number) => void;
+export const processOfflineSales = async () => {
+  if (!navigator.onLine) return;
 
-/**
- * SyncManager — handles background synchronization of offline data.
- *
- * Responsibilities:
- * 1. Monitor network status (online/offline)
- * 2. When online: push all pending sales to Supabase
- * 3. Refresh product cache periodically
- * 4. Notify UI of sync status changes
- */
-class SyncManager {
-  private listeners: Set<SyncListener> = new Set();
-  private status: SyncStatus = 'synced';
-  private pendingCount: number = 0;
-  private syncInterval: ReturnType<typeof setInterval> | null = null;
-  private isSyncing: boolean = false;
-  private userId: string | null = null;
+  const pendingSales = await db.pendingSales.where('synced').equals('false').toArray();
+  // Note: Boolean indexed in Dexie 3+ needs string or number usually if not handled correctly, but boolean works in Dexie 3+.
+  // Let's get all and filter to be safe if index type is boolean.
+  const allPending = await db.pendingSales.toArray();
+  const unsynced = allPending.filter(s => !s.synced);
 
-  /** Initialize the sync manager */
-  async init(userId: string): Promise<void> {
-    this.userId = userId;
+  if (unsynced.length === 0) return;
 
-    // Listen for network changes
-    window.addEventListener('online', () => this.handleOnline());
-    window.addEventListener('offline', () => this.handleOffline());
+  console.log(`Starting sync for ${unsynced.length} pending sales...`);
 
-    // Check initial status
-    await this.updatePendingCount();
-
-    if (navigator.onLine) {
-      this.setStatus(this.pendingCount > 0 ? 'pending' : 'synced');
-      // Initial sync attempt
-      await this.syncAll();
-    } else {
-      this.setStatus('offline');
-    }
-
-    // Start periodic sync (every 30 seconds)
-    this.syncInterval = setInterval(() => {
-      if (navigator.onLine && !this.isSyncing) {
-        this.syncAll();
-      }
-    }, 30_000);
-  }
-
-  /** Clean up */
-  destroy(): void {
-    window.removeEventListener('online', () => this.handleOnline());
-    window.removeEventListener('offline', () => this.handleOffline());
-    if (this.syncInterval) clearInterval(this.syncInterval);
-  }
-
-  /** Subscribe to sync status changes */
-  subscribe(listener: SyncListener): () => void {
-    this.listeners.add(listener);
-    // Immediately send current status
-    listener(this.status, this.pendingCount);
-    return () => this.listeners.delete(listener);
-  }
-
-  /** Get current status */
-  getStatus(): { status: SyncStatus; pendingCount: number } {
-    return { status: this.status, pendingCount: this.pendingCount };
-  }
-
-  // ===== Private Methods =====
-
-  private setStatus(newStatus: SyncStatus): void {
-    this.status = newStatus;
-    this.notifyListeners();
-  }
-
-  private notifyListeners(): void {
-    this.listeners.forEach(fn => fn(this.status, this.pendingCount));
-  }
-
-  private async updatePendingCount(): Promise<void> {
-    this.pendingCount = await getPendingCount();
-  }
-
-  private async handleOnline(): Promise<void> {
-    console.log('[SyncManager] Network online — starting sync');
-    await this.syncAll();
-  }
-
-  private handleOffline(): void {
-    console.log('[SyncManager] Network offline');
-    this.setStatus('offline');
-  }
-
-  /** Main sync: push pending sales + refresh product cache */
-  async syncAll(): Promise<void> {
-    if (this.isSyncing || !navigator.onLine || !this.userId) return;
-
-    this.isSyncing = true;
-    this.setStatus('syncing');
-
+  for (const sale of unsynced) {
     try {
-      // 1. Push pending sales
-      await this.pushPendingSales();
+      // Use the same RPC call as RetailPOS.tsx
+      const { error } = await supabase.rpc('process_retail_sale', {
+        p_user_id: sale.user_id,
+        p_total_amount: sale.total_amount,
+        p_tax_amount: sale.tax_amount,
+        p_payment_method: sale.payment_method,
+        p_discount_amount: sale.discount_amount,
+        p_discount_type: sale.discount_type,
+        p_split_cash: sale.split_cash,
+        p_split_card: sale.split_card,
+        p_items: sale.items
+      });
 
-      // 2. Update pending count
-      await this.updatePendingCount();
-
-      // 3. Refresh product cache
-      await cacheAllProducts(this.userId);
-
-      // 4. Update status
-      this.setStatus(this.pendingCount > 0 ? 'pending' : 'synced');
+      if (error) {
+        console.error('Sync failed for sale:', sale.id, error);
+        // Continue with others, maybe this one has an issue
+      } else {
+        // Mark as synced
+        if (sale.id) {
+          await db.pendingSales.update(sale.id, { synced: true });
+        }
+      }
     } catch (err) {
-      console.error('[SyncManager] Sync failed:', err);
-      this.setStatus(this.pendingCount > 0 ? 'pending' : 'synced');
-    } finally {
-      this.isSyncing = false;
+      console.error('Unexpected error syncing sale:', err);
     }
   }
 
-  /** Push all unsynced sales to Supabase */
-  private async pushPendingSales(): Promise<void> {
-    const unsyncedSales = await getUnsyncedSales();
-
-    if (unsyncedSales.length === 0) {
-      console.log('[SyncManager] No pending sales to sync');
-      return;
+  // Check how many left
+  const remaining = await db.pendingSales.toArray();
+  const remainingUnsynced = remaining.filter(s => !s.synced);
+  
+  if (remainingUnsynced.length === 0) {
+    toast.success('Все оффлайн-продажи синхронизированы!');
+    // Optional: cleanup old synced sales to save space
+    const syncedSales = remaining.filter(s => s.synced);
+    for (const s of syncedSales) {
+      if (s.id) await db.pendingSales.delete(s.id);
     }
-
-    console.log(`[SyncManager] Syncing ${unsyncedSales.length} pending sales...`);
-
-    for (const sale of unsyncedSales) {
-      // Skip sales with too many retries
-      if (sale.retry_count >= 5) {
-        console.warn(`[SyncManager] Sale ${sale.local_id} exceeded retry limit, skipping`);
-        continue;
-      }
-
-      try {
-        await this.pushSingleSale(sale);
-        await markSaleSynced(sale.local_id);
-        console.log(`[SyncManager] ✅ Sale ${sale.local_id} synced`);
-      } catch (err: any) {
-        console.error(`[SyncManager] ❌ Sale ${sale.local_id} failed:`, err.message);
-        await markSaleFailed(sale.local_id, err.message);
-      }
-    }
+  } else {
+    toast.error(`Синхронизация завершена с ошибками. Осталось чеков: ${remainingUnsynced.length}`);
   }
+};
 
-  /** Push a single sale to Supabase using the existing RPC */
-  private async pushSingleSale(sale: PendingSale): Promise<void> {
-    const { error } = await supabase.rpc('process_retail_sale', {
-      p_user_id: sale.user_id,
-      p_total_amount: sale.total_amount,
-      p_tax_amount: sale.tax_amount,
-      p_payment_method: sale.payment_method,
-      p_discount_amount: sale.discount_amount,
-      p_discount_type: sale.discount_type,
-      p_split_cash: sale.split_cash,
-      p_split_card: sale.split_card,
-      p_items: sale.items,
-    });
+// Setup listeners for online/offline events
+export const initSyncManager = () => {
+  if (!isElectron()) return;
 
-    if (error) throw error;
-  }
-}
+  window.addEventListener('online', () => {
+    console.log('App is online. Processing offline sales...');
+    processOfflineSales();
+  });
 
-// Singleton
-export const syncManager = new SyncManager();
+  window.addEventListener('offline', () => {
+    console.log('App is offline.');
+  });
+};

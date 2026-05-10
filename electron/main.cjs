@@ -16,7 +16,7 @@ function createWindow() {
     title: 'Mərkəz Business Manager',
     icon: path.join(__dirname, '../public/merkez-icon.png'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
     },
