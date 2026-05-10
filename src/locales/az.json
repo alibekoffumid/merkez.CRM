@@ -330,6 +330,7 @@
     "connectScanner": "Skaneri Qoş",
     "parkedReceipts": "Gözləmədə olan qəbzlər",
     "scanBarcode": "Barkodu skan edin və ya yazın",
+    "searchPlaceholder": "Məhsulun adı və ya barkodu ilə axtar...",
     "park": "Gözlət",
     "receiptParked": "Qəbz gözləməyə alındı",
     "currentCheck": "Cari Qəbz",

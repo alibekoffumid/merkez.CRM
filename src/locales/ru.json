@@ -330,6 +330,7 @@
     "connectScanner": "Подключить сканер",
     "parkedReceipts": "Отложенные чеки",
     "scanBarcode": "Сканируйте или введите штрихкод",
+    "searchPlaceholder": "Поиск по названию или штрихкоду...",
     "park": "Отложить",
     "receiptParked": "Чек отложен",
     "currentCheck": "Текущий чек",

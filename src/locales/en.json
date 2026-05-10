@@ -330,6 +330,7 @@
     "connectScanner": "Connect Scanner",
     "parkedReceipts": "Parked Receipts",
     "scanBarcode": "Scan or type barcode",
+    "searchPlaceholder": "Search by name or barcode...",
     "park": "Park",
     "receiptParked": "Receipt parked",
     "currentCheck": "Current Receipt",
