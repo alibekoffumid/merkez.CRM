@@ -469,6 +469,7 @@ const Profile = () => {
                         
                         <input 
                           type="text" 
+                          inputMode="numeric"
                           name="admin_pin"
                           maxLength={4}
                           value={profile.admin_pin} 
@@ -482,6 +483,23 @@ const Profile = () => {
                           placeholder="0000"
                         />
                         
+                        <button 
+                          onClick={handleSave}
+                          disabled={isSaving || profile.admin_pin.length !== 4}
+                          className={`mt-6 w-full py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                            profile.admin_pin.length === 4
+                              ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-200 active:scale-95'
+                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          {isSaving ? (
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Save className="w-4 h-4" />
+                          )}
+                          {t('common.save')}
+                        </button>
+
                         <div className="mt-8 flex items-start space-x-3 text-xs text-amber-600/70 font-bold">
                            <div className="mt-0.5">⚠️</div>
                            <p>{t('profile.adminPinWarning', 'Убедитесь, что вы запомнили этот код. Он одинаков для всех администраторов этого филиала.')}</p>
