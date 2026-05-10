@@ -231,7 +231,7 @@ const WarehouseModule = () => {
     .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="space-y-6 flex flex-col h-full">
+    <div className="space-y-6 flex flex-col h-full w-full">
       {/* Modals */}
       <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
@@ -603,7 +603,7 @@ const WarehouseModule = () => {
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse min-w-[700px] table-fixed">
+                <table className="w-full text-left border-collapse table-fixed">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
                       <th className="font-medium p-4 w-16"></th>
