@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2, Languages, Monitor, Moon, Sun, Check } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
+import { useUser } from '../../core/UserContext';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
+  const { refreshProfile } = useUser();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('security');
   const [isSaving, setIsSaving] = useState(false);
@@ -99,6 +101,9 @@ const Profile = () => {
         .eq('id', user.id);
       
       if (error) throw error;
+      
+      // Refresh the global profile context so PinGuard picks up the new PIN
+      await refreshProfile();
       
       window.alert(t('common.saveSuccess', 'Настройки успешно сохранены!'));
     } catch (err) {
