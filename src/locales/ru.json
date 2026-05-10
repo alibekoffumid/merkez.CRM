@@ -42,7 +42,8 @@
   },
   "profile": {
     "title": "Мой профиль",
-    "subtitle": "Настройте данные вашего профиля и предпочтения аккаунта",
+    "signOut": "Выйти",
+    "subtitle": "Управляйте данными профиля и настройками аккаунта",
     "editProfile": "Редактировать профиль",
     "ownerDetails": "Личные данные",
     "businessInfo": "Информация о бизнесе",
@@ -323,6 +324,7 @@
     }
   },
   "retail": {
+    "pos": "Merkez POS",
     "posTitle": "Merkez POS",
     "cashier": "Кассир",
     "connectScanner": "Подключить сканер",
@@ -374,6 +376,7 @@
       "tableSale": "Продажа",
       "tableStock": "Остаток",
       "status": "Статус",
+      "tableActions": "Действия",
       "ok": "В норме"
     },
     "history": {

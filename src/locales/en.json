@@ -42,6 +42,7 @@
   },
   "profile": {
     "title": "My Profile",
+    "signOut": "Sign Out",
     "subtitle": "Manage your profile details and account preferences",
     "editProfile": "Edit Profile",
     "ownerDetails": "Personal Details",
@@ -323,6 +324,7 @@
     }
   },
   "retail": {
+    "pos": "Merkez POS",
     "posTitle": "Merkez POS",
     "cashier": "Cashier",
     "connectScanner": "Connect Scanner",
@@ -374,6 +376,7 @@
       "tableSale": "Sale",
       "tableStock": "Stock",
       "status": "Status",
+      "tableActions": "Actions",
       "ok": "In Stock"
     },
     "history": {

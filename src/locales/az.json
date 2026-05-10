@@ -42,6 +42,7 @@
   },
   "profile": {
     "title": "Profilim",
+    "signOut": "Çıxış",
     "subtitle": "Profil məlumatlarınızı və hesab tənzimləmələrinizi idarə edin",
     "editProfile": "Profili redaktə et",
     "ownerDetails": "Şəxsi məlumatlar",
@@ -323,6 +324,7 @@
     }
   },
   "retail": {
+    "pos": "Merkez POS",
     "posTitle": "Merkez POS",
     "cashier": "Kassir",
     "connectScanner": "Skaneri Qoş",
@@ -374,6 +376,7 @@
       "tableSale": "Satış",
       "tableStock": "Stok",
       "status": "Status",
+      "tableActions": "Əməliyyatlar",
       "ok": "Normal"
     },
     "history": {
