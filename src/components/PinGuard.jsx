@@ -44,7 +44,7 @@ const PinGuard = ({ children, moduleId }) => {
   };
 
   const handleClose = () => {
-    navigate('/modules');
+    navigate(-1);
   };
 
   if (!isLocked) {
