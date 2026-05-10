@@ -8,6 +8,7 @@
     "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "dev": "vite",
     "build": "node node_modules/vite/bin/vite.js build",
+    "dist": "npm run build && electron-builder",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -56,5 +57,24 @@
     "typescript": "^6.0.2",
     "vite": "^5.0.8",
     "wait-on": "^9.0.5"
+  },
+  "build": {
+    "appId": "com.merkez.crm",
+    "productName": "Mərkəz CRM",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

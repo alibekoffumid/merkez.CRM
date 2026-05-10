@@ -10,6 +10,7 @@ import PublicMenu from './modules/Restaurant/PublicMenu';
 import CallCenterModule from './modules/CallCenter';
 import Auth from './modules/Auth/Auth';
 import AuthGuard from './components/Auth/AuthGuard';
+import PinGuard from './components/PinGuard';
 import Profile from './modules/Profile';
 import FinanceModule from './modules/Finance';
 import DentalModule from './modules/Dental';
@@ -148,7 +149,11 @@ function App() {
             <ModuleGuard moduleId="crm"><CRMModule /></ModuleGuard>
           } />
           <Route path="warehouse" element={
-            <ModuleGuard moduleId="warehouse"><WarehouseModule /></ModuleGuard>
+            <ModuleGuard moduleId="warehouse">
+              <PinGuard moduleId="warehouse">
+                <WarehouseModule />
+              </PinGuard>
+            </ModuleGuard>
           } />
           <Route path="finance" element={
             <ModuleGuard moduleId="finance"><FinanceModule /></ModuleGuard>

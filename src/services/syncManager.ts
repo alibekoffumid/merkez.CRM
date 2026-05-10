@@ -15,11 +15,10 @@ export const processOfflineSales = async () => {
   isSyncing = true;
 
   try {
-    const pendingSales = await db.pendingSales.where('synced').equals('false').toArray();
-    // Note: Boolean indexed in Dexie 3+ needs string or number usually if not handled correctly, but boolean works in Dexie 3+.
-    // Let's get all and filter to be safe if index type is boolean.
+    const pendingSales = await db.pendingSales.where('synced').equals(0).toArray(); // Or just get all and filter
+    // Let's use filter for maximum compatibility with current Dexie setup
     const allPending = await db.pendingSales.toArray();
-    const unsynced = allPending.filter(s => !s.synced);
+    const unsynced = allPending.filter(s => s.synced === false);
 
     if (unsynced.length === 0) return;
 

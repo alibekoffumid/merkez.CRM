@@ -1,7 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Replace with your Supabase URL and Anon Key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+const isProd = import.meta.env.PROD;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Environment separation logic
+// VITE_SUPABASE_URL_PROD / VITE_SUPABASE_ANON_KEY_PROD
+// VITE_SUPABASE_URL_DEV / VITE_SUPABASE_ANON_KEY_DEV
+const supabaseUrl = isProd 
+  ? import.meta.env.VITE_SUPABASE_URL_PROD 
+  : (import.meta.env.VITE_SUPABASE_URL_DEV || import.meta.env.VITE_SUPABASE_URL);
+
+const supabaseAnonKey = isProd 
+  ? import.meta.env.VITE_SUPABASE_ANON_KEY_PROD 
+  : (import.meta.env.VITE_SUPABASE_ANON_KEY_DEV || import.meta.env.VITE_SUPABASE_ANON_KEY);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase credentials missing. Check your .env file.');
+}
+
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');

@@ -117,7 +117,10 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + (from === '/' ? '' : from)
+          redirectTo: window.location.origin + (from === '/' ? '' : from),
+          queryParams: {
+            prompt: 'select_account'
+          }
         }
       });
       if (error) setError(error.message);

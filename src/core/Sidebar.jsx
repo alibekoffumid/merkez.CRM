@@ -186,6 +186,16 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             {t('profile.signOut')}
           </span>
         </button>
+
+        {/* Version Display */}
+        <div className={`
+          mt-4 px-4 py-2 border-t border-gray-50 transition-opacity duration-300
+          ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
+        `}>
+          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
+            v1.0.0 Stable
+          </p>
+        </div>
       </div>
     </div>
   );
