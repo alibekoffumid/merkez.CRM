@@ -413,7 +413,7 @@ const RetailPOS: React.FC = () => {
           created_at: new Date().toISOString(),
           synced: false
         });
-        toast.success(isOnline ? t('retail.saleSuccess') : 'Чек сохранен локально (Оффлайн)');
+        toast.success(isOnline ? t('retail.saleSuccess') : t('retail.offlineSaved'));
       } else {
         // Standard Web mode - save to Supabase directly
         const { error } = await supabase.rpc('process_retail_sale', saleData);

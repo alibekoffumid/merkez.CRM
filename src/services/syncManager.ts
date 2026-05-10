@@ -1,6 +1,7 @@
 import { db } from './offlineDB';
 import { supabase } from '../supabaseClient';
 import toast from 'react-hot-toast';
+import i18n from '../i18n';
 
 export const isElectron = () => {
   return navigator.userAgent.toLowerCase().includes('electron');
@@ -58,14 +59,14 @@ export const processOfflineSales = async () => {
     const remainingUnsynced = remaining.filter(s => !s.synced);
     
     if (remainingUnsynced.length === 0) {
-      toast.success('Все оффлайн-продажи синхронизированы!');
+      toast.success(i18n.t('retail.syncSuccess'));
       // Optional: cleanup old synced sales to save space
       const syncedSales = remaining.filter(s => s.synced);
       for (const s of syncedSales) {
         if (s.id) await db.pendingSales.delete(s.id);
       }
     } else {
-      toast.error(`Синхронизация завершена с ошибками. Осталось чеков: ${remainingUnsynced.length}`);
+      toast.error(i18n.t('retail.syncError', { count: remainingUnsynced.length }));
     }
   } finally {
     isSyncing = false;
