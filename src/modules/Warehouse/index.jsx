@@ -477,7 +477,7 @@ const WarehouseModule = () => {
                       setStartDate(start);
                       setEndDate(end);
                     }}
-                    placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
+                    placeholder={t('common.selectDateRange') || 'Выберите диапазон'}
                   />
                 </div>
               </div>

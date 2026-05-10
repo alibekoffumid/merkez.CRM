@@ -91,7 +91,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     if (!dateStr) return '';
     const date = new Date(dateStr);
     const monthKey = monthsList[date.getMonth()];
-    const monthName = t(`restaurant.${monthKey}`).slice(0, 3);
+    const monthName = t(`common.${monthKey}`).slice(0, 3);
     const day = date.getDate();
     return `${monthName} ${day}`;
   };
@@ -141,7 +141,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
         <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-3xl shadow-2xl z-50 p-6 w-[320px] animate-in fade-in zoom-in-95 duration-200 origin-top">
           <div className="flex justify-between items-center mb-6">
             <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-              {t(`restaurant.${monthsList[monthIndex]}`)} {year}
+              {t(`common.${monthsList[monthIndex]}`)} {year}
             </span>
             <div className="flex gap-1">
               <button onClick={() => changeMonth(-1)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500 transition-colors">
@@ -155,7 +155,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
           <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest">
             {['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'].map(d => (
-              <div key={d}>{t(`restaurant.${d}`)}</div>
+              <div key={d}>{t(`common.${d}`)}</div>
             ))}
           </div>
 
@@ -206,7 +206,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
               }}
               className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
             >
-              {t('restaurant.clear') || 'Clear'}
+              {t('common.clear') || 'Clear'}
             </button>
             <button 
               onClick={() => {
@@ -215,7 +215,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
               }}
               className="bg-merkez-blue text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-merkez-blue/20 hover:bg-blue-600 transition-all active:scale-95"
             >
-              {t('restaurant.applyRange') || 'Apply'}
+              {t('common.applyRange') || 'Apply'}
             </button>
           </div>
         </div>
