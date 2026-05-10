@@ -432,15 +432,15 @@ const WarehouseModule = () => {
               </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <table className="w-full text-left">
+              <table className="w-full text-left table-fixed">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.receivedDate')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.supplier')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.product')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('warehouse.quantity')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('warehouse.unitPrice')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('common.total') || 'Итого'}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[15%]">{t('warehouse.receivedDate')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[25%]">{t('warehouse.supplier')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[30%]">{t('warehouse.product')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">{t('warehouse.quantity')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">{t('warehouse.unitPrice')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right w-[10%]">{t('common.total') || 'Итого'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -603,18 +603,18 @@ const WarehouseModule = () => {
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse min-w-[700px]">
+                <table className="w-full text-left border-collapse min-w-[700px] table-fixed">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
                       <th className="font-medium p-4 w-16"></th>
-                      <th className="font-medium p-4">{t('warehouse.thName')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thBarcode')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thCategory')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thPurchasePrice')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thPrice')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thStock')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
-                      <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
+                      <th className="font-medium p-4 w-[20%]">{t('warehouse.thName')}</th>
+                      <th className="font-medium p-4 w-[15%]">{t('warehouse.thBarcode')}</th>
+                      <th className="font-medium p-4 w-[15%]">{t('warehouse.thCategory')}</th>
+                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thPurchasePrice')}</th>
+                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thPrice')}</th>
+                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thStock')}</th>
+                      <th className="font-medium p-4 w-[10%]">{t('warehouse.thStatus')}</th>
+                      <th className="font-medium p-4 w-[10%] text-right">{t('warehouse.thActions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
