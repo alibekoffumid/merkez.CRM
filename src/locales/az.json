@@ -950,5 +950,64 @@
   },
   "auth": {
     "sessionExpired": "Sessiya bitib"
+  },
+  "landing": {
+    "title": "Mərkəz CRM — Biznesinizi Bir Platformada İdarə Edin",
+    "hero": {
+      "title": "Biznesinizi Bir Platformada İdarə Edin",
+      "subtitle": "Restoran, mağaza, klinika, təhsil, avtomobil parkı — hansı sahədə olursunuz olun, Merkez CRM sizin üçün hazırlanıb.",
+      "cta": {
+        "start": "Pulsuz Başla",
+        "explore": "Modulları Kəşf Et"
+      }
+    },
+    "nav": {
+      "modules": "Modullar",
+      "howItWorks": "Necə İşləyir",
+      "pricing": "Qiymətlər",
+      "login": "Daxil ol"
+    },
+    "features": {
+      "title": "Hər Bir Sahə Üçün Xüsusi Modul",
+      "subtitle": "Yalnız sizə lazım olan modulları aktivləşdirin. Artıq ödəniş, lazımsız funksiyalar yoxdur."
+    },
+    "how": {
+      "title": "3 Addımda Başlayın",
+      "step1": {
+        "title": "Qeydiyyat",
+        "desc": "Google hesabınızla saniyələr içində daxil olun."
+      },
+      "step2": {
+        "title": "Modulları Seçin",
+        "desc": "Biznesinizə uyğun modulları aktivləşdirin."
+      },
+      "step3": {
+        "title": "İdarə Edin",
+        "desc": "Bütün biznes proseslərini bir yerdən izləyin."
+      }
+    },
+    "cta": {
+      "title": "Biznesinizi Rəqəmsallaşdırmağa Hazırsınız?",
+      "subtitle": "14 gün pulsuz sınayın. Kart tələb olunmur."
+    },
+    "footer": {
+      "desc": "Hər bir biznes üçün hazırlanmış modular CRM platforması."
+    },
+    "why": {
+      "title": "Niyə Mərkəz?",
+      "subtitle": "Rəqiblərdən Fərqimiz",
+      "modular": {
+        "title": "Modular Arxitektura",
+        "desc": "Yalnız lazım olanı ödəyin. Hər modul müstəqildir."
+      },
+      "multilingual": {
+        "title": "Çoxdilli (AZ/RU/EN)",
+        "desc": "Azərbaycan, Rus və İngilis dillərində tam dəstək."
+      },
+      "mobile": {
+        "title": "Mobil Uyğun",
+        "desc": "İstənilən cihazdan — telefon, planşet, kompüter."
+      }
+    }
   }
 }

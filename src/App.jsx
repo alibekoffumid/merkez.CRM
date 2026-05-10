@@ -20,6 +20,7 @@ import RetailModule from './modules/Retail';
 import FleetModule from './modules/Fleet';
 import ScannerModule from './modules/Scanner';
 import ModuleStore from './pages/ModuleStore';
+import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
 import { Toaster } from 'react-hot-toast';
 
@@ -83,8 +84,6 @@ const NativeRedirect = ({ children }) => {
   return children;
 };
 
-
-
 // Dynamic landing page redirect based on active modules
 const DynamicRedirect = () => {
   const { activeModules } = useUser();
@@ -129,6 +128,8 @@ function App() {
     <UserProvider>
       <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/m/:businessId" element={<PublicMenu />} />
         
@@ -148,6 +149,25 @@ function App() {
           </AuthGuard>
         } />
 
+        {/* Main App Layout */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <AuthGuard>
+              <NativeRedirect>
+                <OnboardingGuard>
+                  <CoreLayout />
+                </OnboardingGuard>
+              </NativeRedirect>
+            </AuthGuard>
+          }
+        >
+          <Route index element={<DynamicRedirect />} />
+          <Route path="e-taxes" element={
+            <ModuleGuard moduleId="eTaxes"><ETaxesModule /></ModuleGuard>
+          } />
+        </Route>
+
         <Route 
           path="/" 
           element={
@@ -160,13 +180,6 @@ function App() {
             </AuthGuard>
           }
         >
-          <Route index element={<DynamicRedirect />} />
-          <Route path="dashboard">
-            <Route index element={<DynamicRedirect />} />
-            <Route path="e-taxes" element={
-              <ModuleGuard moduleId="eTaxes"><ETaxesModule /></ModuleGuard>
-            } />
-          </Route>
           <Route path="crm" element={
             <ModuleGuard moduleId="crm"><CRMModule /></ModuleGuard>
           } />

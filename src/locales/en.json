@@ -950,5 +950,64 @@
   },
   "auth": {
     "sessionExpired": "Session expired"
+  },
+  "landing": {
+    "title": "Merkez CRM — Manage Your Business on One Platform",
+    "hero": {
+      "title": "Manage Your Business on One Platform",
+      "subtitle": "Restaurant, shop, clinic, education, fleet — whatever your business, Merkez CRM is built for you.",
+      "cta": {
+        "start": "Get Started Free",
+        "explore": "Explore Modules"
+      }
+    },
+    "nav": {
+      "modules": "Modules",
+      "howItWorks": "How It Works",
+      "pricing": "Pricing",
+      "login": "Login"
+    },
+    "features": {
+      "title": "Specialized Modules for Every Industry",
+      "subtitle": "Activate only the modules you need. No overpayments or unnecessary features."
+    },
+    "how": {
+      "title": "Start in 3 Steps",
+      "step1": {
+        "title": "Sign Up",
+        "desc": "Sign in with your Google account in seconds."
+      },
+      "step2": {
+        "title": "Select Modules",
+        "desc": "Activate modules that fit your business."
+      },
+      "step3": {
+        "title": "Manage",
+        "desc": "Monitor all processes from one place."
+      }
+    },
+    "cta": {
+      "title": "Ready to Digitize Your Business?",
+      "subtitle": "Try for 14 days free. No credit card required."
+    },
+    "footer": {
+      "desc": "A modular CRM platform built for every business."
+    },
+    "why": {
+      "title": "Why Merkez?",
+      "subtitle": "Our Difference from Competitors",
+      "modular": {
+        "title": "Modular Architecture",
+        "desc": "Pay only for what you need. Each module is independent."
+      },
+      "multilingual": {
+        "title": "Multilingual",
+        "desc": "Full support for Azerbaijani, Russian, and English."
+      },
+      "mobile": {
+        "title": "Mobile Ready",
+        "desc": "From any device — phone, tablet, computer."
+      }
+    }
   }
 }
