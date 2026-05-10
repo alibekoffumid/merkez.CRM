@@ -88,7 +88,6 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
         category_id: formData.category_id,
         stock_quantity: parseFloat(formData.stock_quantity || 0),
         critical_stock: parseFloat(formData.critical_stock || 5),
-        supplier_id: formData.supplier_id || null,
         image_url: imageUrl,
         user_id: profile?.id
       }])
