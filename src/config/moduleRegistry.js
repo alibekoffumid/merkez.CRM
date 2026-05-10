@@ -47,10 +47,6 @@ export const MODULE_REGISTRY = {
     price: 29,
     isFree: false,
     isCore: false,
-    subItems: [
-      { id: 'contacts', nameKey: 'crm.contacts', path: '/crm' },
-      { id: 'deals', nameKey: 'crm.deals', path: '/crm' },
-    ]
   },
   warehouse: {
     id: 'warehouse',
@@ -66,11 +62,6 @@ export const MODULE_REGISTRY = {
     price: 29,
     isFree: false,
     isCore: false,
-    subItems: [
-      { id: 'products', nameKey: 'warehouse.finishedGoods', path: '/warehouse' },
-      { id: 'suppliers', nameKey: 'warehouse.suppliers', path: '/warehouse' },
-      { id: 'history', nameKey: 'warehouse.history', path: '/warehouse' },
-    ]
   },
   restaurant: {
     id: 'restaurant',
@@ -101,10 +92,6 @@ export const MODULE_REGISTRY = {
     price: 29,
     isFree: false,
     isCore: false,
-    subItems: [
-      { id: 'transactions', nameKey: 'finance.transactions', path: '/finance' },
-      { id: 'reports', nameKey: 'finance.reports', path: '/finance' },
-    ]
   },
   callCenter: {
     id: 'callCenter',
@@ -165,10 +152,6 @@ export const MODULE_REGISTRY = {
     price: 39,
     isFree: false,
     isCore: false,
-    subItems: [
-      { id: 'pos', nameKey: 'retail.pos', path: '/retail' },
-      { id: 'history', nameKey: 'retail.history.title', path: '/retail/history' },
-    ]
   },
   fleet: {
     id: 'fleet',
@@ -200,6 +183,5 @@ export const getNavItemsFromModules = (t, activeModuleIds) => {
       activeBg: mod.activeBg,
       activeShadow: mod.activeShadow,
       activeText: mod.activeText,
-      subItems: mod.subItems || []
     }));
 };

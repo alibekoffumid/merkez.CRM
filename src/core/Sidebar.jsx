@@ -70,83 +70,51 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
 
       <nav className="flex-1 px-3 mt-6 space-y-2 overflow-y-auto no-scrollbar">
         {navItems.map((item) => (
-          <div key={item.path}>
-            <NavLink
-              to={item.path}
-              onClick={onCloseMobile}
-              className={({ isActive }) =>
-                `flex items-center px-2.5 py-2 rounded-xl transition-all duration-200 ${
-                  isActive 
-                    ? `${item.activeText} font-bold` 
-                    : `text-gray-500 hover:text-gray-800 ${item.color}`
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <div className="relative shrink-0">
-                    <div className={`p-2 rounded-xl mr-3 transition-all duration-200 ${
-                      isActive 
-                        ? `${item.activeBg} text-white shadow-lg ${item.activeShadow}` 
-                        : 'text-gray-400 group-hover:text-gray-600'
-                    }`}>
-                      <item.icon className="w-5 h-5" />
-                    </div>
-                    {item.id === 'integrations' && unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-0.5 flex items-center justify-center">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-60 animate-ping" />
-                        <span className="relative min-w-[20px] h-[20px] flex items-center justify-center rounded-full px-1.5 text-[10px] font-black text-white"
-                          style={{
-                            background: 'linear-gradient(135deg, #ef4444, #ec4899)',
-                            boxShadow: '0 0 12px rgba(239, 68, 68, 0.5), 0 2px 6px rgba(236, 72, 153, 0.3)'
-                          }}
-                        >
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      </span>
-                    )}
+          <NavLink
+            key={item.path}
+            to={item.path}
+            onClick={onCloseMobile}
+            className={({ isActive }) =>
+              `flex items-center px-2.5 py-2 rounded-xl transition-all duration-200 ${
+                isActive 
+                  ? `${item.activeText} font-bold` 
+                  : `text-gray-500 hover:text-gray-800 ${item.color}`
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <div className="relative shrink-0">
+                  <div className={`p-2 rounded-xl mr-3 transition-all duration-200 ${
+                    isActive 
+                      ? `${item.activeBg} text-white shadow-lg ${item.activeShadow}` 
+                      : 'text-gray-400 group-hover:text-gray-600'
+                  }`}>
+                    <item.icon className="w-5 h-5" />
                   </div>
-                  <span className={`
-                    transition-opacity duration-300 whitespace-nowrap font-bold
-                    ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
-                  `}>
-                    {item.name}
-                  </span>
-                </>
-              )}
-            </NavLink>
-            
-            {/* Sub Items - Only show if active or group is hovered (on desktop) */}
-            {item.subItems && item.subItems.length > 0 && location.pathname.startsWith(item.path) && (
-              <div className={`
-                ml-11 mt-1 space-y-1 overflow-hidden transition-all duration-300
-                ${isMobileOpen ? 'block' : 'hidden lg:group-hover:block'}
-              `}>
-                {item.subItems.map(sub => (
-                  <NavLink
-                    key={sub.id}
-                    to={sub.path}
-                    className={({ isActive }) => 
-                      `flex items-center py-1.5 px-3 rounded-lg text-[13px] font-medium transition-all mb-0.5 ${
-                        isActive 
-                          ? `${item.activeText} bg-white shadow-sm ring-1 ring-gray-200/50 font-black translate-x-1` 
-                          : 'text-gray-500/70 hover:text-gray-900 hover:bg-gray-50'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <div className={`w-1.5 h-1.5 rounded-full mr-2.5 transition-all ${
-                          isActive ? item.activeBg : 'bg-gray-200 group-hover:bg-gray-300'
-                        }`} />
-                        {t(sub.nameKey) || sub.id}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
+                  {item.id === 'integrations' && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-0.5 flex items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-60 animate-ping" />
+                      <span className="relative min-w-[20px] h-[20px] flex items-center justify-center rounded-full px-1.5 text-[10px] font-black text-white"
+                        style={{
+                          background: 'linear-gradient(135deg, #ef4444, #ec4899)',
+                          boxShadow: '0 0 12px rgba(239, 68, 68, 0.5), 0 2px 6px rgba(236, 72, 153, 0.3)'
+                        }}
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    </span>
+                  )}
+                </div>
+                <span className={`
+                  transition-opacity duration-300 whitespace-nowrap font-bold
+                  ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
+                `}>
+                  {item.name}
+                </span>
+              </>
             )}
-          </div>
+          </NavLink>
         ))}
       </nav>
 
