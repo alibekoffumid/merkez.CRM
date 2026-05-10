@@ -14,6 +14,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
@@ -35,6 +36,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
     setIsProcessing(true);
     setProgress(0);
     setResult(null);
+    setErrorMessage(null);
 
     Papa.parse(file, {
       header: true,
@@ -49,30 +51,45 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
 
         const businessId = profile?.business_id || profile?.tenant_id || profile?.id;
         
+        // Try to get a default category if none provided
+        let defaultCategoryId = null;
+        try {
+          const { data: catData } = await supabase
+            .from('categories')
+            .select('id')
+            .limit(1);
+          if (catData && catData.length > 0) {
+            defaultCategoryId = catData[0].id;
+          }
+        } catch (e) {}
+
         // Map data to the required format as requested by user
-        const dataToUpload = rawData.map(row => ({
-          barcode: String(row.barcode || row.Barcode || row['Баркод'] || '').trim(),
-          name: String(row.name || row.Name || row['Наименование'] || '').trim(),
-          sale_price: parseFloat(row.sale_price || row.Price || row['Цена']) || 0,
-          stock_quantity: parseFloat(row.stock_quantity || row.Quantity || row['Количество']) || 0,
-          expiry_date: row.expiry_date || row['Срок годности'] || null,
-          business_id: businessId,
-          // Compatibility with existing schema
-          user_id: profile?.id,
-          price: parseFloat(row.sale_price || row.Price || row['Цена']) || 0
-        })).filter(item => item.barcode && item.name); // Basic validation
+        const dataToUpload = rawData.map(row => {
+          const price = parseFloat(row.sale_price || row.Price || row['Цена'] || row.price) || 0;
+          return {
+            barcode: String(row.barcode || row.Barcode || row['Баркод'] || '').trim(),
+            name: String(row.name || row.Name || row['Наименование'] || '').trim(),
+            stock_quantity: parseFloat(row.stock_quantity || row.Quantity || row['Количество'] || row.stock) || 0,
+            expiry_date: row.expiry_date || row['Срок годности'] || null,
+            business_id: businessId,
+            // Compatibility with existing schema
+            user_id: profile?.id,
+            price: price,
+            category_id: row.category_id || defaultCategoryId
+          };
+        }).filter(item => item.barcode && item.name);
 
         if (dataToUpload.length === 0) {
-          toast.error("Не найдено корректных данных для импорта. Проверьте заголовки: barcode, name, price...");
+          toast.error("Не найдено корректных данных для импорта. Проверьте заголовки: barcode, name...");
           setIsProcessing(false);
           return;
         }
 
         try {
-          // Chunking for large datasets
           const chunkSize = 50;
           let successCount = 0;
           let errorCount = 0;
+          let lastError = null;
 
           for (let i = 0; i < dataToUpload.length; i += chunkSize) {
             const chunk = dataToUpload.slice(i, i + chunkSize);
@@ -83,6 +100,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
             if (error) {
               console.error('Upsert error:', error);
               errorCount += chunk.length;
+              lastError = error.message;
             } else {
               successCount += chunk.length;
             }
@@ -92,16 +110,15 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
           }
 
           setResult({ success: successCount, error: errorCount });
+          setErrorMessage(lastError);
+          
           if (successCount > 0) {
-            toast.success(`Успешно импортировано: ${successCount}`);
+            toast.success(`Успешно: ${successCount}`);
             onImportComplete && onImportComplete();
           }
-          if (errorCount > 0) {
-            toast.error(`Ошибок при импорте: ${errorCount}`);
-          }
         } catch (err) {
-          toast.error("Ошибка при загрузке в базу данных");
-          console.error(err);
+          toast.error("Ошибка при загрузке");
+          setErrorMessage(err.message);
         } finally {
           setIsProcessing(false);
         }
@@ -181,6 +198,13 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
                     <span className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">{t('warehouse.errors')}</span>
                   </div>
                 </div>
+
+                {errorMessage && (
+                  <div className="w-full p-4 bg-red-50 border border-red-100 rounded-2xl mb-6">
+                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Xəta mesajı:</p>
+                    <p className="text-xs font-bold text-red-600 leading-relaxed">{errorMessage}</p>
+                  </div>
+                )}
 
                 <button 
                   onClick={onClose}
