@@ -31,7 +31,8 @@
     "generated": "Yaradılıb",
     "unauthorized": "İcazəsiz giriş",
     "selectEndDate": "Bitmə tarixini seçin",
-    "selectDateRange": "Tarix aralığını seçin"
+    "selectDateRange": "Tarix aralığını seçin",
+    "deleteSelected": "Seçilənləri sil"
   },
   "sidebar": {
     "dashboard": "Panel",

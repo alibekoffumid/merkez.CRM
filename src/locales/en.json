@@ -31,7 +31,8 @@
     "generated": "Generated",
     "unauthorized": "Unauthorized",
     "selectEndDate": "Select end date",
-    "selectDateRange": "Select date range"
+    "selectDateRange": "Select date range",
+    "deleteSelected": "Delete Selected"
   },
   "sidebar": {
     "dashboard": "Dashboard",

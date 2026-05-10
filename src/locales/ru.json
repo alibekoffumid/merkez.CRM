@@ -31,7 +31,8 @@
     "generated": "Сгенерировано",
     "unauthorized": "Нет доступа",
     "selectEndDate": "Выберите конечную дату",
-    "selectDateRange": "Выберите диапазон дат"
+    "selectDateRange": "Выберите диапазон дат",
+    "deleteSelected": "Удалить выбранные"
   },
   "sidebar": {
     "dashboard": "Дашборд",
