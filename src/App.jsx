@@ -137,8 +137,6 @@ function App() {
             </AuthGuard>
           }
         >
-          }
-        >
           <Route index element={<Navigate to="/modules" replace />} />
           <Route path="dashboard">
             <Route index element={<Navigate to="/modules" replace />} />
