@@ -71,7 +71,6 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
             name: String(row.name || row.Name || row['Наименование'] || '').trim(),
             stock_quantity: parseFloat(row.stock_quantity || row.Quantity || row['Количество'] || row.stock) || 0,
             expiry_date: row.expiry_date || row['Срок годности'] || null,
-            business_id: businessId,
             // Compatibility with existing schema
             user_id: profile?.id,
             price: price,
