@@ -94,7 +94,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
             const chunk = dataToUpload.slice(i, i + chunkSize);
             const { error } = await supabase
               .from('products')
-              .upsert(chunk, { onConflict: 'barcode' });
+              .insert(chunk);
 
             if (error) {
               console.error('Upsert error:', error);
