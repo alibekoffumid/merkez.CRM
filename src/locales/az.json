@@ -15,6 +15,7 @@
     "error": "Xəta",
     "all": "Hamısı",
     "filter": "Filtr",
+    "unit": "ədəd",
     "back": "Geri",
     "adminLock": "Admin Kilidi",
     "enterPinToAccess": "Bu bölməyə daxil olmaq üçün 4 rəqəmli PIN kodu daxil edin",
@@ -36,7 +37,8 @@
     "etaxes": "e-Vergilər",
     "modules": "Modullar",
     "settings": "Tənzimləmələr",
-    "logout": "Çıxış"
+    "logout": "Çıxış",
+    "signOut": "Çıxış"
   },
   "profile": {
     "title": "Profilim",
@@ -353,8 +355,43 @@
     "saleSuccess": "Satış uğurla tamamlandı",
     "barcodeNotFound": "Barkod tapılmadı",
     "receiptRestored": "Qəbz bərpa olundu",
-    "inventory": { "title": "İnventar" },
-    "history": { "title": "Tarixçə", "empty": "Tarixçə boşdur" }
+    "inventory": {
+      "title": "İnventar",
+      "subtitle": "Mağaza ehtiyatlarını və mal qalığını idarə edin",
+      "totalProducts": "Ümumi Məhsullar",
+      "criticalStock": "Kritik Hədd",
+      "stockValue": "Stok Dəyəri",
+      "expectedRevenue": "Gözlənilən Gəlir",
+      "addProduct": "Məhsul Əlavə et",
+      "searchPlaceholder": "Məhsullarda axtar...",
+      "sortName": "Ad üzrə",
+      "sortPrice": "Qiymət üzrə",
+      "sortStock": "Stok üzrə",
+      "filters": "Filtrlər",
+      "tableProduct": "Məhsul",
+      "tableCategory": "Kateqoriya",
+      "tablePurchase": "Alış",
+      "tableSale": "Satış",
+      "tableStock": "Stok",
+      "status": "Status",
+      "ok": "Normal"
+    },
+    "history": {
+      "title": "Tarixçə",
+      "subtitle": "Satış jurnalına və qəbzlərə baxın",
+      "totalSales": "Satış sayı",
+      "revenue": "Ümumi Gəlir",
+      "searchPlaceholder": "Qəbz № axtar...",
+      "period": "Dövr",
+      "filters": "Filtrlər",
+      "tableReceipt": "Qəbz",
+      "tableTime": "Vaxt",
+      "tablePayment": "Ödəniş",
+      "tableVat": "ƏDV",
+      "tableTotal": "Cəmi",
+      "tableActions": "Əməliyyatlar",
+      "empty": "Tarixçə boşdur"
+    }
   },
   "warehouse": {
     "finishedGoods": "Hazır Məhsullar",

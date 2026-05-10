@@ -15,6 +15,7 @@
     "error": "Ошибка",
     "all": "Все",
     "filter": "Фильтр",
+    "unit": "шт",
     "back": "Назад",
     "adminLock": "Админ. замок",
     "enterPinToAccess": "Введите 4-значный PIN для доступа",
@@ -36,7 +37,8 @@
     "etaxes": "е-Налоги",
     "modules": "Модули",
     "settings": "Настройки",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "signOut": "Выйти"
   },
   "profile": {
     "title": "Мой профиль",
@@ -353,8 +355,43 @@
     "saleSuccess": "Продажа успешно завершена",
     "barcodeNotFound": "Штрихкод не найден",
     "receiptRestored": "Чек восстановлен",
-    "inventory": { "title": "Инвентарь" },
-    "history": { "title": "История", "empty": "История пуста" }
+    "inventory": {
+      "title": "Инвентарь",
+      "subtitle": "Управляйте запасами магазина и остатками товаров",
+      "totalProducts": "Всего товаров",
+      "criticalStock": "Критический остаток",
+      "stockValue": "Стоимость склада",
+      "expectedRevenue": "Ожидаемая выручка",
+      "addProduct": "Добавить товар",
+      "searchPlaceholder": "Поиск в товарах...",
+      "sortName": "По имени",
+      "sortPrice": "По цене",
+      "sortStock": "По остатку",
+      "filters": "Фильтры",
+      "tableProduct": "Товар",
+      "tableCategory": "Категория",
+      "tablePurchase": "Закупка",
+      "tableSale": "Продажа",
+      "tableStock": "Остаток",
+      "status": "Статус",
+      "ok": "В норме"
+    },
+    "history": {
+      "title": "История",
+      "subtitle": "Просматривайте журнал продаж и чеки",
+      "totalSales": "Кол-во продаж",
+      "revenue": "Общая выручка",
+      "searchPlaceholder": "Поиск по № чека...",
+      "period": "Период",
+      "filters": "Фильтры",
+      "tableReceipt": "Чек",
+      "tableTime": "Время",
+      "tablePayment": "Оплата",
+      "tableVat": "НДС",
+      "tableTotal": "Итого",
+      "tableActions": "Действия",
+      "empty": "История пуста"
+    }
   },
   "warehouse": {
     "finishedGoods": "Готовые товары",

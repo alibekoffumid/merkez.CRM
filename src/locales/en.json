@@ -15,6 +15,7 @@
     "error": "Error",
     "all": "All",
     "filter": "Filter",
+    "unit": "pcs",
     "back": "Back",
     "adminLock": "Admin Lock",
     "enterPinToAccess": "Enter 4-digit PIN to access this section",
@@ -36,7 +37,8 @@
     "etaxes": "e-Taxes",
     "modules": "Modules",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "signOut": "Sign Out"
   },
   "profile": {
     "title": "My Profile",
@@ -353,8 +355,43 @@
     "saleSuccess": "Sale processed successfully",
     "barcodeNotFound": "Barcode not found",
     "receiptRestored": "Receipt restored",
-    "inventory": { "title": "Inventory" },
-    "history": { "title": "History", "empty": "History is empty" }
+    "inventory": {
+      "title": "Inventory",
+      "subtitle": "Manage store stock and product quantities",
+      "totalProducts": "Total Products",
+      "criticalStock": "Critical Stock",
+      "stockValue": "Stock Value",
+      "expectedRevenue": "Expected Revenue",
+      "addProduct": "Add Product",
+      "searchPlaceholder": "Search products...",
+      "sortName": "By Name",
+      "sortPrice": "By Price",
+      "sortStock": "By Stock",
+      "filters": "Filters",
+      "tableProduct": "Product",
+      "tableCategory": "Category",
+      "tablePurchase": "Purchase",
+      "tableSale": "Sale",
+      "tableStock": "Stock",
+      "status": "Status",
+      "ok": "In Stock"
+    },
+    "history": {
+      "title": "History",
+      "subtitle": "View sales journal and receipts",
+      "totalSales": "Total Sales",
+      "revenue": "Total Revenue",
+      "searchPlaceholder": "Search receipt #...",
+      "period": "Period",
+      "filters": "Filters",
+      "tableReceipt": "Receipt",
+      "tableTime": "Time",
+      "tablePayment": "Payment",
+      "tableVat": "VAT",
+      "tableTotal": "Total",
+      "tableActions": "Actions",
+      "empty": "History is empty"
+    }
   },
   "warehouse": {
     "finishedGoods": "Finished Goods",
