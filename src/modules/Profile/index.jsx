@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 const Profile = () => {
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('security');
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({
@@ -74,7 +74,6 @@ const Profile = () => {
   };
 
   const tabs = [
-    { id: 'general', name: t('profile.tabs.general', 'Общее'), icon: Building2 },
     { id: 'security', name: t('profile.tabs.security', 'Безопасность'), icon: Shield },
     { id: 'notifications', name: t('profile.tabs.notifications', 'Уведомления'), icon: Bell },
     { id: 'display', name: t('profile.tabs.display', 'Оформление'), icon: Globe },
@@ -260,10 +259,10 @@ const Profile = () => {
             ))}
           </div>
 
-          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+          {/* General Info - always visible */}
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div className="p-8 md:p-12">
-              {activeTab === 'general' && (
-                <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
+                <div className="space-y-10">
                    {/* Personal Section */}
                    <div>
                      <div className="flex items-center space-x-3 mb-8">
@@ -414,7 +413,11 @@ const Profile = () => {
                      </div>
                    </div>
                 </div>
-              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
+            <div className="p-8 md:p-12">
 
               {activeTab === 'notifications' && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
