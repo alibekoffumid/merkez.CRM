@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -14,6 +14,7 @@ import SuppliersList from './SuppliersList';
 import AddSupplierModal from './AddSupplierModal';
 import EditSupplierModal from './EditSupplierModal';
 import ReceiveStockModal from './ReceiveStockModal';
+import ProductImportModal from './ProductImportModal';
 import DateRangePicker from '../../components/Common/DateRangePicker';
 import Dropdown from '../../components/Common/Dropdown';
 
@@ -34,6 +35,7 @@ const WarehouseModule = () => {
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [showAddSupplier, setShowAddSupplier] = useState(false);
@@ -234,6 +236,7 @@ const WarehouseModule = () => {
     <div className="space-y-6 flex flex-col h-full w-full">
       {/* Modals */}
       <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} />
+      <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
       <EditProductModal 
         isOpen={!!editingProduct} 
@@ -335,6 +338,12 @@ const WarehouseModule = () => {
             </button>
           )}
           
+          {activeTab === 'finished' && (
+            <button onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+              <Upload className="w-4 h-4 mr-2" /> Импорт
+            </button>
+          )}
+
           {activeTab === 'finished' && (
             <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
               <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addProduct')}
