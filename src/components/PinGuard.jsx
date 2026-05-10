@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Lock, X, KeyRound } from 'lucide-react';
 import { useUser } from '../core/UserContext';
-import ModalPortal from './ModalPortal';
+import ModalPortal from './Common/ModalPortal';
 
 const PinGuard = ({ children, moduleId }) => {
   const { t } = useTranslation();
