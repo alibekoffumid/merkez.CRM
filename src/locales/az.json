@@ -139,6 +139,7 @@
     "details": "Detallar",
     "edit": "Redaktə et",
     "delete": "Sil",
+    "deleteSelected": "Seçilənləri sil",
     "statusAvailable": "Sərbəst",
     "statusActive": "Aktiv",
     "statusRepair": "Təmirdə",
@@ -1033,5 +1034,11 @@
     "integrationsDesc": "WhatsApp, Instagram və Telefoniya mesajları üçün vahid mərkəz",
     "retailDesc": "Mağazalar üçün sürətli pərakəndə satış, ştrix-kod skan edilməsi və inventar idarəedilməsi",
     "fleetDesc": "Taksi parkları, sürücülər və arenda öhdəliklərinin tam idarəetmə sistemi"
+  },
+  "common": {
+    "deleteSelected": "Seçilənləri sil",
+    "delete": "Sil",
+    "cancel": "Ləğv et",
+    "confirmDelete": "Silməyi təsdiqlə"
   }
 }

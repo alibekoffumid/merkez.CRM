@@ -1034,5 +1034,11 @@
     "integrationsDesc": "Unified hub for WhatsApp, Instagram and Telephony messages",
     "retailDesc": "Fast retail sales, barcode scanning and inventory for stores",
     "fleetDesc": "Complete fleet management for taxi companies, drivers and rent control"
+  },
+  "common": {
+    "deleteSelected": "Delete selected",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "confirmDelete": "Confirm delete"
   }
 }

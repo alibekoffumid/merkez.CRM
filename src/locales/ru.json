@@ -1064,5 +1064,11 @@
     "yesterday": "Вчера",
     "noMessages": "Нет сообщений",
     "selectChat": "Выберите чат для начала общения"
+  },
+  "common": {
+    "deleteSelected": "Удалить выбранные",
+    "delete": "Удалить",
+    "cancel": "Отмена",
+    "confirmDelete": "Подтверждение удаления"
   }
 }
