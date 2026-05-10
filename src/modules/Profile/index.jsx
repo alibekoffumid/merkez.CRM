@@ -18,7 +18,8 @@ const Profile = () => {
     website: '',
     description: '',
     operating_hours: '',
-    avatar_url: ''
+    avatar_url: '',
+    admin_pin: ''
   });
 
   const [themePreference, setThemePreference] = useState(() => {
@@ -60,7 +61,8 @@ const Profile = () => {
             website: data.website || '',
             description: data.description || '',
             operating_hours: data.operating_hours || '',
-            avatar_url: data.avatar_url || ''
+            avatar_url: data.avatar_url || '',
+            admin_pin: data.admin_pin || ''
           });
         }
       }
@@ -92,12 +94,14 @@ const Profile = () => {
           website: profile.website,
           description: profile.description,
           operating_hours: profile.operating_hours,
+          admin_pin: profile.admin_pin,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
       
       if (error) throw error;
       
+      window.alert(t('common.saveSuccess', 'Настройки успешно сохранены!'));
     } catch (err) {
       window.alert('Error updating profile: ' + err.message);
     } finally {
@@ -443,16 +447,43 @@ const Profile = () => {
               )}
 
               {activeTab === 'security' && (
-                <div className="py-24 text-center space-y-6 animate-in fade-in duration-500">
-                   <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto text-gray-300 shadow-inner">
-                      <Shield className="w-10 h-10" />
+                <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
+                   <div className="flex items-center space-x-3 mb-8">
+                      <div className="p-2.5 bg-amber-50 rounded-xl text-amber-500">
+                        <Shield className="w-5 h-5" />
+                      </div>
+                      <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.adminPinTitle', 'Защита доступа')}</h3>
                    </div>
-                   <div>
-                     <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('profile.vaultProtection', 'Защита аккаунта')}</h3>
-                     <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-2">{t('profile.comingSoon', 'Скоро будет доступно')}</p>
-                   </div>
-                   <div className="max-w-xs mx-auto py-3 px-6 bg-blue-50 rounded-full inline-block text-merkez-blue text-[10px] font-black uppercase tracking-widest">
-                      {t('profile.devPreview', 'В разработке')}
+                   
+                   <div className="bg-amber-50/50 border border-amber-100 rounded-[2rem] p-8">
+                      <div className="max-w-sm">
+                        <label className="text-[11px] font-black text-amber-600 uppercase tracking-widest ml-1 mb-2 block">
+                          {t('profile.adminPinLabel', 'Административный PIN-код (4 цифры)')}
+                        </label>
+                        <p className="text-sm text-amber-700/60 font-medium mb-6">
+                          {t('profile.adminPinDesc', 'Этот код используется для доступа к защищенным разделам, таким как Склад.')}
+                        </p>
+                        
+                        <input 
+                          type="text" 
+                          name="admin_pin"
+                          maxLength={4}
+                          value={profile.admin_pin} 
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '');
+                            if (val.length <= 4) {
+                              setProfile({ ...profile, admin_pin: val });
+                            }
+                          }}
+                          className="block w-full px-8 py-5 bg-white border-2 border-amber-100 rounded-2xl text-2xl font-black tracking-[1em] text-center text-amber-600 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all shadow-sm"
+                          placeholder="0000"
+                        />
+                        
+                        <div className="mt-8 flex items-start space-x-3 text-xs text-amber-600/70 font-bold">
+                           <div className="mt-0.5">⚠️</div>
+                           <p>{t('profile.adminPinWarning', 'Убедитесь, что вы запомнили этот код. Он одинаков для всех администраторов этого филиала.')}</p>
+                        </div>
+                      </div>
                    </div>
                 </div>
               )}
@@ -551,4 +582,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
