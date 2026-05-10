@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CoreLayout from './core/CoreLayout';
 import { UserProvider, useUser } from './core/UserContext';
-import Dashboard from './modules/Dashboard';
 import ETaxesModule from './modules/ETaxes';
 import CRMModule from './modules/CRM';
 import WarehouseModule from './modules/Warehouse';
@@ -138,9 +137,11 @@ function App() {
             </AuthGuard>
           }
         >
-          <Route index element={<Dashboard />} />
+          }
+        >
+          <Route index element={<Navigate to="/modules" replace />} />
           <Route path="dashboard">
-            <Route index element={<Dashboard />} />
+            <Route index element={<Navigate to="/modules" replace />} />
             <Route path="e-taxes" element={
               <ModuleGuard moduleId="eTaxes"><ETaxesModule /></ModuleGuard>
             } />

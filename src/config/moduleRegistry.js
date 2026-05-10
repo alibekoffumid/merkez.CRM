@@ -3,21 +3,6 @@ import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity
 // Master registry of all available modules in the platform
 // This is the single source of truth for module metadata
 export const MODULE_REGISTRY = {
-  dashboard: {
-    id: 'dashboard',
-    nameKey: 'sidebar.dashboard',
-    descriptionKey: 'modules.dashboardDesc',
-    icon: LayoutDashboard,
-    path: '/',
-    color: 'hover:text-blue-600 hover:bg-blue-50',
-    accentColor: 'blue',
-    activeBg: 'bg-blue-600',
-    activeShadow: 'shadow-blue-500/30',
-    activeText: 'text-blue-600',
-    price: 0,
-    isFree: true,
-    isCore: true,
-  },
   dental: {
     id: 'dental',
     nameKey: 'sidebar.dental',
