@@ -170,6 +170,13 @@
   "header": {
     "search": "Поиск...",
     "profile": "Профиль",
+    "digestTitle": "Операционная сводка",
+    "todaySales": "Продажи за сегодня",
+    "criticalStock": "Критические остатки",
+    "itemsLeft": "осталось {{count}}",
+    "moreItems": "+{{count}} других товаров",
+    "inventoryStatus": "Статус склада",
+    "allStockOk": "Все уровни запасов в норме.",
     "etaxes": "Налоги"
   },
   "dashboard": {

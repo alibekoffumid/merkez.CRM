@@ -171,7 +171,14 @@
   "header": {
     "search": "Axtarış...",
     "profile": "Profil",
-    "etaxes": "Vergilər"
+    "etaxes": "Vergilər",
+    "digestTitle": "Əməliyyat Xülasəsi",
+    "todaySales": "Bugünkü satışlar",
+    "criticalStock": "Kritik stok xəbərdarlıqları",
+    "itemsLeft": "{{count}} ədəd qalıb",
+    "moreItems": "+{{count}} digər məhsul",
+    "inventoryStatus": "Stok vəziyyəti",
+    "allStockOk": "Bütün stok səviyyələri optimaldır."
   },
   "dashboard": {
     "welcome": "Merkez'ə xoş gəlmisiniz",

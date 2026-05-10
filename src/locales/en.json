@@ -170,6 +170,13 @@
   "header": {
     "search": "Search...",
     "profile": "Profile",
+    "digestTitle": "Operational Digest",
+    "todaySales": "Today's Sales",
+    "criticalStock": "Critical Stock Alerts",
+    "itemsLeft": "{{count}} left",
+    "moreItems": "+{{count}} more items",
+    "inventoryStatus": "Inventory Status",
+    "allStockOk": "All stock levels are optimal.",
     "etaxes": "E-taxes"
   },
   "dashboard": {

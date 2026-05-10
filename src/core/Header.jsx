@@ -136,7 +136,7 @@ const Header = ({ onMenuClick }) => {
                 <div className="p-4 bg-gradient-to-r from-merkez-blue to-blue-600 text-white flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-blue-100" />
-                    <h3 className="font-black text-sm tracking-tight">Operational Digest</h3>
+                    <h3 className="font-black text-sm tracking-tight">{t('header.digestTitle')}</h3>
                   </div>
                 </div>
                 
@@ -153,7 +153,7 @@ const Header = ({ onMenuClick }) => {
                           <ShoppingCart className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Today's Sales</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">{t('header.todaySales')}</p>
                           <p className="text-lg font-black text-gray-900 leading-none">${digestData.totalSales.toFixed(2)}</p>
                         </div>
                       </div>
@@ -165,16 +165,16 @@ const Header = ({ onMenuClick }) => {
                             <AlertTriangle className="w-4 h-4" />
                           </div>
                           <div className="flex-1">
-                            <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1.5">Critical Stock Alerts</p>
+                            <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1.5">{t('header.criticalStock')}</p>
                             <ul className="text-xs font-bold text-gray-800 space-y-1">
                               {digestData.lowStockItems.slice(0, 5).map(item => (
                                 <li key={item.id} className="flex justify-between items-center bg-white/50 p-1.5 rounded-lg">
                                   <span className="truncate max-w-[120px]">{item.name}</span>
-                                  <span className="text-red-600 bg-red-100 px-1.5 py-0.5 rounded text-[10px]">{item.stock_quantity} left</span>
+                                  <span className="text-red-600 bg-red-100 px-1.5 py-0.5 rounded text-[10px]">{t('header.itemsLeft', { count: item.stock_quantity })}</span>
                                 </li>
                               ))}
                               {digestData.lowStockItems.length > 5 && (
-                                <li className="text-[10px] text-red-500 mt-1">+{digestData.lowStockItems.length - 5} more items</li>
+                                <li className="text-[10px] text-red-500 mt-1">{t('header.moreItems', { count: digestData.lowStockItems.length - 5 })}</li>
                               )}
                             </ul>
                           </div>
@@ -185,8 +185,8 @@ const Header = ({ onMenuClick }) => {
                             <AlertTriangle className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Inventory Status</p>
-                            <p className="text-xs font-bold text-gray-800">All stock levels are optimal.</p>
+                            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">{t('header.inventoryStatus')}</p>
+                            <p className="text-xs font-bold text-gray-800">{t('header.allStockOk')}</p>
                           </div>
                         </div>
                       )}
@@ -202,7 +202,7 @@ const Header = ({ onMenuClick }) => {
               {loading ? '...' : getInitials(profile?.full_name)}
             </div>
             <span className="hidden sm:block text-sm font-bold text-gray-700 mr-2">
-              {loading ? 'Loading...' : (profile?.full_name || t('header.profile'))}
+              {loading ? t('common.loading') : (profile?.full_name || t('header.profile'))}
             </span>
           </Link>
         </div>
