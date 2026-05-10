@@ -20,6 +20,7 @@ import RetailModule from './modules/Retail';
 import FleetModule from './modules/Fleet';
 import ScannerModule from './modules/Scanner';
 import ModuleStore from './pages/ModuleStore';
+import { MODULE_REGISTRY } from './config/moduleRegistry';
 import { Toaster } from 'react-hot-toast';
 
 // Guard component that checks if a specific module is active
