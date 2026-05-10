@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2, Languages, Monitor, Moon, Sun, Check } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,12 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('security');
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null); // { type: 'success'|'error', message: string }
+
+  const showToast = useCallback((type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  }, []);
   const [profile, setProfile] = useState({
     full_name: '',
     business_name: '',
@@ -105,9 +111,9 @@ const Profile = () => {
       // Refresh the global profile context so PinGuard picks up the new PIN
       await refreshProfile();
       
-      window.alert(t('common.saveSuccess', 'Настройки успешно сохранены!'));
+      showToast('success', t('common.saveSuccess', 'Настройки успешно сохранены!'));
     } catch (err) {
-      window.alert('Error updating profile: ' + err.message);
+      showToast('error', err.message);
     } finally {
       setIsSaving(false);
     }
@@ -602,6 +608,21 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* In-app Toast */}
+      {toast && (
+        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+          toast.type === 'success' 
+            ? 'bg-green-600 text-white shadow-green-200' 
+            : 'bg-red-500 text-white shadow-red-200'
+        }`}>
+          {toast.type === 'success' 
+            ? <CheckCircle2 className="w-5 h-5 shrink-0" /> 
+            : <Shield className="w-5 h-5 shrink-0" />
+          }
+          <span className="font-bold text-sm">{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 };
