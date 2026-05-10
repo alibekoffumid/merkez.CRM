@@ -605,7 +605,6 @@ const WarehouseModule = () => {
                 <table className="w-full text-left border-collapse">
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
-                      <th className="font-medium px-2 py-4 w-16"></th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
@@ -619,15 +618,6 @@ const WarehouseModule = () => {
                   <tbody className="divide-y divide-gray-100">
                     {filteredProducts.map(item => (
                       <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-2 py-4">
-                          <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-200">
-                            {item.image_url ? (
-                              <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <ImageIcon className="w-6 h-6 text-gray-300" />
-                            )}
-                          </div>
-                        </td>
                         <td className="px-2 py-4">
                           <p className="font-medium text-gray-900">{item.name}</p>
                         </td>
