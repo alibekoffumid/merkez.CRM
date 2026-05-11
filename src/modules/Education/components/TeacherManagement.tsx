@@ -7,7 +7,7 @@ import ModalPortal from '../../../components/Common/ModalPortal';
 
 const TeacherManagement = () => {
   const { t } = useTranslation();
-  const { teachers, courses, refreshAll, tenantId } = useEducation();
+  const { teachers, courses, lessons, refreshAll, tenantId } = useEducation();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,14 +54,14 @@ const TeacherManagement = () => {
   const getTeacherStats = (teacher: any) => {
     const now = new Date();
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    const monthLessons = lessons?.filter(l => 
+    const monthLessons = lessons?.filter((l: any) => 
       (l.teacher_id === teacher.id || l.teacher_name === `${teacher.first_name} ${teacher.last_name}`) &&
       new Date(l.start_time) >= firstDay
     ) || [];
 
     let estimatedEarnings = 0;
     if (teacher.salary_type === 'hourly') {
-      const totalHours = monthLessons.reduce((acc, l) => {
+      const totalHours = monthLessons.reduce((acc: number, l: any) => {
         const start = new Date(l.start_time);
         const end = new Date(l.end_time);
         return acc + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
