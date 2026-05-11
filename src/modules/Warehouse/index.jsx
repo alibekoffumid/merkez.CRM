@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -658,12 +658,16 @@ const WarehouseModule = () => {
                   <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
                     <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
                       <th className="pl-8 pr-2 py-4 w-10">
-                        <input 
-                          type="checkbox" 
-                          className="w-4 h-4 rounded border-gray-300 text-merkez-blue focus:ring-merkez-blue cursor-pointer"
-                          checked={selectedItems.length === filteredProducts.length && filteredProducts.length > 0}
-                          onChange={toggleSelectAll}
-                        />
+                        <button 
+                          onClick={toggleSelectAll}
+                          className="text-gray-400 hover:text-merkez-blue transition-colors"
+                        >
+                          {selectedItems.length === filteredProducts.length && filteredProducts.length > 0 ? (
+                            <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                          ) : (
+                            <Square className="w-5 h-5" />
+                          )}
+                        </button>
                       </th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
                       <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
@@ -679,12 +683,16 @@ const WarehouseModule = () => {
                     {filteredProducts.map(item => (
                       <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
                         <td className="pl-8 pr-2 py-4">
-                          <input 
-                            type="checkbox" 
-                            className="w-4 h-4 rounded border-gray-300 text-merkez-blue focus:ring-merkez-blue cursor-pointer"
-                            checked={selectedItems.includes(item.id)}
-                            onChange={() => toggleSelectItem(item.id)}
-                          />
+                          <button 
+                            onClick={() => toggleSelectItem(item.id)}
+                            className="text-gray-400 hover:text-merkez-blue transition-colors"
+                          >
+                            {selectedItems.includes(item.id) ? (
+                              <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                            ) : (
+                              <Square className="w-5 h-5" />
+                            )}
+                          </button>
                         </td>
                         <td className="px-2 py-4">
                           <p className="font-medium text-gray-900">{item.name}</p>
