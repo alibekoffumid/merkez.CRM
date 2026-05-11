@@ -117,7 +117,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
           <div className="flex items-center justify-between mb-6">
             <button type="button" onClick={() => changeMonth(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><ChevronLeft className="w-5 h-5" /></button>
             <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-              {viewDate.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' })}
+              {t(`common.months.${['january','february','march','april','may','june','july','august','september','october','november','december'][viewDate.getMonth()]}`)} {viewDate.getFullYear()}
             </span>
             <button type="button" onClick={() => changeMonth(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><ChevronRight className="w-5 h-5" /></button>
           </div>
