@@ -272,6 +272,40 @@ const AcademicScheduler = () => {
       </div>
       
       <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <h3 className="col-span-full font-black text-gray-900 text-lg">{t('education.upcomingToday')}</h3>
+          
+          {lessons?.length > 0 ? (
+            lessons.map((lesson: any, index: number) => {
+              const startDate = new Date(lesson.start_time);
+              const endDate = new Date(lesson.end_time);
+              
+              const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+              const colors = ['border-l-blue-500 text-blue-600', 'border-l-emerald-500 text-emerald-600', 'border-l-purple-500 text-purple-600', 'border-l-orange-500 text-orange-600'];
+              const colorClass = colors[index % colors.length];
+              const textClass = colorClass.split(' ')[1];
+              
+              return (
+                <div 
+                  key={lesson.id} 
+                  onClick={() => handleEdit(lesson)}
+                  className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${colorClass.split(' ')[0]} cursor-pointer hover:shadow-md transition-all`}
+                >
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${textClass} mb-1`}>{timeString}</p>
+                  <h4 className="font-bold text-gray-900">{lesson.education_courses?.title || 'Course'}</h4>
+                  <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
+                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {lesson.teacher_name}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {getRoomName(lesson.room)}</span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="col-span-full bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
+              <p className="text-gray-500 text-sm font-bold">{t('education.noLessonsToday') || 'No upcoming lessons today.'}</p>
+            </div>
+          )}
+        </div>
         <div className="w-full flex flex-col h-[800px]">
           {/* Week Navigator */}
           <div className="flex justify-between items-center mb-12">
