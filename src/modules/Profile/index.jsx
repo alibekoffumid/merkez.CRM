@@ -8,7 +8,7 @@ const Profile = () => {
   const { t, i18n } = useTranslation();
   const { refreshProfile } = useUser();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('security');
+  const [activeTab, setActiveTab] = useState('general');
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null); // { type: 'success'|'error', message: string }
@@ -82,6 +82,7 @@ const Profile = () => {
   };
 
   const tabs = [
+    { id: 'general', name: t('profile.tabs.general', 'Общее'), icon: User },
     { id: 'security', name: t('profile.tabs.security', 'Безопасность'), icon: Shield },
     { id: 'notifications', name: t('profile.tabs.notifications', 'Уведомления'), icon: Bell },
     { id: 'display', name: t('profile.tabs.display', 'Оформление'), icon: Globe },
@@ -270,165 +271,162 @@ const Profile = () => {
             ))}
           </div>
 
-          {/* General Info - always visible */}
-          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <div className="p-8 md:p-12">
-                <div className="space-y-10">
-                   {/* Personal Section */}
-                   <div>
-                     <div className="flex items-center space-x-3 mb-8">
-                        <div className="p-2.5 bg-blue-50 rounded-xl text-merkez-blue">
-                          <User className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.ownerDetails', 'Личные данные')}</h3>
-                     </div>
-                     
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.fullName', 'Full Identity Name')}</label>
-                         <input 
-                           type="text" 
-                           name="full_name"
-                           value={profile.full_name} 
-                           onChange={handleChange}
-                           className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm"
-                           placeholder={t('profile.fullNamePlaceholder', 'Your full name')}
-                         />
-                       </div>
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.systemEmail', 'System Login Email')}</label>
-                         <div className="relative">
-                            < Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                            <input 
-                              type="email" 
-                              disabled
-                              value={user?.email || ''} 
-                              className="block w-full pl-14 pr-6 py-4.5 bg-gray-100/50 border border-transparent rounded-2xl text-gray-400 outline-none transition-all font-bold cursor-not-allowed"
-                            />
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-
-                   {/* Business Section */}
-                   <div className="pt-10 border-t border-gray-50">
-                     <div className="flex items-center space-x-3 mb-8">
-                        <div className="p-2.5 bg-orange-50 rounded-xl text-orange-500">
-                          <Building2 className="w-5 h-5" />
-                        </div>
-                        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.businessInfo', 'Информация о бизнесе')}</h3>
-                     </div>
-
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.businessName', 'Название заведения')}</label>
-                         <input 
-                           type="text" 
-                           name="business_name"
-                           value={profile.business_name} 
-                           onChange={handleChange}
-                           className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                           placeholder={t('profile.businessNamePlaceholder', 'Restaurant/Bar name')}
-                         />
-                       </div>
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.businessCategory', 'Категория бизнеса')}</label>
-                         <select 
-                           name="business_type"
-                           value={profile.business_type} 
-                           onChange={handleChange}
-                           className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm cursor-pointer"
-                         >
-                           <option value="Restaurant text-gray-700">Premium Restaurant</option>
-                           <option value="Cafe">Cozy Cafe</option>
-                           <option value="Bar">Evening Bar / Pub</option>
-                           <option value="Quick Service">Fast Food / Street Food</option>
-                           <option value="Bakery">Bakery / Confectionery</option>
-                         </select>
-                       </div>
-
-                       <div className="space-y-2.5 md:col-span-2">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.address', 'Физический адрес')}</label>
-                         <div className="relative">
-                            <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                            <input 
-                              type="text" 
-                              name="address"
-                              value={profile.address} 
-                              onChange={handleChange}
-                              className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder={t('profile.addressPlaceholder', 'City, Street, Building...')}
-                            />
-                         </div>
-                       </div>
-
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.contactPhone', 'Контактный номер')}</label>
-                         <div className="relative">
-                            <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                            <input 
-                              type="tel" 
-                              name="phone"
-                              value={profile.phone} 
-                              onChange={handleChange}
-                              className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder={t('profile.phonePlaceholder', '+X XXX XXX XX XX')}
-                            />
-                         </div>
-                       </div>
-
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.website', 'Веб-сайт / Digital Home')}</label>
-                         <div className="relative">
-                            <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                            <input 
-                              type="text" 
-                              name="website"
-                              value={profile.website} 
-                              onChange={handleChange}
-                              className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder={t('profile.websitePlaceholder', 'www.yourwebsite.com')}
-                            />
-                         </div>
-                       </div>
-
-                       <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.hours', 'Часы работы')}</label>
-                         <div className="relative">
-                            <Clock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
-                            <input 
-                              type="text" 
-                              name="operating_hours"
-                              value={profile.operating_hours} 
-                              onChange={handleChange}
-                              className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder={t('profile.hoursPlaceholder', 'Mon-Sun: 10:00 - 23:00')}
-                            />
-                         </div>
-                       </div>
-
-                       <div className="space-y-2.5 md:col-span-2">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.essence', 'О бренде (Описание)')}</label>
-                         <div className="relative">
-                            <FileText className="absolute left-6 top-7 w-4 h-4 text-gray-300" />
-                            <textarea 
-                              rows={5}
-                              name="description"
-                              value={profile.description} 
-                              onChange={handleChange}
-                              className="block w-full pl-14 pr-6 py-6 bg-gray-50/50 border border-transparent rounded-3xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold resize-none shadow-sm"
-                              placeholder={t('profile.essencePlaceholder', 'Tell us about the vibes, the food, and the mission of your establishment...')}
-                            />
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                </div>
-            </div>
-          </div>
-
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-8 md:p-12">
+              
+              {activeTab === 'general' && (
+                 <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
+                    {/* Personal Section */}
+                    <div>
+                      <div className="flex items-center space-x-3 mb-8">
+                         <div className="p-2.5 bg-blue-50 rounded-xl text-merkez-blue">
+                           <User className="w-5 h-5" />
+                         </div>
+                         <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.ownerDetails', 'Личные данные')}</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.fullName', 'Full Identity Name')}</label>
+                          <input 
+                            type="text" 
+                            name="full_name"
+                            value={profile.full_name} 
+                            onChange={handleChange}
+                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm"
+                            placeholder={t('profile.fullNamePlaceholder', 'Your full name')}
+                          />
+                        </div>
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.systemEmail', 'System Login Email')}</label>
+                          <div className="relative">
+                             < Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                             <input 
+                               type="email" 
+                               disabled
+                               value={user?.email || ''} 
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-100/50 border border-transparent rounded-2xl text-gray-400 outline-none transition-all font-bold cursor-not-allowed"
+                             />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Business Section */}
+                    <div className="pt-10 border-t border-gray-50">
+                      <div className="flex items-center space-x-3 mb-8">
+                         <div className="p-2.5 bg-orange-50 rounded-xl text-orange-500">
+                           <Building2 className="w-5 h-5" />
+                         </div>
+                         <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.businessInfo', 'Информация о бизнесе')}</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.businessName', 'Название заведения')}</label>
+                          <input 
+                            type="text" 
+                            name="business_name"
+                            value={profile.business_name} 
+                            onChange={handleChange}
+                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                            placeholder={t('profile.businessNamePlaceholder', 'Restaurant/Bar name')}
+                          />
+                        </div>
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.businessCategory', 'Категория бизнеса')}</label>
+                          <select 
+                            name="business_type"
+                            value={profile.business_type} 
+                            onChange={handleChange}
+                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm cursor-pointer"
+                          >
+                            <option value="Restaurant text-gray-700">Premium Restaurant</option>
+                            <option value="Cafe">Cozy Cafe</option>
+                            <option value="Bar">Evening Bar / Pub</option>
+                            <option value="Quick Service">Fast Food / Street Food</option>
+                            <option value="Bakery">Bakery / Confectionery</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-2.5 md:col-span-2">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.address', 'Физический адрес')}</label>
+                          <div className="relative">
+                             <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                             <input 
+                               type="text" 
+                               name="address"
+                               value={profile.address} 
+                               onChange={handleChange}
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               placeholder={t('profile.addressPlaceholder', 'City, Street, Building...')}
+                             />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.contactPhone', 'Контактный номер')}</label>
+                          <div className="relative">
+                             <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                             <input 
+                               type="tel" 
+                               name="phone"
+                               value={profile.phone} 
+                               onChange={handleChange}
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               placeholder={t('profile.phonePlaceholder', '+X XXX XXX XX XX')}
+                             />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.website', 'Веб-сайт / Digital Home')}</label>
+                          <div className="relative">
+                             <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                             <input 
+                               type="text" 
+                               name="website"
+                               value={profile.website} 
+                               onChange={handleChange}
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               placeholder={t('profile.websitePlaceholder', 'www.yourwebsite.com')}
+                             />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2.5">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.hours', 'Часы работы')}</label>
+                          <div className="relative">
+                             <Clock className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                             <input 
+                               type="text" 
+                               name="operating_hours"
+                               value={profile.operating_hours} 
+                               onChange={handleChange}
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               placeholder={t('profile.hoursPlaceholder', 'Mon-Sun: 10:00 - 23:00')}
+                             />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2.5 md:col-span-2">
+                          <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.essence', 'О бренде (Описание)')}</label>
+                          <div className="relative">
+                             <FileText className="absolute left-6 top-7 w-4 h-4 text-gray-300" />
+                             <textarea 
+                               rows={5}
+                               name="description"
+                               value={profile.description} 
+                               onChange={handleChange}
+                               className="block w-full pl-14 pr-6 py-6 bg-gray-50/50 border border-transparent rounded-3xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold resize-none shadow-sm"
+                               placeholder={t('profile.essencePlaceholder', 'Tell us about the vibes, the food, and the mission of your establishment...')}
+                             />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                 </div>
+              )}
 
               {activeTab === 'notifications' && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
