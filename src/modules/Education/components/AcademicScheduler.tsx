@@ -161,7 +161,43 @@ const AcademicScheduler = () => {
   return (
     <div className="min-h-[500px] relative">
       <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('education.tabSchedule')}</h3>
+        <div className="flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
+          <div className="flex items-center gap-2 mr-4 shrink-0">
+            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+            <h3 className="font-black text-gray-900 text-sm uppercase tracking-widest">{t('education.upcomingToday')}</h3>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {lessons?.length > 0 ? (
+              lessons.map((lesson: any, index: number) => {
+                const startDate = new Date(lesson.start_time);
+                const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600'];
+                const colorClass = colors[index % colors.length];
+                
+                return (
+                  <div 
+                    key={lesson.id} 
+                    onClick={() => handleEdit(lesson)}
+                    className="group flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer h-[40px] shrink-0"
+                  >
+                    <div className={`w-1 h-6 rounded-full ${colorClass}`} />
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
+                        <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">{lesson.education_courses?.title}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="bg-gray-100/50 px-4 py-2 rounded-xl border border-dashed border-gray-200 shrink-0">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">{t('education.noLessonsToday')}</p>
+              </div>
+            )}
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <div className="relative">
             <button 
@@ -272,46 +308,7 @@ const AcademicScheduler = () => {
       </div>
       
       <div className="flex flex-col gap-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 mr-2">
-            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-            <h3 className="font-black text-gray-900 text-sm uppercase tracking-widest">{t('education.upcomingToday')}</h3>
-          </div>
-          
-          {lessons?.length > 0 ? (
-            lessons.map((lesson: any, index: number) => {
-              const startDate = new Date(lesson.start_time);
-              const endDate = new Date(lesson.end_time);
-              const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-              
-              const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600'];
-              const colorClass = colors[index % colors.length];
-              
-              return (
-                <div 
-                  key={lesson.id} 
-                  onClick={() => handleEdit(lesson)}
-                  className="group flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer h-[40px] max-w-[240px]"
-                >
-                  <div className={`w-1 h-6 rounded-full ${colorClass}`} />
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
-                      <span className="text-xs font-bold text-gray-700 truncate leading-none">{lesson.education_courses?.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-[8px] font-medium text-gray-400 truncate">{lesson.teacher_name}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">{t('education.noLessonsToday')}</p>
-            </div>
-          )}
-        </div>
+
         <div className="w-full flex flex-col h-[800px]">
           {/* Week Navigator */}
           <div className="flex justify-between items-center mb-12">
