@@ -154,7 +154,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest">
-            {['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'].map(d => (
+            {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(d => (
               <div key={d}>{t(`common.weekdays.${d}`)}</div>
             ))}
           </div>
