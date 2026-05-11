@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, CheckCircle2, ChevronRight, Grape } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { useUser } from '../../core/UserContext';
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { profile, needsOnboarding, loading: userLoading, modulesLoading } = useUser();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -22,11 +24,14 @@ const Auth = () => {
   const from = location.state?.from?.pathname || "/";
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate(from, { replace: true });
-    });
-  }, [navigate, from]);
+    if (!userLoading && profile && !modulesLoading) {
+      if (needsOnboarding) {
+        navigate('/modules', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [profile, userLoading, modulesLoading, needsOnboarding, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -157,7 +162,7 @@ const Auth = () => {
           {/* Left Side: Brand & Social */}
           <div className="flex-1 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-100 pb-8 md:pb-0 md:pr-10">
             <div className="mb-6">
-              <img src="/merkez-new-logo.svg" alt="Merkez Logo" className="h-20 w-auto object-contain mb-6" />
+              <img src="/logo.svg" alt="Merkez Logo" className="h-20 w-auto object-contain mb-6" />
               <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
                 {isLogin ? 'Welcome Back.' : 'Join Merkez.'}
               </h1>

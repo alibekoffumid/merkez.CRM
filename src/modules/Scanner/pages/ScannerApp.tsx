@@ -223,15 +223,13 @@ const ScannerApp: React.FC = () => {
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-900/80 backdrop-blur-xl z-20 safe-area-top">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-merkez-blue rounded-xl flex items-center justify-center relative">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z" />
-            </svg>
+          <div className="relative">
+            <img src="/logo.svg" alt="Logo" className="h-9 w-auto brightness-0 invert" />
             <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-gray-900 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
           </div>
+          <div className="h-6 w-px bg-white/10 mx-1"></div>
           <div>
-            <p className="text-xs font-black tracking-wider text-white/60">MƏRKƏZ</p>
-            <p className="text-sm font-bold -mt-0.5">{profile?.full_name || 'Scanner'}</p>
+            <p className="text-sm font-bold">{profile?.full_name || 'Scanner'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

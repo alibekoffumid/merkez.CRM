@@ -12,7 +12,7 @@ import { useUser } from '../core/UserContext';
 const Landing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { profile, loading } = useUser();
+  const { profile, loading, modulesLoading, needsOnboarding } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -24,10 +24,14 @@ const Landing = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!loading && profile) {
-      navigate('/modules');
+    if (!loading && profile && !modulesLoading) {
+      if (needsOnboarding) {
+        navigate('/modules');
+      } else {
+        navigate('/dashboard');
+      }
     }
-  }, [profile, loading, navigate]);
+  }, [profile, loading, modulesLoading, needsOnboarding, navigate]);
 
   const modules = [
     { id: 'restaurant', icon: Utensils, color: 'blue', emoji: '🍽️' },
@@ -50,7 +54,7 @@ const Landing = () => {
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src="/merkez-new-logo.svg" alt="Merkez Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
+            <img src="/logo.svg" alt="Merkez Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -300,7 +304,7 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row justify-between items-start gap-12">
             <div className="max-w-sm">
               <Link to="/" className="flex items-center gap-3 mb-6 group">
-                <img src="/merkez-new-logo.svg" alt="Merkez Logo" className="h-8 w-auto object-contain" />
+                <img src="/logo.svg" alt="Merkez Logo" className="h-8 w-auto object-contain" />
               </Link>
               <p className="text-gray-400 font-medium text-sm leading-relaxed">
                 {t('landing.footer.desc')}
