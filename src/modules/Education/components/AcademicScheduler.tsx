@@ -51,8 +51,8 @@ const AcademicScheduler = () => {
   };
 
   const dayLessons = lessons?.filter(l => isSameDay(new Date(l.start_time), selectedDate)) || [];
-  const START_HOUR = 8;
-  const TOTAL_HOURS = 16; // 8 AM to 12 AM
+  const START_HOUR = 0;
+  const TOTAL_HOURS = 24; // 24-hour view
 
   const getRoomName = (roomValue: string) => {
     if (!roomValue) return '—';
@@ -168,8 +168,8 @@ const AcademicScheduler = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            {lessons?.length > 0 ? (
-              lessons.map((lesson: any, index: number) => {
+            {lessons?.filter((l: any) => isSameDay(new Date(l.start_time), new Date())).length > 0 ? (
+              lessons.filter((l: any) => isSameDay(new Date(l.start_time), new Date())).map((lesson: any, index: number) => {
                 const startDate = new Date(lesson.start_time);
                 const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
                 const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600'];
