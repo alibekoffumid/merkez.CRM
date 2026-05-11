@@ -385,7 +385,20 @@
     "tabTeachers": "Müəllimlər",
     "tabRooms": "Otaqlar",
     "academicJournal": "Akademik Jurnal",
-    "savedSuccessfully": "Uğurla yadda saxlanıldı"
+    "savedSuccessfully": "Uğurla yadda saxlanıldı",
+    "salary": "Maaş / Ödəniş",
+    "salaryType": "Ödəniş növü",
+    "salaryAmount": "Məbləğ",
+    "hourly": "Saatlıq",
+    "fixed": "Sabit",
+    "percentage": "Faiz (%)",
+    "workingHours": "İş saatları",
+    "totalLessons": "Ümumi dərslər",
+    "estimatedPayout": "Təxmin edilən ödəniş",
+    "lessonsThisMonth": "Bu aykı dərslər",
+    "hoursWorked": "İşlənmiş saatlar",
+    "payout": "Ödəniş",
+    "rate": "Dərəcə"
   },
   "retail": {
     "pos": "Merkez POS",

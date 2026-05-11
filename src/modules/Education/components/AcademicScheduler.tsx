@@ -14,14 +14,15 @@ const AcademicScheduler = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
     courseId: '',
+    teacherId: '',
     teacherName: '',
     room: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDateString(new Date()),
     startTime: '10:00',
     endTime: '11:00'
   });
+
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -67,6 +68,21 @@ const AcademicScheduler = () => {
     return room ? room.name : roomValue;
   };
 
+  const isTeacherAvailable = (teacherId: string, date: string, start: string, end: string) => {
+    const teacher = teachers.find(t => t.id === teacherId);
+    if (!teacher || !teacher.working_hours) return true;
+    
+    const d = new Date(date);
+    const dayName = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][d.getDay()];
+    const config = teacher.working_hours[dayName];
+    
+    if (!config || !config.active) return false;
+    
+    // Compare times HH:mm
+    return start >= config.start && end <= config.end;
+  };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.courseId || !formData.teacherName || !formData.room) return;
@@ -78,14 +94,23 @@ const AcademicScheduler = () => {
       const startDateTime = new Date(`${formData.date}T${formData.startTime}:00`).toISOString();
       const endDateTime = new Date(`${formData.date}T${formData.endTime}:00`).toISOString();
 
+      if (!isTeacherAvailable(formData.teacherId, formData.date, formData.startTime, formData.endTime)) {
+        if (!window.confirm(t('education.teacherOutsideHours') || 'Müəllim bu saatlarda işləmir. Yenə də davam edilsin?')) {
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const lessonData = {
         tenant_id: tenantId || '00000000-0000-0000-0000-000000000000',
         course_id: formData.courseId,
+        teacher_id: formData.teacherId,
         teacher_name: formData.teacherName,
         room: formData.room,
         start_time: startDateTime,
         end_time: endDateTime
       };
+
 
       let res;
       if (editingLessonId) {
@@ -110,12 +135,14 @@ const AcademicScheduler = () => {
         setEditingLessonId(null);
         setFormData({
           courseId: '',
+          teacherId: '',
           teacherName: '',
           room: '',
-          date: new Date().toISOString().split('T')[0],
+          date: getLocalDateString(new Date()),
           startTime: '10:00',
           endTime: '11:00'
         });
+
       }, 2000);
       
     } catch (err: any) {
@@ -155,12 +182,14 @@ const AcademicScheduler = () => {
     
     setFormData({
       courseId: lesson.course_id,
+      teacherId: lesson.teacher_id || '',
       teacherName: lesson.teacher_name,
       room: lesson.room,
-      date: start.toISOString().split('T')[0],
+      date: getLocalDateString(start),
       startTime: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
     });
+
     setEditingLessonId(lesson.id);
     setIsModalOpen(true);
   };
@@ -299,12 +328,14 @@ const AcademicScheduler = () => {
               setEditingLessonId(null);
               setFormData({
                 courseId: '',
+                teacherId: '',
                 teacherName: '',
                 room: '',
                 date: getLocalDateString(selectedDate),
                 startTime: '10:00',
                 endTime: '11:00'
               });
+
               setIsModalOpen(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
@@ -561,9 +592,14 @@ const AcademicScheduler = () => {
                                 key={teacher.id}
                                 type="button"
                                 onClick={() => {
-                                  setFormData({...formData, teacherName: `${teacher.first_name} ${teacher.last_name}`});
+                                  setFormData({
+                                    ...formData, 
+                                    teacherId: teacher.id,
+                                    teacherName: `${teacher.first_name} ${teacher.last_name}`
+                                  });
                                   setShowTeacherDropdown(false);
                                 }}
+
                                 className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.teacherName === `${teacher.first_name} ${teacher.last_name}` ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
                               >
                                 <Users className="w-4 h-4" />
