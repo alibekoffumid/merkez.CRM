@@ -249,33 +249,36 @@ const RetailHistory: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 animate-in fade-in duration-500">
-      {/* Sub-navigation */}
-      <div className="flex items-center gap-2 mb-8 bg-white p-2 rounded-2xl border border-gray-100 w-fit">
-        <NavLink to="/retail" end className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.pos')}</NavLink>
-        <NavLink to="/retail/inventory" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.inventory.title')}</NavLink>
-        <NavLink to="/retail/history" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.history.title')}</NavLink>
-      </div>
+      {/* Sticky Header Container */}
+      <div className="sticky top-0 z-[40] bg-gray-50/80 backdrop-blur-md -mx-6 px-6 py-4 mb-6 border-b border-gray-200/50">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm w-fit">
+              <NavLink to="/retail" end className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.pos')}</NavLink>
+              <NavLink to="/retail/inventory" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.inventory.title')}</NavLink>
+              <NavLink to="/retail/history" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.history.title')}</NavLink>
+            </div>
+            
+            <div className="hidden xl:flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
+                <HistoryIcon className="w-5 h-5 text-merkez-blue" />
+              </div>
+              <div>
+                <h1 className="text-lg font-black text-gray-900 leading-none">{t('retail.history.title')}</h1>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{t('retail.history.subtitle')}</p>
+              </div>
+            </div>
+          </div>
 
-      {/* Header */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-merkez-blue/10 flex items-center justify-center">
-            <HistoryIcon className="w-6 h-6 text-merkez-blue" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('retail.history.title')}</h1>
-            <p className="text-sm text-gray-500">{t('retail.history.subtitle')}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col items-center min-w-[120px]">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('retail.history.totalSales')}</span>
-            <span className="text-2xl font-black text-gray-900">{sales.length}</span>
-          </div>
-          <div className="bg-green-50 p-4 rounded-2xl border border-green-100 flex flex-col items-center min-w-[120px]">
-            <span className="text-[10px] font-black text-green-600/60 uppercase tracking-widest mb-1">{t('retail.history.revenue')}</span>
-            <span className="text-2xl font-black text-green-600">{sales.reduce((acc, s) => acc + Number(s.total_amount || 0), 0).toFixed(2)} ₼</span>
+          <div className="flex items-center gap-4">
+            <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 flex items-center gap-3 shadow-sm">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('retail.history.totalSales')}</span>
+              <span className="text-lg font-black text-gray-900">{sales.length}</span>
+            </div>
+            <div className="bg-green-50 px-4 py-2 rounded-xl border border-green-100 flex items-center gap-3 shadow-sm">
+              <span className="text-[10px] font-black text-green-600/60 uppercase tracking-widest">{t('retail.history.revenue')}</span>
+              <span className="text-lg font-black text-green-600">{sales.reduce((acc, s) => acc + Number(s.total_amount || 0), 0).toFixed(2)} ₼</span>
+            </div>
           </div>
         </div>
       </div>
