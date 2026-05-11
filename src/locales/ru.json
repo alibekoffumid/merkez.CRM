@@ -409,7 +409,7 @@
     "barcodeNotFound": "Штрихкод не найден",
     "receiptRestored": "Чек восстановлен",
     "inventory": {
-      "title": "Инвентарь",
+      "title": "Məhsullar",
       "subtitle": "Управляйте запасами магазина и остатками товаров",
       "totalProducts": "Всего товаров",
       "criticalStock": "Критический остаток",
@@ -431,7 +431,7 @@
       "ok": "В норме",
       "tableBarcode": "Штрихкод",
       "editProduct": "Редактировать",
-      "empty": "Инвентарь пуст",
+      "empty": "Нет товаров",
       "expired": "Просрочен",
       "expiryDate": "Срок годности",
       "discountType": "Тип скидки",

@@ -409,7 +409,7 @@
     "barcodeNotFound": "Barkod tapılmadı",
     "receiptRestored": "Qəbz bərpa olundu",
     "inventory": {
-      "title": "İnventar",
+      "title": "Məhsullar",
       "subtitle": "Mağaza ehtiyatlarını və mal qalığını idarə edin",
       "totalProducts": "Ümumi Məhsullar",
       "criticalStock": "Kritik Hədd",
@@ -431,7 +431,7 @@
       "ok": "Normal",
       "tableBarcode": "Barkod",
       "editProduct": "Redaktə et",
-      "empty": "İnventar boşdur",
+      "empty": "Məhsul yoxdur",
       "expired": "Vaxtı keçib",
       "expiryDate": "Bitmə tarixi",
       "discountType": "Endirim növü",
