@@ -57,14 +57,11 @@ const CourseInventory = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
-        <div>
-          <h2 className="text-2xl font-black text-gray-900">{t('education.programsAndCourses')}</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.managePrograms')}</p>
-        </div>
+      <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-6 border-b border-gray-200/50 flex justify-between items-center">
+        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('education.tabPrograms')}</h3>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 shadow-lg shadow-blue-600/20 font-bold text-sm transition-all active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
         >
           <Plus className="w-5 h-5" /> {t('education.addProgram')}
         </button>

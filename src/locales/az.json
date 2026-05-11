@@ -277,6 +277,15 @@
     "academicSchedule": "Akademik Cədvəl",
     "manageClasses": "Qrup dərslərini və fərdi dərsləri idarə edin",
     "today": "Bu gün",
+    "weekdays": {
+      "mon": "B.E.",
+      "tue": "Ç.A.",
+      "wed": "ÇƏR",
+      "thu": "C.A.",
+      "fri": "CÜM",
+      "sat": "ŞƏN",
+      "sun": "BAZ"
+    },
     "noTeachersAvailable": "Həkim tapılmadı",
     "placeholders": {
       "programName": "məs. Fortepiano Masterklass",

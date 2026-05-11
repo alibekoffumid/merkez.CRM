@@ -21,6 +21,20 @@
     "adminLock": "Admin Lock",
     "enterPinToAccess": "Enter 4-digit PIN to access this section",
     "wrongPin": "Wrong PIN code",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
     "saveSuccess": "Settings saved successfully!",
     "noCategory": "No Category",
     "create": "Create",
@@ -277,6 +291,15 @@
     "academicSchedule": "Academic Schedule",
     "manageClasses": "Manage group classes and individual lessons",
     "today": "Today",
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
     "noTeachersAvailable": "No teachers available",
     "placeholders": {
       "programName": "e.g. Piano Masterclass",

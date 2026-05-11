@@ -21,6 +21,20 @@
     "adminLock": "Админ. замок",
     "enterPinToAccess": "Введите 4-значный PIN для доступа",
     "wrongPin": "Неверный PIN-код",
+    "months": {
+      "january": "Январь",
+      "february": "Февраль",
+      "march": "Март",
+      "april": "Апрель",
+      "may": "Май",
+      "june": "Июнь",
+      "july": "Июль",
+      "august": "Август",
+      "september": "Сентябрь",
+      "october": "Октябрь",
+      "november": "Ноябрь",
+      "december": "Декабрь"
+    },
     "saveSuccess": "Настройки успешно сохранены!",
     "noCategory": "Без категории",
     "create": "Создать",
@@ -277,6 +291,15 @@
     "academicSchedule": "Учебное расписание",
     "manageClasses": "Управляйте групповыми и индивидуальными занятиями",
     "today": "Сегодня",
+    "weekdays": {
+      "mon": "ПН",
+      "tue": "ВТ",
+      "wed": "СР",
+      "thu": "ЧТ",
+      "fri": "ПТ",
+      "sat": "СБ",
+      "sun": "ВС"
+    },
     "noTeachersAvailable": "Преподаватели не найдены",
     "placeholders": {
       "programName": "напр. Мастер-класс по фортепиано",

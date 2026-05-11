@@ -160,12 +160,8 @@ const AcademicScheduler = () => {
 
   return (
     <div className="min-h-[500px] relative">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-black text-gray-900">{t('education.academicSchedule')}</h2>
-          <p className="text-gray-500 text-sm mt-1 font-medium">{t('education.manageClasses')}</p>
-        </div>
-        <div className="flex gap-2">
+      <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2">
           <div className="relative">
             <button 
               onClick={() => {
