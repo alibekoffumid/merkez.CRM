@@ -10,7 +10,12 @@ import {
   ChevronRight,
   ArrowUpDown,
   History as HistoryIcon,
-  ShoppingCart
+  ShoppingCart,
+  EyeOff,
+  RotateCcw,
+  CheckSquare,
+  Square,
+  Trash2
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
@@ -42,6 +47,7 @@ interface Sale {
   discount_amount?: number;
   discount_type?: 'percent' | 'fixed';
   created_at: string;
+  is_hidden?: boolean;
   retail_sale_items: SaleItem[];
 }
 
@@ -76,6 +82,9 @@ const RetailHistory: React.FC = () => {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'cash' | 'card' | 'split'>('all');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showHidden, setShowHidden] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -112,10 +121,60 @@ const RetailHistory: React.FC = () => {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredSales.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredSales.map(s => s.id));
+    }
+  };
+
+  const hideSelectedSales = async () => {
+    if (selectedIds.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('retail_sales')
+        .update({ is_hidden: true })
+        .in('id', selectedIds);
+      if (error) throw error;
+      toast.success(t('retail.history.hiddenSuccess') || 'Hidden successfully');
+      setSelectedIds([]);
+      fetchSales();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const restoreHiddenSales = async () => {
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('retail_sales')
+        .update({ is_hidden: false })
+        .eq('user_id', profile?.id)
+        .eq('is_hidden', true);
+      if (error) throw error;
+      toast.success(t('retail.history.restoredSuccess') || 'Restored all hidden items');
+      fetchSales();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const filteredSales = sales.filter(sale => {
     const matchesSearch = sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sale.total_amount.toString().includes(searchQuery);
     const matchesPayment = paymentFilter === 'all' || sale.payment_method === paymentFilter;
+    const matchesHidden = showHidden ? sale.is_hidden : !sale.is_hidden;
     let matchesDate = true;
     if (rangeStart) {
       const start = new Date(rangeStart); start.setHours(0,0,0,0);
@@ -125,7 +184,7 @@ const RetailHistory: React.FC = () => {
       const end = new Date(rangeEnd); end.setHours(23,59,59,999);
       matchesDate = matchesDate && new Date(sale.created_at) <= end;
     }
-    return matchesSearch && matchesPayment && matchesDate;
+    return matchesSearch && matchesPayment && matchesDate && matchesHidden;
   });
 
   const clearFilters = () => {
@@ -259,6 +318,24 @@ const RetailHistory: React.FC = () => {
             )}
           </div>
 
+          <button 
+            onClick={hideSelectedSales}
+            disabled={selectedIds.length === 0 || isProcessing}
+            className={`p-3 rounded-2xl border transition-all ${selectedIds.length > 0 ? 'bg-red-50 border-red-100 text-red-500 hover:bg-red-100' : 'bg-gray-50 border-gray-100 text-gray-300'}`}
+            title={t('retail.history.hideSelected')}
+          >
+            <EyeOff className={`w-5 h-5 ${isProcessing ? 'animate-pulse' : ''}`} />
+          </button>
+
+          <button 
+            onClick={restoreHiddenSales}
+            disabled={isProcessing}
+            className="p-3 bg-gray-50 border border-gray-100 text-gray-600 rounded-2xl hover:bg-gray-100 transition-all"
+            title={t('retail.history.restoreHidden')}
+          >
+            <RotateCcw className={`w-5 h-5 ${isProcessing ? 'animate-spin' : ''}`} />
+          </button>
+
           <div className="relative flex-1 md:flex-none">
             <button 
               onClick={() => { setShowFilter(!showFilter); setShowCalendar(false); }} 
@@ -277,6 +354,17 @@ const RetailHistory: React.FC = () => {
                       {method === 'all' ? (i18n.language === 'az' ? 'Hamısı' : i18n.language === 'en' ? 'All' : 'Все') : method === 'cash' ? t('retail.cash') : method === 'card' ? t('retail.card') : 'Split'}
                     </button>
                   ))}
+                  <div className="pt-2 border-t border-gray-100 mt-2">
+                    <button 
+                      onClick={() => { setShowHidden(!showHidden); setShowFilter(false); }}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${showHidden ? 'bg-orange-50 text-orange-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      <span>{t('retail.history.showHidden') || 'Show Hidden'}</span>
+                      <div className={`w-10 h-5 rounded-full transition-all relative ${showHidden ? 'bg-orange-500' : 'bg-gray-200'}`}>
+                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showHidden ? 'left-6' : 'left-1'}`} />
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -293,7 +381,19 @@ const RetailHistory: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('retail.history.tableReceipt')} / {t('retail.history.tableTime')}</th>
+                <th className="px-8 py-5 w-16">
+                  <button 
+                    onClick={toggleSelectAll}
+                    className="text-gray-400 hover:text-merkez-blue transition-colors"
+                  >
+                    {selectedIds.length === filteredSales.length && filteredSales.length > 0 ? (
+                      <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                </th>
+                <th className="px-2 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('retail.history.tableReceipt')} / {t('retail.history.tableTime')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('retail.history.tablePayment')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.history.tableVat')}</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{t('retail.history.tableTotal')}</th>
@@ -320,8 +420,20 @@ const RetailHistory: React.FC = () => {
                   </td>
                 </tr>
               ) : filteredSales.map(sale => (
-                <tr key={sale.id} className="hover:bg-gray-50/30 transition-colors group">
+                <tr key={sale.id} className={`hover:bg-gray-50/30 transition-colors group ${selectedIds.includes(sale.id) ? 'bg-blue-50/30' : ''} ${sale.is_hidden ? 'opacity-50 grayscale' : ''}`}>
                   <td className="px-8 py-5">
+                    <button 
+                      onClick={() => toggleSelect(sale.id)}
+                      className="text-gray-400 hover:text-merkez-blue transition-colors"
+                    >
+                      {selectedIds.includes(sale.id) ? (
+                        <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                      ) : (
+                        <Square className="w-5 h-5" />
+                      )}
+                    </button>
+                  </td>
+                  <td className="px-2 py-5">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-hover:bg-merkez-blue/10 transition-colors shrink-0">
                         <ShoppingCart className="w-5 h-5 text-gray-400 group-hover:text-merkez-blue" />
