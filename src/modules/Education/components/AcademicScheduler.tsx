@@ -385,7 +385,7 @@ const AcademicScheduler = () => {
                 {/* Final Hour Line */}
                 <div className="absolute w-full border-t border-gray-50" style={{ top: `${TOTAL_HOURS * 80}px` }}>
                   <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
-                    {`${START_HOUR + TOTAL_HOURS}:00`}
+                    {`${(START_HOUR + TOTAL_HOURS) % 24}:00`}
                   </span>
                 </div>
 
