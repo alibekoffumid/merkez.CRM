@@ -286,7 +286,12 @@
       "sat": "ŞƏN",
       "sun": "BAZ"
     },
-    "noTeachersAvailable": "Həkim tapılmadı",
+    "noTeachersAvailable": "Müəllim tapılmadı",
+    "noLessonsToday": "BU GÜN ÜÇÜN DƏRS YOXDUR",
+    "selectTeacher": "Müəllim Seçin",
+    "selectRoom": "Otaq Seçin",
+    "noRoomsAvailable": "Otaq tapılmadı",
+    "editLesson": "Dərsi Redaktə et",
     "placeholders": {
       "programName": "məs. Fortepiano Masterklass",
       "category": "məs. Musiqi",

@@ -486,7 +486,7 @@ const AcademicScheduler = () => {
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
                 <CalendarIcon className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{editingLessonId ? t('education.editLesson', 'Edit Lesson') : t('education.newLesson')}</h2>
+              <h2 className="text-2xl font-black text-gray-900">{editingLessonId ? t('education.editLesson') : t('education.newLesson')}</h2>
               <p className="text-gray-500 text-sm mt-1">{t('education.manageClasses')}</p>
             </div>
 
@@ -542,7 +542,7 @@ const AcademicScheduler = () => {
                       className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
                     >
                       <span className={formData.teacherName ? 'text-gray-900' : 'text-gray-400'}>
-                        {formData.teacherName || t('education.selectTeacher', 'Select Teacher')}
+                        {formData.teacherName || t('education.selectTeacher')}
                       </span>
                       <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showTeacherDropdown ? 'rotate-90' : ''}`} />
                     </button>
@@ -583,7 +583,7 @@ const AcademicScheduler = () => {
                       className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
                     >
                       <span className={formData.room ? 'text-gray-900' : 'text-gray-400'}>
-                        {formData.room ? rooms?.find(r => r.id === formData.room)?.name || formData.room : 'Select Room'}
+                        {formData.room ? rooms?.find(r => r.id === formData.room)?.name || formData.room : t('education.selectRoom')}
                       </span>
                       <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showRoomDropdown ? 'rotate-90' : ''}`} />
                     </button>
@@ -608,7 +608,7 @@ const AcademicScheduler = () => {
                               </button>
                             ))
                           ) : (
-                            <div className="px-5 py-3 text-xs text-gray-400 italic">No rooms available</div>
+                            <div className="px-5 py-3 text-xs text-gray-400 italic">{t('education.noRoomsAvailable')}</div>
                           )}
                         </div>
                       </>
@@ -657,9 +657,9 @@ const AcademicScheduler = () => {
       `}
     >
                   {isSubmitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing') || 'Processing...'}</>
+                    <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing')}</>
                   ) : success ? (
-                    <><CheckCircle2 className="w-5 h-5" /> {t('education.savedSuccessfully') || 'Success!'}</>
+                    <><CheckCircle2 className="w-5 h-5" /> {t('education.savedSuccessfully')}</>
                   ) : (
                     t('common.save')
                   )}
