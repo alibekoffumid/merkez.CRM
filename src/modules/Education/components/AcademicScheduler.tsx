@@ -190,7 +190,7 @@ const AcademicScheduler = () => {
                       setCalendarViewDate(d);
                     }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors"><ChevronLeft className="w-4 h-4 text-gray-600" /></button>
                     <span className="text-sm font-black text-gray-900 capitalize">
-                      {t(`education.months.${['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'][calendarViewDate.getMonth()]}`)} {calendarViewDate.getFullYear()}
+                      {t(`common.months.${['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'][calendarViewDate.getMonth()]}`)} {calendarViewDate.getFullYear()}
                     </span>
                     <button onClick={(e) => {
                       e.stopPropagation();

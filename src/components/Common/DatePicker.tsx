@@ -124,13 +124,13 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
           
           <div className="grid grid-cols-7 gap-1 text-center mb-2">
             {[
-              t('education.weekdays.mon', 'Mon'),
-              t('education.weekdays.tue', 'Tue'),
-              t('education.weekdays.wed', 'Wed'),
-              t('education.weekdays.thu', 'Thu'),
-              t('education.weekdays.fri', 'Fri'),
-              t('education.weekdays.sat', 'Sat'),
-              t('education.weekdays.sun', 'Sun')
+              t('common.weekdays.mon', 'Mon'),
+              t('common.weekdays.tue', 'Tue'),
+              t('common.weekdays.wed', 'Wed'),
+              t('common.weekdays.thu', 'Thu'),
+              t('common.weekdays.fri', 'Fri'),
+              t('common.weekdays.sat', 'Sat'),
+              t('common.weekdays.sun', 'Sun')
             ].map(d => (
               <span key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{d.substring(0, 3)}</span>
             ))}

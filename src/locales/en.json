@@ -55,7 +55,30 @@
     "update": "Update",
     "clearFilters": "Clear Filters",
     "total": "Total",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "months": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -344,29 +367,6 @@
     "saveRoom": "Save Room",
     "addNewRoom": "Add New Room",
     "defineNewSpace": "Define a new classroom or studio space",
-    "months": {
-      "january": "January",
-      "february": "February",
-      "march": "March",
-      "april": "April",
-      "may": "May",
-      "june": "June",
-      "july": "July",
-      "august": "August",
-      "september": "September",
-      "october": "October",
-      "november": "November",
-      "december": "December"
-    },
-    "weekdays": {
-      "mon": "Mon",
-      "tue": "Tue",
-      "wed": "Wed",
-      "thu": "Thu",
-      "fri": "Fri",
-      "sat": "Sat",
-      "sun": "Sun"
-    },
     "tabJournal": "Journal",
     "tabTeachers": "Teachers",
     "tabRooms": "Rooms",

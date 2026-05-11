@@ -55,7 +55,30 @@
     "update": "Yenilə",
     "clearFilters": "Filtrləri təmizlə",
     "total": "Cəmi",
-    "processing": "Emal olunur..."
+    "processing": "Emal olunur...",
+    "months": {
+      "january": "Yanvar",
+      "february": "Fevral",
+      "march": "Mart",
+      "april": "Aprel",
+      "may": "May",
+      "june": "İyun",
+      "july": "İyul",
+      "august": "Avqust",
+      "september": "Sentyabr",
+      "october": "Oktyabr",
+      "november": "Noyabr",
+      "december": "Dekabr"
+    },
+    "weekdays": {
+      "mon": "B.er",
+      "tue": "Ç.ax",
+      "wed": "Çər",
+      "thu": "C.ax",
+      "fri": "Cüm",
+      "sat": "Şən",
+      "sun": "Baz"
+    }
   },
   "sidebar": {
     "dashboard": "Panel",
@@ -344,29 +367,6 @@
     "saveRoom": "Otağı Saxla",
     "addNewRoom": "Yeni Otaq Əlavə et",
     "defineNewSpace": "Yeni sinif və ya studiya sahəsi təyin edin",
-    "months": {
-      "january": "Yanvar",
-      "february": "Fevral",
-      "march": "Mart",
-      "april": "Aprel",
-      "may": "May",
-      "june": "İyun",
-      "july": "İyul",
-      "august": "Avqust",
-      "september": "Sentyabr",
-      "october": "Oktyabr",
-      "november": "Noyabr",
-      "december": "Dekabr"
-    },
-    "weekdays": {
-      "mon": "B.er",
-      "tue": "Ç.ax",
-      "wed": "Çər",
-      "thu": "C.ax",
-      "fri": "Cüm",
-      "sat": "Şən",
-      "sun": "Baz"
-    },
     "tabJournal": "Jurnal",
     "tabTeachers": "Müəllimlər",
     "tabRooms": "Otaqlar",

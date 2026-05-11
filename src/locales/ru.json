@@ -55,7 +55,30 @@
     "update": "Обновить",
     "clearFilters": "Сбросить фильтры",
     "total": "Итого",
-    "processing": "Обработка..."
+    "processing": "Обработка...",
+    "months": {
+      "january": "Январь",
+      "february": "Февраль",
+      "march": "Март",
+      "april": "Апрель",
+      "may": "Май",
+      "june": "Июнь",
+      "july": "Июль",
+      "august": "Август",
+      "september": "Сентябрь",
+      "october": "Октябрь",
+      "november": "Ноябрь",
+      "december": "Декабрь"
+    },
+    "weekdays": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Вс"
+    }
   },
   "sidebar": {
     "dashboard": "Дашборд",
@@ -344,29 +367,6 @@
     "saveRoom": "Сохранить класс",
     "addNewRoom": "Добавить новый класс",
     "defineNewSpace": "Определите новое помещение или студию",
-    "months": {
-      "january": "Январь",
-      "february": "Февраль",
-      "march": "Март",
-      "april": "Апрель",
-      "may": "Май",
-      "june": "Июнь",
-      "july": "Июль",
-      "august": "Август",
-      "september": "Сентябрь",
-      "october": "Октябрь",
-      "november": "Ноябрь",
-      "december": "Декабрь"
-    },
-    "weekdays": {
-      "mon": "Пн",
-      "tue": "Вт",
-      "wed": "Ср",
-      "thu": "Чт",
-      "fri": "Пт",
-      "sat": "Сб",
-      "sun": "Вс"
-    },
     "tabJournal": "Журнал",
     "tabTeachers": "Учителя",
     "tabRooms": "Комнаты",
