@@ -272,37 +272,43 @@ const AcademicScheduler = () => {
       </div>
       
       <div className="flex flex-col gap-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <h3 className="col-span-full font-black text-gray-900 text-lg">{t('education.upcomingToday')}</h3>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 mr-2">
+            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+            <h3 className="font-black text-gray-900 text-sm uppercase tracking-widest">{t('education.upcomingToday')}</h3>
+          </div>
           
           {lessons?.length > 0 ? (
             lessons.map((lesson: any, index: number) => {
               const startDate = new Date(lesson.start_time);
               const endDate = new Date(lesson.end_time);
+              const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
               
-              const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-              const colors = ['border-l-blue-500 text-blue-600', 'border-l-emerald-500 text-emerald-600', 'border-l-purple-500 text-purple-600', 'border-l-orange-500 text-orange-600'];
+              const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600'];
               const colorClass = colors[index % colors.length];
-              const textClass = colorClass.split(' ')[1];
               
               return (
                 <div 
                   key={lesson.id} 
                   onClick={() => handleEdit(lesson)}
-                  className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${colorClass.split(' ')[0]} cursor-pointer hover:shadow-md transition-all`}
+                  className="group flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer h-[40px] max-w-[240px]"
                 >
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${textClass} mb-1`}>{timeString}</p>
-                  <h4 className="font-bold text-gray-900">{lesson.education_courses?.title || 'Course'}</h4>
-                  <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
-                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {lesson.teacher_name}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {getRoomName(lesson.room)}</span>
+                  <div className={`w-1 h-6 rounded-full ${colorClass}`} />
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
+                      <span className="text-xs font-bold text-gray-700 truncate leading-none">{lesson.education_courses?.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-[8px] font-medium text-gray-400 truncate">{lesson.teacher_name}</span>
+                    </div>
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="col-span-full bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
-              <p className="text-gray-500 text-sm font-bold">{t('education.noLessonsToday') || 'No upcoming lessons today.'}</p>
+            <div className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">{t('education.noLessonsToday')}</p>
             </div>
           )}
         </div>
@@ -463,41 +469,6 @@ const AcademicScheduler = () => {
             </div>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <h3 className="col-span-full font-black text-gray-900 text-lg mt-4">{t('education.upcomingToday')}</h3>
-          
-          {lessons?.length > 0 ? (
-            lessons.map((lesson: any, index: number) => {
-              const startDate = new Date(lesson.start_time);
-              const endDate = new Date(lesson.end_time);
-              
-              const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${endDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-              const colors = ['border-l-blue-500 text-blue-600', 'border-l-emerald-500 text-emerald-600', 'border-l-purple-500 text-purple-600', 'border-l-orange-500 text-orange-600'];
-              const colorClass = colors[index % colors.length];
-              const textClass = colorClass.split(' ')[1];
-
-              return (
-                <div 
-                  key={lesson.id} 
-                  onClick={() => handleEdit(lesson)}
-                  className={`bg-white p-4 rounded-2xl border border-gray-100 shadow-sm border-l-4 ${colorClass.split(' ')[0]} cursor-pointer hover:shadow-md transition-all`}
-                >
-                  <p className={`text-[10px] font-black uppercase tracking-widest ${textClass} mb-1`}>{timeString}</p>
-                  <h4 className="font-bold text-gray-900">{lesson.education_courses?.title || 'Course'}</h4>
-                  <div className="flex items-center gap-3 mt-3 text-xs font-medium text-gray-500">
-                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5"/> {lesson.teacher_name}</span>
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5"/> {getRoomName(lesson.room)}</span>
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="col-span-full bg-gray-50 p-6 rounded-2xl border border-gray-100 text-center">
-              <p className="text-gray-500 text-sm font-bold">No upcoming lessons today.</p>
-            </div>
-          )}
-        </div>
       </div>
 
       {isModalOpen && (
@@ -529,7 +500,7 @@ const AcademicScheduler = () => {
                     className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      < Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <span>{courses?.find((c: any) => c.id === formData.courseId)?.title || t('education.selectProgram')}</span>
                     </div>
                     <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showProgramDropdown ? 'rotate-90' : ''}`} />
