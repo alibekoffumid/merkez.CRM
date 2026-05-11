@@ -120,7 +120,16 @@
       "security": "Security Log",
       "securityDesc": "Priority alerts for logins and permission changes."
     },
-    "email": "Email"
+    "email": "Email",
+    "fullName": "Full Identity Name",
+    "fullNamePlaceholder": "Your full name",
+    "systemEmail": "System Login Email",
+    "businessNamePlaceholder": "Restaurant/Bar name",
+    "addressPlaceholder": "City, Street, Building...",
+    "phonePlaceholder": "+X XXX XXX XX XX",
+    "websitePlaceholder": "www.yourwebsite.com",
+    "hoursPlaceholder": "Mon-Sun: 10:00 - 23:00",
+    "essencePlaceholder": "Tell us about the vibes, the food, and the mission of your establishment..."
   },
   "dental": {
     "title": "Merkez Dental",

@@ -285,18 +285,18 @@ const Profile = () => {
                      
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Identity Name</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.fullName', 'Full Identity Name')}</label>
                          <input 
                            type="text" 
                            name="full_name"
                            value={profile.full_name} 
                            onChange={handleChange}
                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm"
-                           placeholder="Your full name"
+                           placeholder={t('profile.fullNamePlaceholder', 'Your full name')}
                          />
                        </div>
                        <div className="space-y-2.5">
-                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">System Login Email</label>
+                         <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('profile.systemEmail', 'System Login Email')}</label>
                          <div className="relative">
                             < Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                             <input 
@@ -328,7 +328,7 @@ const Profile = () => {
                            value={profile.business_name} 
                            onChange={handleChange}
                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                           placeholder="Restaurant/Bar name"
+                           placeholder={t('profile.businessNamePlaceholder', 'Restaurant/Bar name')}
                          />
                        </div>
                        <div className="space-y-2.5">
@@ -357,7 +357,7 @@ const Profile = () => {
                               value={profile.address} 
                               onChange={handleChange}
                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder="City, Street, Building..."
+                              placeholder={t('profile.addressPlaceholder', 'City, Street, Building...')}
                             />
                          </div>
                        </div>
@@ -372,7 +372,7 @@ const Profile = () => {
                               value={profile.phone} 
                               onChange={handleChange}
                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder="+X XXX XXX XX XX"
+                              placeholder={t('profile.phonePlaceholder', '+X XXX XXX XX XX')}
                             />
                          </div>
                        </div>
@@ -387,7 +387,7 @@ const Profile = () => {
                               value={profile.website} 
                               onChange={handleChange}
                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder="www.yourrestaurant.com"
+                              placeholder={t('profile.websitePlaceholder', 'www.yourwebsite.com')}
                             />
                          </div>
                        </div>
@@ -402,7 +402,7 @@ const Profile = () => {
                               value={profile.operating_hours} 
                               onChange={handleChange}
                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
-                              placeholder="Mon-Sun: 10:00 - 23:00"
+                              placeholder={t('profile.hoursPlaceholder', 'Mon-Sun: 10:00 - 23:00')}
                             />
                          </div>
                        </div>
@@ -417,7 +417,7 @@ const Profile = () => {
                               value={profile.description} 
                               onChange={handleChange}
                               className="block w-full pl-14 pr-6 py-6 bg-gray-50/50 border border-transparent rounded-3xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold resize-none shadow-sm"
-                              placeholder="Tell us about the vibes, the food, and the mission of your establishment..."
+                              placeholder={t('profile.essencePlaceholder', 'Tell us about the vibes, the food, and the mission of your establishment...')}
                             />
                          </div>
                        </div>
@@ -436,15 +436,15 @@ const Profile = () => {
                       <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-500">
                         <Bell className="w-5 h-5" />
                       </div>
-                      <h3 className="text-xl font-black text-gray-900 tracking-tight">Smart Notifications</h3>
+                      <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.notifications.title', 'Smart Notifications')}</h3>
                    </div>
                    
                    <div className="space-y-4">
                      {[
-                       { key: 'operational', title: 'Operational Digest', desc: 'Receive daily summaries and critical inventory alerts.', active: notificationPrefs.operational },
-                       { key: 'realtime', title: 'Real-time Push', desc: 'Show desktop alerts for mentions, orders and urgent tasks.', active: notificationPrefs.realtime },
-                       { key: 'community', title: 'Community & Ecosystem', desc: 'Stay updated with new features, benchmarks and tips.', active: notificationPrefs.community },
-                       { key: 'security', title: 'Cyber-Security Ledger', desc: 'Priority alerts for new logins and permission changes.', active: notificationPrefs.security },
+                       { key: 'operational', title: t('profile.notifications.digest', 'Operational Digest'), desc: t('profile.notifications.digestDesc', 'Receive daily summaries and critical inventory alerts.'), active: notificationPrefs.operational },
+                       { key: 'realtime', title: t('profile.notifications.push', 'Real-time Push'), desc: t('profile.notifications.pushDesc', 'Show desktop alerts for mentions, orders and urgent tasks.'), active: notificationPrefs.realtime },
+                       { key: 'community', title: t('profile.notifications.community', 'Community & Ecosystem'), desc: t('profile.notifications.communityDesc', 'Stay updated with new features, benchmarks and tips.'), active: notificationPrefs.community },
+                       { key: 'security', title: t('profile.notifications.security', 'Cyber-Security Ledger'), desc: t('profile.notifications.securityDesc', 'Priority alerts for new logins and permission changes.'), active: notificationPrefs.security },
                      ].map((item, idx) => (
                        <div key={idx} onClick={() => toggleNotification(item.key)} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100/30 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all cursor-pointer">
                          <div>

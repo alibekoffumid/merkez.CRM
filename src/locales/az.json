@@ -120,7 +120,16 @@
       "security": "Təhlükəsizlik Jurnalı",
       "securityDesc": "Girişlər və icazə dəyişiklikləri üçün prioritet xəbərdarlıqlar."
     },
-    "email": "E-poçt"
+    "email": "E-poçt",
+    "fullName": "Tam Ad",
+    "fullNamePlaceholder": "Adınız və soyadınız",
+    "systemEmail": "Sistem E-poçtu",
+    "businessNamePlaceholder": "Restoran/Bar adı",
+    "addressPlaceholder": "Şəhər, küçə, bina...",
+    "phonePlaceholder": "+X XXX XXX XX XX",
+    "websitePlaceholder": "www.vebsaytiniz.com",
+    "hoursPlaceholder": "B.er-Baz: 10:00 - 23:00",
+    "essencePlaceholder": "Brendiniz, mətbəxiniz və missiyanız haqqında..."
   },
   "dental": {
     "title": "Merkez Dental",

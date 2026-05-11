@@ -120,7 +120,16 @@
       "security": "Журнал безопасности",
       "securityDesc": "Приоритетные алерты о входах и правах доступа."
     },
-    "email": "E-mail"
+    "email": "E-mail",
+    "fullName": "Полное имя",
+    "fullNamePlaceholder": "Ваше полное имя",
+    "systemEmail": "Системный E-mail",
+    "businessNamePlaceholder": "Название ресторана/бара",
+    "addressPlaceholder": "Город, улица, здание...",
+    "phonePlaceholder": "+X XXX XXX XX XX",
+    "websitePlaceholder": "www.вашсайт.com",
+    "hoursPlaceholder": "Пн-Вс: 10:00 - 23:00",
+    "essencePlaceholder": "Расскажите о вашем бренде, кухне и миссии..."
   },
   "dental": {
     "title": "Merkez Dental",
