@@ -39,7 +39,7 @@ const AcademicJournal = () => {
               onClick={() => setShowCourseDropdown(!showCourseDropdown)}
               className="w-full px-5 py-3 bg-white rounded-xl border border-gray-100 shadow-sm focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
             >
-              <span>{selectedCourse === 'all' ? 'All Programs' : courses?.find(c => c.id === selectedCourse)?.title}</span>
+              <span>{selectedCourse === 'all' ? t('education.allPrograms') : courses?.find(c => c.id === selectedCourse)?.title}</span>
               <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showCourseDropdown ? 'rotate-180' : ''}`} />
             </button>
 
@@ -99,7 +99,7 @@ const AcademicJournal = () => {
                         </div>
                         <div>
                           <p className="font-bold text-gray-900">{student.first_name} {student.last_name}</p>
-                          <p className="text-xs text-gray-500 font-medium">{student.education_courses?.title || 'No course'}</p>
+                          <p className="text-xs text-gray-500 font-medium">{student.education_courses?.title || t('common.noData')}</p>
                         </div>
                       </div>
                     </td>
@@ -183,7 +183,7 @@ const AcademicJournal = () => {
         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-center">
           <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('education.nextExamSession')}</h3>
           <p className="text-xl font-black text-gray-900">
-            {new Date(2026, 4, 20).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' })} - {new Date(2026, 4, 25).toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' })}
+            {`20 ${t('common.months.may')} - 25 ${t('common.months.may')}`} 2026
           </p>
           <p className="text-sm text-gray-500 mt-2 font-medium">12 {t('education.studentsRegistered')}</p>
           <button className="mt-6 w-full py-3 bg-gray-50 text-gray-900 rounded-xl text-sm font-black hover:bg-gray-100 transition-all">
