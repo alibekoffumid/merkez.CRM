@@ -172,6 +172,25 @@ const RetailHistory: React.FC = () => {
     }
   };
 
+  const restoreSelectedSales = async () => {
+    if (selectedIds.length === 0) return;
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('retail_sales')
+        .update({ is_hidden: false })
+        .in('id', selectedIds);
+      if (error) throw error;
+      toast.success(t('retail.history.restoredSuccess'));
+      setSelectedIds([]);
+      fetchSales();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const filteredSales = sales.filter(sale => {
     const matchesSearch = sale.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sale.total_amount.toString().includes(searchQuery);
@@ -321,12 +340,16 @@ const RetailHistory: React.FC = () => {
           </div>
 
           <button 
-            onClick={() => setShowConfirmHide(true)}
+            onClick={() => showHidden ? restoreSelectedSales() : setShowConfirmHide(true)}
             disabled={selectedIds.length === 0 || isProcessing}
-            className={`p-3 rounded-2xl border transition-all ${selectedIds.length > 0 ? 'bg-red-50 border-red-100 text-red-500 hover:bg-red-100' : 'bg-gray-50 border-gray-100 text-gray-300'}`}
-            title={t('retail.history.hideSelected')}
+            className={`p-3 rounded-2xl border transition-all ${selectedIds.length > 0 ? (showHidden ? 'bg-green-50 border-green-100 text-green-500 hover:bg-green-100' : 'bg-red-50 border-red-100 text-red-500 hover:bg-red-100') : 'bg-gray-50 border-gray-100 text-gray-300'}`}
+            title={showHidden ? t('retail.history.restoreHidden') : t('retail.history.hideSelected')}
           >
-            <EyeOff className={`w-5 h-5 ${isProcessing ? 'animate-pulse' : ''}`} />
+            {showHidden ? (
+              <Eye className={`w-5 h-5 ${isProcessing ? 'animate-pulse' : ''}`} />
+            ) : (
+              <EyeOff className={`w-5 h-5 ${isProcessing ? 'animate-pulse' : ''}`} />
+            )}
           </button>
 
           <button 
