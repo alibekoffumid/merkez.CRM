@@ -258,16 +258,6 @@ const RetailHistory: React.FC = () => {
               <NavLink to="/retail/inventory" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.inventory.title')}</NavLink>
               <NavLink to="/retail/history" className={({ isActive }) => `px-6 py-2 rounded-xl text-sm font-black transition-all ${isActive ? 'bg-merkez-blue text-white shadow-lg shadow-blue-500/20' : 'text-gray-500 hover:bg-gray-50'}`}>{t('retail.history.title')}</NavLink>
             </div>
-            
-            <div className="hidden xl:flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
-                <HistoryIcon className="w-5 h-5 text-merkez-blue" />
-              </div>
-              <div>
-                <h1 className="text-lg font-black text-gray-900 leading-none">{t('retail.history.title')}</h1>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{t('retail.history.subtitle')}</p>
-              </div>
-            </div>
           </div>
 
           <div className="flex items-center gap-4">

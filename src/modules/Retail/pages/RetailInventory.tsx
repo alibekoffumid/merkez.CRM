@@ -210,10 +210,6 @@ const RetailInventory: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-right">
-              <h1 className="text-xl font-black text-gray-900 tracking-tight">{t('retail.inventory.title')}</h1>
-              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{t('retail.inventory.subtitle')}</p>
-            </div>
             <button 
               onClick={() => {
                 setEditingProduct(null);
