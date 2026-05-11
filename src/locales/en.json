@@ -70,20 +70,6 @@
     "clearFilters": "Clear Filters",
     "total": "Total",
     "processing": "Processing...",
-    "months": {
-      "january": "January",
-      "february": "February",
-      "march": "March",
-      "april": "April",
-      "may": "May",
-      "june": "June",
-      "july": "July",
-      "august": "August",
-      "september": "September",
-      "october": "October",
-      "november": "November",
-      "december": "December"
-    },
     "weekdays": {
       "mon": "Mon",
       "tue": "Tue",
