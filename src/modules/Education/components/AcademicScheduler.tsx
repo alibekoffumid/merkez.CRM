@@ -50,6 +50,13 @@ const AcademicScheduler = () => {
            d1.getDate() === d2.getDate();
   };
 
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const dayLessons = lessons?.filter(l => isSameDay(new Date(l.start_time), selectedDate)) || [];
   const START_HOUR = 0;
   const TOTAL_HOURS = 24; // 24-hour view
@@ -294,7 +301,7 @@ const AcademicScheduler = () => {
                 courseId: '',
                 teacherName: '',
                 room: '',
-                date: selectedDate.toISOString().split('T')[0],
+                date: getLocalDateString(selectedDate),
                 startTime: '10:00',
                 endTime: '11:00'
               });
@@ -359,7 +366,7 @@ const AcademicScheduler = () => {
                               ...formData,
                               startTime: `${hour.toString().padStart(2, '0')}:00`,
                               endTime: `${(hour + 1).toString().padStart(2, '0')}:00`,
-                              date: selectedDate.toISOString().split('T')[0]
+                              date: getLocalDateString(selectedDate)
                             });
                             setIsModalOpen(true);
                           }}
