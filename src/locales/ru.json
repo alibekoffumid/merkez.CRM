@@ -452,8 +452,8 @@
     "history": {
       "title": "История",
       "subtitle": "Просматривайте журнал продаж и чеки",
-      "totalSales": "Кол-во продаж",
-      "revenue": "Общая выручка",
+      "totalSales": "КОЛ-ВО ПРОДАЖ",
+      "revenue": "ОБЩАЯ ВЫРУЧКА",
       "searchPlaceholder": "Поиск по № чека...",
       "period": "Период",
       "filters": "Фильтры",
@@ -464,8 +464,15 @@
       "tableTotal": "Итого",
       "tableActions": "Действия",
       "empty": "История пуста",
+      "viewDetails": "Подробнее",
       "downloadPdf": "Скачать PDF",
-      "viewDetails": "Подробнее"
+      "hideSelected": "Скрыть выбранные",
+      "restoreHidden": "Восстановить скрытые",
+      "showHidden": "Показать скрытые",
+      "hiddenSuccess": "Выбранные чеки скрыты",
+      "restoredSuccess": "Все скрытые чеки восстановлены",
+      "confirmHide": "Подтвердите скрытие",
+      "confirmHideDesc": "Вы уверены, что хотите скрыть выбранные чеки из истории?"
     },
     "composition": "Состав",
     "exciseRequired": "Требуется акциз",

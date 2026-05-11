@@ -452,8 +452,8 @@
     "history": {
       "title": "Tarixçə",
       "subtitle": "Satış jurnalına və qəbzlərə baxın",
-      "totalSales": "Satış sayı",
-      "revenue": "Ümumi Gəlir",
+      "totalSales": "SATIŞ SAYI",
+      "revenue": "ÜMUMİ GƏLİR",
       "searchPlaceholder": "Qəbz № axtar...",
       "period": "Dövr",
       "filters": "Filtrlər",
@@ -463,9 +463,16 @@
       "tableVat": "ƏDV",
       "tableTotal": "Cəmi",
       "tableActions": "Əməliyyatlar",
-      "empty": "Tarixçə boşdur",
+      "empty": "Hələ heç bir satış qeydə alınmayıb",
+      "viewDetails": "Detallara bax",
       "downloadPdf": "PDF yüklə",
-      "viewDetails": "Ətraflı bax"
+      "hideSelected": "Seçilənləri gizlə",
+      "restoreHidden": "Gizli olanları qaytar",
+      "showHidden": "Gizliləri göstər",
+      "hiddenSuccess": "Seçilən çəklər gizlədildi",
+      "restoredSuccess": "Bütün gizli çəklər bərpa edildi",
+      "confirmHide": "Gizlətməyi təsdiqlə",
+      "confirmHideDesc": "Seçilmiş çəkləri tarixçədən gizlətmək istədiyinizə əminsiniz?"
     },
     "composition": "Tərkib",
     "exciseRequired": "Aksiz tələb olunur",
@@ -953,9 +960,7 @@
     "staffWaiters": "Ofisiantlar",
     "tablesSettings": "Masa tənzimləmələri",
     "inventory": "İnventar",
-    "reportsAnalytics": "Hesabatlar",
-    "title": "Restoran",
-    "subtitle": "Restoran idarəetməsi"
+    "reportsAnalytics": "Hesabatlar"
   },
   "auth": {
     "sessionExpired": "Sessiya bitib"

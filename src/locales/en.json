@@ -452,8 +452,8 @@
     "history": {
       "title": "History",
       "subtitle": "View sales journal and receipts",
-      "totalSales": "Total Sales",
-      "revenue": "Total Revenue",
+      "totalSales": "TOTAL SALES",
+      "revenue": "TOTAL REVENUE",
       "searchPlaceholder": "Search receipt #...",
       "period": "Period",
       "filters": "Filters",
@@ -464,8 +464,15 @@
       "tableTotal": "Total",
       "tableActions": "Actions",
       "empty": "History is empty",
+      "viewDetails": "View Details",
       "downloadPdf": "Download PDF",
-      "viewDetails": "View Details"
+      "hideSelected": "Hide selected",
+      "restoreHidden": "Restore hidden",
+      "showHidden": "Show hidden",
+      "hiddenSuccess": "Selected receipts hidden",
+      "restoredSuccess": "All hidden receipts restored",
+      "confirmHide": "Confirm Hide",
+      "confirmHideDesc": "Are you sure you want to hide selected receipts from history?"
     },
     "composition": "Composition",
     "exciseRequired": "Excise Required",

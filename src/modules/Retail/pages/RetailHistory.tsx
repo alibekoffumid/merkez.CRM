@@ -85,6 +85,7 @@ const RetailHistory: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showHidden, setShowHidden] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfirmHide, setShowConfirmHide] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -142,9 +143,10 @@ const RetailHistory: React.FC = () => {
         .update({ is_hidden: true })
         .in('id', selectedIds);
       if (error) throw error;
-      toast.success(t('retail.history.hiddenSuccess') || 'Hidden successfully');
+      toast.success(t('retail.history.hiddenSuccess'));
       setSelectedIds([]);
       fetchSales();
+      setShowConfirmHide(false);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -161,7 +163,7 @@ const RetailHistory: React.FC = () => {
         .eq('user_id', profile?.id)
         .eq('is_hidden', true);
       if (error) throw error;
-      toast.success(t('retail.history.restoredSuccess') || 'Restored all hidden items');
+      toast.success(t('retail.history.restoredSuccess'));
       fetchSales();
     } catch (err: any) {
       toast.error(err.message);
@@ -319,7 +321,7 @@ const RetailHistory: React.FC = () => {
           </div>
 
           <button 
-            onClick={hideSelectedSales}
+            onClick={() => setShowConfirmHide(true)}
             disabled={selectedIds.length === 0 || isProcessing}
             className={`p-3 rounded-2xl border transition-all ${selectedIds.length > 0 ? 'bg-red-50 border-red-100 text-red-500 hover:bg-red-100' : 'bg-gray-50 border-gray-100 text-gray-300'}`}
             title={t('retail.history.hideSelected')}
@@ -598,6 +600,73 @@ const RetailHistory: React.FC = () => {
                 className="flex-1 py-4 bg-merkez-blue text-white rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:bg-blue-600 transition-all"
               >
                 {t('common.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Hide Modal */}
+      {showConfirmHide && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md" onClick={() => setShowConfirmHide(false)} />
+          <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <EyeOff className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{t('retail.history.confirmHide')}</h3>
+              <p className="text-sm font-bold text-gray-500 leading-relaxed">
+                {t('retail.history.confirmHideDesc')} ({selectedIds.length})
+              </p>
+            </div>
+            <div className="p-8 bg-gray-50 border-t border-gray-100 flex gap-4">
+              <button 
+                onClick={() => setShowConfirmHide(false)}
+                className="flex-1 py-4 bg-white border-2 border-gray-100 rounded-2xl font-black text-gray-600 hover:border-gray-200 transition-all"
+              >
+                {t('retail.cancel')}
+              </button>
+              <button 
+                onClick={hideSelectedSales}
+                disabled={isProcessing}
+                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+              >
+                {isProcessing && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
+                {t('common.confirm') || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirm Hide Modal */}
+      {showConfirmHide && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md" onClick={() => setShowConfirmHide(false)} />
+          <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <EyeOff className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 mb-2">{t('retail.history.confirmHide')}</h3>
+              <p className="text-sm font-bold text-gray-500 leading-relaxed">
+                {t('retail.history.confirmHideDesc')} ({selectedIds.length})
+              </p>
+            </div>
+            <div className="p-8 bg-gray-50 border-t border-gray-100 flex gap-4">
+              <button 
+                onClick={() => setShowConfirmHide(false)}
+                className="flex-1 py-4 bg-white border-2 border-gray-100 rounded-2xl font-black text-gray-600 hover:border-gray-200 transition-all"
+              >
+                {t('retail.cancel')}
+              </button>
+              <button 
+                onClick={hideSelectedSales}
+                disabled={isProcessing}
+                className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all flex items-center justify-center gap-2"
+              >
+                {isProcessing && <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />}
+                {t('common.confirm')}
               </button>
             </div>
           </div>
