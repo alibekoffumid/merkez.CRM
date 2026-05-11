@@ -14,6 +14,11 @@ const TeacherManagement = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
     specialization: courses?.[0]?.title || 'Piano',
     salaryType: 'hourly',
     salaryAmount: 20,

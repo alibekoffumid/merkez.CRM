@@ -14,6 +14,7 @@ const AcademicScheduler = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
     courseId: '',
     teacherId: '',
     teacherName: '',
