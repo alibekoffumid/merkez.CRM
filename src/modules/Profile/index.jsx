@@ -167,11 +167,7 @@ const Profile = () => {
 
   return (
     <div className="max-w-full mx-auto px-4 lg:px-0">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 mb-2 tracking-tight">{t('sidebar.settings')}</h1>
-          <p className="text-gray-500 font-medium tracking-tight text-lg">{t('profile.subtitle', 'Настройте данные вашего профиля и предпочтения аккаунта')}</p>
-        </div>
+      <div className="flex flex-col md:flex-row justify-end items-start md:items-end mb-10 gap-4">
         <div className="hidden sm:flex items-center space-x-3">
           <button 
             onClick={handleSave}
