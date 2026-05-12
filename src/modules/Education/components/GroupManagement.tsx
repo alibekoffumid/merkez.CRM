@@ -29,6 +29,17 @@ const GroupManagement = () => {
 
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
+  
+  const toggleCourseDropdown = () => {
+    setShowCourseDropdown(!showCourseDropdown);
+    setShowTeacherDropdown(false);
+  };
+  
+  const toggleTeacherDropdown = () => {
+    setShowTeacherDropdown(!showTeacherDropdown);
+    setShowCourseDropdown(false);
+  };
+
   const [studentSearch, setStudentSearch] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -255,9 +266,11 @@ const GroupManagement = () => {
               </button>
 
               <div className="mb-6">
-                <h2 className="text-2xl font-black text-gray-900">{selectedGroup ? t('common.edit') : t('education.addGroup')}</h2>
+                <h2 className="text-2xl font-black text-gray-900">{selectedGroup ? t('common.edit') : t('education.addGroup', 'Yeni Qrup')}</h2>
                 <p className="text-gray-500 text-sm mt-1">{t('education.manageGroupsDesc', 'Qrup və ya fərdi dərsləri idarə edin')}</p>
               </div>
+
+              {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold mb-4 animate-in slide-in-from-top-2">{error}</div>}
 
               <div className="flex gap-4 mb-6 border-b border-gray-50">
                 <button 
@@ -316,17 +329,17 @@ const GroupManagement = () => {
 
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.program', 'Proqram')}</label>
-                        <div className="relative">
+                        <div className="relative z-[60]">
                           <button 
                             type="button"
-                            onClick={() => setShowCourseDropdown(!showCourseDropdown)}
+                            onClick={toggleCourseDropdown}
                             className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-sm font-bold text-gray-900"
                           >
                             <span>{courses.find(c => c.id === formData.courseId)?.title || 'Seçin'}</span>
                             <ChevronDown className={`w-4 h-4 transition-transform ${showCourseDropdown ? 'rotate-180' : ''}`} />
                           </button>
                           {showCourseDropdown && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-48 overflow-y-auto no-scrollbar p-2">
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[70] max-h-48 overflow-y-auto no-scrollbar p-2 animate-in zoom-in-95 fade-in duration-200">
                               {courses.map(c => (
                                 <button
                                   key={c.id}
@@ -348,17 +361,17 @@ const GroupManagement = () => {
 
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacher', 'Müəllim')}</label>
-                      <div className="relative">
+                      <div className="relative z-[50]">
                         <button 
                           type="button"
-                          onClick={() => setShowTeacherDropdown(!showTeacherDropdown)}
+                          onClick={toggleTeacherDropdown}
                           className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-sm font-bold text-gray-900"
                         >
                           <span>{teachers.find(t => t.id === formData.teacherId) ? `${teachers.find(t => t.id === formData.teacherId).first_name} ${teachers.find(t => t.id === formData.teacherId).last_name}` : 'Məcburi deyil'}</span>
                           <ChevronDown className={`w-4 h-4 transition-transform ${showTeacherDropdown ? 'rotate-180' : ''}`} />
                         </button>
                         {showTeacherDropdown && (
-                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 max-h-48 overflow-y-auto no-scrollbar p-2">
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[60] max-h-48 overflow-y-auto no-scrollbar p-2 animate-in zoom-in-95 fade-in duration-200">
                             <button
                                 type="button"
                                 onClick={() => {
