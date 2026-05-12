@@ -1048,7 +1048,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       return (
                         <div 
                           key={item.id} 
-                          className="absolute rounded-xl border p-3 shadow-sm transition-all overflow-hidden z-0"
+                          className="absolute rounded-xl border-2 p-3 transition-all overflow-hidden pointer-events-none select-none"
                           style={{ 
                             top: `${top}px`, 
                             height: `${height}px`,
@@ -1057,20 +1057,33 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                             marginLeft: '2px',
                             marginRight: '2px',
                             borderStyle: 'dashed',
-                            borderColor: hexToRgba(teacherColor, 0.4),
-                            backgroundColor: hexToRgba(teacherColor, 0.05)
+                            borderColor: hexToRgba(teacherColor, 0.2),
+                            backgroundColor: hexToRgba(teacherColor, 0.03),
+                            backgroundImage: `repeating-linear-gradient(
+                              -45deg,
+                              transparent,
+                              transparent 8px,
+                              ${hexToRgba(teacherColor, 0.04)} 8px,
+                              ${hexToRgba(teacherColor, 0.04)} 16px
+                            )`,
+                            zIndex: 0,
+                            opacity: 0.6
                           }}
                         >
                           <div className="flex items-center justify-between gap-1.5 mb-1">
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: teacherColor }} />
-                              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>{item.title}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: hexToRgba(teacherColor, 0.6) }}>
+                                {t('education.workingShift', 'İş Saatları')}
+                              </span>
                             </div>
-                            <span className="text-[9px] font-black opacity-60" style={{ color: teacherColor }}>
+                            <span className="text-[9px] font-bold opacity-40" style={{ color: teacherColor }}>
                               {formatItemTime(startDate)} - {formatItemTime(endDate)}
                             </span>
                           </div>
-                          <h4 className="font-bold text-xs truncate" style={{ color: teacherColor }}>{item.teacher_name}</h4>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <div className="w-1 h-1 rounded-full opacity-40" style={{ backgroundColor: teacherColor }} />
+                            <h4 className="font-bold text-[10px] truncate opacity-50" style={{ color: teacherColor }}>{item.teacher_name}</h4>
+                          </div>
                         </div>
                       );
                     }
