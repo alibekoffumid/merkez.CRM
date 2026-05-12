@@ -1117,7 +1117,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                         <h4 className="font-bold text-xs truncate text-gray-900 mb-1">{item.teacher_name}</h4>
                         <div className="flex items-center gap-1.5 mt-auto">
                           <MapPin className="w-3 h-3 text-gray-400" />
-                          <span className="text-[10px] font-bold text-gray-500 truncate">{item.room || t('education.noRoom', 'Otaq qeyd olunmayıb')}</span>
+                          <span className="text-[10px] font-bold text-gray-500 truncate">{rooms?.find((r: any) => r.id === item.room)?.name || rooms?.find((r: any) => r.id === item.room_id)?.name || t('education.noRoom', 'Otaq qeyd olunmayıb')}</span>
                         </div>
                       </div>
                     );
