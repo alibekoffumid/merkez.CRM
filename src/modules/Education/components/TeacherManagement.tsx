@@ -459,7 +459,7 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
                       </button>
 
                       {showRoomDropdown && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 zoom-in-95 duration-200">
                           <div className="p-2 max-h-48 overflow-y-auto no-scrollbar">
                             <button
                               type="button"
