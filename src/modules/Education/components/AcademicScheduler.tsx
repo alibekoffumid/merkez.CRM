@@ -95,62 +95,71 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
 
     // Unified Event Calculation for Selected Date
     const dayEvents = React.useMemo(() => {
-      const selectedDateStr = getLocalDateString(selectedDate);
+      if (!lessons) return [];
       
-      // 1. Lessons
-      const dayLessons = lessons.filter(l => {
-        const lessonDate = new Date(l.start_time);
-        return getLocalDateString(lessonDate) === selectedDateStr;
+      // 1. Filter Lessons for Selected Date
+      const currentDayLessons = lessons.filter(l => {
+        try {
+          return isSameDay(new Date(l.start_time), selectedDate);
+        } catch (e) {
+          return false;
+        }
       });
       
-      // 2. Virtual Shifts
-    const virtualShifts: any[] = [];
-    const dayName = getDayName(selectedDate);
-    
-    teachers.forEach(teacher => {
-      if (selectedTeacherFilter && teacher.id !== selectedTeacherFilter) return;
+      // 2. Add Metadata to Lessons
+      const lessonsWithMetadata = currentDayLessons.map(l => {
+        const group = groups?.find(g => g.id === l.group_id);
+        const groupStuds = groupStudents?.filter(gs => gs.group_id === l.group_id) || [];
+        return {
+          ...l,
+          title: group ? group.name : (l.education_courses?.title || l.title || t('education.noTitle', 'Dərs')),
+          students_count: l.group_id ? groupStuds.length : (enrollments?.filter((e: any) => e.course_id === l.course_id).length || 0),
+          isShift: false
+        };
+      });
       
-      const config = teacher.working_hours?.[dayName];
-      if (config?.active && config.start && config.end) {
-        const start = new Date(`${getLocalDateString(selectedDate)}T${config.start}:00`);
-        const end = new Date(`${getLocalDateString(selectedDate)}T${config.end}:00`);
-        
-        virtualShifts.push({
-          id: `shift-${teacher.id}`,
-          isShift: true,
-          teacher_id: teacher.id,
-          teacher_name: `${teacher.first_name} ${teacher.last_name}`,
-          title: teacher.specialization || t('education.workingShift', 'İş Saatları'),
-          start_time: start.toISOString(),
-          end_time: end.toISOString(),
-          room: teacher.room_id || '',
-          students_count: enrollments.filter((e: any) => e.teacher_id === teacher.id).length // Approximate for shifts
+      // 3. Generate Virtual Shifts
+      const virtualShifts: any[] = [];
+      const dayName = getDayName(selectedDate);
+      
+      if (teachers && teachers.length > 0) {
+        teachers.forEach(teacher => {
+          const config = teacher.working_hours?.[dayName];
+          if (config?.active && config.start && config.end) {
+            try {
+              const start = new Date(`${getLocalDateString(selectedDate)}T${config.start}:00`);
+              const end = new Date(`${getLocalDateString(selectedDate)}T${config.end}:00`);
+              
+              virtualShifts.push({
+                id: `shift-${teacher.id}`,
+                isShift: true,
+                teacher_id: teacher.id,
+                teacher_name: `${teacher.first_name} ${teacher.last_name}`,
+                title: teacher.specialization || t('education.workingShift', 'İş Saatları'),
+                start_time: start.toISOString(),
+                end_time: end.toISOString(),
+                room: teacher.room_id || '',
+                students_count: enrollments?.filter((e: any) => e.teacher_id === teacher.id).length || 0
+              });
+            } catch (e) {
+              console.error('Error creating shift:', e);
+            }
+          }
         });
       }
-    });
 
-    const dayEventsWithMetadata = dayLessons.map(l => {
-      const group = groups?.find(g => g.id === l.group_id);
-      const groupStuds = groupStudents?.filter(gs => gs.group_id === l.group_id) || [];
-      return {
-        ...l,
-        title: group ? group.name : (l.education_courses?.title || l.title),
-        students_count: l.group_id ? groupStuds.length : (enrollments?.filter((e: any) => e.course_id === l.course_id).length || 0)
-      };
-    });
+      // 4. Combine and Sort
+      const allItems = [...lessonsWithMetadata, ...virtualShifts].sort((a, b) => 
+        new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+      );
 
-    const allItems = [...dayEventsWithMetadata, ...virtualShifts].sort((a, b) => 
-      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-    );
-
-    // Apply teacher filter here so it's consistent
-    return selectedTeacherFilter 
-      ? allItems.filter(item => {
-          const tId = item.isShift ? item.teacher_id : item.teacher_id;
-          return tId === selectedTeacherFilter;
-        })
-      : allItems;
-  }, [lessons, teachers, selectedDate, selectedTeacherFilter, enrollments, groups, groupStudents, t]);
+      // 5. Final Filter by Teacher
+      if (selectedTeacherFilter) {
+        return allItems.filter(item => (item.teacher_id === selectedTeacherFilter));
+      }
+      
+      return allItems;
+    }, [lessons, teachers, selectedDate, selectedTeacherFilter, enrollments, groups, groupStudents, t]);
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
