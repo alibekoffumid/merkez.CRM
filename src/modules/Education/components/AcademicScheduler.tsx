@@ -44,6 +44,7 @@ const AcademicScheduler = () => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showProgramDropdown, setShowProgramDropdown] = useState(false);
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -717,7 +718,7 @@ const AcademicScheduler = () => {
                       className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        < Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <span>{courses?.find((c: any) => c.id === formData.courseId)?.title || t('education.selectProgram')}</span>
                       </div>
                       <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showProgramDropdown ? 'rotate-90' : ''}`} />
