@@ -20,9 +20,10 @@ const TeacherManagement = () => {
     lastName: '',
     email: '',
     phone: '',
-    specialization: courses?.[0]?.title || 'Piano',
+    specialization: '',
     salaryType: 'hourly',
     salaryAmount: 20,
+    color: '#3b82f6',
     workingHours: {
       mon: { active: true, start: '09:00', end: '18:00' },
       tue: { active: true, start: '09:00', end: '18:00' },
@@ -92,6 +93,7 @@ const TeacherManagement = () => {
           salary_type: formData.salaryType,
           salary_amount: formData.salaryAmount,
           working_hours: formData.workingHours,
+          color: formData.color,
           tenant_id: tenantId || '00000000-0000-0000-0000-000000000000'
         }]);
 
@@ -110,6 +112,7 @@ const TeacherManagement = () => {
           specialization: courses?.[0]?.title || 'Piano',
           salaryType: 'hourly',
           salaryAmount: 20,
+          color: '#3b82f6',
           workingHours: {
             mon: { active: true, start: '09:00', end: '18:00' },
             tue: { active: true, start: '09:00', end: '18:00' },
@@ -145,7 +148,8 @@ const TeacherManagement = () => {
           specialization: formData.specialization,
           salary_type: formData.salaryType,
           salary_amount: formData.salaryAmount,
-          working_hours: formData.workingHours
+          working_hours: formData.workingHours,
+          color: formData.color
         })
         .eq('id', selectedTeacher.id);
 
@@ -172,9 +176,10 @@ const TeacherManagement = () => {
       lastName: teacher.last_name,
       email: teacher.email || '',
       phone: teacher.phone || '',
-      specialization: teacher.specialization,
+      specialization: teacher.specialization || '',
       salaryType: teacher.salary_type || 'hourly',
       salaryAmount: teacher.salary_amount || 0,
+      color: teacher.color || '#3b82f6',
       workingHours: teacher.working_hours || {
         mon: { active: true, start: '09:00', end: '18:00' },
         tue: { active: true, start: '09:00', end: '18:00' },
@@ -401,6 +406,37 @@ const TeacherManagement = () => {
                         className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
                         placeholder={t('education.placeholders.specialization', 'e.g. Mathematics')} 
                       />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-gray-50">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacherColor', 'Müəllim Rəngi')}</label>
+                    <div className="flex flex-wrap gap-3">
+                      {['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#6366f1'].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, color: c })}
+                          className={`w-10 h-10 rounded-2xl transition-all border-4 flex items-center justify-center ${formData.color === c ? 'border-gray-100 scale-110 shadow-lg' : 'border-transparent hover:scale-105'}`}
+                          style={{ backgroundColor: c }}
+                        >
+                          {formData.color === c && <div className="w-2 h-2 bg-white rounded-full" />}
+                        </button>
+                      ))}
+                      <div className="relative">
+                        <input 
+                          type="color" 
+                          value={formData.color}
+                          onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                          className="w-10 h-10 rounded-2xl border-4 border-transparent cursor-pointer opacity-0 absolute inset-0"
+                        />
+                        <div 
+                          className="w-10 h-10 rounded-2xl border-4 border-gray-100 flex items-center justify-center bg-gray-50 text-gray-400"
+                          style={{ backgroundColor: formData.color.startsWith('#') ? 'transparent' : formData.color }}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

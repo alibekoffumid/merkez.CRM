@@ -562,11 +562,24 @@ const AcademicScheduler = () => {
                     const widthPercent = 100 / layout.totalCols;
                     const leftPercent = layout.colIdx * widthPercent;
 
+                    // Get Teacher Color
+                    const teacherId = item.isShift ? item.id.replace('shift-', '') : item.teacher_id;
+                    const teacher = teachers.find(t => t.id === teacherId);
+                    const teacherColor = teacher?.color || '#3b82f6';
+
+                    // Helper for light bg
+                    const hexToRgba = (hex: string, alpha: number) => {
+                      const r = parseInt(hex.slice(1, 3), 16);
+                      const g = parseInt(hex.slice(3, 5), 16);
+                      const b = parseInt(hex.slice(5, 7), 16);
+                      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    };
+
                     if (item.isShift) {
                       return (
                         <div 
                           key={item.id} 
-                          className="absolute rounded-xl border border-blue-200 bg-blue-50/40 p-3 shadow-sm transition-all overflow-hidden z-0"
+                          className="absolute rounded-xl border p-3 shadow-sm transition-all overflow-hidden z-0"
                           style={{ 
                             top: `${top}px`, 
                             height: `${height}px`,
@@ -574,33 +587,35 @@ const AcademicScheduler = () => {
                             width: `calc(${widthPercent}% - 4px)`,
                             marginLeft: '2px',
                             marginRight: '2px',
-                            borderStyle: 'dashed'
+                            borderStyle: 'dashed',
+                            borderColor: hexToRgba(teacherColor, 0.4),
+                            backgroundColor: hexToRgba(teacherColor, 0.05)
                           }}
                         >
                           <div className="flex items-center gap-1.5 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{item.title}</span>
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: teacherColor }} />
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>{item.title}</span>
                           </div>
-                          <h4 className="font-bold text-xs text-blue-700 truncate">{item.teacher_name}</h4>
+                          <h4 className="font-bold text-xs truncate" style={{ color: teacherColor }}>{item.teacher_name}</h4>
                         </div>
                       );
                     }
-
-                    const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
-                    const colorClass = colors[i % colors.length];
 
                     return (
                       <div 
                         key={item.id} 
                         onClick={() => handleEdit(item)}
-                        className={`absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-10 ${colorClass}`}
+                        className="absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-10"
                         style={{ 
                           top: `${top}px`, 
                           height: `${height}px`,
                           left: `${leftPercent}%`,
                           width: `calc(${widthPercent}% - 4px)`,
                           marginLeft: '2px',
-                          marginRight: '2px'
+                          marginRight: '2px',
+                          backgroundColor: hexToRgba(teacherColor, 0.1),
+                          borderColor: hexToRgba(teacherColor, 0.3),
+                          color: teacherColor
                         }}
                       >
                         <h4 className="font-bold text-xs sm:text-sm truncate">{item.education_courses?.title || item.title}</h4>
