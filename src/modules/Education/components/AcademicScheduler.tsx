@@ -14,7 +14,7 @@ interface AcademicSchedulerProps {
 
 const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId = null }) => {
   const { t, i18n } = useTranslation();
-  const { courses, students, lessons, refreshAll, rooms, teachers, tenantId } = useEducation();
+  const { courses, students, lessons, refreshAll, rooms, teachers, tenantId, enrollments } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
