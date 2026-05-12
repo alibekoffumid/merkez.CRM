@@ -5,6 +5,7 @@ import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 import TimePicker from '../../../components/Common/TimePicker';
 import DatePicker from '../../../components/Common/DatePicker';
+import ModalPortal from '../../../components/Common/ModalPortal';
 import ConfirmModal from '../../../components/Common/ConfirmModal';
 
 const AcademicScheduler = () => {
@@ -823,6 +824,7 @@ const AcademicScheduler = () => {
         cancelText={t('common.cancel', 'Ləğv et')}
         isDanger={true}
       />
+      </div>
     </div>
   );
 };
