@@ -330,7 +330,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     </div>
 
                     {/* Premium Popup Card on Hover */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white opacity-100 visible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[1000] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.3)] border border-gray-100">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[1000] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.3)] border border-gray-100">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
                           {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
