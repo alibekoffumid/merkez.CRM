@@ -990,7 +990,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                 {/* Render Lessons & Working Shifts */}
                 {(() => {
                   // Use the pre-calculated and filtered dayEvents from useMemo
-                  const items = dayEvents;
+                  const items = dayEvents.filter(item => !item.isShift);
 
                   // 4. Calculate Columns for Layout (overlapping items)
                   const columns: any[][] = [];
@@ -1040,55 +1040,12 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
                     };
 
-                    if (item.isShift) {
-                      return (
-                        <div 
-                          key={item.id} 
-                          className="absolute rounded-xl border-2 p-3 transition-all overflow-hidden pointer-events-none select-none"
-                          style={{ 
-                            top: `${top}px`, 
-                            height: `${height}px`,
-                            left: `${leftPercent}%`,
-                            width: `calc(${widthPercent}% - 4px)`,
-                            marginLeft: '2px',
-                            marginRight: '2px',
-                            borderStyle: 'dashed',
-                            borderColor: hexToRgba(teacherColor, 0.2),
-                            backgroundColor: hexToRgba(teacherColor, 0.03),
-                            backgroundImage: `repeating-linear-gradient(
-                              -45deg,
-                              transparent,
-                              transparent 8px,
-                              ${hexToRgba(teacherColor, 0.04)} 8px,
-                              ${hexToRgba(teacherColor, 0.04)} 16px
-                            )`,
-                            zIndex: 0,
-                            opacity: 0.6
-                          }}
-                        >
-                          <div className="flex items-center justify-between gap-1.5 mb-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: hexToRgba(teacherColor, 0.6) }}>
-                                {t('education.workingShift', 'İş Saatları')}
-                              </span>
-                            </div>
-                            <span className="text-[9px] font-bold opacity-40" style={{ color: teacherColor }}>
-                              {formatItemTime(startDate)} - {formatItemTime(endDate)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <div className="w-1 h-1 rounded-full opacity-40" style={{ backgroundColor: teacherColor }} />
-                            <h4 className="font-bold text-[10px] truncate opacity-50" style={{ color: teacherColor }}>{item.teacher_name}</h4>
-                          </div>
-                        </div>
-                      );
-                    }
 
                     return (
                       <div 
                         key={item.id} 
                         onClick={() => handleEdit(item)}
-                        className="absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer overflow-hidden z-[20] bg-white"
+                        className="absolute rounded-xl border p-4 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer overflow-hidden z-[20] bg-white flex flex-col justify-between"
                         style={{ 
                           top: `${top}px`, 
                           height: `${height}px`,
@@ -1101,21 +1058,23 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           backgroundColor: hexToRgba(teacherColor, 0.02)
                         }}
                       >
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>
-                              {item.education_courses?.title || item.title}
-                            </span>
-                            <span className="text-[9px] font-bold text-gray-500">
-                              {formatItemTime(startDate)} - {formatItemTime(endDate)}
-                            </span>
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex flex-col min-w-0 gap-0.5">
+                              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>
+                                {item.education_courses?.title || item.title}
+                              </span>
+                              <span className="text-[9px] font-bold text-gray-400">
+                                {formatItemTime(startDate)} - {formatItemTime(endDate)}
+                              </span>
+                            </div>
+                            <div className="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-50 shrink-0">
+                               <Book className="w-3 h-3" style={{ color: teacherColor }} />
+                            </div>
                           </div>
-                          <div className="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-50 shrink-0">
-                             <Book className="w-3 h-3" style={{ color: teacherColor }} />
-                          </div>
+                          <h4 className="font-bold text-xs truncate text-gray-900">{item.teacher_name}</h4>
                         </div>
-                        <h4 className="font-bold text-xs truncate text-gray-900 mb-1">{item.teacher_name}</h4>
-                        <div className="flex items-center gap-1.5 mt-auto">
+                        <div className="flex items-center gap-1.5">
                           <MapPin className="w-3 h-3 text-gray-400" />
                           <span className="text-[10px] font-bold text-gray-500 truncate">{rooms?.find((r: any) => r.id === item.room)?.name || rooms?.find((r: any) => r.id === item.room_id)?.name || t('education.noRoom', 'Otaq qeyd olunmayıb')}</span>
                         </div>
