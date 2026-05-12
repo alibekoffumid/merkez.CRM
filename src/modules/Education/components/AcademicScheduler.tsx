@@ -607,7 +607,11 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
                         <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
-                          {item.title}{item.group_id ? ` - ${groups.find(g => g.id === item.group_id)?.name}` : ''}
+                          {(() => {
+                            const groupName = groups.find(g => g.id === item.group_id)?.name;
+                            const mainTitle = item.education_courses?.title || item.title;
+                            return mainTitle === groupName ? mainTitle : `${mainTitle}${groupName ? ` - ${groupName}` : ''}`;
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -623,7 +627,11 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                             {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lesson', 'Dərs')}
                           </span>
                           <h4 className="text-xs font-black text-gray-900 truncate">
-                            {item.title}{item.group_id ? ` (${groups.find(g => g.id === item.group_id)?.name})` : ''}
+                            {(() => {
+                              const groupName = groups.find(g => g.id === item.group_id)?.name;
+                              const mainTitle = item.education_courses?.title || item.title;
+                              return mainTitle === groupName ? mainTitle : `${mainTitle}${groupName ? ` (${groupName})` : ''}`;
+                            })()}
                           </h4>
                         </div>
                       </div>
@@ -1063,7 +1071,11 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           <div className="flex items-start justify-between gap-2 mb-1.5">
                             <div className="flex flex-col min-w-0">
                               <h4 className="text-[13px] font-black text-gray-900 truncate leading-none mb-1">
-                                {item.group_id ? groups.find(g => g.id === item.group_id)?.name : (item.education_courses?.title || item.title)}
+                                {(() => {
+                                  const groupName = groups.find(g => g.id === item.group_id)?.name;
+                                  const mainTitle = item.education_courses?.title || item.title;
+                                  return mainTitle === groupName ? mainTitle : `${mainTitle}${groupName ? ` (${groupName})` : ''}`;
+                                })()}
                               </h4>
                               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight leading-none">
                                 {item.group_id && (item.education_courses?.title || item.title) + " • "} {formatItemTime(startDate)}
