@@ -318,7 +318,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
                         <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
-                          {item.isShift ? item.teacher_name : (item.education_courses?.title || item.title)}
+                          {item.isShift ? t('education.workingShift', 'İş Saatları') : (item.education_courses?.title || item.title)}
                         </span>
                       </div>
                     </div>

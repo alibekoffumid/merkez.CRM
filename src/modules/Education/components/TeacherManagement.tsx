@@ -39,7 +39,6 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
     },
     roomId: ''
   });
-  });
 
   const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
   const [showSpecializationDropdown, setShowSpecializationDropdown] = useState(false);
