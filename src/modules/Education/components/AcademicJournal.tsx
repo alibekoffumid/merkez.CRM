@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ClipboardList, Search, CheckCircle, XCircle, MoreVertical, Star, TrendingUp, ChevronDown, Clock } from 'lucide-react';
+import { ClipboardList, Search, CheckCircle, XCircle, MoreVertical, Star, TrendingUp, ChevronDown, Clock, Calendar, Plus, Trash2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
+import ModalPortal from '../../components/Common/ModalPortal';
+import DatePicker from '../../components/Common/DatePicker';
 
 const AcademicJournal = () => {
   const { t } = useTranslation();
-  const { students, courses } = useEducation();
+  const { students, courses, groups } = useEducation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [showCourseDropdown, setShowCourseDropdown] = useState(false);
@@ -14,14 +16,19 @@ const AcademicJournal = () => {
   const [attendance, setAttendance] = useState<Record<string, string>>({});
   const [grades, setGrades] = useState<Record<string, number>>({});
   const [exams, setExams] = useState<Record<string, number>>({});
+  const [examSessions, setExamSessions] = useState<any[]>([]);
+  const [isExamModalOpen, setIsExamModalOpen] = useState(false);
+  const [newExam, setNewExam] = useState({ title: '', date: '', groupId: '' });
 
   useEffect(() => {
     const savedAtt = localStorage.getItem('academic_attendance');
     const savedGrades = localStorage.getItem('academic_grades');
     const savedExams = localStorage.getItem('academic_exams');
+    const savedSessions = localStorage.getItem('academic_exam_sessions');
     if (savedAtt) setAttendance(JSON.parse(savedAtt));
     if (savedGrades) setGrades(JSON.parse(savedGrades));
     if (savedExams) setExams(JSON.parse(savedExams));
+    if (savedSessions) setExamSessions(JSON.parse(savedSessions));
   }, []);
 
   const saveAttendance = (newAtt: Record<string, string>) => {
@@ -37,6 +44,22 @@ const AcademicJournal = () => {
   const saveExams = (newExams: Record<string, number>) => {
     setExams(newExams);
     localStorage.setItem('academic_exams', JSON.stringify(newExams));
+  };
+
+  const handleAddExamSession = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExam.title || !newExam.date || !newExam.groupId) return;
+    const session = { id: Date.now().toString(), ...newExam };
+    const updated = [...examSessions, session];
+    setExamSessions(updated);
+    localStorage.setItem('academic_exam_sessions', JSON.stringify(updated));
+    setNewExam({ title: '', date: '', groupId: '' });
+  };
+
+  const handleDeleteExamSession = (id: string) => {
+    const updated = examSessions.filter(e => e.id !== id);
+    setExamSessions(updated);
+    localStorage.setItem('academic_exam_sessions', JSON.stringify(updated));
   };
 
   const filteredStudents = students?.filter(s => {
@@ -146,6 +169,12 @@ const AcademicJournal = () => {
   const globalAttendance = filteredStudents.length > 0
     ? Math.round(filteredStudents.reduce((acc, s) => acc + calculateStudentAttendancePercent(s.id), 0) / filteredStudents.length)
     : 100;
+
+  // Upcoming Exams
+  const upcomingExams = examSessions
+    .filter(e => new Date(e.date).getTime() >= new Date().setHours(0,0,0,0))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const nextExam = upcomingExams[0];
 
   return (
     <div className="space-y-6">
@@ -359,15 +388,135 @@ const AcademicJournal = () => {
 
         <div className="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col justify-center">
           <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{t('education.nextExamSession')}</h3>
-          <p className="text-xl font-black text-gray-900">
-            {`20 ${t('common.months.may', 'May')} - 25 ${t('common.months.may', 'May')}`} 2026
-          </p>
-          <p className="text-sm text-gray-500 mt-2 font-medium">{filteredStudents.length} {t('education.studentsRegistered')}</p>
-          <button className="mt-6 w-full py-3 bg-gray-50 text-gray-900 rounded-xl text-sm font-black hover:bg-gray-100 transition-all">
-            {t('education.manageExams')}
+          {nextExam ? (
+            <>
+              <p className="text-xl font-black text-gray-900 truncate" title={nextExam.title}>
+                {nextExam.title}
+              </p>
+              <p className="text-sm text-gray-500 mt-2 font-medium">
+                {new Date(nextExam.date).toLocaleDateString()} • {groups?.find(g => g.id === nextExam.groupId)?.name || 'Qrup'}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="text-xl font-black text-gray-900">
+                {t('education.noUpcomingExams', 'İmtahan planlaşdırılmayıb')}
+              </p>
+              <p className="text-sm text-gray-500 mt-2 font-medium">-</p>
+            </>
+          )}
+          <button 
+            onClick={() => setIsExamModalOpen(true)}
+            className="mt-6 w-full py-3 bg-gray-50 text-gray-900 rounded-xl text-sm font-black hover:bg-gray-100 transition-all"
+          >
+            {t('education.manageExams', 'İmtahanları İdarə et')}
           </button>
         </div>
       </div>
+
+      {isExamModalOpen && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsExamModalOpen(false)}></div>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex justify-between items-start mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900">{t('education.manageExams', 'İmtahanları İdarə et')}</h2>
+                  <p className="text-gray-500 text-sm mt-1">{t('education.manageExamsDesc', 'Qruplar üçün imtahan sessiyaları yaradın')}</p>
+                </div>
+                <button onClick={() => setIsExamModalOpen(false)} className="p-2 bg-gray-50 text-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-900 transition-all">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Add New Exam Form */}
+                <form onSubmit={handleAddExamSession} className="space-y-5 bg-gray-50 p-6 rounded-[2rem] border border-gray-100">
+                  <h3 className="font-black text-gray-900 mb-4">{t('education.addNewExam', 'Yeni İmtahan Əlavə et')}</h3>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.examTitle', 'İmtahanın Adı')}</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={newExam.title}
+                      onChange={(e) => setNewExam({...newExam, title: e.target.value})}
+                      placeholder="Məs: Yekun İmtahan"
+                      className="w-full p-3.5 bg-white rounded-xl border border-gray-200 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.group', 'Qrup')}</label>
+                    <select 
+                      required
+                      value={newExam.groupId}
+                      onChange={(e) => setNewExam({...newExam, groupId: e.target.value})}
+                      className="w-full p-3.5 bg-white rounded-xl border border-gray-200 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700"
+                    >
+                      <option value="">{t('common.select', 'Seçin...')}</option>
+                      {groups?.map(g => (
+                        <option key={g.id} value={g.id}>{g.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2 relative z-50">
+                    <DatePicker 
+                      label={t('common.date', 'Tarix')}
+                      value={newExam.date}
+                      onChange={(date) => setNewExam({...newExam, date})}
+                      position="bottom"
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full py-3.5 bg-blue-600 text-white font-black uppercase tracking-widest text-xs rounded-xl hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 mt-2"
+                  >
+                    <Plus className="w-4 h-4" /> {t('common.add', 'Əlavə et')}
+                  </button>
+                </form>
+
+                {/* Exam List */}
+                <div className="space-y-4">
+                  <h3 className="font-black text-gray-900">{t('education.upcomingExams', 'Planlaşdırılmış İmtahanlar')}</h3>
+                  <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 no-scrollbar">
+                    {examSessions.length > 0 ? (
+                      examSessions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).map(exam => (
+                        <div key={exam.id} className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm flex justify-between items-center group hover:border-blue-100 transition-colors">
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm">{exam.title}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md">
+                                {new Date(exam.date).toLocaleDateString()}
+                              </span>
+                              <span className="text-[10px] font-bold text-gray-500">
+                                {groups?.find(g => g.id === exam.groupId)?.name}
+                              </span>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleDeleteExamSession(exam.id)}
+                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center border-2 border-dashed border-gray-100 rounded-2xl">
+                        <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-xs font-bold text-gray-500">{t('education.noExamsListed', 'Siyahıda imtahan yoxdur')}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </div>
   );
 };
