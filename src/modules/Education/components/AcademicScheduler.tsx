@@ -96,11 +96,13 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     // Unified Event Calculation for Selected Date
     const dayEvents = React.useMemo(() => {
       if (!lessons) return [];
+      const selectedDateStr = getLocalDateString(selectedDate);
       
       // 1. Filter Lessons for Selected Date
       const currentDayLessons = lessons.filter(l => {
         try {
-          return isSameDay(new Date(l.start_time), selectedDate);
+          const lessonDate = new Date(l.start_time);
+          return getLocalDateString(lessonDate) === selectedDateStr;
         } catch (e) {
           return false;
         }
@@ -112,9 +114,11 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
         const groupStuds = groupStudents?.filter(gs => gs.group_id === l.group_id) || [];
         return {
           ...l,
+          id: l.id,
           title: group ? group.name : (l.education_courses?.title || l.title || t('education.noTitle', 'Dərs')),
           students_count: l.group_id ? groupStuds.length : (enrollments?.filter((e: any) => e.course_id === l.course_id).length || 0),
-          isShift: false
+          isShift: false,
+          teacher_id: l.teacher_id
         };
       });
       
@@ -127,8 +131,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
           const config = teacher.working_hours?.[dayName];
           if (config?.active && config.start && config.end) {
             try {
-              const start = new Date(`${getLocalDateString(selectedDate)}T${config.start}:00`);
-              const end = new Date(`${getLocalDateString(selectedDate)}T${config.end}:00`);
+              const start = new Date(`${selectedDateStr}T${config.start}:00`);
+              const end = new Date(`${selectedDateStr}T${config.end}:00`);
               
               virtualShifts.push({
                 id: `shift-${teacher.id}`,
@@ -142,7 +146,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                 students_count: enrollments?.filter((e: any) => e.teacher_id === teacher.id).length || 0
               });
             } catch (e) {
-              console.error('Error creating shift:', e);
+              // Silently ignore malformed time configs
             }
           }
         });
@@ -155,7 +159,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
 
       // 5. Final Filter by Teacher
       if (selectedTeacherFilter) {
-        return allItems.filter(item => (item.teacher_id === selectedTeacherFilter));
+        return allItems.filter(item => item.teacher_id === selectedTeacherFilter);
       }
       
       return allItems;
