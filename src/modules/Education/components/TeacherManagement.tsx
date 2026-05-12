@@ -12,7 +12,7 @@ interface TeacherManagementProps {
 
 const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule }) => {
   const { t } = useTranslation();
-  const { teachers, courses, lessons, refreshAll, tenantId, rooms } = useEducation();
+  const { teachers, courses, lessons, refreshAll, tenantId, rooms, groups } = useEducation();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +43,8 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
   const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
   const [showSpecializationDropdown, setShowSpecializationDropdown] = useState(false);
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
-  const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'finance'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'finance' | 'groups'>('info');
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
@@ -165,6 +166,24 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
 
       if (updateError) throw updateError;
       
+      // Update Groups
+      // 1. Unlink groups that were removed
+      const groupsToUnlink = groups.filter(g => g.teacher_id === selectedTeacher.id && !selectedGroupIds.includes(g.id));
+      if (groupsToUnlink.length > 0) {
+        await supabase
+          .from('education_groups')
+          .update({ teacher_id: null })
+          .in('id', groupsToUnlink.map(g => g.id));
+      }
+
+      // 2. Link groups that were added
+      if (selectedGroupIds.length > 0) {
+        await supabase
+          .from('education_groups')
+          .update({ teacher_id: selectedTeacher.id })
+          .in('id', selectedGroupIds);
+      }
+
       setSuccess(true);
       refreshAll();
       setTimeout(() => {
@@ -201,6 +220,11 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
         sun: { active: false, start: '09:00', end: '18:00' }
       }
     });
+
+    // Set selected group IDs
+    const teacherGroups = groups?.filter(g => g.teacher_id === teacher.id).map(g => g.id) || [];
+    setSelectedGroupIds(teacherGroups);
+    
     setIsModalOpen(true);
   };
 
@@ -356,6 +380,15 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
                 {t('education.salary')}
                 {activeTab === 'finance' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
               </button>
+              {selectedTeacher && (
+                <button 
+                  onClick={() => setActiveTab('groups')}
+                  className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'groups' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  {t('education.groups', 'Qruplar')}
+                  {activeTab === 'groups' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
+                </button>
+              )}
             </div>
 
             <form onSubmit={selectedTeacher ? handleUpdate : handleSubmit} className="space-y-6">
@@ -588,16 +621,71 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
 
               {activeTab === 'finance' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.salaryType')}</label>
-                    <div className="relative">
-                      <button 
-                        type="button"
-                        onClick={() => setShowSalaryDropdown(!showSalaryDropdown)}
-                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
-                      >
-                        <span>{t(`education.${formData.salaryType}`)}</span>
-                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showSalaryDropdown ? 'rotate-180' : ''}`} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'groups' && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50 mb-4">
+                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('education.manageTeacherGroups', 'Müəllimin Qrupları')}</p>
+                    <p className="text-[11px] text-blue-400 mt-1">{t('education.manageTeacherGroupsDesc', 'Bu müəllimə təhkim olunmuş qrupları seçin.')}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto pr-2 no-scrollbar">
+                    {groups?.length > 0 ? (
+                      groups.map((group: any) => {
+                        const isSelected = selectedGroupIds.includes(group.id);
+                        const isAssignedToOther = group.teacher_id && group.teacher_id !== selectedTeacher?.id;
+                        
+                        return (
+                          <div 
+                            key={group.id}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedGroupIds(selectedGroupIds.filter(id => id !== group.id));
+                              } else {
+                                setSelectedGroupIds([...selectedGroupIds, group.id]);
+                              }
+                            }}
+                            className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100 hover:border-gray-200'}`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${isSelected ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 group-hover:text-blue-600'}`}>
+                                <Users className="w-5 h-5" />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className={`text-sm font-bold ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>{group.name}</span>
+                                <span className="text-[10px] text-gray-400">{group.education_courses?.title || t('education.noCourse', 'Kurs yoxdur')}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                              {isAssignedToOther && !isSelected && (
+                                <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-lg">
+                                  {t('education.assignedToOther', 'Başqa müəllimdədir')}
+                                </span>
+                              )}
+                              <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-200'}`}>
+                                {isSelected && <CheckCircle2 className="w-4 h-4 text-white" />}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                        <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                        <p className="text-xs text-gray-400 font-bold">{t('education.noGroupsAvailable', 'Hələ heç bir qrup yaradılmayıb.')}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {error && (
                       </button>
 
                       {showSalaryDropdown && (
