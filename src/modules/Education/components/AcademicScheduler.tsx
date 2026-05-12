@@ -332,14 +332,14 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     {/* Premium Popup Card on Hover */}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[1000] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5">
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
                           {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">
+                          <span className="text-xs font-black uppercase tracking-widest text-gray-400 mb-0.5">
                             {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lesson', 'Dərs')}
                           </span>
-                          <h4 className="text-sm font-black text-gray-900 truncate">
+                          <h4 className="text-xs font-black text-gray-900 truncate">
                             {item.title}
                           </h4>
                         </div>
@@ -348,7 +348,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div className="space-y-3">
                         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
                           <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.teacher', 'Müəllim')}</span>
+                            <span className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.teacher', 'Müəllim')}</span>
                             <span className="text-xs font-bold text-gray-900">{item.teacher_name}</span>
                           </div>
                         </div>
@@ -357,24 +357,24 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           <div className="p-3 bg-gray-50 rounded-2xl">
                             <div className="flex items-center gap-2 mb-1">
                               <Users className="w-3 h-3 text-gray-400" />
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('education.students', 'Tələbələr')}</span>
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('education.students', 'Tələbələr')}</span>
                             </div>
                             <span className="text-xs font-bold text-gray-900">{item.students_count || 0} {t('education.people', 'nəfər')}</span>
                           </div>
                           <div className="p-3 bg-gray-50 rounded-2xl">
                             <div className="flex items-center gap-2 mb-1">
                               <MapPin className="w-3 h-3 text-gray-400" />
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('education.room', 'Otaq')}</span>
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('education.room', 'Otaq')}</span>
                             </div>
-                            <p className="text-[10px] font-black text-gray-900 truncate">{rooms?.find((r: any) => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
+                            <p className="text-xs font-bold text-gray-900 truncate">{rooms?.find((r: any) => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
                           </div>
                         </div>
 
                         <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{t('education.time', 'Vaxt')}</span>
+                            <span className="text-xs font-black text-blue-400 uppercase tracking-widest">{t('education.time', 'Vaxt')}</span>
                           </div>
-                          <p className="text-[10px] font-black text-blue-600">{formatTime(item.start_time)} - {formatTime(item.end_time)}</p>
+                          <p className="text-xs font-black text-blue-600">{formatTime(item.start_time)} - {formatTime(item.end_time)}</p>
                         </div>
                       </div>
 
