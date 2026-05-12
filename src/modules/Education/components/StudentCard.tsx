@@ -107,23 +107,23 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, groups = [], onEdit,
         </div>
 
         {/* Academic Info: Groups */}
-        <div className="p-4 bg-gray-900 rounded-[1.5rem] text-white mt-2 shadow-xl shadow-gray-900/10">
+        <div className="p-4 bg-blue-50/50 rounded-[1.5rem] border border-blue-100/50 mt-2">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-400" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{t('education.tabGroups', 'Qruplar')}</span>
+              <Users className="w-4 h-4 text-blue-500" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-500/70">{t('education.tabGroups', 'Qruplar')}</span>
             </div>
-            <span className="text-[10px] font-black bg-blue-600 px-2 py-0.5 rounded-md">{studentGroups.length}</span>
+            <span className="text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-md shadow-sm">{studentGroups.length}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {studentGroups.length > 0 ? (
               studentGroups.map((sg: any, idx: number) => (
-                <span key={idx} className="text-[10px] font-bold bg-white/10 px-2.5 py-1 rounded-lg border border-white/5 whitespace-nowrap">
+                <span key={idx} className="text-[10px] font-bold bg-white text-blue-700 px-2.5 py-1 rounded-lg border border-blue-100 shadow-sm whitespace-nowrap">
                   {sg.education_groups?.name || 'Group'}
                 </span>
               ))
             ) : (
-              <span className="text-[10px] font-bold text-gray-500 italic">{t('education.noGroupsAvailable', 'Qrup yoxdur')}</span>
+              <span className="text-[10px] font-bold text-gray-400 italic">{t('education.noGroupsAvailable', 'Qrup yoxdur')}</span>
             )}
           </div>
         </div>
