@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Users, BookOpen, TrendingUp, UserPlus, GraduationCap, Settings, Maximize2, Minimize2, MapPin, ClipboardList } from 'lucide-react';
+import { Calendar, Users, BookOpen, TrendingUp, UserPlus, GraduationCap, Settings, Maximize2, Minimize2, MapPin, ClipboardList, Loader2 } from 'lucide-react';
 import { EducationProvider, useEducation } from './hooks/useEducation';
 import AcademicScheduler from './components/AcademicScheduler';
 import CourseInventory from './components/CourseInventory';
