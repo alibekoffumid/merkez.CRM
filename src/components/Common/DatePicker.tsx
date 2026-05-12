@@ -50,13 +50,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
   };
 
   const getDisplayDate = (date: Date) => {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    // We can use i18n for months if needed, but manual formatting is more reliable for simple UI
-    const day = date.getDate();
-    const month = months[date.getMonth()];
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthKey = ['january','february','march','april','may','june','july','august','september','october','november','december'][date.getMonth()];
+    const month = t(`common.months.${monthKey}`);
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
   };
@@ -108,7 +104,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
       >
         <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
         <span className="font-black tracking-tight">
-          {selectedDate ? getDisplayDate(selectedDate) : 'Select Date'}
+          {selectedDate ? getDisplayDate(selectedDate) : t('common.selectDate', 'Tarix seçin')}
         </span>
       </button>
 
@@ -116,9 +112,25 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
         <div className={`absolute ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 ${position === 'top' ? 'origin-bottom' : 'origin-top'}`}>
           <div className="flex items-center justify-between mb-6">
             <button type="button" onClick={() => changeMonth(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><ChevronLeft className="w-5 h-5" /></button>
-            <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-              {t(`common.months.${['january','february','march','april','may','june','july','august','september','october','november','december'][viewDate.getMonth()]}`)} {viewDate.getFullYear()}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                {t(`common.months.${['january','february','march','april','may','june','july','august','september','october','november','december'][viewDate.getMonth()]}`)}
+              </span>
+              <select 
+                value={viewDate.getFullYear()}
+                onChange={(e) => {
+                  const newDate = new Date(viewDate);
+                  newDate.setFullYear(parseInt(e.target.value));
+                  setViewDate(newDate);
+                }}
+                className="text-sm font-black text-gray-900 uppercase tracking-tight bg-transparent cursor-pointer outline-none hover:text-blue-600 transition-colors"
+              >
+                {Array.from({ length: 120 }).map((_, i) => {
+                  const y = new Date().getFullYear() - 100 + i;
+                  return <option key={y} value={y}>{y}</option>;
+                })}
+              </select>
+            </div>
             <button type="button" onClick={() => changeMonth(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors"><ChevronRight className="w-5 h-5" /></button>
           </div>
           
