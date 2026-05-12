@@ -281,14 +281,20 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     const start = new Date(lesson.start_time);
     const end = new Date(lesson.end_time);
     
+    const formatToHHmm = (date: Date) => {
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = String(date.getMinutes()).padStart(2, '0');
+      return `${h}:${m}`;
+    };
+
     setFormData({
       courseId: lesson.course_id,
       teacherId: lesson.teacher_id || '',
       teacherName: lesson.teacher_name,
       room: lesson.room,
       date: getLocalDateString(start),
-      startTime: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      startTime: formatToHHmm(start),
+      endTime: formatToHHmm(end),
       groupId: lesson.group_id || ''
     });
 
@@ -321,7 +327,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                   <div 
                     key={item.id} 
                     onClick={() => !item.isShift && handleEdit(item)}
-                    className={`group relative flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all h-[40px] shrink-0 ${!item.isShift ? 'cursor-pointer' : 'cursor-default opacity-80'}`}
+                    className={`group relative flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all active:scale-95 h-[40px] shrink-0 ${!item.isShift ? 'cursor-pointer' : 'cursor-default opacity-80'}`}
                   >
                     <div className="w-1 h-6 rounded-full" style={{ backgroundColor: teacherColor }} />
                     <div className="flex flex-col min-w-0">
@@ -833,7 +839,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div 
                         key={item.id} 
                         onClick={() => handleEdit(item)}
-                        className="absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-10 bg-white"
+                        className="absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer overflow-hidden z-10 bg-white"
                         style={{ 
                           top: `${top}px`, 
                           height: `${height}px`,
