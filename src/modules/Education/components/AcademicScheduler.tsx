@@ -472,23 +472,6 @@ const AcademicScheduler = () => {
                   
                   return (
                     <>
-                      {/* Working Shift Background */}
-                      {!(!config || !config.active) && (
-                        <div 
-                          className="absolute left-0 right-0 bg-blue-50/30 border-y border-blue-100/50 pointer-events-none"
-                          style={{ 
-                            top: `${(parseInt(config.start.split(':')[0]) + parseInt(config.start.split(':')[1]) / 60 - START_HOUR) * 80}px`, 
-                            height: `${(parseInt(config.end.split(':')[0]) + parseInt(config.end.split(':')[1]) / 60 - (parseInt(config.start.split(':')[0]) + parseInt(config.start.split(':')[1]) / 60)) * 80}px`, 
-                            zIndex: 0 
-                          }}
-                        >
-                          <div className="absolute top-2 left-2 flex items-center gap-1.5 opacity-40">
-                            <div className="w-1 h-1 rounded-full bg-blue-500" />
-                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('education.workingShift', 'İş Saatları')}</span>
-                          </div>
-                        </div>
-                      )}
-                      
                       {blocks.map((b, i) => (
                         <div 
                           key={i} 
@@ -505,37 +488,69 @@ const AcademicScheduler = () => {
                   );
                 })()}
 
-                {/* Render Lessons */}
+                {/* Render Lessons & Working Shifts */}
                 {(() => {
+                  // 1. Get Actual Lessons
                   const filteredLessons = selectedTeacherFilter 
                     ? dayLessons.filter((l: any) => l.teacher_id === selectedTeacherFilter) 
                     : dayLessons;
-                  const sortedDayLessons = [...filteredLessons].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
-                  const columns: any[][] = [];
+
+                  // 2. Create Virtual Lessons for Working Shifts
+                  const virtualShifts: any[] = [];
+                  const teachersToHighlight = selectedTeacherFilter 
+                    ? teachers.filter(t => t.id === selectedTeacherFilter)
+                    : teachers;
+
+                  const dayName = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][selectedDate.getDay()];
                   
-                  sortedDayLessons.forEach(lesson => {
+                  teachersToHighlight.forEach(teacher => {
+                    const config = teacher.working_hours?.[dayName];
+                    if (config?.active) {
+                      const start = new Date(`${getLocalDateString(selectedDate)}T${config.start}:00`);
+                      const end = new Date(`${getLocalDateString(selectedDate)}T${config.end}:00`);
+                      
+                      virtualShifts.push({
+                        id: `shift-${teacher.id}`,
+                        isShift: true,
+                        teacher_name: `${teacher.first_name} ${teacher.last_name}`,
+                        title: t('education.workingShift', 'İş Saatları'),
+                        start_time: start.toISOString(),
+                        end_time: end.toISOString(),
+                        room: ''
+                      });
+                    }
+                  });
+
+                  // 3. Combine and Sort
+                  const allItems = [...filteredLessons, ...virtualShifts].sort((a, b) => 
+                    new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+                  );
+
+                  // 4. Calculate Columns for Layout
+                  const columns: any[][] = [];
+                  allItems.forEach(item => {
                     let placed = false;
                     for (let i = 0; i < columns.length; i++) {
                       const lastInCol = columns[i][columns[i].length - 1];
-                      if (new Date(lesson.start_time).getTime() >= new Date(lastInCol.end_time).getTime()) {
-                        columns[i].push(lesson);
+                      if (new Date(item.start_time).getTime() >= new Date(lastInCol.end_time).getTime()) {
+                        columns[i].push(item);
                         placed = true;
                         break;
                       }
                     }
-                    if (!placed) columns.push([lesson]);
+                    if (!placed) columns.push([item]);
                   });
 
-                  const lessonToLayout = new Map();
+                  const itemToLayout = new Map();
                   columns.forEach((col, colIdx) => {
-                    col.forEach(lesson => {
-                      lessonToLayout.set(lesson.id, { colIdx, totalCols: columns.length });
+                    col.forEach(item => {
+                      itemToLayout.set(item.id, { colIdx, totalCols: columns.length });
                     });
                   });
 
-                  return sortedDayLessons.map((lesson: any, i: number) => {
-                    const startDate = new Date(lesson.start_time);
-                    const endDate = new Date(lesson.end_time);
+                  return allItems.map((item: any, i: number) => {
+                    const startDate = new Date(item.start_time);
+                    const endDate = new Date(item.end_time);
                     
                     const startDec = startDate.getHours() + startDate.getMinutes() / 60;
                     const endDec = endDate.getHours() + endDate.getMinutes() / 60;
@@ -543,29 +558,53 @@ const AcademicScheduler = () => {
                     const top = Math.max(0, (startDec - START_HOUR) * 80);
                     const height = Math.max(20, (endDec - startDec) * 80);
                     
-                    const layout = lessonToLayout.get(lesson.id) || { colIdx: 0, totalCols: 1 };
+                    const layout = itemToLayout.get(item.id) || { colIdx: 0, totalCols: 1 };
                     const widthPercent = 100 / layout.totalCols;
                     const leftPercent = layout.colIdx * widthPercent;
+
+                    if (item.isShift) {
+                      return (
+                        <div 
+                          key={item.id} 
+                          className="absolute rounded-xl border border-blue-200 bg-blue-50/40 p-3 shadow-sm transition-all overflow-hidden z-0"
+                          style={{ 
+                            top: `${top}px`, 
+                            height: `${height}px`,
+                            left: `${leftPercent}%`,
+                            width: `calc(${widthPercent}% - 4px)`,
+                            marginLeft: '2px',
+                            marginRight: '2px',
+                            borderStyle: 'dashed'
+                          }}
+                        >
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{item.title}</span>
+                          </div>
+                          <h4 className="font-bold text-xs text-blue-700 truncate">{item.teacher_name}</h4>
+                        </div>
+                      );
+                    }
 
                     const colors = ['bg-blue-50 border-blue-200 text-blue-700', 'bg-emerald-50 border-emerald-200 text-emerald-700', 'bg-purple-50 border-purple-200 text-purple-700', 'bg-orange-50 border-orange-200 text-orange-700'];
                     const colorClass = colors[i % colors.length];
 
                     return (
                       <div 
-                        key={lesson.id} 
-                        onClick={() => handleEdit(lesson)}
-                        className={`absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden ${colorClass}`}
+                        key={item.id} 
+                        onClick={() => handleEdit(item)}
+                        className={`absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-10 ${colorClass}`}
                         style={{ 
                           top: `${top}px`, 
                           height: `${height}px`,
                           left: `${leftPercent}%`,
-                          width: `calc(${widthPercent}% - ${layout.totalCols > 1 ? '4px' : '0px'})`,
-                          marginLeft: layout.colIdx > 0 ? '4px' : '4px',
-                          marginRight: '4px'
+                          width: `calc(${widthPercent}% - 4px)`,
+                          marginLeft: '2px',
+                          marginRight: '2px'
                         }}
                       >
-                        <h4 className="font-bold text-xs sm:text-sm truncate">{lesson.education_courses?.title}</h4>
-                        <p className="text-[10px] opacity-80 mt-0.5 truncate">{lesson.teacher_name} • {getRoomName(lesson.room)}</p>
+                        <h4 className="font-bold text-xs sm:text-sm truncate">{item.education_courses?.title || item.title}</h4>
+                        <p className="text-[10px] opacity-80 mt-0.5 truncate">{item.teacher_name} • {getRoomName(item.room)}</p>
                       </div>
                     );
                   });
