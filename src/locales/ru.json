@@ -422,6 +422,8 @@
     "confirmDeleteTeacher": "Вы уверены, что хотите удалить этого учителя?"
   },
   "retail": {
+    "title": "Розничная точка",
+    "subtitle": "Быстрые продажи, сканер баркодов и инвентарь для магазинов",
     "pos": "Merkez POS",
     "posTitle": "Merkez POS",
     "cashier": "Кассир",
@@ -538,6 +540,8 @@
     "sent": "Отправлено"
   },
   "warehouse": {
+    "title": "Склад",
+    "subtitle": "Учет товаров, склады и инвентарь",
     "finishedGoods": "Готовые товары",
     "ingredients": "Ингредиенты",
     "suppliers": "Поставщики",
@@ -710,7 +714,8 @@
     "saveClient": "Сохранить клиента"
   },
   "finance": {
-    "subtitle": "Управление финансами",
+    "title": "Финансы",
+    "subtitle": "Доходы, расходы, отчеты и аналитика",
     "totalBalance": "Общий баланс",
     "monthlyIncome": "Ежемесячный доход",
     "monthlyExpenses": "Ежемесячные расходы",
@@ -730,6 +735,8 @@
     "thDate": "Дата"
   },
   "fleet": {
+    "title": "Автопарк",
+    "subtitle": "Управление автопарком такси, водители и контроль аренды",
     "dashboardTitle": "Автопарк",
     "dashboardSubtitle": "Управление автопарком",
     "totalVehicles": "Всего транспорта",
@@ -780,11 +787,16 @@
   },
   "integrations": {
     "title": "Интеграции",
+    "subtitle": "Единый центр сообщений WhatsApp, Instagram и Telegram",
     "emptyTitle": "Интеграций пока нет",
     "emptyDescription": "Подключите каналы",
     "searchPlaceholder": "Поиск чатов...",
     "messagePlaceholder": "Введите сообщение...",
     "online": "Онлайн"
+  },
+  "callCenter": {
+    "title": "Колл-центр",
+    "subtitle": "Управление звонками, скрипты и аналитика"
   },
   "kitchen": {
     "kdsTitle": "Экран кухни",

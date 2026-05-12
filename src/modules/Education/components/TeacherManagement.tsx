@@ -310,7 +310,7 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
                     <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.lessonsThisMonth')}</p>
                     <p className="text-sm font-black text-gray-900">{stats.monthLessonsCount}</p>
                   </div>
-                  <div className="bg-blue-50/50 p-3 rounded-2xl">
+                  <div className="bg-blue-50 p-3 rounded-2xl">
                     <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">{t('education.estimatedPayout')}</p>
                     <p className="text-sm font-black text-blue-600">{stats.estimatedEarnings.toFixed(2)} ₼</p>
                   </div>
@@ -678,9 +678,9 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
 
               {activeTab === 'groups' && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50 mb-4">
-                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('education.manageTeacherGroups', 'Müəllimin Qrupları')}</p>
-                    <p className="text-[11px] text-blue-400 mt-1">{t('education.manageTeacherGroupsDesc', 'Bu müəllimə təhkim olunmuş qrupları seçin.')}</p>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 mb-4">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('education.manageTeacherGroups', 'Müəllimin Qrupları')}</p>
+                    <p className="text-[11px] text-gray-400 mt-1">{t('education.manageTeacherGroupsDesc', 'Bu müəllimə təhkim olunmuş qrupları seçin.')}</p>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto pr-2 no-scrollbar">

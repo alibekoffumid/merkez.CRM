@@ -422,6 +422,8 @@
     "confirmDeleteTeacher": "Are you sure you want to delete this teacher?"
   },
   "retail": {
+    "title": "Retail POS",
+    "subtitle": "Fast retail sales, barcode scanning and inventory for stores",
     "pos": "Merkez POS",
     "posTitle": "Merkez POS",
     "cashier": "Cashier",
@@ -538,6 +540,8 @@
     "sent": "Sent"
   },
   "warehouse": {
+    "title": "Warehouse",
+    "subtitle": "Product tracking, warehouses and inventory management",
     "finishedGoods": "Finished Goods",
     "ingredients": "Ingredients",
     "suppliers": "Suppliers",
@@ -710,7 +714,8 @@
     "saveClient": "Save Client"
   },
   "finance": {
-    "subtitle": "Financial Management",
+    "title": "Finance",
+    "subtitle": "Revenue, expenses, reports and financial analytics",
     "totalBalance": "Total Balance",
     "monthlyIncome": "Monthly Income",
     "monthlyExpenses": "Monthly Expenses",
@@ -730,6 +735,8 @@
     "thDate": "Date"
   },
   "fleet": {
+    "title": "Fleet Management",
+    "subtitle": "Complete fleet management for taxi companies, drivers and rent control",
     "dashboardTitle": "Fleet",
     "dashboardSubtitle": "Fleet Management",
     "totalVehicles": "Total Vehicles",
@@ -780,11 +787,16 @@
   },
   "integrations": {
     "title": "Integrations",
+    "subtitle": "Unified hub for WhatsApp, Instagram and Telephony messages",
     "emptyTitle": "No Integrations Yet",
     "emptyDescription": "Connect channels",
     "searchPlaceholder": "Search chats...",
     "messagePlaceholder": "Type a message...",
     "online": "Online"
+  },
+  "callCenter": {
+    "title": "Call Center",
+    "subtitle": "Call management, scripts and inquiry analytics"
   },
   "kitchen": {
     "kdsTitle": "Kitchen Display",

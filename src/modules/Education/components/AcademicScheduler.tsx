@@ -671,7 +671,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           </div>
                         </div>
 
-                        <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                        <div className="p-3 bg-gray-50 rounded-2xl border border-gray-100/50">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-xs font-black text-blue-400 uppercase tracking-widest">{t('education.time', 'Vaxt')}</span>
                           </div>

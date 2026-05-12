@@ -14,3 +14,12 @@ logs
 scratch
 screenshots
 videos
+android
+release
+supabase
+server
+build_log*.txt
+*.cjs
+*.sql
+*.html
+!index.html

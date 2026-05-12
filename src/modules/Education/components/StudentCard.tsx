@@ -68,7 +68,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, groups = [], onEdit,
       {/* Contact & Personal Info */}
       <div className="space-y-4 flex-1">
         <div className="grid grid-cols-1 gap-3">
-          <div className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-2xl border border-gray-100/50">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100">
             <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
               <Mail className="w-4 h-4 text-gray-400" />
             </div>
@@ -78,7 +78,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, groups = [], onEdit,
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-2xl border border-gray-100/50">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100">
             <div className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
               <Phone className="w-4 h-4 text-gray-400" />
             </div>
@@ -90,14 +90,14 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, groups = [], onEdit,
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-blue-50/30 rounded-2xl border border-blue-100/30">
+          <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100">
             <div className="flex items-center gap-2 mb-1.5">
               <Calendar className="w-3.5 h-3.5 text-blue-500" />
               <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{t('profile.dateOfBirth', 'Doğum tarixi')}</span>
             </div>
             <p className="text-xs font-black text-gray-900">{student.date_of_birth || '—'}</p>
           </div>
-          <div className="p-3 bg-purple-50/30 rounded-2xl border border-purple-100/30">
+          <div className="p-3 bg-purple-50 rounded-2xl border border-purple-100">
             <div className="flex items-center gap-2 mb-1.5">
               <Clock className="w-3.5 h-3.5 text-purple-500" />
               <span className="text-[9px] font-black text-purple-500 uppercase tracking-widest">{t('common.date', 'Tarix')}</span>
@@ -107,13 +107,13 @@ const StudentCard: React.FC<StudentCardProps> = ({ student, groups = [], onEdit,
         </div>
 
         {/* Academic Info: Groups */}
-        <div className="p-4 bg-blue-50/50 rounded-[1.5rem] border border-blue-100/50 mt-2">
+        <div className="p-4 bg-gray-50 rounded-[1.5rem] border border-gray-100 mt-2">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-500/70">{t('education.tabGroups', 'Qruplar')}</span>
+              <Users className="w-4 h-4 text-gray-400" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{t('education.tabGroups', 'Qruplar')}</span>
             </div>
-            <span className="text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-md shadow-sm">{studentGroups.length}</span>
+            <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-md shadow-sm">{studentGroups.length}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {studentGroups.length > 0 ? (

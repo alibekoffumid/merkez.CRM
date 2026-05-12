@@ -421,6 +421,8 @@
     "confirmDeleteTeacher": "Bu müəllimi silmək istədiyinizdən əminsiniz?"
   },
   "retail": {
+    "title": "Pərakəndə POS",
+    "subtitle": "Sürətli pərakəndə satış, barkod skan edilməsi və mağaza inventarı",
     "pos": "Merkez POS",
     "posTitle": "Merkez POS",
     "cashier": "Kassir",
@@ -537,6 +539,8 @@
     "sent": "Göndərildi"
   },
   "warehouse": {
+    "title": "Anbar",
+    "subtitle": "Məhsul izləmə, anbarlar və inventar",
     "finishedGoods": "Hazır Məhsullar",
     "ingredients": "İnqrediyentlər",
     "suppliers": "Tədarükçülər",
@@ -709,7 +713,8 @@
     "saveClient": "Müştərini saxla"
   },
   "finance": {
-    "subtitle": "Maliyyə idarəetməsi",
+    "title": "Maliyyə",
+    "subtitle": "Gəlir, xərclər, hesabatlar və maliyyə analitikası",
     "totalBalance": "Ümumi balans",
     "monthlyIncome": "Aylıq gəlir",
     "monthlyExpenses": "Aylıq xərclər",
@@ -729,6 +734,8 @@
     "thDate": "Tarix"
   },
   "fleet": {
+    "title": "Nəqliyyat Parkı",
+    "subtitle": "Taksi şirkətləri, sürücülər və kirayə nəzarəti üçün tam donanma idarəetməsi",
     "dashboardTitle": "Nəqliyyat Parkı",
     "dashboardSubtitle": "Nəqliyyat parkının idarə edilməsi",
     "totalVehicles": "Cəmi nəqliyyat",
@@ -779,11 +786,16 @@
   },
   "integrations": {
     "title": "İnteqrasiyalar",
+    "subtitle": "WhatsApp, Instagram və Teleqram mesajları üçün vahid mərkəz",
     "emptyTitle": "Hələ inteqrasiya yoxdur",
     "emptyDescription": "Kanallara qoşulun",
     "searchPlaceholder": "Söhbət axtar...",
     "messagePlaceholder": "Mesaj yazın...",
     "online": "Onlayn"
+  },
+  "callCenter": {
+    "title": "Çağrı Mərkəzi",
+    "subtitle": "Zənglərin idarə edilməsi, skriptlər və müraciət analitikası"
   },
   "kitchen": {
     "kdsTitle": "Mətbəx Ekranı",
