@@ -257,7 +257,7 @@ const GroupManagement = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-4xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden flex flex-col">
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
@@ -292,19 +292,19 @@ const GroupManagement = () => {
               <div className="flex-1 overflow-y-auto no-scrollbar pr-2">
                 {activeTab === 'general' ? (
                   <form className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.groupName', 'Ad')}</label>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
-                        placeholder="məs. Piano Qrup A" 
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.groupName', 'Ad')}</label>
+                        <input 
+                          type="text" 
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
+                          placeholder="məs. Piano Qrup A" 
+                        />
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.type', 'Növ')}</label>
                         <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100">
@@ -326,7 +326,9 @@ const GroupManagement = () => {
                           </button>
                         </div>
                       </div>
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.program', 'Proqram')}</label>
                         <div className="relative z-[60]">
@@ -357,46 +359,46 @@ const GroupManagement = () => {
                           )}
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacher', 'Müəllim')}</label>
-                      <div className="relative z-[50]">
-                        <button 
-                          type="button"
-                          onClick={toggleTeacherDropdown}
-                          className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-sm font-bold text-gray-900"
-                        >
-                          <span>{teachers.find(t => t.id === formData.teacherId) ? `${teachers.find(t => t.id === formData.teacherId).first_name} ${teachers.find(t => t.id === formData.teacherId).last_name}` : 'Məcburi deyil'}</span>
-                          <ChevronDown className={`w-4 h-4 transition-transform ${showTeacherDropdown ? 'rotate-180' : ''}`} />
-                        </button>
-                        {showTeacherDropdown && (
-                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[60] max-h-48 overflow-y-auto no-scrollbar p-2 animate-in zoom-in-95 fade-in duration-200">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                  setFormData({...formData, teacherId: ''});
-                                  setShowTeacherDropdown(false);
-                                }}
-                                className="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-sm font-bold text-gray-400 italic"
-                              >
-                                Təyin edilməsin
-                              </button>
-                            {teachers.map(t => (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacher', 'Müəllim')}</label>
+                        <div className="relative z-[50]">
+                          <button 
+                            type="button"
+                            onClick={toggleTeacherDropdown}
+                            className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-sm font-bold text-gray-900"
+                          >
+                            <span>{teachers.find(t => t.id === formData.teacherId) ? `${teachers.find(t => t.id === formData.teacherId).first_name} ${teachers.find(t => t.id === formData.teacherId).last_name}` : 'Məcburi deyil'}</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform ${showTeacherDropdown ? 'rotate-180' : ''}`} />
+                          </button>
+                          {showTeacherDropdown && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[60] max-h-48 overflow-y-auto no-scrollbar p-2 animate-in zoom-in-95 fade-in duration-200">
                               <button
-                                key={t.id}
-                                type="button"
-                                onClick={() => {
-                                  setFormData({...formData, teacherId: t.id});
-                                  setShowTeacherDropdown(false);
-                                }}
-                                className="w-full p-3 text-left hover:bg-blue-50 rounded-xl text-sm font-bold text-gray-700 transition-all"
-                              >
-                                {t.first_name} {t.last_name}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({...formData, teacherId: ''});
+                                    setShowTeacherDropdown(false);
+                                  }}
+                                  className="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-sm font-bold text-gray-400 italic"
+                                >
+                                  Təyin edilməsin
+                                </button>
+                              {teachers.map(t => (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({...formData, teacherId: t.id});
+                                    setShowTeacherDropdown(false);
+                                  }}
+                                  className="w-full p-3 text-left hover:bg-blue-50 rounded-xl text-sm font-bold text-gray-700 transition-all"
+                                >
+                                  {t.first_name} {t.last_name}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </form>
@@ -413,7 +415,7 @@ const GroupManagement = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {filteredStudents.map(student => {
                         const isSelected = formData.studentIds.includes(student.id);
                         return (
