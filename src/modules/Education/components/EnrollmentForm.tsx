@@ -80,7 +80,7 @@ const EnrollmentForm = () => {
     }
   };
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm max-h-[85vh] overflow-y-auto no-scrollbar flex flex-col">
+    <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm">
       <div className="mb-10 text-center">
         <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
           <UserPlus className="w-10 h-10 text-blue-600" />
