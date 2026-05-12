@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Plus, X, Trash2, Edit2, Mail, Phone, GraduationCap, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
+import { Users, Plus, X, Trash2, Edit2, Mail, Phone, GraduationCap, CheckCircle2, Loader2, ChevronDown, Book } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useEducation } from '../hooks/useEducation';
 import ModalPortal from '../../../components/Common/ModalPortal';
