@@ -621,6 +621,55 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
 
               {activeTab === 'finance' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.salaryType')}</label>
+                    <div className="relative">
+                      <button 
+                        type="button"
+                        onClick={() => setShowSalaryDropdown(!showSalaryDropdown)}
+                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                      >
+                        <span>{t(`education.${formData.salaryType}`)}</span>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showSalaryDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showSalaryDropdown && (
+                        <>
+                          <div className="fixed inset-0 z-[490]" onClick={() => setShowSalaryDropdown(false)} />
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[500] py-2 overflow-hidden animate-in zoom-in-95 fade-in duration-200 origin-top">
+                            {['hourly', 'fixed', 'percentage'].map(type => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({...formData, salaryType: type});
+                                  setShowSalaryDropdown(false);
+                                }}
+                                className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${formData.salaryType === type ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                              >
+                                {t(`education.${type}`)}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
+                      {formData.salaryType === 'percentage' ? t('education.percentage') : t('education.salaryAmount')}
+                    </label>
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        value={formData.salaryAmount}
+                        onChange={(e) => setFormData({...formData, salaryAmount: parseFloat(e.target.value) || 0})}
+                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
+                        placeholder="0.00" 
+                      />
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-xs">
+                        {formData.salaryType === 'percentage' ? '%' : '₼'}
                       </div>
                     </div>
                   </div>
@@ -684,53 +733,6 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
                   </div>
                 </div>
               )}
-
-              {error && (
-                      </button>
-
-                      {showSalaryDropdown && (
-                        <>
-                          <div className="fixed inset-0 z-[490]" onClick={() => setShowSalaryDropdown(false)} />
-                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[500] py-2 overflow-hidden animate-in zoom-in-95 fade-in duration-200 origin-top">
-                            {['hourly', 'fixed', 'percentage'].map(type => (
-                              <button
-                                key={type}
-                                type="button"
-                                onClick={() => {
-                                  setFormData({...formData, salaryType: type});
-                                  setShowSalaryDropdown(false);
-                                }}
-                                className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${formData.salaryType === type ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                              >
-                                {t(`education.${type}`)}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      {formData.salaryType === 'percentage' ? t('education.percentage') : t('education.salaryAmount')}
-                    </label>
-                    <div className="relative">
-                      <input 
-                        type="number" 
-                        value={formData.salaryAmount}
-                        onChange={(e) => setFormData({...formData, salaryAmount: parseFloat(e.target.value) || 0})}
-                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
-                        placeholder="0.00" 
-                      />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-xs">
-                        {formData.salaryType === 'percentage' ? '%' : '₼'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
 
               {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold">{error}</div>}
 
