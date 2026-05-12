@@ -8,7 +8,11 @@ import DatePicker from '../../../components/Common/DatePicker';
 import ModalPortal from '../../../components/Common/ModalPortal';
 import ConfirmModal from '../../../components/Common/ConfirmModal';
 
-const AcademicScheduler = () => {
+interface AcademicSchedulerProps {
+  initialTeacherId?: string | null;
+}
+
+const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId = null }) => {
   const { t, i18n } = useTranslation();
   const { courses, students, lessons, refreshAll, rooms, teachers, tenantId } = useEducation();
   
@@ -53,7 +57,7 @@ const AcademicScheduler = () => {
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
-  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(null);
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(initialTeacherId);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [is24Hour, setIs24Hour] = useState(() => {
     const saved = localStorage.getItem('timeFormat');

@@ -6,7 +6,11 @@ import { useEducation } from '../hooks/useEducation';
 import ModalPortal from '../../../components/Common/ModalPortal';
 import ConfirmModal from '../../../components/Common/ConfirmModal';
 
-const TeacherManagement = () => {
+interface TeacherManagementProps {
+  onViewSchedule?: (teacherId: string) => void;
+}
+
+const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule }) => {
   const { t } = useTranslation();
   const { teachers, courses, lessons, refreshAll, tenantId } = useEducation();
   const [loading, setLoading] = useState(false);
@@ -287,7 +291,10 @@ const TeacherManagement = () => {
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     {t('education.active')}
                   </div>
-                  <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                  <button 
+                    onClick={() => onViewSchedule?.(teacher.id)}
+                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  >
                     {t('education.viewSchedule')}
                   </button>
                 </div>

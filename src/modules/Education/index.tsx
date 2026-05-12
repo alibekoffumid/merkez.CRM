@@ -18,6 +18,7 @@ const EducationModuleContent = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
   const { students, loading, refreshAll } = useEducation();
   
   // Student Management State
@@ -149,11 +150,18 @@ const EducationModuleContent = () => {
 
       <div className={`flex-1 transition-all duration-500 ${!isFullPage ? 'mt-2 px-4' : 'p-6 md:p-12'}`}>
         <div>
-          {activeTab === 'scheduler' && <AcademicScheduler />}
+          {activeTab === 'scheduler' && <AcademicScheduler initialTeacherId={selectedTeacherId} />}
           {activeTab === 'courses' && <CourseInventory />}
           {activeTab === 'progress' && <AcademicJournal />}
           {activeTab === 'rooms' && <RoomManagement />}
-          {activeTab === 'teachers' && <TeacherManagement />}
+          {activeTab === 'teachers' && (
+            <TeacherManagement 
+              onViewSchedule={(id) => {
+                setSelectedTeacherId(id);
+                setActiveTab('scheduler');
+              }} 
+            />
+          )}
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
