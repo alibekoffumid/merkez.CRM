@@ -18,6 +18,7 @@ const AcademicJournal = () => {
   const [exams, setExams] = useState<Record<string, number>>({});
   const [examSessions, setExamSessions] = useState<any[]>([]);
   const [isExamModalOpen, setIsExamModalOpen] = useState(false);
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [newExam, setNewExam] = useState({ title: '', date: '', groupId: '' });
 
   useEffect(() => {
@@ -446,19 +447,49 @@ const AcademicJournal = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.group', 'Qrup')}</label>
-                    <select 
-                      required
-                      value={newExam.groupId}
-                      onChange={(e) => setNewExam({...newExam, groupId: e.target.value})}
-                      className="w-full p-3.5 bg-white rounded-xl border border-gray-200 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700"
+                    <button
+                      type="button"
+                      onClick={() => setShowGroupDropdown(!showGroupDropdown)}
+                      className="w-full p-3.5 bg-white rounded-xl border border-gray-200 hover:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 flex items-center justify-between"
                     >
-                      <option value="">{t('common.select', 'Seçin...')}</option>
-                      {groups?.map(g => (
-                        <option key={g.id} value={g.id}>{g.name}</option>
-                      ))}
-                    </select>
+                      <span className="truncate">
+                        {newExam.groupId ? groups?.find(g => g.id === newExam.groupId)?.name : t('common.select', 'Seçin...')}
+                      </span>
+                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showGroupDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {showGroupDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-[490]" onClick={() => setShowGroupDropdown(false)} />
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewExam({...newExam, groupId: ''});
+                              setShowGroupDropdown(false);
+                            }}
+                            className={`w-full px-5 py-2.5 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${!newExam.groupId ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                          >
+                            {t('common.select', 'Seçin...')}
+                          </button>
+                          {groups?.map(g => (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => {
+                                setNewExam({...newExam, groupId: g.id});
+                                setShowGroupDropdown(false);
+                              }}
+                              className={`w-full px-5 py-2.5 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${newExam.groupId === g.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                            >
+                              {g.name}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="space-y-2 relative z-50">
@@ -466,7 +497,7 @@ const AcademicJournal = () => {
                       label={t('common.date', 'Tarix')}
                       value={newExam.date}
                       onChange={(date: string) => setNewExam({...newExam, date})}
-                      position="bottom"
+                      position="top"
                     />
                   </div>
 
