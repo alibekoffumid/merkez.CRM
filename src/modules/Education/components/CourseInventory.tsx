@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Plus, Tag, X, Loader2, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Plus, Tag, X, Loader2, CheckCircle2, Trash2, Edit2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 import ModalPortal from '../../../components/Common/ModalPortal';
+import ConfirmModal from '../../../components/Common/ConfirmModal';
 
 const CourseInventory = () => {
   const { t } = useTranslation();
   const { courses, loading, tenantId, refreshAll } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -31,27 +35,82 @@ const CourseInventory = () => {
     setError('');
     
     try {
-      const { error: insertError } = await supabase
-        .from('education_courses')
-        .insert([{
-          tenant_id: tenantId || '00000000-0000-0000-0000-000000000000',
-          title: formData.title,
-          category: formData.category,
-          price: parseFloat(formData.price) || 0,
-          capacity: parseInt(formData.capacity) || null,
-          description: formData.description
-        }]);
-        
-      if (insertError) throw insertError;
+      if (selectedCourse) {
+        // Update existing course
+        const { error: updateError } = await supabase
+          .from('education_courses')
+          .update({
+            title: formData.title,
+            category: formData.category,
+            price: parseFloat(formData.price) || 0,
+            capacity: parseInt(formData.capacity) || null,
+            description: formData.description
+          })
+          .eq('id', selectedCourse.id);
+          
+        if (updateError) throw updateError;
+      } else {
+        // Insert new course
+        const { error: insertError } = await supabase
+          .from('education_courses')
+          .insert([{
+            tenant_id: tenantId || '00000000-0000-0000-0000-000000000000',
+            title: formData.title,
+            category: formData.category,
+            price: parseFloat(formData.price) || 0,
+            capacity: parseInt(formData.capacity) || null,
+            description: formData.description
+          }]);
+          
+        if (insertError) throw insertError;
+      }
       
       refreshAll();
       setIsModalOpen(false);
+      setSelectedCourse(null);
       setFormData({ title: '', category: '', price: '', capacity: '', description: '' });
     } catch (err: any) {
-      console.error('Add course error:', err);
-      setError(err.message || 'Failed to add program');
+      console.error('Course save error:', err);
+      setError(err.message || 'Failed to save program');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (course: any) => {
+    setSelectedCourse(course);
+    setFormData({
+      title: course.title || '',
+      category: course.category || '',
+      price: course.price?.toString() || '',
+      capacity: course.capacity?.toString() || '',
+      description: course.description || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteClick = (course: any) => {
+    setCourseToDelete(course);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!courseToDelete) return;
+    
+    try {
+      const { error: deleteError } = await supabase
+        .from('education_courses')
+        .delete()
+        .eq('id', courseToDelete.id);
+        
+      if (deleteError) throw deleteError;
+      
+      refreshAll();
+      setIsConfirmOpen(false);
+      setCourseToDelete(null);
+    } catch (err: any) {
+      console.error('Delete course error:', err);
+      alert('Failed to delete program: ' + err.message);
     }
   };
 
@@ -61,7 +120,11 @@ const CourseInventory = () => {
         <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('education.tabPrograms')}</h3>
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setSelectedCourse(null);
+              setFormData({ title: '', category: '', price: '', capacity: '', description: '' });
+              setIsModalOpen(true);
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" /> {t('education.addProgram')}
@@ -91,8 +154,22 @@ const CourseInventory = () => {
                 <div className="flex items-center gap-1 text-emerald-600 font-black text-lg">
                   <Tag className="w-4 h-4" /> ₼{course.price}
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg">
-                  {course.category || t('education.general')}
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleEdit(course)}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteClick(course)}
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg ml-2">
+                    {course.category || t('education.general')}
+                  </div>
                 </div>
               </div>
             </div>
@@ -116,7 +193,7 @@ const CourseInventory = () => {
               <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
                 <BookOpen className="w-8 h-8 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{t('education.addProgram')}</h2>
+              <h2 className="text-2xl font-black text-gray-900">{selectedCourse ? t('common.edit') : t('education.addProgram')}</h2>
               <p className="text-gray-500 text-sm mt-1">{t('education.managePrograms')}</p>
             </div>
 
@@ -206,6 +283,20 @@ const CourseInventory = () => {
         </div>
         </ModalPortal>
       )}
+
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setCourseToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title={t('education.deleteProgram', 'Proqramı Sil')}
+        message={t('education.confirmDeleteProgram', 'Bu proqramı silmək istədiyinizdən əminsiniz?')}
+        confirmText={t('common.delete', 'Sil')}
+        cancelText={t('common.cancel', 'Ləğv et')}
+        isDanger={true}
+      />
     </div>
   );
 };

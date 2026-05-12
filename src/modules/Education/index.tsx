@@ -9,12 +9,31 @@ import AcademicJournal from './components/AcademicJournal';
 import EnrollmentForm from './components/EnrollmentForm';
 import RoomManagement from './components/RoomManagement';
 import TeacherManagement from './components/TeacherManagement';
+import ConfirmModal from '../../components/Common/ConfirmModal';
+import ModalPortal from '../../components/Common/ModalPortal';
+import { supabase } from '../../supabaseClient';
+import DatePicker from '../../components/Common/DatePicker';
 
 const EducationModuleContent = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
-  const { students, loading } = useEducation();
+  const { students, loading, refreshAll } = useEducation();
+  
+  // Student Management State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [studentToEdit, setStudentToEdit] = useState<any>(null);
+  const [studentToDelete, setStudentToDelete] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    status: 'active'
+  });
 
   const tabs = [
     { id: 'scheduler', label: t('education.tabSchedule'), icon: Calendar },
@@ -25,6 +44,68 @@ const EducationModuleContent = () => {
     { id: 'rooms', label: t('education.tabRooms'), icon: MapPin },
     { id: 'enrollment', label: t('education.tabEnrollment'), icon: UserPlus },
   ];
+
+  const handleEditClick = (student: any) => {
+    setStudentToEdit(student);
+    setEditFormData({
+      firstName: student.first_name,
+      lastName: student.last_name,
+      email: student.email || '',
+      phone: student.phone || '',
+      dateOfBirth: student.date_of_birth || '',
+      status: student.status || 'active'
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (student: any) => {
+    setStudentToDelete(student);
+    setIsConfirmOpen(true);
+  };
+
+  const handleUpdateStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const { error: updateError } = await supabase
+        .from('education_students')
+        .update({
+          first_name: editFormData.firstName,
+          last_name: editFormData.lastName,
+          email: editFormData.email,
+          phone: editFormData.phone,
+          date_of_birth: editFormData.dateOfBirth || null,
+          status: editFormData.status
+        })
+        .eq('id', studentToEdit.id);
+
+      if (updateError) throw updateError;
+      refreshAll();
+      setIsEditModalOpen(false);
+    } catch (err: any) {
+      console.error('Update student error:', err);
+      alert('Failed to update student: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const confirmDeleteStudent = async () => {
+    if (!studentToDelete) return;
+    try {
+      const { error: deleteError } = await supabase
+        .from('education_students')
+        .delete()
+        .eq('id', studentToDelete.id);
+
+      if (deleteError) throw deleteError;
+      refreshAll();
+      setIsConfirmOpen(false);
+    } catch (err: any) {
+      console.error('Delete student error:', err);
+      alert('Failed to delete student: ' + err.message);
+    }
+  };
 
   return (
     <div className={`
@@ -81,8 +162,13 @@ const EducationModuleContent = () => {
                 <p className="text-gray-500 font-bold">{t('education.loadingStudents')}</p>
               ) : students?.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {students.map(student => (
-                    <StudentCard key={student.id} student={student} />
+                  {students.map((student: any) => (
+                    <StudentCard 
+                      key={student.id} 
+                      student={student} 
+                      onEdit={handleEditClick}
+                      onDelete={handleDeleteClick}
+                    />
                   ))}
                 </div>
               ) : (
@@ -98,6 +184,117 @@ const EducationModuleContent = () => {
           )}
         </div>
       </div>
+
+      {/* Edit Student Modal */}
+      {isEditModalOpen && (
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsEditModalOpen(false)}></div>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              <div className="mb-8">
+                <h2 className="text-2xl font-black text-gray-900">{t('common.edit')}</h2>
+                <p className="text-gray-500 text-sm mt-1">{t('education.manageStudents', 'Tələbə məlumatlarını idarə edin')}</p>
+              </div>
+
+              <form onSubmit={handleUpdateStudent} className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.firstName')}</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editFormData.firstName}
+                      onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.lastName')}</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editFormData.lastName}
+                      onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.emailAddress')}</label>
+                    <input 
+                      type="email" 
+                      value={editFormData.email}
+                      onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.phoneNumber')}</label>
+                    <input 
+                      type="tel" 
+                      value={editFormData.phone}
+                      onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold" 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <DatePicker 
+                    label={t('profile.dateOfBirth')}
+                    value={editFormData.dateOfBirth}
+                    onChange={(val) => setEditFormData({...editFormData, dateOfBirth: val})}
+                  />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('common.status')}</label>
+                    <select 
+                      value={editFormData.status}
+                      onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold"
+                    >
+                      <option value="active">{t('common.active')}</option>
+                      <option value="inactive">{t('common.inactive')}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="flex-1 py-4 bg-gray-50 text-gray-500 font-bold rounded-2xl hover:bg-gray-100 transition-all"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="flex-1 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-blue-500 shadow-xl transition-all flex items-center justify-center"
+                  >
+                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('common.save')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setStudentToDelete(null);
+        }}
+        onConfirm={confirmDeleteStudent}
+        title={t('education.deleteStudent', 'Tələbəni Sil')}
+        message={t('education.confirmDeleteStudent', 'Bu tələbəni silmək istədiyinizdən əminsiniz?')}
+        confirmText={t('common.delete', 'Sil')}
+        cancelText={t('common.cancel', 'Ləğv et')}
+        isDanger={true}
+      />
     </div>
   );
 };
