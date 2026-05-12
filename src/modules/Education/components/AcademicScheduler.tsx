@@ -1045,7 +1045,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div 
                         key={item.id} 
                         onClick={() => handleEdit(item)}
-                        className="absolute rounded-xl border p-4 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer overflow-hidden z-[20] bg-white flex flex-col justify-between"
+                        className="absolute rounded-xl border p-2.5 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer overflow-hidden z-[20] bg-white border-l-[4px]"
                         style={{ 
                           top: `${top}px`, 
                           height: `${height}px`,
@@ -1053,30 +1053,40 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           width: `calc(${widthPercent}% - 4px)`,
                           marginLeft: '2px',
                           marginRight: '2px',
-                          borderLeft: `4px solid ${teacherColor}`,
+                          borderLeftColor: teacherColor,
                           borderColor: hexToRgba(teacherColor, 0.2),
                           backgroundColor: hexToRgba(teacherColor, 0.02)
                         }}
                       >
-                        <div>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex flex-col min-w-0 gap-0.5">
-                              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>
-                                {item.education_courses?.title || item.title}
-                              </span>
-                              <span className="text-[9px] font-bold text-gray-400">
-                                {formatItemTime(startDate)} - {formatItemTime(endDate)}
+                        <div className="flex flex-col h-full min-w-0">
+                          {/* Header: Group & Time */}
+                          <div className="flex items-start justify-between gap-1 mb-1">
+                            <div className="flex flex-col min-w-0">
+                              <h4 className="text-[11px] font-black text-gray-900 truncate leading-tight">
+                                {item.group_id ? groups.find(g => g.id === item.group_id)?.name : (item.education_courses?.title || item.title)}
+                              </h4>
+                              <span className="text-[9px] font-bold text-gray-500/80 uppercase tracking-tight">
+                                {item.group_id && (item.education_courses?.title || item.title) + " • "} {formatItemTime(startDate)}
                               </span>
                             </div>
-                            <div className="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-50 shrink-0">
-                               <Book className="w-3 h-3" style={{ color: teacherColor }} />
+                            <div className="w-5 h-5 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-100 shrink-0">
+                               <Book className="w-2.5 h-2.5" style={{ color: teacherColor }} />
                             </div>
                           </div>
-                          <h4 className="font-bold text-xs truncate text-gray-900">{item.teacher_name}</h4>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="w-3 h-3 text-gray-400" />
-                          <span className="text-[10px] font-bold text-gray-500 truncate">{rooms?.find((r: any) => r.id === item.room)?.name || rooms?.find((r: any) => r.id === item.room_id)?.name || t('education.noRoom', 'Otaq qeyd olunmayıb')}</span>
+
+                          {/* Footer: Teacher & Room (Push to bottom if space permits) */}
+                          <div className="mt-auto flex items-center gap-2 pt-1 border-t border-gray-100/50">
+                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: teacherColor }} />
+                              <span className="text-[10px] font-bold text-gray-700 truncate">{item.teacher_name}</span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <MapPin className="w-2.5 h-2.5 text-gray-400" />
+                              <span className="text-[9px] font-black text-gray-400 uppercase">
+                                {rooms?.find((r: any) => r.id === (item.room || item.room_id))?.name?.replace('Room ', '') || '—'}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
