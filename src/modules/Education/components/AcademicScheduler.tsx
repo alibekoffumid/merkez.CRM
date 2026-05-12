@@ -14,7 +14,7 @@ interface AcademicSchedulerProps {
 
 const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId = null }) => {
   const { t, i18n } = useTranslation();
-  const { courses, students, lessons, refreshAll, rooms, teachers, tenantId, enrollments } = useEducation();
+  const { courses, students, lessons, refreshAll, rooms, teachers, groups, groupStudents, tenantId, enrollments } = useEducation();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,7 +60,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     room: '',
     date: getLocalDateString(new Date()),
     startTime: '10:00',
-    endTime: '11:00'
+    endTime: '11:00',
+    groupId: ''
   });
 
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
@@ -203,7 +204,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
         teacher_name: formData.teacherName,
         room: formData.room,
         start_time: startDateTime,
-        end_time: endDateTime
+        end_time: endDateTime,
+        group_id: formData.groupId || null
       };
 
 
@@ -235,7 +237,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
           room: '',
           date: getLocalDateString(new Date()),
           startTime: '10:00',
-          endTime: '11:00'
+          endTime: '11:00',
+          groupId: ''
         });
 
       }, 2000);
@@ -285,7 +288,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
       room: lesson.room,
       date: getLocalDateString(start),
       startTime: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+      endTime: end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      groupId: lesson.group_id || ''
     });
 
     setEditingLessonId(lesson.id);
@@ -340,7 +344,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                             {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lesson', 'Dərs')}
                           </span>
                           <h4 className="text-xs font-black text-gray-900 truncate">
-                            {item.title}
+                            {item.group_id ? groups.find(g => g.id === item.group_id)?.name : item.title}
                           </h4>
                         </div>
                       </div>
@@ -359,7 +363,20 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                               <Users className="w-3 h-3 text-gray-400" />
                               <span className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">{t('education.students', 'Tələbələr')}</span>
                             </div>
-                            <div className="text-xs font-bold text-gray-900 leading-none">{item.students_count || 0} {t('education.people', 'nəfər')}</div>
+                            <div className="text-xs font-bold text-gray-900 leading-none">
+                              {item.group_id ? (
+                                <div className="flex flex-col gap-0.5">
+                                  {groupStudents.filter(gs => gs.group_id === item.group_id).slice(0, 2).map((gs, idx) => (
+                                    <div key={idx} className="truncate">{gs.education_students?.first_name} {gs.education_students?.last_name[0]}.</div>
+                                  ))}
+                                  {groupStudents.filter(gs => gs.group_id === item.group_id).length > 2 && (
+                                    <div className="text-[9px] text-gray-400">+{groupStudents.filter(gs => gs.group_id === item.group_id).length - 2} daha</div>
+                                  )}
+                                </div>
+                              ) : (
+                                `${item.students_count || 0} ${t('education.people', 'nəfər')}`
+                              )}
+                            </div>
                           </div>
                           <div className="p-3 bg-gray-50 rounded-2xl flex flex-col justify-between min-h-[60px]">
                             <div className="flex items-center gap-2 mb-1.5">
@@ -551,7 +568,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                 room: '',
                 date: getLocalDateString(selectedDate),
                 startTime: '10:00',
-                endTime: '11:00'
+                endTime: '11:00',
+                groupId: ''
               });
 
               setIsModalOpen(true);
@@ -621,7 +639,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                               ...formData,
                               startTime: `${hour.toString().padStart(2, '0')}:00`,
                               endTime: `${(hour + 1).toString().padStart(2, '0')}:00`,
-                              date: getLocalDateString(selectedDate)
+                              date: getLocalDateString(selectedDate),
+                              groupId: ''
                             });
                             setIsModalOpen(true);
                           }}
@@ -894,7 +913,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.programOrCourse')}</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.group', 'Qrup')}</label>
                   <div className="relative">
                     <button 
                       type="button"
@@ -902,8 +921,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between"
                     >
                       <div className="flex items-center gap-3">
-                        <Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <span>{courses?.find((c: any) => c.id === formData.courseId)?.title || t('education.selectProgram')}</span>
+                        <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <span>{groups?.find((g: any) => g.id === formData.groupId)?.name || t('education.selectGroup', 'Qrup seçin')}</span>
                       </div>
                       <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showProgramDropdown ? 'rotate-90' : ''}`} />
                     </button>
@@ -912,20 +931,29 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <>
                         <div className="fixed inset-0 z-[490]" onClick={() => setShowProgramDropdown(false)} />
                         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-60 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
-                          {courses?.map((c: any) => (
+                          {groups?.map((g: any) => (
                             <button
-                              key={c.id}
+                              key={g.id}
                               type="button"
                               onClick={() => {
-                                setFormData({...formData, courseId: c.id});
+                                setFormData({
+                                  ...formData, 
+                                  groupId: g.id,
+                                  courseId: g.course_id,
+                                  teacherId: g.teacher_id || formData.teacherId,
+                                  teacherName: g.teacher_id ? `${teachers.find(t => t.id === g.teacher_id)?.first_name} ${teachers.find(t => t.id === g.teacher_id)?.last_name}` : formData.teacherName
+                                });
                                 setShowProgramDropdown(false);
                               }}
-                              className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.courseId === c.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                              className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.groupId === g.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
                             >
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.courseId === c.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                                <Book className="w-4 h-4" />
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.groupId === g.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                <Users className="w-4 h-4" />
                               </div>
-                              <span className="text-sm font-bold">{c.title}</span>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold">{g.name}</span>
+                                <span className="text-[10px] text-gray-400">{g.education_courses?.title}</span>
+                              </div>
                             </button>
                           ))}
                         </div>

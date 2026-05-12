@@ -10,6 +10,8 @@ export interface EducationContextType {
   lessons: any[];
   rooms: any[];
   teachers: any[];
+  groups: any[];
+  groupStudents: any[];
   loading: boolean;
   error: string | null;
   refreshAll: () => Promise<void>;
@@ -25,6 +27,8 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
   const [lessons, setLessons] = useState<any[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [groupStudents, setGroupStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +37,15 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
     setLoading(true);
     setError(null);
     try {
-      const [studentsRes, coursesRes, enrollmentsRes, lessonsRes, roomsRes, teachersRes] = await Promise.all([
+      const [studentsRes, coursesRes, enrollmentsRes, lessonsRes, roomsRes, teachersRes, groupsRes, groupStudentsRes] = await Promise.all([
         supabase.from('education_students').select('*').eq('tenant_id', tenantId),
         supabase.from('education_courses').select('*').eq('tenant_id', tenantId),
         supabase.from('enrollments').select('*, education_students(*), education_courses(*)').eq('tenant_id', tenantId),
         supabase.from('education_lessons').select('*, education_courses(*)').eq('tenant_id', tenantId),
         supabase.from('education_rooms').select('*').eq('tenant_id', tenantId),
-        supabase.from('education_teachers').select('*').eq('tenant_id', tenantId)
+        supabase.from('education_teachers').select('*').eq('tenant_id', tenantId),
+        supabase.from('education_groups').select('*, education_courses(*)').eq('tenant_id', tenantId),
+        supabase.from('education_group_students').select('*, education_students(*)')
       ]);
 
       if (studentsRes.error) throw studentsRes.error;
@@ -56,6 +62,8 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
       setLessons(lessonsRes.data || []);
       setRooms(roomsRes.data || []);
       setTeachers((teachersRes as any).data || []);
+      setGroups((groupsRes as any).data || []);
+      setGroupStudents((groupStudentsRes as any).data || []);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch education data');
       console.error('Education data fetch error:', err);
@@ -80,6 +88,8 @@ export const EducationProvider = ({ children, initialTenantId = null }: { childr
       lessons,
       rooms,
       teachers,
+      groups,
+      groupStudents,
       loading,
       error,
       refreshAll: fetchAllData

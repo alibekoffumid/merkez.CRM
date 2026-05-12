@@ -9,6 +9,7 @@ import AcademicJournal from './components/AcademicJournal';
 import EnrollmentForm from './components/EnrollmentForm';
 import RoomManagement from './components/RoomManagement';
 import TeacherManagement from './components/TeacherManagement';
+import GroupManagement from './components/GroupManagement';
 import ConfirmModal from '../../components/Common/ConfirmModal';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { supabase } from '../../supabaseClient';
@@ -40,6 +41,7 @@ const EducationModuleContent = () => {
     { id: 'scheduler', label: t('education.tabSchedule'), icon: Calendar },
     { id: 'students', label: t('education.tabStudents'), icon: Users },
     { id: 'teachers', label: t('education.tabTeachers'), icon: GraduationCap },
+    { id: 'groups', label: t('education.tabGroups', 'Qruplar'), icon: Users },
     { id: 'courses', label: t('education.tabPrograms'), icon: BookOpen },
     { id: 'progress', label: t('education.tabJournal'), icon: ClipboardList },
     { id: 'rooms', label: t('education.tabRooms'), icon: MapPin },
@@ -162,6 +164,7 @@ const EducationModuleContent = () => {
               }} 
             />
           )}
+          {activeTab === 'groups' && <GroupManagement />}
           {activeTab === 'enrollment' && <EnrollmentForm />}
           {activeTab === 'students' && (
             <div className="space-y-6">
