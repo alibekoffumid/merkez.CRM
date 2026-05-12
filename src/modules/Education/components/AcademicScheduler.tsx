@@ -44,9 +44,8 @@ const AcademicScheduler = () => {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showProgramDropdown, setShowProgramDropdown] = useState(false);
-  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -329,18 +328,59 @@ const AcademicScheduler = () => {
             )}
           </div>
           <div className="relative">
-            <select
-              value={selectedTeacherFilter || ''}
-              onChange={(e) => setSelectedTeacherFilter(e.target.value || null)}
-              className="appearance-none px-4 py-2 pl-10 pr-8 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500/20"
+            <button
+              onClick={() => setShowTeacherDropdown(!showTeacherDropdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-all border border-gray-200 outline-none hover:shadow-sm group"
             >
-              <option value="">{t('education.allTeachers', 'Bütün müəllimlər')}</option>
-              {teachers.map(t => (
-                <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
-              ))}
-            </select>
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <Users className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              <span>
+                {selectedTeacherFilter 
+                  ? teachers.find(t => t.id === selectedTeacherFilter)?.first_name + ' ' + teachers.find(t => t.id === selectedTeacherFilter)?.last_name
+                  : t('education.allTeachers', 'Bütün müəllimlər')}
+              </span>
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${showTeacherDropdown ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showTeacherDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowTeacherDropdown(false)} />
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  <div className="p-2 max-h-64 overflow-y-auto no-scrollbar">
+                    <button
+                      onClick={() => {
+                        setSelectedTeacherFilter(null);
+                        setShowTeacherDropdown(false);
+                      }}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${!selectedTeacherFilter ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                        <Users className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold">{t('education.allTeachers', 'Bütün müəllimlər')}</span>
+                    </button>
+
+                    {teachers.map(t => (
+                      <button
+                        key={t.id}
+                        onClick={() => {
+                          setSelectedTeacherFilter(t.id);
+                          setShowTeacherDropdown(false);
+                        }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left ${selectedTeacherFilter === t.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-black text-[10px] uppercase">
+                          {t.first_name[0]}{t.last_name[0]}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold">{t.first_name} {t.last_name}</span>
+                          <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">{t.specialization}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <button 
             onClick={() => setSelectedDate(new Date())}
