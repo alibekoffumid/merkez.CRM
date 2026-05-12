@@ -37,13 +37,7 @@ const TeacherManagement = () => {
   const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'finance'>('info');
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
 
-
-  const [showSpecDropdown, setShowSpecDropdown] = useState(false);
-  
-  // Use unique titles from courses or fallback to defaults
-  const specializations = courses?.length > 0 
-    ? Array.from(new Set(courses.map(c => c.title)))
-    : ['Piano', 'Vocal', 'Fine Arts', 'Theory', 'Guitar', 'Violin'];
+  // No dropdown state needed
 
   useEffect(() => {
     if (courses?.length > 0 && !formData.specialization) {
@@ -387,37 +381,13 @@ const TeacherManagement = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.specialization')}</label>
-                      <div className="relative">
-                        <button 
-                          type="button"
-                          onClick={() => setShowSpecDropdown(!showSpecDropdown)}
-                          className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
-                        >
-                          <span>{formData.specialization}</span>
-                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showSpecDropdown ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {showSpecDropdown && (
-                          <>
-                            <div className="fixed inset-0 z-[490]" onClick={() => setShowSpecDropdown(false)} />
-                            <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-[500] py-2 overflow-hidden animate-in zoom-in-95 fade-in duration-200 origin-bottom">
-                              {specializations.map(spec => (
-                                <button
-                                  key={spec}
-                                  type="button"
-                                  onClick={() => {
-                                    setFormData({...formData, specialization: spec});
-                                    setShowSpecDropdown(false);
-                                  }}
-                                  className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors text-sm font-bold ${formData.specialization === spec ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                                >
-                                  {spec}
-                                </button>
-                              ))}
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      <input 
+                        type="text" 
+                        value={formData.specialization}
+                        onChange={(e) => setFormData({...formData, specialization: e.target.value})}
+                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
+                        placeholder={t('education.placeholders.specialization', 'e.g. Mathematics')} 
+                      />
                     </div>
                   </div>
                 </div>
