@@ -424,9 +424,9 @@ const TeacherManagement = () => {
               )}
 
               {activeTab === 'schedule' && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {Object.entries(formData.workingHours).map(([day, config]: [string, any]) => (
-                    <div key={day} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div key={day} className="flex items-center justify-between p-2.5 px-4 bg-gray-50 rounded-2xl border border-gray-100">
                       <div className="flex items-center gap-3">
                         <button 
                           type="button"

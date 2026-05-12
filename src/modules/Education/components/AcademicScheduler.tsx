@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 import TimePicker from '../../../components/Common/TimePicker';
@@ -46,6 +46,7 @@ const AcademicScheduler = () => {
   const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
+  const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(null);
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
@@ -321,6 +322,20 @@ const AcademicScheduler = () => {
               </>
             )}
           </div>
+          <div className="relative">
+            <select
+              value={selectedTeacherFilter || ''}
+              onChange={(e) => setSelectedTeacherFilter(e.target.value || null)}
+              className="appearance-none px-4 py-2 pl-10 pr-8 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="">{t('education.allTeachers', 'Bütün müəllimlər')}</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
+              ))}
+            </select>
+            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
           <button 
             onClick={() => setSelectedDate(new Date())}
             className="px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors border border-gray-200"
@@ -424,9 +439,51 @@ const AcademicScheduler = () => {
                   </span>
                 </div>
 
+                {/* Render Teacher Availability Blocks (if a teacher is selected) */}
+                {(() => {
+                  if (!selectedTeacherFilter) return null;
+                  const teacher = teachers.find(t => t.id === selectedTeacherFilter);
+                  if (!teacher || !teacher.working_hours) return null;
+                  
+                  const dayName = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][selectedDate.getDay()];
+                  const config = teacher.working_hours[dayName];
+                  
+                  const blocks = [];
+                  if (!config || !config.active) {
+                    blocks.push({ top: 0, height: TOTAL_HOURS * 80 });
+                  } else {
+                    const startDec = parseInt(config.start.split(':')[0]) + parseInt(config.start.split(':')[1]) / 60;
+                    const endDec = parseInt(config.end.split(':')[0]) + parseInt(config.end.split(':')[1]) / 60;
+                    
+                    if (startDec > START_HOUR) {
+                      blocks.push({ top: 0, height: (startDec - START_HOUR) * 80 });
+                    }
+                    if (endDec < START_HOUR + TOTAL_HOURS) {
+                      const top = (endDec - START_HOUR) * 80;
+                      blocks.push({ top, height: ((START_HOUR + TOTAL_HOURS) - endDec) * 80 });
+                    }
+                  }
+                  
+                  return blocks.map((b, i) => (
+                    <div 
+                      key={i} 
+                      className="absolute left-0 right-0 bg-gray-100/60 pointer-events-none opacity-50 repeating-linear-gradient" 
+                      style={{ 
+                        top: `${b.top}px`, 
+                        height: `${b.height}px`, 
+                        zIndex: 0,
+                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px)'
+                      }} 
+                    />
+                  ));
+                })()}
+
                 {/* Render Lessons */}
                 {(() => {
-                  const sortedDayLessons = [...dayLessons].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+                  const filteredLessons = selectedTeacherFilter 
+                    ? dayLessons.filter((l: any) => l.teacher_id === selectedTeacherFilter) 
+                    : dayLessons;
+                  const sortedDayLessons = [...filteredLessons].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
                   const columns: any[][] = [];
                   
                   sortedDayLessons.forEach(lesson => {
