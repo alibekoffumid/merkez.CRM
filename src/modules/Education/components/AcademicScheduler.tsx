@@ -92,12 +92,17 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
-  // Unified Event Calculation for Selected Date
-  const dayEvents = React.useMemo(() => {
-    // 1. Lessons
-    const dayLessons = lessons.filter(l => isSameDay(new Date(l.start_time), selectedDate));
-    
-    // 2. Virtual Shifts
+    // Unified Event Calculation for Selected Date
+    const dayEvents = React.useMemo(() => {
+      const selectedDateStr = getLocalDateString(selectedDate);
+      
+      // 1. Lessons
+      const dayLessons = lessons.filter(l => {
+        const lessonDate = new Date(l.start_time);
+        return getLocalDateString(lessonDate) === selectedDateStr;
+      });
+      
+      // 2. Virtual Shifts
     const virtualShifts: any[] = [];
     const dayName = getDayName(selectedDate);
     
@@ -313,13 +318,13 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
                         <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
-                          {item.isShift ? t('education.workingShift', 'İş Saatları') : (item.education_courses?.title || item.title)}
+                          {item.isShift ? item.teacher_name : (item.education_courses?.title || item.title)}
                         </span>
                       </div>
                     </div>
 
                     {/* Premium Popup Card on Hover */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] pointer-events-none scale-90 group-hover:scale-100 origin-bottom p-5">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
                           {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
@@ -355,7 +360,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       </div>
 
                       {/* Arrow */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-0.5 w-4 h-4 bg-white border-r border-b border-gray-100 rotate-45" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 -mb-0.5 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
                     </div>
                   </div>
                 );
