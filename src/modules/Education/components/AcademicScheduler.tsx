@@ -142,7 +142,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     return [...dayEventsWithMetadata, ...virtualShifts].sort((a, b) => 
       new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
     );
-  }, [lessons, teachers, selectedDate, selectedTeacherFilter, enrollments, t]);
+  }, [lessons, teachers, selectedDate, selectedTeacherFilter, enrollments, groups, groupStudents, t]);
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
