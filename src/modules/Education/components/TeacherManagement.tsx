@@ -321,23 +321,20 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-10 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto no-scrollbar flex flex-col">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto no-scrollbar flex flex-col">
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+              className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             
-            <div className="mb-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
-                <GraduationCap className="w-6 h-6 text-blue-600" />
-              </div>
+            <div className="mb-6">
               <h2 className="text-xl font-black text-gray-900">{selectedTeacher ? t('common.edit') : t('education.addTeacher')}</h2>
               <p className="text-gray-500 text-xs mt-0.5">{t('education.registerTeacher')}</p>
             </div>
 
-            <div className="flex gap-4 mb-4 border-b border-gray-50">
+            <div className="flex gap-4 mb-6 border-b border-gray-50">
               <button 
                 onClick={() => setActiveTab('info')}
                 className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'info' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
