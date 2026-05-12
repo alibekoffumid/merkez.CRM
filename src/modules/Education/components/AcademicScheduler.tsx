@@ -129,10 +129,15 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
       }
     });
 
-    const dayEventsWithMetadata = dayLessons.map(l => ({
-      ...l,
-      students_count: enrollments.filter((e: any) => e.course_id === l.course_id).length
-    }));
+    const dayEventsWithMetadata = dayLessons.map(l => {
+      const group = groups.find(g => g.id === l.group_id);
+      const groupStuds = groupStudents.filter(gs => gs.group_id === l.group_id);
+      return {
+        ...l,
+        title: group ? group.name : (l.education_courses?.title || l.title),
+        students_count: l.group_id ? groupStuds.length : enrollments.filter((e: any) => e.course_id === l.course_id).length
+      };
+    });
 
     return [...dayEventsWithMetadata, ...virtualShifts].sort((a, b) => 
       new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
@@ -561,8 +566,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            {dayEvents.length > 0 ? (
-              dayEvents.map((item: any, index: number) => {
+            {dayEvents.filter(item => !item.isShift).length > 0 ? (
+              dayEvents.filter(item => !item.isShift).map((item: any, index: number) => {
                 const timeString = formatTime(item.start_time);
                 
                 // Get Teacher Color
