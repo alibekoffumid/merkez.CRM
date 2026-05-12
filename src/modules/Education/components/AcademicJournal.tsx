@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ClipboardList, Search, CheckCircle, XCircle, MoreVertical, Star, TrendingUp, ChevronDown, Clock, Calendar, Plus, Trash2 } from 'lucide-react';
 import { useEducation } from '../hooks/useEducation';
-import ModalPortal from '../../components/Common/ModalPortal';
-import DatePicker from '../../components/Common/DatePicker';
+import ModalPortal from '../../../components/Common/ModalPortal';
+import DatePicker from '../../../components/Common/DatePicker';
 
 const AcademicJournal = () => {
   const { t } = useTranslation();
@@ -465,7 +465,7 @@ const AcademicJournal = () => {
                     <DatePicker 
                       label={t('common.date', 'Tarix')}
                       value={newExam.date}
-                      onChange={(date) => setNewExam({...newExam, date})}
+                      onChange={(date: string) => setNewExam({...newExam, date})}
                       position="bottom"
                     />
                   </div>
