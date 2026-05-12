@@ -36,6 +36,7 @@ const TeacherManagement = () => {
   });
 
   const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
+  const [showSpecializationDropdown, setShowSpecializationDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'finance'>('info');
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -399,13 +400,44 @@ const TeacherManagement = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.specialization')}</label>
-                      <input 
-                        type="text" 
-                        value={formData.specialization}
-                        onChange={(e) => setFormData({...formData, specialization: e.target.value})}
-                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
-                        placeholder={t('education.placeholders.specialization', 'e.g. Mathematics')} 
-                      />
+                      <div className="relative">
+                        <button 
+                          type="button"
+                          onClick={() => setShowSpecializationDropdown(!showSpecializationDropdown)}
+                          className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                        >
+                          <span>{formData.specialization || t('education.placeholders.specialization')}</span>
+                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showSpecializationDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showSpecializationDropdown && (
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                            <div className="p-2 max-h-48 overflow-y-auto no-scrollbar">
+                              {courses.map((course: any) => (
+                                <button
+                                  key={course.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ ...formData, specialization: course.title });
+                                    setShowSpecializationDropdown(false);
+                                  }}
+                                  className="w-full p-3 text-left hover:bg-blue-50 rounded-xl transition-all text-sm font-bold text-gray-700 flex items-center gap-3 group"
+                                >
+                                  <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-white transition-all">
+                                    <Book className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                                  </div>
+                                  {course.title}
+                                </button>
+                              ))}
+                              {courses.length === 0 && (
+                                <div className="p-4 text-center text-gray-400 text-xs italic">
+                                  {t('education.noProgramsFound', 'Proqram tapılmadı')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
