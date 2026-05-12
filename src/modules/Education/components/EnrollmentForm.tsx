@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { UserPlus, Mail, Phone, Book, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useEducation } from '../hooks/useEducation';
+import DatePicker from '../../../components/Common/DatePicker';
 
 const EnrollmentForm = () => {
   const { t } = useTranslation();
@@ -141,17 +142,14 @@ const EnrollmentForm = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <DatePicker 
+            label={t('profile.dateOfBirth', 'Doğum tarixi')}
+            value={formData.dateOfBirth}
+            onChange={(val) => setFormData({...formData, dateOfBirth: val})}
+            position="top"
+          />
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('profile.dateOfBirth') || 'Doğum tarixi'}</label>
-            <input 
-              type="date" 
-              value={formData.dateOfBirth}
-              onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
-              className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.monthlyPayment') || 'Aylıq ödəniş (₼)'}</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.monthlyPayment', 'Aylıq ödəniş (₼)')}</label>
             <input 
               type="number" 
               min="0"
