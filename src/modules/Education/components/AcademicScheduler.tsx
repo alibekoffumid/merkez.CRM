@@ -304,33 +304,44 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       </div>
                     </div>
 
-                    {/* Premium Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-gray-900 text-white p-3 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] pointer-events-none scale-95 group-hover:scale-100 origin-bottom">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: teacherColor }} />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lessonDetails', 'Dərs Məlumatı')}
-                        </span>
-                      </div>
-                      <div className="space-y-1.5">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('education.teacherName', 'Müəllim')}</span>
-                          <span className="text-xs font-bold text-white">{item.teacher_name}</span>
+                    {/* Premium Popup Card on Hover */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] pointer-events-none scale-90 group-hover:scale-100 origin-bottom p-5">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
+                          {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
-                        <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1.5">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">
+                            {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lesson', 'Dərs')}
+                          </span>
+                          <h4 className="text-sm font-black text-gray-900 truncate">
+                            {item.isShift ? t('education.workingShift', 'İş Saatları') : (item.education_courses?.title || item.title)}
+                          </h4>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-2xl">
                           <div className="flex flex-col">
-                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('education.time', 'Vaxt')}</span>
-                            <span className="text-[10px] font-bold text-white">{formatTime(item.start_time)} - {formatTime(item.end_time)}</span>
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.teacher', 'Müəllim')}</span>
+                            <span className="text-xs font-bold text-gray-900">{item.teacher_name}</span>
                           </div>
-                          {item.room && (
-                            <div className="flex flex-col items-end">
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('education.room', 'Otaq')}</span>
-                              <span className="text-[10px] font-bold text-white truncate max-w-[60px]">{rooms?.find(r => r.id === item.room)?.name || item.room}</span>
-                            </div>
-                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">{t('education.time', 'Vaxt')}</span>
+                            <p className="text-[10px] font-black text-blue-600">{formatTime(item.start_time)} - {formatTime(item.end_time)}</p>
+                          </div>
+                          <div className="p-3 bg-gray-50 rounded-2xl">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.room', 'Otaq')}</span>
+                            <p className="text-[10px] font-black text-gray-900 truncate">{rooms?.find(r => r.id === item.room)?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
+                          </div>
                         </div>
                       </div>
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-gray-900" />
+
+                      {/* Arrow */}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-0.5 w-4 h-4 bg-white border-r border-b border-gray-100 rotate-45" />
                     </div>
                   </div>
                 );
