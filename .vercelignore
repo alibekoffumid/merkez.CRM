@@ -1,0 +1,16 @@
+node_modules
+.git
+dist
+build
+.next
+out
+*.log
+.vercel
+.gemini
+.tempmediaStorage
+brain
+knowledge
+logs
+scratch
+screenshots
+videos
