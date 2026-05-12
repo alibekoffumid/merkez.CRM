@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MapPin, Plus, X, Trash2, Edit2, Users, CheckCircle2, Loader2, ChevronDown } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import ModalPortal from '../../../components/Common/ModalPortal';
+import ConfirmModal from '../../../components/Common/ConfirmModal';
 
 const RoomManagement = () => {
   const { t } = useTranslation();
@@ -13,6 +14,8 @@ const RoomManagement = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -66,14 +69,21 @@ const RoomManagement = () => {
     }
   };
 
-  const deleteRoom = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this room?')) return;
+  const deleteRoom = (id: string) => {
+    setRoomToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDeleteRoom = async () => {
+    if (!roomToDelete) return;
     try {
-      const { error } = await supabase.from('education_rooms').delete().eq('id', id);
+      const { error } = await supabase.from('education_rooms').delete().eq('id', roomToDelete);
       if (error) throw error;
       fetchRooms();
     } catch (err: any) {
       alert(err.message);
+    } finally {
+      setRoomToDelete(null);
     }
   };
 
@@ -230,6 +240,20 @@ const RoomManagement = () => {
         </div>
         </ModalPortal>
       )}
+
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setRoomToDelete(null);
+        }}
+        onConfirm={confirmDeleteRoom}
+        title={t('education.deleteRoom', 'Otağı Sil')}
+        message={t('education.confirmDeleteRoom', 'Bu otağı silmək istədiyinizdən əminsiniz?')}
+        confirmText={t('common.delete', 'Sil')}
+        cancelText={t('common.cancel', 'Ləğv et')}
+        isDanger={true}
+      />
     </div>
   );
 };

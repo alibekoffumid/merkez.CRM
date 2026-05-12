@@ -5,6 +5,7 @@ import { useEducation } from '../hooks/useEducation';
 import { supabase } from '../../../supabaseClient';
 import TimePicker from '../../../components/Common/TimePicker';
 import DatePicker from '../../../components/Common/DatePicker';
+import ConfirmModal from '../../../components/Common/ConfirmModal';
 
 const AcademicScheduler = () => {
   const { t, i18n } = useTranslation();
@@ -47,6 +48,7 @@ const AcademicScheduler = () => {
   const [showTeacherDropdown, setShowTeacherDropdown] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
@@ -160,8 +162,11 @@ const AcademicScheduler = () => {
 
   const handleDelete = async () => {
     if (!editingLessonId) return;
-    if (!window.confirm(t('common.confirmDelete') || 'Are you sure?')) return;
+    setIsConfirmOpen(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!editingLessonId) return;
     setIsSubmitting(true);
     try {
       const { error } = await supabase
@@ -565,223 +570,238 @@ const AcademicScheduler = () => {
             </div>
           </div>
         </div>
-      </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-gray-900 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            
-            <div className="mb-8">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-                <CalendarIcon className="w-8 h-8 text-blue-600" />
+        <ModalPortal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
+                  <CalendarIcon className="w-8 h-8 text-blue-600" />
+                </div>
+                <h2 className="text-2xl font-black text-gray-900">{editingLessonId ? t('education.editLesson') : t('education.newLesson')}</h2>
+                <p className="text-gray-500 text-sm mt-1">{t('education.manageClasses')}</p>
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{editingLessonId ? t('education.editLesson') : t('education.newLesson')}</h2>
-              <p className="text-gray-500 text-sm mt-1">{t('education.manageClasses')}</p>
-            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.programOrCourse')}</label>
-                <div className="relative">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.programOrCourse')}</label>
+                  <div className="relative">
+                    <button 
+                      type="button"
+                      onClick={() => setShowProgramDropdown(!showProgramDropdown)}
+                      className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        < Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <span>{courses?.find((c: any) => c.id === formData.courseId)?.title || t('education.selectProgram')}</span>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showProgramDropdown ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {showProgramDropdown && (
+                      <>
+                        <div className="fixed inset-0 z-[490]" onClick={() => setShowProgramDropdown(false)} />
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-60 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                          {courses?.map((c: any) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => {
+                                setFormData({...formData, courseId: c.id});
+                                setShowProgramDropdown(false);
+                              }}
+                              className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.courseId === c.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                            >
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.courseId === c.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                <Book className="w-4 h-4" />
+                              </div>
+                              <span className="text-sm font-bold">{c.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacherName')}</label>
+                    <div className="relative">
+                      <button 
+                        type="button"
+                        onClick={() => setShowTeacherDropdown(!showTeacherDropdown)}
+                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                      >
+                        <span className={formData.teacherName ? 'text-gray-900' : 'text-gray-400'}>
+                          {formData.teacherName || t('education.selectTeacher')}
+                        </span>
+                        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showTeacherDropdown ? 'rotate-90' : ''}`} />
+                      </button>
+
+                      {showTeacherDropdown && (
+                        <>
+                          <div className="fixed inset-0 z-[490]" onClick={() => setShowTeacherDropdown(false)} />
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                            {teachers?.length > 0 ? (
+                              teachers.map((teacher: any) => (
+                                <button
+                                  key={teacher.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({
+                                      ...formData, 
+                                      teacherId: teacher.id,
+                                      teacherName: `${teacher.first_name} ${teacher.last_name}`
+                                    });
+                                    setShowTeacherDropdown(false);
+                                  }}
+                                  className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.teacherId === teacher.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                                >
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.teacherId === teacher.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                    <Users className="w-4 h-4" />
+                                  </div>
+                                  <span className="text-sm font-bold">{teacher.first_name} {teacher.last_name}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-5 py-3 text-xs text-gray-400 italic">{t('education.noTeachersAvailable')}</div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.room')}</label>
+                    <div className="relative">
+                      <button 
+                        type="button"
+                        onClick={() => setShowRoomDropdown(!showRoomDropdown)}
+                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                      >
+                        <span className={formData.room ? 'text-gray-900' : 'text-gray-400'}>
+                          {formData.room ? rooms?.find(r => r.id === formData.room)?.name || formData.room : t('education.selectRoom')}
+                        </span>
+                        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showRoomDropdown ? 'rotate-90' : ''}`} />
+                      </button>
+
+                      {showRoomDropdown && (
+                        <>
+                          <div className="fixed inset-0 z-[490]" onClick={() => setShowRoomDropdown(false)} />
+                          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
+                            {rooms?.length > 0 ? (
+                              rooms.map((room: any) => (
+                                <button
+                                  key={room.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({...formData, room: room.id});
+                                    setShowRoomDropdown(false);
+                                  }}
+                                  className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.room === room.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
+                                >
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.room === room.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                    <MapPin className="w-4 h-4" />
+                                  </div>
+                                  <span className="text-sm font-bold">{room.name}</span>
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-5 py-3 text-xs text-gray-400 italic">{t('education.noRoomsAvailable')}</div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <DatePicker 
+                    label={t('restaurant.date') || 'Date'}
+                    value={formData.date}
+                    onChange={(val) => setFormData({...formData, date: val})}
+                    position="top"
+                  />
+                  <TimePicker 
+                    label={t('education.startTime')}
+                    value={formData.startTime}
+                    onChange={(val) => setFormData({...formData, startTime: val})}
+                    position="top"
+                  />
+                  <TimePicker 
+                    label={t('education.endTime')}
+                    value={formData.endTime}
+                    onChange={(val) => setFormData({...formData, endTime: val})}
+                    position="top"
+                  />
+                </div>
+
+                {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold">{error}</div>}
+
+                <div className="pt-4 flex gap-4">
                   <button 
                     type="button"
-                    onClick={() => setShowProgramDropdown(!showProgramDropdown)}
-                    className="w-full p-4 pl-12 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 py-4 text-gray-500 font-bold bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      < Book className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <span>{courses?.find((c: any) => c.id === formData.courseId)?.title || t('education.selectProgram')}</span>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showProgramDropdown ? 'rotate-90' : ''}`} />
+                    {t('common.cancel')}
                   </button>
-
-                  {showProgramDropdown && (
-                    <>
-                      <div className="fixed inset-0 z-[490]" onClick={() => setShowProgramDropdown(false)} />
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-60 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
-                        {courses?.map((c: any) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => {
-                              setFormData({...formData, courseId: c.id});
-                              setShowProgramDropdown(false);
-                            }}
-                            className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.courseId === c.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                          >
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 ${formData.courseId === c.id ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                              <Book className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-bold">{c.title}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.teacherName')}</label>
-                  <div className="relative">
-                    <button 
-                      type="button"
-                      onClick={() => setShowTeacherDropdown(!showTeacherDropdown)}
-                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
-                    >
-                      <span className={formData.teacherName ? 'text-gray-900' : 'text-gray-400'}>
-                        {formData.teacherName || t('education.selectTeacher')}
-                      </span>
-                      <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showTeacherDropdown ? 'rotate-90' : ''}`} />
-                    </button>
-
-                    {showTeacherDropdown && (
-                      <>
-                        <div className="fixed inset-0 z-[490]" onClick={() => setShowTeacherDropdown(false)} />
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
-                          {teachers?.length > 0 ? (
-                            teachers.map((teacher: any) => (
-                              <button
-                                key={teacher.id}
-                                type="button"
-                                onClick={() => {
-                                  setFormData({
-                                    ...formData, 
-                                    teacherId: teacher.id,
-                                    teacherName: `${teacher.first_name} ${teacher.last_name}`
-                                  });
-                                  setShowTeacherDropdown(false);
-                                }}
-
-                                className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.teacherName === `${teacher.first_name} ${teacher.last_name}` ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                              >
-                                <Users className="w-4 h-4" />
-                                <span className="text-sm font-bold">{teacher.first_name} {teacher.last_name}</span>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-5 py-3 text-xs text-gray-400 italic">{t('education.noTeachersAvailable')}</div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.room')}</label>
-                  <div className="relative">
-                    <button 
-                      type="button"
-                      onClick={() => setShowRoomDropdown(!showRoomDropdown)}
-                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
-                    >
-                      <span className={formData.room ? 'text-gray-900' : 'text-gray-400'}>
-                        {formData.room ? rooms?.find(r => r.id === formData.room)?.name || formData.room : t('education.selectRoom')}
-                      </span>
-                      <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${showRoomDropdown ? 'rotate-90' : ''}`} />
-                    </button>
-
-                    {showRoomDropdown && (
-                      <>
-                        <div className="fixed inset-0 z-[490]" onClick={() => setShowRoomDropdown(false)} />
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 max-h-48 overflow-y-auto no-scrollbar animate-in zoom-in-95 fade-in duration-200 origin-top">
-                          {rooms?.length > 0 ? (
-                            rooms.map((room: any) => (
-                              <button
-                                key={room.id}
-                                type="button"
-                                onClick={() => {
-                                  setFormData({...formData, room: room.id});
-                                  setShowRoomDropdown(false);
-                                }}
-                                className={`w-full px-5 py-3 text-left hover:bg-blue-50 transition-colors flex items-center gap-3 ${formData.room === room.id ? 'bg-blue-50 text-blue-600' : 'text-gray-700'}`}
-                              >
-                                <MapPin className="w-4 h-4" />
-                                <span className="text-sm font-bold">{room.name}</span>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-5 py-3 text-xs text-gray-400 italic">{t('education.noRoomsAvailable')}</div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <DatePicker 
-                  label={t('restaurant.date') || 'Date'}
-                  value={formData.date}
-                  onChange={(val) => setFormData({...formData, date: val})}
-                  position="top"
-                />
-                <TimePicker 
-                  label={t('education.startTime')}
-                  value={formData.startTime}
-                  onChange={(val) => setFormData({...formData, startTime: val})}
-                  position="top"
-                />
-                <TimePicker 
-                  label={t('education.endTime')}
-                  value={formData.endTime}
-                  onChange={(val) => setFormData({...formData, endTime: val})}
-                  position="top"
-                />
-              </div>
-
-              {error && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-sm font-bold">{error}</div>}
-
-              <div className="pt-4 flex gap-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-4 text-gray-500 font-bold bg-gray-50 rounded-2xl hover:bg-gray-100 transition-all"
-                >
-                  {t('common.cancel')}
-                </button>
-    <button 
-      type="submit" 
-      disabled={isSubmitting || success}
-      className={`flex-1 py-4 px-8 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3
-        ${success ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'}
-        ${isSubmitting ? 'opacity-80 cursor-not-allowed' : ''}
-      `}
-    >
-                  {isSubmitting ? (
-                    <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing')}</>
-                  ) : success ? (
-                    <><CheckCircle2 className="w-5 h-5" /> {t('education.savedSuccessfully')}</>
-                  ) : (
-                    t('common.save')
-                  )}
-                </button>
-              </div>
-
-              {editingLessonId && (
-                <div className="pt-2 border-t border-gray-100">
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    className="w-full py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting || success}
+                    className={`flex-1 py-4 px-8 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3
+                      ${success ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'}
+                      ${isSubmitting ? 'opacity-80 cursor-not-allowed' : ''}
+                    `}
                   >
-                    <Trash2 className="w-4 h-4" /> {t('common.delete') || 'Delete Lesson'}
+                    {isSubmitting ? (
+                      <><Loader2 className="w-5 h-5 animate-spin" /> {t('education.processing')}</>
+                    ) : success ? (
+                      <><CheckCircle2 className="w-5 h-5" /> {t('education.savedSuccessfully')}</>
+                    ) : (
+                      t('common.save')
+                    )}
                   </button>
                 </div>
-              )}
-            </form>
+
+                {editingLessonId && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="w-full py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" /> {t('common.delete') || 'Delete Lesson'}
+                    </button>
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
+
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={confirmDelete}
+        title={t('education.deleteLesson', 'Dərsi Sil')}
+        message={t('education.confirmDeleteLesson', 'Bu dərsi silmək istədiyinizdən əminsiniz?')}
+        confirmText={t('common.delete', 'Sil')}
+        cancelText={t('common.cancel', 'Ləğv et')}
+        isDanger={true}
+      />
     </div>
   );
 };

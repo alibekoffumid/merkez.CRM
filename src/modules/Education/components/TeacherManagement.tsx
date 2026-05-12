@@ -4,6 +4,7 @@ import { Users, Plus, X, Trash2, Edit2, Mail, Phone, GraduationCap, CheckCircle2
 import { supabase } from '../../../supabaseClient';
 import { useEducation } from '../hooks/useEducation';
 import ModalPortal from '../../../components/Common/ModalPortal';
+import ConfirmModal from '../../../components/Common/ConfirmModal';
 
 const TeacherManagement = () => {
   const { t } = useTranslation();
@@ -36,6 +37,8 @@ const TeacherManagement = () => {
   const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'finance'>('info');
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
 
   // No dropdown state needed
 
@@ -183,14 +186,21 @@ const TeacherManagement = () => {
   };
 
 
-  const deleteTeacher = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this teacher?')) return;
+  const deleteTeacher = (id: string) => {
+    setTeacherToDelete(id);
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDeleteTeacher = async () => {
+    if (!teacherToDelete) return;
     try {
-      const { error } = await supabase.from('education_teachers').delete().eq('id', id);
+      const { error } = await supabase.from('education_teachers').delete().eq('id', teacherToDelete);
       if (error) throw error;
       refreshAll();
     } catch (err: any) {
       alert(err.message);
+    } finally {
+      setTeacherToDelete(null);
     }
   };
 
@@ -523,8 +533,22 @@ const TeacherManagement = () => {
             </form>
           </div>
         </div>
-        </ModalPortal>
-      )}
+      </ModalPortal>
+    )}
+
+      <ConfirmModal 
+        isOpen={isConfirmOpen}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setTeacherToDelete(null);
+        }}
+        onConfirm={confirmDeleteTeacher}
+        title={t('education.deleteTeacher', 'Müəllimi Sil')}
+        message={t('education.confirmDeleteTeacher', 'Bu müəllimi silmək istədiyinizdən əminsiniz? Bu əməliyyat geri qaytarıla bilməz.')}
+        confirmText={t('common.delete', 'Sil')}
+        cancelText={t('common.cancel', 'Ləğv et')}
+        isDanger={true}
+      />
     </div>
   );
 };
