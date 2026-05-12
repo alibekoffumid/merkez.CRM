@@ -119,18 +119,24 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
           isShift: true,
           teacher_id: teacher.id,
           teacher_name: `${teacher.first_name} ${teacher.last_name}`,
-          title: t('education.workingShift', 'İş Saatları'),
+          title: teacher.specialization || t('education.workingShift', 'İş Saatları'),
           start_time: start.toISOString(),
           end_time: end.toISOString(),
-          room: ''
+          room: teacher.room_id || '',
+          students_count: enrollments.filter((e: any) => e.teacher_id === teacher.id).length // Approximate for shifts
         });
       }
     });
 
-    return [...dayLessons, ...virtualShifts].sort((a, b) => 
+    const dayEventsWithMetadata = dayLessons.map(l => ({
+      ...l,
+      students_count: enrollments.filter((e: any) => e.course_id === l.course_id).length
+    }));
+
+    return [...dayEventsWithMetadata, ...virtualShifts].sort((a, b) => 
       new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
     );
-  }, [lessons, teachers, selectedDate, selectedTeacherFilter, t]);
+  }, [lessons, teachers, selectedDate, selectedTeacherFilter, enrollments, t]);
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
@@ -318,7 +324,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
                         <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
-                          {item.isShift ? t('education.workingShift', 'İş Saatları') : (item.education_courses?.title || item.title)}
+                          {item.title}
                         </span>
                       </div>
                     </div>
@@ -334,7 +340,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                             {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lesson', 'Dərs')}
                           </span>
                           <h4 className="text-sm font-black text-gray-900 truncate">
-                            {item.isShift ? t('education.workingShift', 'İş Saatları') : (item.education_courses?.title || item.title)}
+                            {item.title}
                           </h4>
                         </div>
                       </div>
@@ -348,14 +354,27 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">{t('education.time', 'Vaxt')}</span>
-                            <p className="text-[10px] font-black text-blue-600">{formatTime(item.start_time)} - {formatTime(item.end_time)}</p>
+                          <div className="p-3 bg-gray-50 rounded-2xl">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Users className="w-3 h-3 text-gray-400" />
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('education.students', 'Tələbələr')}</span>
+                            </div>
+                            <span className="text-xs font-bold text-gray-900">{item.students_count || 0} {t('education.people', 'nəfər')}</span>
                           </div>
                           <div className="p-3 bg-gray-50 rounded-2xl">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.room', 'Otaq')}</span>
-                            <p className="text-[10px] font-black text-gray-900 truncate">{rooms?.find(r => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
+                            <div className="flex items-center gap-2 mb-1">
+                              <MapPin className="w-3 h-3 text-gray-400" />
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{t('education.room', 'Otaq')}</span>
+                            </div>
+                            <p className="text-[10px] font-black text-gray-900 truncate">{rooms?.find((r: any) => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
                           </div>
+                        </div>
+
+                        <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{t('education.time', 'Vaxt')}</span>
+                          </div>
+                          <p className="text-[10px] font-black text-blue-600">{formatTime(item.start_time)} - {formatTime(item.end_time)}</p>
                         </div>
                       </div>
 
