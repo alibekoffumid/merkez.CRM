@@ -30,6 +30,18 @@ const AcademicScheduler = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const getDayName = (date: Date) => {
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    return days[date.getDay()];
+  };
+
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     courseId: '',
     teacherId: '',
@@ -50,6 +62,41 @@ const AcademicScheduler = () => {
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  // Unified Event Calculation for Selected Date
+  const dayEvents = React.useMemo(() => {
+    // 1. Lessons
+    const dayLessons = lessons.filter(l => isSameDay(new Date(l.start_time), selectedDate));
+    
+    // 2. Virtual Shifts
+    const virtualShifts: any[] = [];
+    const dayName = getDayName(selectedDate);
+    
+    teachers.forEach(teacher => {
+      if (selectedTeacherFilter && teacher.id !== selectedTeacherFilter) return;
+      
+      const config = teacher.working_hours?.[dayName];
+      if (config?.active && config.start && config.end) {
+        const start = new Date(`${getLocalDateString(selectedDate)}T${config.start}:00`);
+        const end = new Date(`${getLocalDateString(selectedDate)}T${config.end}:00`);
+        
+        virtualShifts.push({
+          id: `shift-${teacher.id}`,
+          isShift: true,
+          teacher_id: teacher.id,
+          teacher_name: `${teacher.first_name} ${teacher.last_name}`,
+          title: t('education.workingShift', 'İş Saatları'),
+          start_time: start.toISOString(),
+          end_time: end.toISOString(),
+          room: ''
+        });
+      }
+    });
+
+    return [...dayLessons, ...virtualShifts].sort((a, b) => 
+      new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+    );
+  }, [lessons, teachers, selectedDate, selectedTeacherFilter, t]);
 
   const getWeekDays = () => {
     const curr = new Date(selectedDate);
@@ -210,29 +257,36 @@ const AcademicScheduler = () => {
       <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
           <div className="flex items-center gap-2 mr-4 shrink-0">
-            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-            <h3 className="font-black text-gray-900 text-sm uppercase tracking-widest">{t('education.upcomingToday')}</h3>
+            <div className={`w-2 h-2 rounded-full ${isSameDay(selectedDate, new Date()) ? 'bg-blue-600 animate-pulse' : 'bg-gray-400'}`} />
+            <h3 className="font-black text-gray-900 text-sm uppercase tracking-widest">
+              {isSameDay(selectedDate, new Date()) ? t('education.upcomingToday') : t('education.daySchedule', 'Günün Cədvəli')}
+            </h3>
           </div>
           
           <div className="flex items-center gap-3">
-            {lessons?.filter((l: any) => isSameDay(new Date(l.start_time), new Date())).length > 0 ? (
-              lessons.filter((l: any) => isSameDay(new Date(l.start_time), new Date())).map((lesson: any, index: number) => {
-                const startDate = new Date(lesson.start_time);
+            {dayEvents.length > 0 ? (
+              dayEvents.map((item: any, index: number) => {
+                const startDate = new Date(item.start_time);
                 const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-                const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-orange-600'];
-                const colorClass = colors[index % colors.length];
+                
+                // Get Teacher Color
+                const teacherId = item.isShift ? item.id.replace('shift-', '') : item.teacher_id;
+                const teacher = teachers.find(t => t.id === teacherId);
+                const teacherColor = teacher?.color || '#3b82f6';
                 
                 return (
                   <div 
-                    key={lesson.id} 
-                    onClick={() => handleEdit(lesson)}
-                    className="group flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer h-[40px] shrink-0"
+                    key={item.id} 
+                    onClick={() => !item.isShift && handleEdit(item)}
+                    className={`group flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all h-[40px] shrink-0 ${!item.isShift ? 'cursor-pointer' : 'cursor-default opacity-80'}`}
                   >
-                    <div className={`w-1 h-6 rounded-full ${colorClass}`} />
+                    <div className="w-1 h-6 rounded-full" style={{ backgroundColor: teacherColor }} />
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
-                        <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">{lesson.education_courses?.title}</span>
+                        <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
+                          {item.isShift ? item.teacher_name : (item.education_courses?.title || item.title)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -569,7 +623,7 @@ const AcademicScheduler = () => {
 
                   // 4. Calculate Columns for Layout
                   const columns: any[][] = [];
-                  allItems.forEach(item => {
+                  dayEvents.forEach(item => {
                     let placed = false;
                     for (let i = 0; i < columns.length; i++) {
                       const lastInCol = columns[i][columns[i].length - 1];
@@ -589,7 +643,7 @@ const AcademicScheduler = () => {
                     });
                   });
 
-                  return allItems.map((item: any, i: number) => {
+                  return dayEvents.map((item: any, i: number) => {
                     const startDate = new Date(item.start_time);
                     const endDate = new Date(item.end_time);
                     
