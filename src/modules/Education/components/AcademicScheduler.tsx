@@ -130,18 +130,26 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     });
 
     const dayEventsWithMetadata = dayLessons.map(l => {
-      const group = groups.find(g => g.id === l.group_id);
-      const groupStuds = groupStudents.filter(gs => gs.group_id === l.group_id);
+      const group = groups?.find(g => g.id === l.group_id);
+      const groupStuds = groupStudents?.filter(gs => gs.group_id === l.group_id) || [];
       return {
         ...l,
         title: group ? group.name : (l.education_courses?.title || l.title),
-        students_count: l.group_id ? groupStuds.length : enrollments.filter((e: any) => e.course_id === l.course_id).length
+        students_count: l.group_id ? groupStuds.length : (enrollments?.filter((e: any) => e.course_id === l.course_id).length || 0)
       };
     });
 
-    return [...dayEventsWithMetadata, ...virtualShifts].sort((a, b) => 
+    const allItems = [...dayEventsWithMetadata, ...virtualShifts].sort((a, b) => 
       new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
     );
+
+    // Apply teacher filter here so it's consistent
+    return selectedTeacherFilter 
+      ? allItems.filter(item => {
+          const tId = item.isShift ? item.teacher_id : item.teacher_id;
+          return tId === selectedTeacherFilter;
+        })
+      : allItems;
   }, [lessons, teachers, selectedDate, selectedTeacherFilter, enrollments, groups, groupStudents, t]);
 
   const getWeekDays = () => {
@@ -972,45 +980,12 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
 
                 {/* Render Lessons & Working Shifts */}
                 {(() => {
-                  // 1. Get Actual Lessons
-                  const filteredLessons = selectedTeacherFilter 
-                    ? dayLessons.filter((l: any) => l.teacher_id === selectedTeacherFilter) 
-                    : dayLessons;
+                  // Use the pre-calculated and filtered dayEvents from useMemo
+                  const items = dayEvents;
 
-                  // 2. Create Virtual Lessons for Working Shifts
-                  const virtualShifts: any[] = [];
-                  const teachersToHighlight = selectedTeacherFilter 
-                    ? teachers.filter(t => t.id === selectedTeacherFilter)
-                    : teachers;
-
-                  const dayName = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][selectedDate.getDay()];
-                  
-                  teachersToHighlight.forEach(teacher => {
-                    const config = teacher.working_hours?.[dayName];
-                    if (config?.active) {
-                      const start = new Date(`${getLocalDateString(selectedDate)}T${config.start}:00`);
-                      const end = new Date(`${getLocalDateString(selectedDate)}T${config.end}:00`);
-                      
-                      virtualShifts.push({
-                        id: `shift-${teacher.id}`,
-                        isShift: true,
-                        teacher_name: `${teacher.first_name} ${teacher.last_name}`,
-                        title: t('education.workingShift', 'İş Saatları'),
-                        start_time: start.toISOString(),
-                        end_time: end.toISOString(),
-                        room: ''
-                      });
-                    }
-                  });
-
-                  // 3. Combine and Sort
-                  const allItems = [...filteredLessons, ...virtualShifts].sort((a, b) => 
-                    new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-                  );
-
-                  // 4. Calculate Columns for Layout
+                  // 4. Calculate Columns for Layout (overlapping items)
                   const columns: any[][] = [];
-                  dayEvents.forEach(item => {
+                  items.forEach(item => {
                     let placed = false;
                     for (let i = 0; i < columns.length; i++) {
                       const lastInCol = columns[i][columns[i].length - 1];
@@ -1030,7 +1005,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     });
                   });
 
-                  return dayEvents.map((item: any, i: number) => {
+                  return items.map((item: any, i: number) => {
                     const startDate = new Date(item.start_time);
                     const endDate = new Date(item.end_time);
                     
