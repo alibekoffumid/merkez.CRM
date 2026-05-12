@@ -117,7 +117,7 @@ const EnrollmentForm = () => {
             label={t('profile.dateOfBirth', 'Doğum tarixi')}
             value={formData.dateOfBirth}
             onChange={(val) => setFormData({...formData, dateOfBirth: val})}
-            position="top"
+            position="bottom"
           />
         </div>
 
