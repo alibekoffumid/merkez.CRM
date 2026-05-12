@@ -1,3 +1,4 @@
+// Build trigger: 2026-05-12 08:35
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar as CalendarIcon, Users, MapPin, Plus, X, Loader2, Book, CheckCircle2, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from 'lucide-react';
