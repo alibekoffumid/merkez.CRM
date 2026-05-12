@@ -321,7 +321,7 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto no-scrollbar flex flex-col">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 p-10 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto no-scrollbar flex flex-col">
             <button 
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
