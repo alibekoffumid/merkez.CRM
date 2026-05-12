@@ -288,8 +288,8 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
 
   return (
     <div className="min-h-[500px] relative">
-      <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex-1 flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
+      <div className="sticky top-20 z-[60] bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex-1 flex flex-wrap items-center gap-3 py-1">
           <div className="flex items-center gap-2 mr-4 shrink-0">
             <div className={`w-2 h-2 rounded-full ${isSameDay(selectedDate, new Date()) ? 'bg-blue-600 animate-pulse' : 'bg-gray-400'}`} />
             <h3 className="font-black text-gray-900 text-sm uppercase tracking-widest">
@@ -297,7 +297,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
             </h3>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {dayEvents.length > 0 ? (
               dayEvents.map((item: any, index: number) => {
                 const timeString = formatTime(item.start_time);
@@ -324,7 +324,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     </div>
 
                     {/* Premium Popup Card on Hover */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[200] pointer-events-none scale-90 group-hover:scale-100 origin-bottom p-5">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
                           {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
@@ -360,7 +360,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       </div>
 
                       {/* Arrow */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 -mb-0.5 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-0.5 w-4 h-4 bg-white border-r border-b border-gray-100 rotate-45" />
                     </div>
                   </div>
                 );
