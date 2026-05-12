@@ -89,6 +89,9 @@ const TeacherManagement = () => {
           email: formData.email,
           phone: formData.phone,
           specialization: formData.specialization,
+          salary_type: formData.salaryType,
+          salary_amount: formData.salaryAmount,
+          working_hours: formData.workingHours,
           tenant_id: tenantId || '00000000-0000-0000-0000-000000000000'
         }]);
 
@@ -405,8 +408,10 @@ const TeacherManagement = () => {
 
               {activeTab === 'schedule' && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                  {Object.entries(formData.workingHours).map(([day, config]: [string, any]) => (
-                    <div key={day} className="flex items-center justify-between p-2.5 px-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day) => {
+                    const config = formData.workingHours[day as keyof typeof formData.workingHours] || { active: false, start: '09:00', end: '18:00' };
+                    return (
+                      <div key={day} className="flex items-center justify-between p-2.5 px-4 bg-gray-50 rounded-2xl border border-gray-100">
                       <div className="flex items-center gap-3">
                         <button 
                           type="button"
@@ -455,8 +460,9 @@ const TeacherManagement = () => {
                           />
                         </div>
                       )}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 

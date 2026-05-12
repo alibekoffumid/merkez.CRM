@@ -469,18 +469,39 @@ const AcademicScheduler = () => {
                     }
                   }
                   
-                  return blocks.map((b, i) => (
-                    <div 
-                      key={i} 
-                      className="absolute left-0 right-0 bg-gray-100/60 pointer-events-none opacity-50 repeating-linear-gradient" 
-                      style={{ 
-                        top: `${b.top}px`, 
-                        height: `${b.height}px`, 
-                        zIndex: 0,
-                        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px)'
-                      }} 
-                    />
-                  ));
+                  return (
+                    <>
+                      {/* Working Shift Background */}
+                      {!(!config || !config.active) && (
+                        <div 
+                          className="absolute left-0 right-0 bg-blue-50/30 border-y border-blue-100/50 pointer-events-none"
+                          style={{ 
+                            top: `${(parseInt(config.start.split(':')[0]) + parseInt(config.start.split(':')[1]) / 60 - START_HOUR) * 80}px`, 
+                            height: `${(parseInt(config.end.split(':')[0]) + parseInt(config.end.split(':')[1]) / 60 - (parseInt(config.start.split(':')[0]) + parseInt(config.start.split(':')[1]) / 60)) * 80}px`, 
+                            zIndex: 0 
+                          }}
+                        >
+                          <div className="absolute top-2 left-2 flex items-center gap-1.5 opacity-40">
+                            <div className="w-1 h-1 rounded-full bg-blue-500" />
+                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">{t('education.workingShift', 'İş Saatları')}</span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {blocks.map((b, i) => (
+                        <div 
+                          key={i} 
+                          className="absolute left-0 right-0 bg-gray-100/60 pointer-events-none opacity-50 repeating-linear-gradient" 
+                          style={{ 
+                            top: `${b.top}px`, 
+                            height: `${b.height}px`, 
+                            zIndex: 0,
+                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px)'
+                          }} 
+                        />
+                      ))}
+                    </>
+                  );
                 })()}
 
                 {/* Render Lessons */}
