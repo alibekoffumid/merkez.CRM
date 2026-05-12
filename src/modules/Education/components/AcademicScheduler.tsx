@@ -98,6 +98,14 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
       if (!lessons) return [];
       const selectedDateStr = getLocalDateString(selectedDate);
       
+      // DEBUG: Log what we have
+      console.log('[AcademicScheduler] lessons count:', lessons.length);
+      console.log('[AcademicScheduler] selectedDateStr:', selectedDateStr);
+      if (lessons.length > 0) {
+        console.log('[AcademicScheduler] first lesson start_time:', lessons[0].start_time);
+        console.log('[AcademicScheduler] first lesson date string:', getLocalDateString(new Date(lessons[0].start_time)));
+      }
+      
       // 1. Filter Lessons for Selected Date
       const currentDayLessons = lessons.filter(l => {
         try {
