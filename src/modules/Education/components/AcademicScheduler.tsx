@@ -607,7 +607,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
                         <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
-                          {item.title}
+                          {item.title}{item.group_id ? ` - ${groups.find(g => g.id === item.group_id)?.name}` : ''}
                         </span>
                       </div>
                     </div>
@@ -623,7 +623,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                             {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lesson', 'Dərs')}
                           </span>
                           <h4 className="text-xs font-black text-gray-900 truncate">
-                            {item.group_id ? groups.find(g => g.id === item.group_id)?.name : item.title}
+                            {item.title}{item.group_id ? ` (${groups.find(g => g.id === item.group_id)?.name})` : ''}
                           </h4>
                         </div>
                       </div>
