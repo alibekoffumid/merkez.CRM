@@ -129,7 +129,8 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
             fri: { active: true, start: '09:00', end: '18:00' },
             sat: { active: false, start: '09:00', end: '18:00' },
             sun: { active: false, start: '09:00', end: '18:00' }
-          }
+          },
+          roomId: ''
         });
       }, 1500);
     } catch (err: any) {
