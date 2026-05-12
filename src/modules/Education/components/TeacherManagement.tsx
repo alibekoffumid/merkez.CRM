@@ -302,23 +302,23 @@ const TeacherManagement = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[95vh] overflow-y-auto no-scrollbar flex flex-col">
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             
-            <div className="mb-8">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-                <GraduationCap className="w-8 h-8 text-blue-600" />
+            <div className="mb-4">
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+                <GraduationCap className="w-6 h-6 text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900">{selectedTeacher ? t('common.edit') : t('education.addTeacher')}</h2>
-              <p className="text-gray-500 text-sm mt-1">{t('education.registerTeacher')}</p>
+              <h2 className="text-xl font-black text-gray-900">{selectedTeacher ? t('common.edit') : t('education.addTeacher')}</h2>
+              <p className="text-gray-500 text-xs mt-0.5">{t('education.registerTeacher')}</p>
             </div>
 
-            <div className="flex gap-4 mb-8 border-b border-gray-50">
+            <div className="flex gap-4 mb-4 border-b border-gray-50">
               <button 
                 onClick={() => setActiveTab('info')}
                 className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'info' ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
@@ -407,11 +407,11 @@ const TeacherManagement = () => {
               )}
 
               {activeTab === 'schedule' && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
                   {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map((day) => {
                     const config = formData.workingHours[day as keyof typeof formData.workingHours] || { active: false, start: '09:00', end: '18:00' };
                     return (
-                      <div key={day} className="flex items-center justify-between p-2.5 px-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div key={day} className="flex items-center justify-between p-1.5 px-3 bg-gray-50 rounded-xl border border-gray-100">
                       <div className="flex items-center gap-3">
                         <button 
                           type="button"
@@ -529,7 +529,7 @@ const TeacherManagement = () => {
               <button 
                 type="submit" 
                 disabled={isSubmitting || success}
-                className={`w-full py-4 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2
+                className={`w-full py-3 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2
                   ${success ? 'bg-emerald-500' : 'bg-blue-600 hover:bg-blue-500'}
                   ${isSubmitting ? 'opacity-80' : ''}
                 `}
