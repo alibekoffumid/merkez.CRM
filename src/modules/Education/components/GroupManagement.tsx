@@ -257,7 +257,7 @@ const GroupManagement = () => {
         <ModalPortal>
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-            <div className="bg-white rounded-[2.5rem] w-full max-w-4xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-[2.5rem] w-full max-w-4xl relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200 h-fit max-h-[95vh] flex flex-col">
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
@@ -289,7 +289,7 @@ const GroupManagement = () => {
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto no-scrollbar pr-2">
+              <div className={`flex-1 ${activeTab === 'general' ? 'overflow-visible' : 'overflow-y-auto'} no-scrollbar pr-2`}>
                 {activeTab === 'general' ? (
                   <form className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
