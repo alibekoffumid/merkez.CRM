@@ -14,6 +14,8 @@ const EnrollmentForm = () => {
     lastName: '',
     email: '',
     phone: '',
+    dateOfBirth: '',
+    monthlyPayment: '',
     courseId: ''
   });
   
@@ -35,6 +37,7 @@ const EnrollmentForm = () => {
           last_name: formData.lastName,
           email: formData.email,
           phone: formData.phone,
+          date_of_birth: formData.dateOfBirth ? formData.dateOfBirth : null,
           status: 'active',
           tenant_id: '00000000-0000-0000-0000-000000000000' // mock tenant id
         }])
@@ -55,6 +58,7 @@ const EnrollmentForm = () => {
             course_id: formData.courseId,
             status: 'active',
             progress_level: 'Beginner',
+            monthly_payment: formData.monthlyPayment ? parseFloat(formData.monthlyPayment) : 0,
             tenant_id: '00000000-0000-0000-0000-000000000000'
           }]);
       }
@@ -64,7 +68,7 @@ const EnrollmentForm = () => {
       
       setTimeout(() => {
         setSuccess(false);
-        setFormData({ firstName: '', lastName: '', email: '', phone: '', courseId: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', monthlyPayment: '', courseId: '' });
       }, 2000);
       
     } catch (err: any) {
@@ -75,7 +79,7 @@ const EnrollmentForm = () => {
     }
   };
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm">
+    <div className="max-w-4xl mx-auto bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-sm max-h-[85vh] overflow-y-auto no-scrollbar flex flex-col">
       <div className="mb-10 text-center">
         <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
           <UserPlus className="w-10 h-10 text-blue-600" />
@@ -133,6 +137,30 @@ const EnrollmentForm = () => {
                 placeholder={t('education.phoneNumber')} 
               />
             </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('profile.dateOfBirth') || 'Doğum tarixi'}</label>
+            <input 
+              type="date" 
+              value={formData.dateOfBirth}
+              onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})}
+              className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.monthlyPayment') || 'Aylıq ödəniş (₼)'}</label>
+            <input 
+              type="number" 
+              min="0"
+              step="0.01"
+              value={formData.monthlyPayment}
+              onChange={(e) => setFormData({...formData, monthlyPayment: e.target.value})}
+              className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
+              placeholder="e.g. 50" 
+            />
           </div>
         </div>
 
