@@ -55,6 +55,24 @@ const AcademicScheduler = () => {
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [selectedTeacherFilter, setSelectedTeacherFilter] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [is24Hour, setIs24Hour] = useState(() => {
+    const saved = localStorage.getItem('timeFormat');
+    return saved ? saved === '24h' : true;
+  });
+
+  const toggleTimeFormat = () => {
+    const newVal = !is24Hour;
+    setIs24Hour(newVal);
+    localStorage.setItem('timeFormat', newVal ? '24h' : '12h');
+  };
+
+  const formatTime = (date: Date | string) => {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (is24Hour) {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
 
   // Unified Event Calculation for Selected Date
   const dayEvents = React.useMemo(() => {
@@ -259,8 +277,7 @@ const AcademicScheduler = () => {
           <div className="flex items-center gap-3">
             {dayEvents.length > 0 ? (
               dayEvents.map((item: any, index: number) => {
-                const startDate = new Date(item.start_time);
-                const timeString = `${startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                const timeString = formatTime(item.start_time);
                 
                 // Get Teacher Color
                 const teacherId = item.isShift ? item.id.replace('shift-', '') : item.teacher_id;
@@ -293,6 +310,12 @@ const AcademicScheduler = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button 
+            onClick={toggleTimeFormat}
+            className="px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-colors border border-gray-200"
+          >
+            {is24Hour ? '24H' : '12H'}
+          </button>
           <div className="relative">
             <button 
               onClick={() => {
@@ -493,12 +516,18 @@ const AcademicScheduler = () => {
               <div className="absolute top-0 left-12 right-4 bottom-0 border-l border-gray-100">
                 {Array.from({ length: TOTAL_HOURS }).map((_, i) => {
                   const hour = START_HOUR + i;
+                  let hourLabel = `${hour}:00`;
+                  if (!is24Hour) {
+                    const h12 = hour % 12 || 12;
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    hourLabel = `${h12} ${ampm}`;
+                  }
                   return (
                     <div key={i} className="absolute w-full group/slot" style={{ top: `${i * 80}px`, height: '80px' }}>
                       {/* Hour Line */}
                       <div className="absolute top-0 left-0 right-0 border-t border-gray-50">
-                        <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
-                          {`${hour}:00`}
+                        <span className="absolute -left-12 -top-2.5 text-[10px] font-black text-gray-400 w-10 text-right">
+                          {hourLabel}
                         </span>
                       </div>
                       
@@ -528,8 +557,14 @@ const AcademicScheduler = () => {
                 
                 {/* Final Hour Line */}
                 <div className="absolute w-full border-t border-gray-50" style={{ top: `${TOTAL_HOURS * 80}px` }}>
-                  <span className="absolute -left-12 -top-2.5 text-xs font-bold text-gray-400 w-10 text-right">
-                    {`${(START_HOUR + TOTAL_HOURS) % 24}:00`}
+                  <span className="absolute -left-12 -top-2.5 text-[10px] font-black text-gray-400 w-10 text-right">
+                    {(() => {
+                      const hour = (START_HOUR + TOTAL_HOURS) % 24;
+                      if (is24Hour) return `${hour}:00`;
+                      const h12 = hour % 12 || 12;
+                      const ampm = hour >= 12 ? 'PM' : 'AM';
+                      return `${h12} ${ampm}`;
+                    })()}
                   </span>
                 </div>
 
@@ -663,6 +698,13 @@ const AcademicScheduler = () => {
                       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
                     };
 
+                    const formatItemTime = (date: Date) => {
+                      if (is24Hour) {
+                        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+                      }
+                      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                    };
+
                     if (item.isShift) {
                       return (
                         <div 
@@ -680,9 +722,14 @@ const AcademicScheduler = () => {
                             backgroundColor: hexToRgba(teacherColor, 0.05)
                           }}
                         >
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: teacherColor }} />
-                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>{item.title}</span>
+                          <div className="flex items-center justify-between gap-1.5 mb-1">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: teacherColor }} />
+                              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>{item.title}</span>
+                            </div>
+                            <span className="text-[9px] font-black opacity-60" style={{ color: teacherColor }}>
+                              {formatItemTime(startDate)} - {formatItemTime(endDate)}
+                            </span>
                           </div>
                           <h4 className="font-bold text-xs truncate" style={{ color: teacherColor }}>{item.teacher_name}</h4>
                         </div>
@@ -693,7 +740,7 @@ const AcademicScheduler = () => {
                       <div 
                         key={item.id} 
                         onClick={() => handleEdit(item)}
-                        className="absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-10"
+                        className="absolute rounded-xl border p-3 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-10 bg-white"
                         style={{ 
                           top: `${top}px`, 
                           height: `${height}px`,
@@ -701,13 +748,29 @@ const AcademicScheduler = () => {
                           width: `calc(${widthPercent}% - 4px)`,
                           marginLeft: '2px',
                           marginRight: '2px',
-                          backgroundColor: hexToRgba(teacherColor, 0.1),
-                          borderColor: hexToRgba(teacherColor, 0.3),
-                          color: teacherColor
+                          borderLeft: `4px solid ${teacherColor}`,
+                          borderColor: hexToRgba(teacherColor, 0.2),
+                          backgroundColor: hexToRgba(teacherColor, 0.02)
                         }}
                       >
-                        <h4 className="font-bold text-xs sm:text-sm truncate">{item.education_courses?.title || item.title}</h4>
-                        <p className="text-[10px] opacity-80 mt-0.5 truncate">{item.teacher_name} • {getRoomName(item.room)}</p>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: teacherColor }}>
+                              {item.education_courses?.title || item.title}
+                            </span>
+                            <span className="text-[9px] font-bold text-gray-500">
+                              {formatItemTime(startDate)} - {formatItemTime(endDate)}
+                            </span>
+                          </div>
+                          <div className="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-50 shrink-0">
+                             <Book className="w-3 h-3" style={{ color: teacherColor }} />
+                          </div>
+                        </div>
+                        <h4 className="font-bold text-xs truncate text-gray-900 mb-1">{item.teacher_name}</h4>
+                        <div className="flex items-center gap-1.5 mt-auto">
+                          <MapPin className="w-3 h-3 text-gray-400" />
+                          <span className="text-[10px] font-bold text-gray-500 truncate">{item.room || t('education.noRoom', 'Otaq qeyd olunmayıb')}</span>
+                        </div>
                       </div>
                     );
                   });
@@ -902,12 +965,14 @@ const AcademicScheduler = () => {
                     value={formData.startTime}
                     onChange={(val) => setFormData({...formData, startTime: val})}
                     position="top"
+                    is24Hour={is24Hour}
                   />
                   <TimePicker 
                     label={t('education.endTime')}
                     value={formData.endTime}
                     onChange={(val) => setFormData({...formData, endTime: val})}
                     position="top"
+                    is24Hour={is24Hour}
                   />
                 </div>
 

@@ -7,9 +7,10 @@ interface TimePickerProps {
   onChange: (value: string) => void;
   label?: string;
   position?: 'top' | 'bottom' | 'auto';
+  is24Hour?: boolean;
 }
 
-const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, position = 'auto' }) => {
+const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, position = 'auto', is24Hour = true }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, isTop: false });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -101,7 +102,13 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, positio
               }}
               className={`w-full py-2 px-3 rounded-xl text-sm font-bold transition-all ${hours === h ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'hover:bg-gray-50 text-gray-600'}`}
             >
-              {h}
+              {(() => {
+                if (is24Hour) return h;
+                const hNum = parseInt(h);
+                const h12 = hNum % 12 || 12;
+                const ampm = hNum >= 12 ? 'PM' : 'AM';
+                return `${h12} ${ampm}`;
+              })()}
             </button>
           ))}
         </div>
@@ -149,7 +156,17 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label, positio
       >
         <div className="flex items-center gap-3">
           <Clock className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
-          <span>{value || '10:00'}</span>
+          <span>
+            {(() => {
+              if (!value) return '10:00';
+              if (is24Hour) return value;
+              const [h, m] = value.split(':');
+              const hNum = parseInt(h);
+              const h12 = hNum % 12 || 12;
+              const ampm = hNum >= 12 ? 'PM' : 'AM';
+              return `${h12}:${m} ${ampm}`;
+            })()}
+          </span>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
       </button>
