@@ -644,13 +644,9 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                             </div>
                             <div className="text-xs font-bold text-gray-900 leading-none">
                               {item.group_id ? (
-                                <div className="flex flex-col gap-0.5">
-                                  {groupStudents.filter(gs => gs.group_id === item.group_id).slice(0, 2).map((gs, idx) => (
-                                    <div key={idx} className="truncate">{gs.education_students?.first_name} {gs.education_students?.last_name[0]}.</div>
-                                  ))}
-                                  {groupStudents.filter(gs => gs.group_id === item.group_id).length > 2 && (
-                                    <div className="text-[9px] text-gray-400">+{groupStudents.filter(gs => gs.group_id === item.group_id).length - 2} daha</div>
-                                  )}
+                                <div className="flex flex-col gap-1">
+                                  <div className="font-black text-gray-900">{groups?.find(g => g.id === item.group_id)?.name || t('education.group', 'Qrup')}</div>
+                                  <div className="text-[9px] text-gray-400">{groupStudents?.filter(gs => gs.group_id === item.group_id).length || 0} {t('education.people', 'nəfər')}</div>
                                 </div>
                               ) : (
                                 `${item.students_count || 0} ${t('education.people', 'nəfər')}`
