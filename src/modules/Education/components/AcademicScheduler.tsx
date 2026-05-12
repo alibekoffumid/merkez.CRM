@@ -330,7 +330,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     </div>
 
                     {/* Premium Popup Card on Hover */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[1000] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white opacity-100 visible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[1000] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.3)] border border-gray-100">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xs font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
                           {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
@@ -354,19 +354,19 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 bg-gray-50 rounded-2xl">
-                            <div className="flex items-center gap-2 mb-1">
+                          <div className="p-3 bg-gray-50 rounded-2xl flex flex-col justify-between min-h-[60px]">
+                            <div className="flex items-center gap-2 mb-1.5">
                               <Users className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('education.students', 'Tələbələr')}</span>
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">{t('education.students', 'Tələbələr')}</span>
                             </div>
-                            <span className="text-xs font-bold text-gray-900">{item.students_count || 0} {t('education.people', 'nəfər')}</span>
+                            <div className="text-xs font-bold text-gray-900 leading-none">{item.students_count || 0} {t('education.people', 'nəfər')}</div>
                           </div>
-                          <div className="p-3 bg-gray-50 rounded-2xl">
-                            <div className="flex items-center gap-2 mb-1">
+                          <div className="p-3 bg-gray-50 rounded-2xl flex flex-col justify-between min-h-[60px]">
+                            <div className="flex items-center gap-2 mb-1.5">
                               <MapPin className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest">{t('education.room', 'Otaq')}</span>
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">{t('education.room', 'Otaq')}</span>
                             </div>
-                            <p className="text-xs font-bold text-gray-900 truncate">{rooms?.find((r: any) => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
+                            <div className="text-xs font-bold text-gray-900 truncate leading-none">{rooms?.find((r: any) => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</div>
                           </div>
                         </div>
 
