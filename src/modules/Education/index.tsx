@@ -243,19 +243,20 @@ const EducationModuleContent = () => {
 
                 <div className="grid grid-cols-2 gap-6">
                   <DatePicker 
-                    label={t('profile.dateOfBirth')}
+                    label={t('profile.dateOfBirth', 'Doğum tarixi')}
                     value={editFormData.dateOfBirth}
                     onChange={(val) => setEditFormData({...editFormData, dateOfBirth: val})}
+                    position="top"
                   />
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('common.status')}</label>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('common.status', 'Status')}</label>
                     <select 
                       value={editFormData.status}
                       onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
                       className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold"
                     >
-                      <option value="active">{t('common.active')}</option>
-                      <option value="inactive">{t('common.inactive')}</option>
+                      <option value="active">{t('common.active', 'Aktiv')}</option>
+                      <option value="inactive">{t('common.inactive', 'Deaktiv')}</option>
                     </select>
                   </div>
                 </div>
