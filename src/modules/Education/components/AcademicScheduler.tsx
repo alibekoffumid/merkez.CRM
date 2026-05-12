@@ -288,16 +288,45 @@ const AcademicScheduler = () => {
                   <div 
                     key={item.id} 
                     onClick={() => !item.isShift && handleEdit(item)}
-                    className={`group flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all h-[40px] shrink-0 ${!item.isShift ? 'cursor-pointer' : 'cursor-default opacity-80'}`}
+                    className={`group relative flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all h-[40px] shrink-0 ${!item.isShift ? 'cursor-pointer' : 'cursor-default opacity-80'}`}
                   >
                     <div className="w-1 h-6 rounded-full" style={{ backgroundColor: teacherColor }} />
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black text-gray-900 leading-none">{timeString}</span>
                         <span className="text-xs font-bold text-gray-700 truncate leading-none max-w-[120px]">
-                          {item.isShift ? item.teacher_name : (item.education_courses?.title || item.title)}
+                          {item.isShift ? t('education.workingShift', 'İş Saatları') : (item.education_courses?.title || item.title)}
                         </span>
                       </div>
+                    </div>
+
+                    {/* Premium Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-gray-900 text-white p-3 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] pointer-events-none scale-95 group-hover:scale-100 origin-bottom">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: teacherColor }} />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          {item.isShift ? t('education.workingShift', 'İş Saatları') : t('education.lessonDetails', 'Dərs Məlumatı')}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('education.teacherName', 'Müəllim')}</span>
+                          <span className="text-xs font-bold text-white">{item.teacher_name}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1.5">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('education.time', 'Vaxt')}</span>
+                            <span className="text-[10px] font-bold text-white">{formatTime(item.start_time)} - {formatTime(item.end_time)}</span>
+                          </div>
+                          {item.room && (
+                            <div className="flex flex-col items-end">
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{t('education.room', 'Otaq')}</span>
+                              <span className="text-[10px] font-bold text-white truncate max-w-[60px]">{rooms?.find(r => r.id === item.room)?.name || item.room}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-gray-900" />
                     </div>
                   </div>
                 );
