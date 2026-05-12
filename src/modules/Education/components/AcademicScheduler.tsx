@@ -288,7 +288,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
 
   return (
     <div className="min-h-[500px] relative">
-      <div className="sticky top-20 z-[60] bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div className="sticky top-20 z-[100] bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-8 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4 isolate">
         <div className="flex-1 flex flex-wrap items-center gap-3 py-1">
           <div className="flex items-center gap-2 mr-4 shrink-0">
             <div className={`w-2 h-2 rounded-full ${isSameDay(selectedDate, new Date()) ? 'bg-blue-600 animate-pulse' : 'bg-gray-400'}`} />
@@ -324,7 +324,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     </div>
 
                     {/* Premium Popup Card on Hover */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[200] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5">
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-64 bg-white rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[1000] pointer-events-none scale-90 group-hover:scale-100 origin-top p-5">
                       <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: hexToRgba(teacherColor, 0.1), color: teacherColor }}>
                           {item.teacher_name.split(' ').map((n: string) => n[0]).join('')}
@@ -354,7 +354,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           </div>
                           <div className="p-3 bg-gray-50 rounded-2xl">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('education.room', 'Otaq')}</span>
-                            <p className="text-[10px] font-black text-gray-900 truncate">{rooms?.find(r => r.id === item.room)?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
+                            <p className="text-[10px] font-black text-gray-900 truncate">{rooms?.find(r => r.id === (item.room || teacher?.room_id))?.name || item.room || t('education.notAssigned', 'Yoxdur')}</p>
                           </div>
                         </div>
                       </div>

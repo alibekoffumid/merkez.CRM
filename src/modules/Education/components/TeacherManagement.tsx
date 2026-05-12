@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, Plus, X, Trash2, Edit2, Mail, Phone, GraduationCap, CheckCircle2, Loader2, ChevronDown, Book } from 'lucide-react';
+import { Users, Plus, X, Trash2, Edit2, Mail, Phone, GraduationCap, CheckCircle2, Loader2, ChevronDown, Book, MapPin } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { useEducation } from '../hooks/useEducation';
 import ModalPortal from '../../../components/Common/ModalPortal';
@@ -12,7 +12,7 @@ interface TeacherManagementProps {
 
 const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule }) => {
   const { t } = useTranslation();
-  const { teachers, courses, lessons, refreshAll, tenantId } = useEducation();
+  const { teachers, courses, lessons, refreshAll, tenantId, rooms } = useEducation();
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,11 +36,14 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
       fri: { active: true, start: '09:00', end: '18:00' },
       sat: { active: false, start: '09:00', end: '18:00' },
       sun: { active: false, start: '09:00', end: '18:00' }
-    }
+    },
+    roomId: ''
+  });
   });
 
   const [showSalaryDropdown, setShowSalaryDropdown] = useState(false);
   const [showSpecializationDropdown, setShowSpecializationDropdown] = useState(false);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'schedule' | 'finance'>('info');
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -99,6 +102,7 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
           salary_amount: formData.salaryAmount,
           working_hours: formData.workingHours,
           color: formData.color,
+          room_id: formData.roomId || null,
           tenant_id: tenantId || '00000000-0000-0000-0000-000000000000'
         }]);
 
@@ -154,7 +158,8 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
           salary_type: formData.salaryType,
           salary_amount: formData.salaryAmount,
           working_hours: formData.workingHours,
-          color: formData.color
+          color: formData.color,
+          room_id: formData.roomId || null
         })
         .eq('id', selectedTeacher.id);
 
@@ -185,6 +190,7 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
       salaryType: teacher.salary_type || 'hourly',
       salaryAmount: teacher.salary_amount || 0,
       color: teacher.color || '#3b82f6',
+      roomId: teacher.room_id || '',
       workingHours: teacher.working_hours || {
         mon: { active: true, start: '09:00', end: '18:00' },
         tue: { active: true, start: '09:00', end: '18:00' },
@@ -436,15 +442,57 @@ const TeacherManagement: React.FC<TeacherManagementProps> = ({ onViewSchedule })
                                   {course.title}
                                 </button>
                               ))}
-                              {courses.length === 0 && (
-                                <div className="p-4 text-center text-gray-400 text-xs italic">
-                                  {t('education.noProgramsFound', 'Proqram tapılmadı')}
-                                </div>
-                              )}
                             </div>
                           </div>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('education.room', 'Otaq')}</label>
+                    <div className="relative">
+                      <button 
+                        type="button"
+                        onClick={() => setShowRoomDropdown(!showRoomDropdown)}
+                        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between"
+                      >
+                        <span>{rooms?.find((r: any) => r.id === formData.roomId)?.name || t('education.selectRoom', 'Otaq seçin')}</span>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showRoomDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showRoomDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <div className="p-2 max-h-48 overflow-y-auto no-scrollbar">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, roomId: '' });
+                                setShowRoomDropdown(false);
+                              }}
+                              className="w-full p-3 text-left hover:bg-gray-50 rounded-xl transition-all text-sm font-bold text-gray-500 flex items-center gap-3 group italic"
+                            >
+                              {t('education.noRoom', 'Otaq yoxdur')}
+                            </button>
+                            {rooms?.map((room: any) => (
+                              <button
+                                key={room.id}
+                                type="button"
+                                onClick={() => {
+                                  setFormData({ ...formData, roomId: room.id });
+                                  setShowRoomDropdown(false);
+                                }}
+                                className="w-full p-3 text-left hover:bg-blue-50 rounded-xl transition-all text-sm font-bold text-gray-700 flex items-center gap-3 group"
+                              >
+                                <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-white transition-all">
+                                  <MapPin className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                                </div>
+                                {room.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
