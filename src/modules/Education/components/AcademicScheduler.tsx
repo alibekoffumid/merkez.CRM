@@ -640,7 +640,7 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                           <div className="p-3 bg-gray-50 rounded-2xl flex flex-col justify-between min-h-[60px]">
                             <div className="flex items-center gap-2 mb-1.5">
                               <Users className="w-3 h-3 text-gray-400" />
-                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">{t('education.students', 'Tələbələr')}</span>
+                              <span className="text-xs font-black text-gray-400 uppercase tracking-widest leading-none">{t('education.group', 'Qrup')}</span>
                             </div>
                             <div className="text-xs font-bold text-gray-900 leading-none">
                               {item.group_id ? (
