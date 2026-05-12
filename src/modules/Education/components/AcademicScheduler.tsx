@@ -39,6 +39,20 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
     return days[date.getDay()];
   };
 
+  const hexToRgba = (hex: string, alpha: number) => {
+    let r = 0, g = 0, b = 0;
+    if (hex.length === 4) {
+      r = parseInt(hex[1] + hex[1], 16);
+      g = parseInt(hex[2] + hex[2], 16);
+      b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length === 7) {
+      r = parseInt(hex[1] + hex[2], 16);
+      g = parseInt(hex[3] + hex[4], 16);
+      b = parseInt(hex[5] + hex[6], 16);
+    }
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
   const [formData, setFormData] = useState({
     courseId: '',
     teacherId: '',
@@ -733,14 +747,6 @@ const AcademicScheduler: React.FC<AcademicSchedulerProps> = ({ initialTeacherId 
                     const teacherId = item.isShift ? item.id.replace('shift-', '') : item.teacher_id;
                     const teacher = teachers.find(t => t.id === teacherId);
                     const teacherColor = teacher?.color || '#3b82f6';
-
-                    // Helper for light bg
-                    const hexToRgba = (hex: string, alpha: number) => {
-                      const r = parseInt(hex.slice(1, 3), 16);
-                      const g = parseInt(hex.slice(3, 5), 16);
-                      const b = parseInt(hex.slice(5, 7), 16);
-                      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    };
 
                     const formatItemTime = (date: Date) => {
                       if (is24Hour) {
