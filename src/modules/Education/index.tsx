@@ -20,7 +20,7 @@ const EducationModuleContent = () => {
   const [activeTab, setActiveTab] = useState('scheduler');
   const [isFullPage, setIsFullPage] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(null);
-  const { students, loading, refreshAll } = useEducation();
+  const { students, loading, refreshAll, groups, groupStudents } = useEducation();
   
   // Student Management State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -177,6 +177,7 @@ const EducationModuleContent = () => {
                     <StudentCard 
                       key={student.id} 
                       student={student} 
+                      groups={groupStudents.map(gs => ({ ...gs, education_groups: groups.find(g => g.id === gs.group_id) }))}
                       onEdit={handleEditClick}
                       onDelete={handleDeleteClick}
                     />
