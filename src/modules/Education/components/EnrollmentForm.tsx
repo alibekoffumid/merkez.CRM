@@ -7,7 +7,7 @@ import DatePicker from '../../../components/Common/DatePicker';
 
 const EnrollmentForm = () => {
   const { t } = useTranslation();
-  const { refreshAll, courses } = useEducation();
+  const { refreshAll, courses, tenantId } = useEducation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -40,7 +40,7 @@ const EnrollmentForm = () => {
           phone: formData.phone,
           date_of_birth: formData.dateOfBirth ? formData.dateOfBirth : null,
           status: 'active',
-          tenant_id: '00000000-0000-0000-0000-000000000000' // mock tenant id
+          tenant_id: tenantId
         }])
         .select()
         .single();
@@ -60,7 +60,7 @@ const EnrollmentForm = () => {
             status: 'active',
             progress_level: 'Beginner',
             monthly_payment: formData.monthlyPayment ? parseFloat(formData.monthlyPayment) : 0,
-            tenant_id: '00000000-0000-0000-0000-000000000000'
+            tenant_id: tenantId
           }]);
       }
       

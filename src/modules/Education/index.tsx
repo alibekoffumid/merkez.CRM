@@ -14,6 +14,7 @@ import ConfirmModal from '../../components/Common/ConfirmModal';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { supabase } from '../../supabaseClient';
 import DatePicker from '../../components/Common/DatePicker';
+import { useUser } from '../../core/UserContext';
 
 const EducationModuleContent = () => {
   const { t } = useTranslation();
@@ -313,8 +314,13 @@ const EducationModuleContent = () => {
 };
 
 const EducationModule = () => {
+  const { profile } = useUser();
+  const tenantId = profile?.tenant_id || profile?.id;
+
+  if (!tenantId) return null;
+
   return (
-    <EducationProvider initialTenantId="00000000-0000-0000-0000-000000000000">
+    <EducationProvider initialTenantId={tenantId}>
       <EducationModuleContent />
     </EducationProvider>
   );

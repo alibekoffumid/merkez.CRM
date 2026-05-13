@@ -3,8 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { LayoutGrid, MessageSquare, Instagram, Phone, Search, MoreHorizontal, Send } from 'lucide-react';
 import UnifiedChat, { UnifiedMessage } from './components/UnifiedChat';
 import { supabase } from '../../supabaseClient';
+import { useUser } from '../../core/UserContext';
 
 const IntegrationsModule = () => {
+  const { profile } = useUser();
+  const tenantId = profile?.tenant_id || profile?.id;
   const { t } = useTranslation();
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [messages, setMessages] = useState<UnifiedMessage[]>([]);
@@ -89,7 +92,7 @@ const IntegrationsModule = () => {
     const { data: savedMsg, error: dbError } = await supabase
       .from('integration_messages')
       .insert({
-        tenant_id: selectedContact.tenant_id || '00000000-0000-0000-0000-000000000000',
+        tenant_id: selectedContact.tenant_id || tenantId,
         contact_id: selectedContact.id,
         direction: 'outbound',
         type: 'text',
