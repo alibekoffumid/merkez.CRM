@@ -221,12 +221,12 @@ const GroupManagement = () => {
               </div>
 
               <h3 className="text-lg font-black text-gray-900 mb-1">{group.name}</h3>
-              <p className="text-xs font-bold text-gray-400 mb-4">{course?.title || 'Proqram yoxdur'}</p>
+              <p className="text-xs font-bold text-gray-400 mb-4">{course?.title || t('education.noProgram', 'Proqram yoxdur')}</p>
 
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-2 text-gray-500">
                   <GraduationCap className="w-4 h-4" />
-                  <span className="text-xs font-bold">{teacher ? `${teacher.first_name} ${teacher.last_name}` : 'Müəllim təyin edilməyib'}</span>
+                  <span className="text-xs font-bold">{teacher ? `${teacher.first_name} ${teacher.last_name}` : t('education.noTeacherAssigned', 'Müəllim təyin edilməyib')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-500">
                   <Users className="w-4 h-4" />
@@ -301,7 +301,7 @@ const GroupManagement = () => {
                           value={formData.name}
                           onChange={(e) => setFormData({...formData, name: e.target.value})}
                           className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-900" 
-                          placeholder="məs. Piano Qrup A" 
+                          placeholder={t('education.placeholders.groupName', 'məs. Piano Qrup A')} 
                         />
                       </div>
 
@@ -337,7 +337,7 @@ const GroupManagement = () => {
                             onClick={toggleCourseDropdown}
                             className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-sm font-bold text-gray-900"
                           >
-                            <span>{courses.find(c => c.id === formData.courseId)?.title || 'Seçin'}</span>
+                            <span>{courses.find(c => c.id === formData.courseId)?.title || t('common.select', 'Seçin')}</span>
                             <ChevronDown className={`w-4 h-4 transition-transform ${showCourseDropdown ? 'rotate-180' : ''}`} />
                           </button>
                           {showCourseDropdown && (
@@ -368,7 +368,7 @@ const GroupManagement = () => {
                             onClick={toggleTeacherDropdown}
                             className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between text-sm font-bold text-gray-900"
                           >
-                            <span>{teachers.find(t => t.id === formData.teacherId) ? `${teachers.find(t => t.id === formData.teacherId).first_name} ${teachers.find(t => t.id === formData.teacherId).last_name}` : 'Məcburi deyil'}</span>
+                            <span>{teachers.find(t => t.id === formData.teacherId) ? `${teachers.find(t => t.id === formData.teacherId).first_name} ${teachers.find(t => t.id === formData.teacherId).last_name}` : t('common.optional', 'Məcburi deyil')}</span>
                             <ChevronDown className={`w-4 h-4 transition-transform ${showTeacherDropdown ? 'rotate-180' : ''}`} />
                           </button>
                           {showTeacherDropdown && (
@@ -381,7 +381,7 @@ const GroupManagement = () => {
                                   }}
                                   className="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-sm font-bold text-gray-400 italic"
                                 >
-                                  Təyin edilməsin
+                                  {t('education.unassignTeacher', 'Təyin edilməsin')}
                                 </button>
                               {teachers.map(t => (
                                 <button

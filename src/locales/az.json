@@ -152,7 +152,8 @@
     "phonePlaceholder": "+X XXX XXX XX XX",
     "websitePlaceholder": "www.vebsaytiniz.com",
     "hoursPlaceholder": "B.er-Baz: 10:00 - 23:00",
-    "essencePlaceholder": "Brendiniz, mətbəxiniz və missiyanız haqqında..."
+    "essencePlaceholder": "Brendiniz, mətbəxiniz və missiyanız haqqında...",
+    "dateOfBirth": "Doğum tarixi"
   },
   "dental": {
     "title": "Merkez Dental",
@@ -301,7 +302,8 @@
       "firstName": "Anar",
       "lastName": "Məmmədov",
       "email": "anar@example.com",
-      "phone": "+994 ..."
+      "phone": "+994 ...",
+      "groupName": "məs. Piano Qrup A"
     },
     "newLesson": "Yeni Dərs",
     "teacherName": "Müəllim Adı",
@@ -325,6 +327,19 @@
     "noDescription": "Təsvir qeyd olunmayıb.",
     "general": "Ümumi",
     "studentProgress": "Tələbə Tərəqqisi",
+    "monthlyPayment": "Aylıq ödəniş (₼)",
+    "addGroup": "Yeni Qrup",
+    "individual": "Fərdi",
+    "group": "Qrup",
+    "groupName": "Ad",
+    "type": "Növ",
+    "program": "Proqram",
+    "manageGroupsDesc": "Qrup və ya fərdi dərsləri idarə edin",
+    "deleteGroup": "Qrupu sil",
+    "confirmDeleteGroup": "Bu qrupu silmək istədiyinizdən əminsiniz? Bütün tələbə əlaqələri kəsiləcək.",
+    "noProgram": "Proqram yoxdur",
+    "noTeacherAssigned": "Müəllim təyin edilməyib",
+    "unassignTeacher": "Təyin edilməsin",
     "trackPerformance": "Performans səviyyələrini və akademik nailiyyətləri izləyin",
     "level": "Səviyyə",
     "semesterProgress": "Semestr Tərəqqisi",

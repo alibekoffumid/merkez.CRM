@@ -152,7 +152,8 @@
     "phonePlaceholder": "+X XXX XXX XX XX",
     "websitePlaceholder": "www.yourwebsite.com",
     "hoursPlaceholder": "Mon-Sun: 10:00 - 23:00",
-    "essencePlaceholder": "Tell us about the vibes, the food, and the mission of your establishment..."
+    "essencePlaceholder": "Tell us about your brand, cuisine, and mission...",
+    "dateOfBirth": "Date of Birth"
   },
   "dental": {
     "title": "Merkez Dental",
@@ -296,8 +297,9 @@
       "description": "Details about this program...",
       "firstName": "John",
       "lastName": "Doe",
-      "email": "john.doe@example.com",
-      "phone": "+994 ..."
+      "email": "john@example.com",
+      "phone": "+1 ...",
+      "groupName": "e.g. Piano Group A"
     },
     "newLesson": "New Lesson",
     "teacherName": "Teacher Name",
@@ -321,6 +323,19 @@
     "noDescription": "No description provided.",
     "general": "General",
     "studentProgress": "Student Progress",
+    "monthlyPayment": "Monthly payment (₼)",
+    "addGroup": "New Group",
+    "individual": "Individual",
+    "group": "Group",
+    "groupName": "Name",
+    "type": "Type",
+    "program": "Program",
+    "manageGroupsDesc": "Manage group or individual lessons",
+    "deleteGroup": "Delete Group",
+    "confirmDeleteGroup": "Are you sure you want to delete this group? All student links will be removed.",
+    "noProgram": "No program",
+    "noTeacherAssigned": "No teacher assigned",
+    "unassignTeacher": "Unassign",
     "trackPerformance": "Track performance levels and academic achievements",
     "level": "Level",
     "semesterProgress": "Semester Progress",

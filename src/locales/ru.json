@@ -152,7 +152,8 @@
     "phonePlaceholder": "+X XXX XXX XX XX",
     "websitePlaceholder": "www.вашсайт.com",
     "hoursPlaceholder": "Пн-Вс: 10:00 - 23:00",
-    "essencePlaceholder": "Расскажите о вашем бренде, кухне и миссии..."
+    "essencePlaceholder": "Расскажите о вашем бренде, кухне и миссии...",
+    "dateOfBirth": "Дата рождения"
   },
   "dental": {
     "title": "Merkez Dental",
@@ -297,7 +298,8 @@
       "firstName": "Иван",
       "lastName": "Иванов",
       "email": "ivan@example.com",
-      "phone": "+994 ..."
+      "phone": "+994 ...",
+      "groupName": "напр. Группа Фортепиано А"
     },
     "newLesson": "Новый урок",
     "teacherName": "Имя учителя",
@@ -321,6 +323,19 @@
     "noDescription": "Описание отсутствует.",
     "general": "Общее",
     "studentProgress": "Прогресс студента",
+    "monthlyPayment": "Ежемесячная оплата (₼)",
+    "addGroup": "Новая группа",
+    "individual": "Индивидуально",
+    "group": "Группа",
+    "groupName": "Название",
+    "type": "Тип",
+    "program": "Программа",
+    "manageGroupsDesc": "Управляйте групповыми и индивидуальными занятиями",
+    "deleteGroup": "Удалить группу",
+    "confirmDeleteGroup": "Вы уверены, что хотите удалить эту группу? Все связи со студентами будут разорваны.",
+    "noProgram": "Нет программы",
+    "noTeacherAssigned": "Учитель не назначен",
+    "unassignTeacher": "Не назначать",
     "trackPerformance": "Отслеживайте успеваемость и достижения",
     "level": "Уровень",
     "semesterProgress": "Прогресс семестра",
