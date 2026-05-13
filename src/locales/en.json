@@ -270,6 +270,8 @@
     "tabPrograms": "Programs",
     "tabProgress": "Progress",
     "tabEnrollment": "Enrollment",
+    "tabGroups": "Groups",
+    "groups": "Groups",
     "studentDirectory": "Student Directory",
     "loadingStudents": "Loading students...",
     "noStudents": "No students found.",
