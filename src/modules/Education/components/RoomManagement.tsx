@@ -90,7 +90,7 @@ const RoomManagement = () => {
   return (
     <div className="space-y-6">
       <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-6 border-b border-gray-200/50 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('education.tabRooms')}</h3>
+        <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('education.tabRooms')}</h2>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsModalOpen(true)}

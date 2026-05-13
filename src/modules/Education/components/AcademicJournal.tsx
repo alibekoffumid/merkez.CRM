@@ -181,7 +181,7 @@ const AcademicJournal = () => {
     <div className="space-y-6">
       <div className="sticky top-20 z-30 bg-gray-50/95 backdrop-blur-md -mx-4 px-4 py-4 mb-6 border-b border-gray-200/50 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-          <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('education.tabJournal')}</h3>
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('education.tabJournal')}</h2>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">

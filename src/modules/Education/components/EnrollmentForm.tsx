@@ -85,7 +85,7 @@ const EnrollmentForm = () => {
         <div className="w-16 h-16 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-4">
           <UserPlus className="w-8 h-8 text-blue-600" />
         </div>
-        <h2 className="text-3xl font-black text-gray-900 tracking-tight">{t('education.newEnrollment')}</h2>
+        <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('education.newEnrollment')}</h2>
         <p className="text-gray-500 text-sm mt-2 font-medium">{t('education.registerStudent')}</p>
       </div>
 
