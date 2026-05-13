@@ -107,7 +107,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
                   )}
                 </div>
                 <span className={`
-                  transition-opacity duration-300 whitespace-nowrap font-bold
+                  transition-opacity duration-300 whitespace-nowrap font-medium text-[15px]
                   ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
                 `}>
                   {item.name}
@@ -148,7 +148,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             <LayoutGrid className="w-5 h-5" />
           </div>
           <span className={`
-            transition-opacity duration-300 whitespace-nowrap
+            transition-opacity duration-300 whitespace-nowrap font-medium text-[15px]
             ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
           `}>
             {t('sidebar.modules') || 'Модули'}
@@ -163,7 +163,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             <Settings className="w-5 h-5" />
           </div>
           <span className={`
-            transition-opacity duration-300 whitespace-nowrap
+            transition-opacity duration-300 whitespace-nowrap font-medium text-[15px]
             ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
           `}>
             {t('sidebar.settings')}
@@ -180,7 +180,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             <LogOut className="w-5 h-5" />
           </div>
           <span className={`
-            transition-opacity duration-300 whitespace-nowrap
+            transition-opacity duration-300 whitespace-nowrap font-medium text-[15px]
             ${isMobileOpen ? 'opacity-100' : 'opacity-0 lg:group-hover:opacity-100'}
           `}>
             {t('profile.signOut')}
