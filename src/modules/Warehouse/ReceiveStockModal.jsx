@@ -14,6 +14,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   
   // Header info
   const [headerData, setHeaderData] = useState({
@@ -34,9 +36,11 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
 
   useEffect(() => {
     if (isOpen) {
+      fetchCategories();
       fetchSuppliers();
       fetchProducts();
       setItems([]);
+      setSelectedCategoryId('');
       setHeaderData({
         supplier_id: '',
         received_at: new Date().toISOString().split('T')[0],
@@ -50,6 +54,12 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
     }
   }, [isOpen]);
 
+  const fetchCategories = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase.from('categories').select('id, name').eq('user_id', profile.id).order('name');
+    if (data) setCategories(data);
+  };
+
   const fetchSuppliers = async () => {
     if (!profile?.id) return;
     const { data } = await supabase.from('suppliers').select('id, name').eq('user_id', profile.id).order('name');
@@ -58,8 +68,13 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
 
   const fetchProducts = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price, supplier_id').eq('user_id', profile.id).eq('archived', false).order('name');
+    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price, supplier_id, category_id').eq('user_id', profile.id).eq('archived', false).order('name');
     if (data) setProducts(data);
+  };
+
+  const handleCategoryChange = (val) => {
+    setSelectedCategoryId(val);
+    setCurrentItem(prev => ({ ...prev, product_id: '' }));
   };
 
   const handleProductChange = (productId) => {
@@ -75,6 +90,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
       setHeaderData(prev => ({ ...prev, supplier_id: product.supplier_id }));
     }
   };
+
+  const filteredProducts = products.filter(p => !selectedCategoryId || p.category_id === selectedCategoryId);
 
   const addItem = () => {
     if (!currentItem.product_id || !currentItem.quantity) {
@@ -250,13 +267,23 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
                   </h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div className="md:col-span-6">
+                    <div className="md:col-span-3">
+                        <Dropdown 
+                            value={selectedCategoryId}
+                            onChange={handleCategoryChange}
+                            options={[
+                                { value: '', label: t('warehouse.allCategories') },
+                                ...categories.map(c => ({ value: c.id, label: c.name }))
+                            ]}
+                        />
+                    </div>
+                    <div className="md:col-span-3">
                         <Dropdown 
                             value={currentItem.product_id}
                             onChange={handleProductChange}
                             options={[
                                 { value: '', label: t('warehouse.selectProduct') },
-                                ...products.map(p => ({ value: p.id, label: `${p.name} (${p.barcode})` }))
+                                ...filteredProducts.map(p => ({ value: p.id, label: `${p.name} (${p.barcode})` }))
                             ]}
                         />
                     </div>

@@ -13,6 +13,8 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   
   // Header info
   const [headerData, setHeaderData] = useState({
@@ -32,8 +34,10 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
 
   useEffect(() => {
     if (isOpen) {
+      fetchCategories();
       fetchProducts();
       setItems([]);
+      setSelectedCategoryId('');
       setHeaderData({
         issued_at: new Date().toISOString().split('T')[0],
         reason: 'sale',
@@ -46,10 +50,21 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
     }
   }, [isOpen]);
 
+  const fetchCategories = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase.from('categories').select('id, name').eq('user_id', profile.id).order('name');
+    if (data) setCategories(data);
+  };
+
   const fetchProducts = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase.from('products').select('id, name, barcode, stock_quantity').eq('user_id', profile.id).eq('archived', false).order('name');
+    const { data } = await supabase.from('products').select('id, name, barcode, stock_quantity, category_id').eq('user_id', profile.id).eq('archived', false).order('name');
     if (data) setProducts(data);
+  };
+
+  const handleCategoryChange = (val) => {
+    setSelectedCategoryId(val);
+    setCurrentItem(prev => ({ ...prev, product_id: '' }));
   };
 
   const handleProductChange = (productId) => {
@@ -58,6 +73,8 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
       product_id: productId
     }));
   };
+
+  const filteredProducts = products.filter(p => !selectedCategoryId || p.category_id === selectedCategoryId);
 
   const addItem = () => {
     if (!currentItem.product_id || !currentItem.quantity) {
@@ -229,13 +246,23 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
                   </h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div className="md:col-span-8">
+                    <div className="md:col-span-4">
+                        <Dropdown 
+                            value={selectedCategoryId}
+                            onChange={handleCategoryChange}
+                            options={[
+                                { value: '', label: t('warehouse.allCategories') },
+                                ...categories.map(c => ({ value: c.id, label: c.name }))
+                            ]}
+                        />
+                    </div>
+                    <div className="md:col-span-4">
                         <Dropdown 
                             value={currentItem.product_id}
                             onChange={handleProductChange}
                             options={[
                                 { value: '', label: t('warehouse.selectProduct') },
-                                ...products.map(p => ({ 
+                                ...filteredProducts.map(p => ({ 
                                     value: p.id, 
                                     label: `${p.name} (${p.barcode}) — ${p.stock_quantity} ${t('common.unit') || 'шт'}`
                                 }))
