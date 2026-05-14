@@ -58,7 +58,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
 
   const fetchProducts = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price').eq('user_id', profile.id).eq('archived', false).order('name');
+    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price, supplier_id').eq('user_id', profile.id).eq('archived', false).order('name');
     if (data) setProducts(data);
   };
 
@@ -69,6 +69,11 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
       product_id: productId,
       unit_price: product?.purchase_price || prev.unit_price
     }));
+
+    // Auto-fill supplier if not set
+    if (product?.supplier_id && !headerData.supplier_id) {
+      setHeaderData(prev => ({ ...prev, supplier_id: product.supplier_id }));
+    }
   };
 
   const addItem = () => {
