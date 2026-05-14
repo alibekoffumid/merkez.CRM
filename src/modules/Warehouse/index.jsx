@@ -190,11 +190,12 @@ const WarehouseModule = () => {
   
   const fetchTransfers = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('stock_transfers')
       .select('*, from_warehouse:from_warehouse_id(name), to_warehouse:to_warehouse_id(name), stock_transfer_items(*, products(name, barcode), ingredients(name, barcode))')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false });
+    if (error) console.error('fetchTransfers error:', error);
     if (data) setTransfers(data);
   };
 
@@ -600,7 +601,7 @@ const WarehouseModule = () => {
                       onClick={() => setHistoryTab('transfers')}
                       className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                      {t('warehouse.history') || 'Перемещения'}
+                      {t('warehouse.transfers') || 'Перемещения'}
                     </button>
                   </div>
                 </div>
