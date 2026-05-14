@@ -45,8 +45,8 @@ const WarehouseTour = ({ isOpen, onClose }) => {
     if (target) {
       const rect = target.getBoundingClientRect();
       setCoords({
-        top: rect.top + window.scrollY,
-        left: rect.left + window.scrollX,
+        top: rect.top,
+        left: rect.left,
         width: rect.width,
         height: rect.height
       });
@@ -57,15 +57,16 @@ const WarehouseTour = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       updateCoords();
-      window.addEventListener('resize', updateCoords);
+      const handleResize = () => updateCoords();
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('scroll', handleResize);
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleResize);
+        document.body.style.overflow = 'auto';
+      };
     }
-    return () => {
-      window.removeEventListener('resize', updateCoords);
-      document.body.style.overflow = 'auto';
-    };
   }, [isOpen, updateCoords]);
 
   if (!isOpen) return null;
@@ -83,7 +84,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-[9999] pointer-events-none">
       {/* Dimmed backdrop with hole */}
-      <div className="absolute inset-0 bg-black/50 pointer-events-auto" style={{
+      <div className="absolute inset-0 bg-black/60 pointer-events-auto" style={{
         clipPath: `polygon(
           0% 0%, 
           0% 100%, 
@@ -100,10 +101,10 @@ const WarehouseTour = ({ isOpen, onClose }) => {
 
       {/* Tooltip */}
       <div 
-        className="absolute p-6 bg-white rounded-2xl shadow-2xl pointer-events-auto transition-all duration-300 w-[320px]"
+        className="absolute p-6 bg-white rounded-2xl shadow-2xl pointer-events-auto transition-all duration-300 w-[340px]"
         style={{
-          top: `${coords.top + coords.height + 20}px`,
-          left: `${Math.min(window.innerWidth - 340, Math.max(20, coords.left + (coords.width / 2) - 160))}px`
+          top: `${Math.min(window.innerHeight - 280, coords.top + coords.height + 20)}px`,
+          left: `${Math.min(window.innerWidth - 360, Math.max(20, coords.left + (coords.width / 2) - 170))}px`
         }}
       >
         {/* Progress indicator */}
@@ -117,14 +118,14 @@ const WarehouseTour = ({ isOpen, onClose }) => {
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center justify-between">
-          {steps[currentStep].title}
+          {t(`warehouse.tour.${steps[currentStep].targetId.replace('tour-', '').replace('-btn', '')}Title`)}
           <button onClick={handleSkip} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </h3>
         
         <p className="text-sm text-gray-600 leading-relaxed mb-6">
-          {steps[currentStep].content}
+          {t(`warehouse.tour.${steps[currentStep].targetId.replace('tour-', '').replace('-btn', '')}Desc`)}
         </p>
 
         <div className="flex items-center justify-between">
@@ -132,7 +133,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
             onClick={handleSkip}
             className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {t('common.skip') || 'Пропустить обучение'}
+            {t('common.skip') || 'Пропустить'}
           </button>
 
           <div className="flex gap-2">
@@ -148,7 +149,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
             {currentStep < steps.length - 1 ? (
               <button 
                 onClick={() => setCurrentStep(prev => prev + 1)}
-                className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-600 transition-colors flex items-center gap-2"
+                className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-600 transition-colors flex items-center gap-2"
               >
                 {t('common.next') || 'Далее'}
                 <ChevronRight className="w-4 h-4" />
@@ -156,9 +157,9 @@ const WarehouseTour = ({ isOpen, onClose }) => {
             ) : (
               <button 
                 onClick={handleFinish}
-                className="bg-merkez-green text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-green-600/20 hover:bg-green-600 transition-colors flex items-center gap-2"
+                className="bg-merkez-green text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-green-600/20 hover:bg-green-600 transition-colors flex items-center gap-2"
               >
-                {t('common.finish') || 'Понятно!'}
+                {t('common.finish') || 'Готово'}
                 <Check className="w-4 h-4" />
               </button>
             )}
@@ -167,8 +168,8 @@ const WarehouseTour = ({ isOpen, onClose }) => {
 
         {/* Pointer arrow */}
         <div 
-          className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45"
-          style={{ left: `${Math.max(20, Math.min(300, coords.left + (coords.width / 2) - (coords.left + (coords.width / 2) - 160)))}px` }}
+          className="absolute -top-2 w-4 h-4 bg-white rotate-45"
+          style={{ left: `${Math.max(20, Math.min(320, coords.left + (coords.width / 2) - (Math.min(window.innerWidth - 360, Math.max(20, coords.left + (coords.width / 2) - 170)))))}px` }}
         />
       </div>
     </div>
