@@ -36,6 +36,7 @@ const WarehouseModule = () => {
   const [dispatches, setDispatches] = useState([]);
   const [transfers, setTransfers] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
+  const [historySearchTerm, setHistorySearchTerm] = useState('');
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
   const [startDate, setStartDate] = useState('');
@@ -693,6 +694,7 @@ const WarehouseModule = () => {
                   <button 
                     onClick={() => {
                       setHistoryFilter(null);
+                      setHistorySearchTerm('');
                       setStartDate('');
                       setEndDate('');
                     }}
@@ -724,6 +726,19 @@ const WarehouseModule = () => {
                     />
                   </div>
                 )}
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.search') || 'Поиск'}</label>
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="text" 
+                      placeholder={t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...'} 
+                      value={historySearchTerm} 
+                      onChange={(e) => setHistorySearchTerm(e.target.value)} 
+                      className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+                    />
+                  </div>
+                </div>
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
                   <DateRangePicker 
@@ -771,6 +786,14 @@ const WarehouseModule = () => {
                         end.setHours(23, 59, 59, 999);
                         if (new Date(receipt.received_at) > end) return false;
                       }
+                      if (historySearchTerm) {
+                        const search = historySearchTerm.toLowerCase();
+                        const productName = (receipt.products?.name || '').toLowerCase();
+                        const barcode = (receipt.products?.barcode || '').toLowerCase();
+                        const supplierName = (receipt.suppliers?.name || '').toLowerCase();
+                        const notes = (receipt.notes || '').toLowerCase();
+                        return productName.includes(search) || barcode.includes(search) || supplierName.includes(search) || notes.includes(search);
+                      }
                       return true;
                     }).length === 0 ? (
                       <tr>
@@ -789,6 +812,14 @@ const WarehouseModule = () => {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);
                           if (new Date(receipt.received_at) > end) return false;
+                        }
+                        if (historySearchTerm) {
+                          const search = historySearchTerm.toLowerCase();
+                          const productName = (receipt.products?.name || '').toLowerCase();
+                          const barcode = (receipt.products?.barcode || '').toLowerCase();
+                          const supplierName = (receipt.suppliers?.name || '').toLowerCase();
+                          const notes = (receipt.notes || '').toLowerCase();
+                          return productName.includes(search) || barcode.includes(search) || supplierName.includes(search) || notes.includes(search);
                         }
                         return true;
                       }).map(receipt => (
@@ -833,6 +864,13 @@ const WarehouseModule = () => {
                         end.setHours(23, 59, 59, 999);
                         if (new Date(dispatch.issued_at) > end) return false;
                       }
+                      if (historySearchTerm) {
+                        const search = historySearchTerm.toLowerCase();
+                        const productName = (dispatch.products?.name || '').toLowerCase();
+                        const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                        const notes = (dispatch.notes || '').toLowerCase();
+                        return productName.includes(search) || barcode.includes(search) || notes.includes(search);
+                      }
                       return true;
                     }).length === 0 ? (
                       <tr>
@@ -850,6 +888,13 @@ const WarehouseModule = () => {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);
                           if (new Date(dispatch.issued_at) > end) return false;
+                        }
+                        if (historySearchTerm) {
+                          const search = historySearchTerm.toLowerCase();
+                          const productName = (dispatch.products?.name || '').toLowerCase();
+                          const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                          const notes = (dispatch.notes || '').toLowerCase();
+                          return productName.includes(search) || barcode.includes(search) || notes.includes(search);
                         }
                         return true;
                       }).map(dispatch => (
@@ -888,6 +933,18 @@ const WarehouseModule = () => {
                         end.setHours(23, 59, 59, 999);
                         if (new Date(transfer.created_at) > end) return false;
                       }
+                      if (historySearchTerm) {
+                        const search = historySearchTerm.toLowerCase();
+                        const fromWH = (transfer.from_warehouse?.name || '').toLowerCase();
+                        const toWH = (transfer.to_warehouse?.name || '').toLowerCase();
+                        const notes = (transfer.notes || '').toLowerCase();
+                        const itemsMatch = transfer.stock_transfer_items?.some(item => {
+                          const productName = (item.products?.name || item.ingredients?.name || '').toLowerCase();
+                          const barcode = (item.products?.barcode || item.ingredients?.barcode || '').toLowerCase();
+                          return productName.includes(search) || barcode.includes(search);
+                        });
+                        return fromWH.includes(search) || toWH.includes(search) || notes.includes(search) || itemsMatch;
+                      }
                       return true;
                     }).length === 0 ? (
                       <tr>
@@ -905,6 +962,18 @@ const WarehouseModule = () => {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);
                           if (new Date(transfer.created_at) > end) return false;
+                        }
+                        if (historySearchTerm) {
+                          const search = historySearchTerm.toLowerCase();
+                          const fromWH = (transfer.from_warehouse?.name || '').toLowerCase();
+                          const toWH = (transfer.to_warehouse?.name || '').toLowerCase();
+                          const notes = (transfer.notes || '').toLowerCase();
+                          const itemsMatch = transfer.stock_transfer_items?.some(item => {
+                            const productName = (item.products?.name || item.ingredients?.name || '').toLowerCase();
+                            const barcode = (item.products?.barcode || item.ingredients?.barcode || '').toLowerCase();
+                            return productName.includes(search) || barcode.includes(search);
+                          });
+                          return fromWH.includes(search) || toWH.includes(search) || notes.includes(search) || itemsMatch;
                         }
                         return true;
                       }).map(transfer => (
