@@ -180,18 +180,31 @@ const WarehouseSettings = () => {
           </div>
         </div>
 
-        <button 
-          onClick={exportBarcodes}
-          disabled={exporting}
-          className="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center gap-2 shadow-sm"
-        >
-          {exporting ? (
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-merkez-blue rounded-full animate-spin" />
-          ) : (
-            <Barcode className="w-4 h-4" />
-          )}
-          {t('warehouse.exportBarcodes') || 'Выгрузить штрихкоды (CSV)'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={exportBarcodes}
+            disabled={exporting}
+            className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center gap-2 shadow-sm"
+          >
+            {exporting ? (
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-merkez-blue rounded-full animate-spin" />
+            ) : (
+              <Barcode className="w-4 h-4" />
+            )}
+            {t('warehouse.exportBarcodes') || 'Export CSV'}
+          </button>
+          
+          <button 
+            onClick={() => {
+              localStorage.setItem('merkez_warehouse_settings', JSON.stringify(settings));
+              toast.success(t('common.success'));
+            }}
+            className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 shadow-lg shadow-black/10"
+          >
+            <Save className="w-4 h-4" />
+            {t('common.save') || 'Save'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
