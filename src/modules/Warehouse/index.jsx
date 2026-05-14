@@ -1010,11 +1010,9 @@ const WarehouseModule = () => {
                 </table>
               )
             )}
-          </div>
-        </div>
-      </>
-    </div>
-  </div>
+          </div> {/* Close Table Area (775) */}
+        </div> {/* Close Inner Flex (670) */}
+      </div> {/* Close Outer Flex (445) */}
 
       <AddSupplierModal 
         isOpen={showAddSupplier}
