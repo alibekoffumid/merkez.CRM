@@ -523,6 +523,10 @@ const WarehouseModule = () => {
             >
               <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
             </button>
+            <button 
+              onClick={() => setShowDispatchStock(true)} 
+              className="bg-white border border-merkez-red text-merkez-red px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
+            >
               <Minus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.dispatchStock') || 'Списание'}
             </button>
             <button 
