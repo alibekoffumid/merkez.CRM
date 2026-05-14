@@ -660,14 +660,15 @@ const WarehouseModule = () => {
                           </td>
                         </tr>
                       ))
-                    )
-                  )}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
+          )
+        )
+      )}
+    ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
               <div className={`
