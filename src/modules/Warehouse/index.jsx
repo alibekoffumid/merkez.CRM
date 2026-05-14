@@ -35,7 +35,7 @@ const WarehouseModule = () => {
   const [dispatches, setDispatches] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
-  const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1280);
+  const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -382,7 +382,7 @@ const WarehouseModule = () => {
             {activeTab === 'finished' && (
               <button 
                 onClick={() => setShowCategorySidebar(!showCategorySidebar)}
-                className={`xl:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
+                className={`2xl:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
                 title={t('warehouse.categories')}
               >
                 <Menu className="w-5 h-5" />
@@ -670,10 +670,10 @@ const WarehouseModule = () => {
           <>
             {/* Categories Sidebar - Only for Finished Goods */}
         {activeTab === 'finished' && showCategorySidebar && (
-          <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4 flex flex-col xl:static xl:w-72 xl:bg-white xl:rounded-xl xl:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] xl:border xl:border-gray-50 xl:z-auto transition-transform duration-300 ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'}`}>
+          <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4 flex flex-col 2xl:static 2xl:w-72 2xl:bg-white 2xl:rounded-xl 2xl:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] 2xl:border 2xl:border-gray-50 2xl:z-auto transition-transform duration-300 ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full 2xl:translate-x-0'}`}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('warehouse.categories')}</h3>
-              <button onClick={() => setShowCategorySidebar(false)} className="xl:hidden p-1 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowCategorySidebar(false)} className="2xl:hidden p-1 text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -766,7 +766,7 @@ const WarehouseModule = () => {
         {/* Overlay for mobile sidebar */}
         {activeTab === 'finished' && showCategorySidebar && (
           <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 xl:hidden"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 2xl:hidden"
             onClick={() => setShowCategorySidebar(false)}
           />
         )}
