@@ -1163,33 +1163,39 @@ const WarehouseModule = () => {
         />
       )}
 
-      <ReceiveStockModal 
-        isOpen={showReceiveStock} 
-        onClose={() => setShowReceiveStock(false)} 
-        products={activeTab === 'finished' ? products : ingredients} 
-        suppliers={suppliers}
-        onStockReceived={fetchAll}
-        type={activeTab === 'finished' ? 'product' : 'ingredient'}
-        warehouseId={currentWarehouseId}
-      />
+      <ModalPortal>
+        <ReceiveStockModal 
+          isOpen={showReceiveStock} 
+          onClose={() => setShowReceiveStock(false)} 
+          products={activeTab === 'finished' ? products : ingredients} 
+          suppliers={suppliers}
+          onStockReceived={fetchAll}
+          type={activeTab === 'finished' ? 'product' : 'ingredient'}
+          warehouseId={currentWarehouseId}
+        />
+      </ModalPortal>
 
-      <DispatchStockModal
-        isOpen={showDispatchStock}
-        onClose={() => setShowDispatchStock(false)}
-        products={activeTab === 'finished' ? products : ingredients}
-        onStockDispatched={fetchAll}
-        type={activeTab === 'finished' ? 'product' : 'ingredient'}
-        warehouseId={currentWarehouseId}
-      />
+      <ModalPortal>
+        <DispatchStockModal
+          isOpen={showDispatchStock}
+          onClose={() => setShowDispatchStock(false)}
+          products={activeTab === 'finished' ? products : ingredients}
+          onStockDispatched={fetchAll}
+          type={activeTab === 'finished' ? 'product' : 'ingredient'}
+          warehouseId={currentWarehouseId}
+        />
+      </ModalPortal>
 
-      <TransferStockModal
-        isOpen={showTransferStock}
-        onClose={() => setShowTransferStock(false)}
-        products={activeTab === 'finished' ? products : ingredients}
-        warehouses={warehouses}
-        onStockTransferred={fetchAll}
-        type={activeTab === 'finished' ? 'product' : 'ingredient'}
-      />
+      <ModalPortal>
+        <TransferStockModal
+          isOpen={showTransferStock}
+          onClose={() => setShowTransferStock(false)}
+          products={activeTab === 'finished' ? products : ingredients}
+          warehouses={warehouses}
+          onStockTransferred={fetchAll}
+          type={activeTab === 'finished' ? 'product' : 'ingredient'}
+        />
+      </ModalPortal>
       {confirmDelete && (
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
