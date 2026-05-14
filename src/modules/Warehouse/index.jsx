@@ -383,9 +383,11 @@ const WarehouseModule = () => {
                 {warehouses?.length > 0 ? (
                   <Dropdown
                     trigger={
-                      <button className="flex items-center gap-1 text-[10px] font-black text-gray-400 hover:text-merkez-blue transition-colors uppercase tracking-widest">
-                        <span className="max-w-[150px] truncate">{(warehouses || []).find(w => w.id === currentWarehouseId)?.name || t('warehouse.selectWarehouse')}</span>
-                        <ChevronRight className="w-2.5 h-2.5 rotate-90" />
+                      <button 
+                        className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 transition-all uppercase tracking-[0.2em] group border border-transparent hover:border-blue-100"
+                      >
+                        {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
+                        <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
                       </button>
                     }
                     items={[
