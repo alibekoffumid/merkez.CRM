@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2 } from 'lucide-react';
+import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
