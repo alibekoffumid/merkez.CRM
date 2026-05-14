@@ -174,7 +174,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
     <ModalPortal>
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
         <div 
-          className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col h-[90vh]"
+          className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-6xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
