@@ -90,10 +90,10 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
     }));
   };
 
-  const filteredProducts = products.filter(p => {
+  const filteredProducts = (products || []).filter(p => {
     if (!selectedCategoryId) return true;
     if (p.category_id === selectedCategoryId) return true;
-    const subIds = categories.filter(c => c.parent_id === selectedCategoryId).map(c => c.id);
+    const subIds = (categories || []).filter(c => c.parent_id === selectedCategoryId).map(c => c.id);
     return subIds.includes(p.category_id);
   });
 
@@ -103,7 +103,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
         return;
     }
     
-    const product = products.find(p => p.id === currentItem.product_id);
+    const product = (products || []).find(p => p.id === currentItem.product_id);
     if (parseFloat(currentItem.quantity) > (product?.stock_quantity || 0)) {
         toast.error(`${t('warehouse.insufficientStock') || 'Недостаточно товара на складе'}: ${product?.stock_quantity || 0}`);
         return;

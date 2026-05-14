@@ -85,7 +85,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   };
 
   const handleProductChange = (productId) => {
-    const product = products.find(p => p.id === productId);
+    const product = (products || []).find(p => p.id === productId);
     setCurrentItem(prev => ({
       ...prev,
       product_id: productId,
@@ -98,10 +98,10 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
     }
   };
 
-  const filteredProducts = products.filter(p => {
+  const filteredProducts = (products || []).filter(p => {
     if (!selectedCategoryId) return true;
     if (p.category_id === selectedCategoryId) return true;
-    const subIds = categories.filter(c => c.parent_id === selectedCategoryId).map(c => c.id);
+    const subIds = (categories || []).filter(c => c.parent_id === selectedCategoryId).map(c => c.id);
     return subIds.includes(p.category_id);
   });
 
@@ -111,7 +111,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
         return;
     }
     
-    const product = products.find(p => p.id === currentItem.product_id);
+    const product = (products || []).find(p => p.id === currentItem.product_id);
     const existingIndex = items.findIndex(item => item.product_id === currentItem.product_id);
 
     if (existingIndex > -1) {
