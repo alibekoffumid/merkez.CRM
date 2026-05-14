@@ -666,7 +666,8 @@ const WarehouseModule = () => {
               </table>
             </div>
           </div>
-        ) : (
+        </div>
+      ) : (
           <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
             {/* Categories Sidebar - Only for Finished Goods */}
             {activeTab === 'finished' && (
@@ -1012,8 +1013,9 @@ const WarehouseModule = () => {
             )}
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    )}
+  </div>
 
       <AddSupplierModal 
         isOpen={showAddSupplier}
