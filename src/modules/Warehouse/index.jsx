@@ -379,24 +379,40 @@ const WarehouseModule = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
-              {warehouses.length > 0 && (
-                <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-0.5">
+                {warehouses.length > 0 ? (
                   <Dropdown
                     trigger={
                       <button className="flex items-center gap-1 text-[10px] font-black text-gray-400 hover:text-merkez-blue transition-colors uppercase tracking-widest">
-                        <span className="max-w-[150px] truncate">{warehouses.find(w => w.id === currentWarehouseId)?.name}</span>
+                        <span className="max-w-[150px] truncate">{warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.selectWarehouse')}</span>
                         <ChevronRight className="w-2.5 h-2.5 rotate-90" />
                       </button>
                     }
-                    items={warehouses.map(w => ({
-                      id: w.id,
-                      label: w.name,
-                      onClick: () => setCurrentWarehouseId(w.id),
-                      active: w.id === currentWarehouseId
-                    }))}
+                    items={[
+                      ...warehouses.map(w => ({
+                        id: w.id,
+                        label: w.name,
+                        onClick: () => setCurrentWarehouseId(w.id),
+                        active: w.id === currentWarehouseId
+                      })),
+                      {
+                        id: 'add-new',
+                        label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
+                        onClick: () => setActiveTab('settings'),
+                        className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
+                      }
+                    ]}
                   />
-                </div>
-              )}
+                ) : (
+                  <button 
+                    onClick={() => setActiveTab('settings')}
+                    className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
+                  >
+                    <Plus className="w-2.5 h-2.5" />
+                    {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
