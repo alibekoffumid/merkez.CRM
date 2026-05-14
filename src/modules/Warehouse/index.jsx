@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -17,6 +17,7 @@ import ReceiveStockModal from './ReceiveStockModal';
 import ProductImportModal from './ProductImportModal';
 import DateRangePicker from '../../components/Common/DateRangePicker';
 import Dropdown from '../../components/Common/Dropdown';
+import WarehouseSettings from './WarehouseSettings';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -336,6 +337,13 @@ const WarehouseModule = () => {
               <Search className="w-3.5 h-3.5" />
               {t('warehouse.history') || 'История'}
             </button>
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Settings className="w-3.5 h-3.5" />
+              {t('common.settings') || 'Настройки'}
+            </button>
           </div>
         )}
 
@@ -361,6 +369,13 @@ const WarehouseModule = () => {
             >
               <Search className="w-4 h-4" />
               {t('warehouse.history') || 'История'}
+            </button>
+            <button 
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              <Settings className="w-4 h-4" />
+              {t('common.settings') || 'Настройки'}
             </button>
           </div>
         )}
@@ -427,6 +442,8 @@ const WarehouseModule = () => {
               setActiveTab('history');
             }}
           />
+        ) : activeTab === 'settings' ? (
+          <WarehouseSettings />
         ) : activeTab === 'history' ? (
           <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-100">

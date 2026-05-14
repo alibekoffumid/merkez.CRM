@@ -658,7 +658,14 @@
     "noEditPermission": "Redaktə icazəsi yoxdur",
     "noProductEditPermission": "Məhsul redaktə icazəsi yoxdur",
     "parentCategory": "Əsas Kateqoriya (İstəyə bağlı)",
-    "noParent": "Yoxdur (Ana Kateqoriya)"
+    "noParent": "Yoxdur (Ana Kateqoriya)",
+    "settingsDesc": "Anbar uçotu parametrlərinin tənzimlənməsi",
+    "currency": "Valyuta",
+    "currencyDesc": "Ehtiyatların və maya dəyərinin hesablanması üçün əsas valyuta.",
+    "defaultUnit": "Standart ölçü vahidi",
+    "defaultUnitDesc": "Yeni mallar və inqrediyentlər əlavə edərkən avtomatik olaraq tətbiq olunacaq.",
+    "lowStockThreshold": "Standart kritik qalıq",
+    "lowStockThresholdDesc": "Məhsulun sarı və ya qırmızı rənglə işarələnəcəyi dəyər."
   },
   "modules": {
     "storeTitle": "Modulları seçin",
