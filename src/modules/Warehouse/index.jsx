@@ -660,7 +660,8 @@ const WarehouseModule = () => {
                           </td>
                         </tr>
                       ))
-                    )}
+                    )
+                  )}
                   </tbody>
                 </table>
               </div>
