@@ -670,7 +670,11 @@
     "lowStockThreshold": "Default Low Stock Threshold",
     "lowStockThresholdDesc": "Value below which the product will be marked in yellow or red.",
     "availableUnits": "Available Measurement Units",
-    "availableUnitsDesc": "Select the units you use (they will appear in the dropdown when adding a product)."
+    "availableUnitsDesc": "Select the units you use (they will appear in the dropdown when adding a product).",
+    "autoGenerateBarcode": "Auto-generate Barcodes",
+    "autoGenerateBarcodeDesc": "The system will automatically generate a barcode for new products if left empty.",
+    "barcodePrefix": "Barcode Prefix",
+    "barcodePrefixDesc": "Text before the number (e.g., MRKZ-). Leave empty if not needed."
   },
   "modules": {
     "storeTitle": "Choose your modules",

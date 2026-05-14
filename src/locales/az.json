@@ -668,7 +668,11 @@
     "lowStockThreshold": "Standart kritik qalıq",
     "lowStockThresholdDesc": "Məhsulun sarı və ya qırmızı rənglə işarələnəcəyi dəyər.",
     "availableUnits": "Mövcud ölçü vahidləri",
-    "availableUnitsDesc": "İstifadə etdiyiniz ölçü vahidlərini seçin (onlar mal əlavə edərkən siyahıda görünəcək)."
+    "availableUnitsDesc": "İstifadə etdiyiniz ölçü vahidlərini seçin (onlar mal əlavə edərkən siyahıda görünəcək).",
+    "autoGenerateBarcode": "Avtomatik barkod generasiyası",
+    "autoGenerateBarcodeDesc": "Sahə boşdursa, sistem yeni mal əlavə edərkən barkodu özü yaradacaq.",
+    "barcodePrefix": "Barkod prefiksi",
+    "barcodePrefixDesc": "Rəqəmdən əvvəlki mətn (məs. MRKZ-). Lazım deyilsə boş buraxın."
   },
   "modules": {
     "storeTitle": "Modulları seçin",

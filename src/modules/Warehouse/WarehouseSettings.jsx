@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings2, DollarSign, Scale, BellRing } from 'lucide-react';
+import { Save, Settings2, DollarSign, Scale, BellRing, Barcode } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
 
@@ -11,7 +11,9 @@ const WarehouseSettings = () => {
     currency: 'AZN',
     defaultUnit: 'pcs',
     availableUnits: ['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2'],
-    lowStockThreshold: '10'
+    lowStockThreshold: '10',
+    autoGenerateBarcode: false,
+    barcodePrefix: 'MRKZ-'
   });
 
   useEffect(() => {
@@ -113,6 +115,52 @@ const WarehouseSettings = () => {
                 </button>
               );
             })}
+          </div>
+          <div className="border-t border-gray-50" />
+
+        {/* Auto-generate Barcodes Setting */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <Barcode className="w-4 h-4 text-gray-400" />
+              {t('warehouse.autoGenerateBarcode') || 'Автогенерация штрихкодов'}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара, если поле пустое.'}</p>
+          </div>
+          <div className="md:col-span-2 space-y-4">
+            <label className="flex items-center cursor-pointer">
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  className="sr-only" 
+                  checked={settings.autoGenerateBarcode}
+                  onChange={(e) => setSettings({ ...settings, autoGenerateBarcode: e.target.checked })}
+                />
+                <div className={`block w-14 h-8 rounded-full transition-colors ${settings.autoGenerateBarcode ? 'bg-merkez-blue' : 'bg-gray-200'}`}></div>
+                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${settings.autoGenerateBarcode ? 'transform translate-x-6' : ''}`}></div>
+              </div>
+              <div className="ml-3 text-sm font-bold text-gray-700">
+                {settings.autoGenerateBarcode ? t('common.yes') || 'Да' : t('common.no') || 'Нет'}
+              </div>
+            </label>
+
+            {settings.autoGenerateBarcode && (
+              <div className="animate-in fade-in slide-in-from-top-2">
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+                  {t('warehouse.barcodePrefix') || 'Префикс штрихкода'}
+                </label>
+                <input 
+                  type="text" 
+                  value={settings.barcodePrefix}
+                  onChange={(e) => setSettings({ ...settings, barcodePrefix: e.target.value })}
+                  placeholder="MRKZ-"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold" 
+                />
+                <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
+                  {t('warehouse.barcodePrefixDesc') || 'Текст перед номером (например, MRKZ-). Оставьте пустым, если не нужен.'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

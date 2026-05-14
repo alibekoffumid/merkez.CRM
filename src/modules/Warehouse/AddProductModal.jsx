@@ -15,6 +15,20 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const { profile } = useUser();
+  const [settings, setSettings] = useState(null);
+  
+  React.useEffect(() => {
+    if (isOpen) {
+      const saved = localStorage.getItem('merkez_warehouse_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setSettings(parsed);
+          setFormData(prev => ({ ...prev, critical_stock: parsed.lowStockThreshold || '5' }));
+        } catch (e) {}
+      }
+    }
+  }, [isOpen]);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -78,13 +92,20 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
       imageUrl = await uploadImage(imageFile);
     }
 
+    let finalBarcode = formData.barcode;
+    if (!finalBarcode && settings?.autoGenerateBarcode) {
+      const prefix = settings.barcodePrefix || '';
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      finalBarcode = `${prefix}${randomNum}`;
+    }
+
     const { data, error } = await supabase
       .from('products')
       .insert([{ 
         name: formData.name, 
         price: parseFloat(formData.price), 
         purchase_price: parseFloat(formData.purchase_price || 0),
-        barcode: formData.barcode,
+        barcode: finalBarcode,
         category_id: formData.category_id,
         stock_quantity: parseFloat(formData.stock_quantity || 0),
         critical_stock: parseFloat(formData.critical_stock || 5),
@@ -192,7 +213,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                     <input
                       type="text"
                       className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-mono"
-                      placeholder="000000000"
+                      placeholder={settings?.autoGenerateBarcode ? `${settings.barcodePrefix || ''}XXXXXX (Авто)` : "000000000"}
                       value={formData.barcode}
                       onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                     />
