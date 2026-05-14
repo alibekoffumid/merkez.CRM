@@ -56,7 +56,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
 
   const fetchCategories = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase.from('categories').select('id, name').eq('user_id', profile.id).order('name');
+    const { data } = await supabase.from('categories').select('id, name, parent_id').eq('user_id', profile.id).order('name');
     if (data) setCategories(data);
   };
 
@@ -91,7 +91,12 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
     }
   };
 
-  const filteredProducts = products.filter(p => !selectedCategoryId || p.category_id === selectedCategoryId);
+  const filteredProducts = products.filter(p => {
+    if (!selectedCategoryId) return true;
+    if (p.category_id === selectedCategoryId) return true;
+    const subIds = categories.filter(c => c.parent_id === selectedCategoryId).map(c => c.id);
+    return subIds.includes(p.category_id);
+  });
 
   const addItem = () => {
     if (!currentItem.product_id || !currentItem.quantity) {
@@ -267,17 +272,23 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
                   </h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-4">
                         <Dropdown 
                             value={selectedCategoryId}
                             onChange={handleCategoryChange}
                             options={[
                                 { value: '', label: t('warehouse.allCategories') },
-                                ...categories.map(c => ({ value: c.id, label: c.name }))
+                                ...categories.filter(c => !c.parent_id).flatMap(cat => [
+                                    { value: cat.id, label: cat.name },
+                                    ...categories.filter(sub => sub.parent_id === cat.id).map(sub => ({
+                                        value: sub.id,
+                                        label: `  ↳ ${sub.name}`
+                                    }))
+                                ])
                             ]}
                         />
                     </div>
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-4">
                         <Dropdown 
                             value={currentItem.product_id}
                             onChange={handleProductChange}
