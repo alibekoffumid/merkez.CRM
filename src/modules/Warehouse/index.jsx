@@ -34,6 +34,7 @@ const WarehouseModule = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [dispatches, setDispatches] = useState([]);
+  const [transfers, setTransfers] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
@@ -131,7 +132,8 @@ const WarehouseModule = () => {
       fetchIngredients(), 
       fetchSuppliers(),
       fetchReceipts(),
-      fetchDispatches()
+      fetchDispatches(),
+      fetchTransfers()
     ]);
     setLoading(false);
   };
@@ -184,6 +186,16 @@ const WarehouseModule = () => {
       .eq('warehouse_id', currentWarehouseId)
       .order('issued_at', { ascending: false });
     if (data) setDispatches(data);
+  };
+  
+  const fetchTransfers = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase
+      .from('stock_transfers')
+      .select('*, from_warehouse:from_warehouse_id(name), to_warehouse:to_warehouse_id(name), stock_transfer_items(*, products(name, barcode), ingredients(name, barcode))')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: false });
+    if (data) setTransfers(data);
   };
 
   const fetchSuppliers = async () => {
@@ -559,8 +571,16 @@ const WarehouseModule = () => {
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">{historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : (t('warehouse.dispatchHistory') || 'История списаний')}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров')}</p>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    {historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : 
+                     historyTab === 'dispatches' ? (t('warehouse.dispatchHistory') || 'История списаний') : 
+                     (t('warehouse.transferHistory') || 'История перемещений')}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : 
+                     historyTab === 'dispatches' ? (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров') : 
+                     (t('warehouse.transferHistoryDesc') || 'Журнал перемещения товаров между складами')}
+                  </p>
                 </div>
                 <div className="flex gap-4 items-center">
                   <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
@@ -575,6 +595,12 @@ const WarehouseModule = () => {
                       className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.dispatches') || 'Списания'}
+                    </button>
+                    <button 
+                      onClick={() => setHistoryTab('transfers')}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      {t('warehouse.history') || 'Перемещения'}
                     </button>
                   </div>
                 </div>
@@ -631,9 +657,19 @@ const WarehouseModule = () => {
               <table className="w-full text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{historyTab === 'receipts' ? t('warehouse.receivedDate') : (t('warehouse.dispatchedDate') || 'Дата операции')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                      {historyTab === 'receipts' ? t('warehouse.receivedDate') : 
+                       historyTab === 'dispatches' ? (t('warehouse.dispatchedDate') || 'Дата операции') : 
+                       (t('common.date') || 'Дата')}
+                    </th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>}
                     {historyTab === 'dispatches' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.reason') || 'Причина'}</th>}
+                    {historyTab === 'transfers' && (
+                      <>
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.fromWarehouse') || 'Откуда'}</th>
+                        <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.toWarehouse') || 'Куда'}</th>
+                      </>
+                    )}
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.product')}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
@@ -704,7 +740,7 @@ const WarehouseModule = () => {
                         </tr>
                       ))
                     )
-                  ) : (
+                  ) : historyTab === 'dispatches' ? (
                     dispatches.filter(dispatch => {
                       if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
                       if (endDate) {
@@ -754,6 +790,76 @@ const WarehouseModule = () => {
                           </td>
                           <td className="px-6 py-4 text-right">
                             <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
+                          </td>
+                        </tr>
+                      ))
+                    )
+                  ) : (
+                    /* Transfers Tab */
+                    transfers.filter(transfer => {
+                      if (startDate && new Date(transfer.created_at) < new Date(startDate)) return false;
+                      if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        if (new Date(transfer.created_at) > end) return false;
+                      }
+                      return true;
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-20 text-center">
+                          <div className="flex flex-col items-center gap-3 text-gray-400">
+                            <ArrowRightLeft className="w-12 h-12 text-gray-100" />
+                            <p className="font-medium">{t('warehouse.noTransfersFound') || 'История перемещений пуста'}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      transfers.filter(transfer => {
+                        if (startDate && new Date(transfer.created_at) < new Date(startDate)) return false;
+                        if (endDate) {
+                          const end = new Date(endDate);
+                          end.setHours(23, 59, 59, 999);
+                          if (new Date(transfer.created_at) > end) return false;
+                        }
+                        return true;
+                      }).map(transfer => (
+                        <tr key={transfer.id} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50">
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-gray-700">{new Date(transfer.created_at).toLocaleDateString()}</span>
+                            {transfer.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{transfer.notes}</p>}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
+                              {transfer.from_warehouse?.name || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-merkez-blue bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-100">
+                              {transfer.to_warehouse?.name || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-1">
+                              {transfer.stock_transfer_items?.map((item, idx) => (
+                                <div key={idx} className="flex flex-col">
+                                  <span className="text-sm font-bold text-gray-900">
+                                    {item.products?.name || item.ingredients?.name || '—'}
+                                  </span>
+                                  <span className="text-[10px] text-gray-400 font-mono">
+                                    {item.products?.barcode || item.ingredients?.barcode || '—'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex flex-col gap-1">
+                              {transfer.stock_transfer_items?.map((item, idx) => (
+                                <span key={idx} className="text-sm font-black text-gray-900 block py-1.5">
+                                  {item.quantity}
+                                </span>
+                              ))}
+                            </div>
                           </td>
                         </tr>
                       ))

@@ -91,52 +91,64 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
         const quantityField = type === 'product' ? 'stock_quantity' : 'quantity';
 
         // Check current stock in source
-        const { data: sourceItem } = await supabase
+        const { data: sourceItem, error: sourceFetchError } = await supabase
           .from(table)
-          .select(quantityField)
+          .select('*')
           .eq('id', item.item_id)
           .single();
 
+        if (sourceFetchError) throw sourceFetchError;
+
         const currentSourceStock = parseFloat(sourceItem?.[quantityField] || 0);
         
-        await supabase
+        const { error: decreaseError } = await supabase
           .from(table)
           .update({ [quantityField]: currentSourceStock - parseFloat(item.quantity) })
           .eq('id', item.item_id);
 
+        if (decreaseError) throw decreaseError;
+
         // Increase or Create stock in destination warehouse
-        // Let's check if the product with the same name/barcode exists in the destination warehouse
-        const sourceProduct = (products || []).find(p => p.id === item.item_id);
-        
-        const { data: existingProduct } = await supabase
+        // Match by name AND barcode for better accuracy
+        let query = supabase
           .from(table)
           .select('*')
           .eq('user_id', profile.id)
           .eq('warehouse_id', toWarehouseId)
-          .eq('name', sourceProduct?.name)
-          .single();
+          .eq('name', sourceItem.name);
+        
+        if (sourceItem.barcode) {
+          query = query.eq('barcode', sourceItem.barcode);
+        }
+
+        const { data: existingProduct } = await query.maybeSingle();
 
         if (existingProduct) {
           // Update existing
-          await supabase
+          const { error: updateDestError } = await supabase
             .from(table)
             .update({ [quantityField]: parseFloat(existingProduct[quantityField] || 0) + parseFloat(item.quantity) })
             .eq('id', existingProduct.id);
+          
+          if (updateDestError) throw updateDestError;
         } else {
           // Create new record in destination warehouse
-          const { id, created_at, ...productData } = sourceProduct;
-          await supabase
+          const { id, created_at, warehouse_id, ...productData } = sourceItem;
+          const { error: insertDestError } = await supabase
             .from(table)
             .insert({
               ...productData,
+              user_id: profile.id,
               warehouse_id: toWarehouseId,
               [quantityField]: parseFloat(item.quantity)
             });
+          
+          if (insertDestError) throw insertDestError;
         }
       }
 
       toast.success(t('warehouse.transferSuccess') || 'Перемещение успешно завершено');
-      onStockTransferred();
+      if (onStockTransferred) onStockTransferred();
       onClose();
     } catch (err) {
       console.error(err);
