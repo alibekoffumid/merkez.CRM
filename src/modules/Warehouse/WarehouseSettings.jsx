@@ -104,7 +104,6 @@ const WarehouseSettings = () => {
   ];
 
   return (
-  return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full flex-1 overflow-y-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
