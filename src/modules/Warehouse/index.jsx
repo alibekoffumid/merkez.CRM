@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -50,6 +50,7 @@ const WarehouseModule = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [expandedCategories, setExpandedCategories] = useState([]);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -579,54 +580,77 @@ const WarehouseModule = () => {
               <div className={`p-2 rounded-lg cursor-pointer text-sm font-medium transition-colors ${selectedCategory === null ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(null)}>
                 {t('warehouse.allCategories')}
               </div>
-              {categories.filter(c => !c.parent_id).map(cat => (
-                <React.Fragment key={cat.id}>
-                  <div 
-                    className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
-                    onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                  >
-                    <div className="flex items-center flex-1 truncate" title={cat.name}>
-                      <Folder className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
-                      <span className="truncate">{cat.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                        {products.filter(p => p.category_id === cat.id).length}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Subcategories */}
-                  {categories.filter(sub => sub.parent_id === cat.id).map(subcat => (
+              {categories.filter(c => !c.parent_id).map(cat => {
+                const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
+                const isExpanded = expandedCategories.includes(cat.id);
+                
+                return (
+                  <React.Fragment key={cat.id}>
                     <div 
-                      key={subcat.id} 
-                      className={`group p-2 pl-8 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === subcat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-600 hover:bg-gray-50'}`} 
-                      onClick={() => setSelectedCategory(selectedCategory === subcat.id ? null : subcat.id)}
+                      className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
+                      onClick={() => {
+                        setSelectedCategory(selectedCategory === cat.id ? null : cat.id);
+                        if (hasSubcategories && !isExpanded) {
+                          setExpandedCategories(prev => [...prev, cat.id]);
+                        }
+                      }}
                     >
-                      <div className="flex items-center flex-1 truncate" title={subcat.name}>
-                        <CornerDownRight className="w-3.5 h-3.5 mr-2 text-gray-300 shrink-0" />
-                        <span className="truncate">{subcat.name}</span>
+                      <div className="flex items-center flex-1 truncate">
+                        {hasSubcategories && (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedCategories(prev => 
+                                prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                              );
+                            }}
+                            className="mr-1 p-0.5 hover:bg-gray-100 rounded transition-colors"
+                          >
+                            <ChevronRight className={`w-3.5 h-3.5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                          </button>
+                        )}
+                        {!hasSubcategories && <Folder className="w-4 h-4 mr-2 text-gray-400 shrink-0" />}
+                        <span className="truncate">{cat.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <button 
-                          onClick={(e) => { e.stopPropagation(); setEditingCategory(subcat); }}
+                          onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
                           className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                          {products.filter(p => p.category_id === subcat.id).length}
+                          {products.filter(p => p.category_id === cat.id).length}
                         </span>
                       </div>
                     </div>
-                  ))}
-                </React.Fragment>
-              ))}
+                    {/* Subcategories */}
+                    {isExpanded && categories.filter(sub => sub.parent_id === cat.id).map(subcat => (
+                      <div 
+                        key={subcat.id} 
+                        className={`group p-2 pl-8 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === subcat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-600 hover:bg-gray-50'}`} 
+                        onClick={() => setSelectedCategory(selectedCategory === subcat.id ? null : subcat.id)}
+                      >
+                        <div className="flex items-center flex-1 truncate" title={subcat.name}>
+                          <CornerDownRight className="w-3.5 h-3.5 mr-2 text-gray-300 shrink-0" />
+                          <span className="truncate">{subcat.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setEditingCategory(subcat); }}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
+                            {products.filter(p => p.category_id === subcat.id).length}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </React.Fragment>
+                );
+              })}
             </div>
             <button onClick={() => setShowAddCategory(true)} className="mt-4 w-full py-2 border-2 border-dashed border-gray-200 text-gray-400 rounded-lg text-sm font-medium hover:text-merkez-blue hover:border-merkez-blue transition-colors flex items-center justify-center">
               <Plus className="w-4 h-4 mr-1.5" /> {t('warehouse.addCategory')}
