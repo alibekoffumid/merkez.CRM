@@ -31,6 +31,7 @@ const WarehouseModule = () => {
   const [products, setProducts] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [receipts, setReceipts] = useState([]);
   const [dispatches, setDispatches] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
