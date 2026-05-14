@@ -17,6 +17,9 @@
     "filter": "Filtr",
     "unit": "ədəd",
     "back": "Geri",
+    "skip": "Ötür",
+    "next": "Növbəti",
+    "finish": "Bitir",
     "notes": "Qeydlər",
     "adminLock": "Admin Kilidi",
     "enterPinToAccess": "Bu bölməyə daxil olmaq üçün 4 rəqəmli PIN kodu daxil edin",
@@ -734,7 +737,19 @@
     "addNewWarehouse": "Anbar əlavə et",
     "mainWarehouse": "Əsas anbar",
     "cannotDeleteOnlyWarehouse": "Yeganə anbarı silmək olmaz",
-    "selectWarehouse": "Anbar seçin"
+    "selectWarehouse": "Anbar seçin",
+    "tour": {
+      "warehouseSelectorTitle": "Anbar seçimi",
+      "warehouseSelectorDesc": "İdarə etmək istədiyiniz anbarı seçin. Hər bir anbarın öz müstəqil mal qalığı var.",
+      "mainTabsTitle": "Naviqasiya",
+      "mainTabsDesc": "Məhsul siyahıları, təchizatçılar bazası və ətraflı əməliyyat tarixçəsi arasında keçid edin.",
+      "receiveTitle": "Məhsul qəbulu",
+      "receiveDesc": "Təchizatçıdan yeni mal partiyası aldıqda buraya klikləyin.",
+      "dispatchTitle": "Məhsul silinməsi",
+      "dispatchDesc": "Satışları qeyd etmək və ya xarab olmuş malları silmək üçün bundan istifadə edin.",
+      "transferTitle": "Anbarlararası yerdəyişmə",
+      "transferDesc": "Yeni! Malları bir anbarınızdan digərinə bir neçə kliklə asanlıqla köçürün."
+    }
   },
   "modules": {
     "storeTitle": "Modulları seçin",

@@ -17,6 +17,9 @@
     "filter": "Filter",
     "unit": "pcs",
     "back": "Back",
+    "skip": "Skip",
+    "next": "Next",
+    "finish": "Finish",
     "notes": "Notes",
     "adminLock": "Admin Lock",
     "enterPinToAccess": "Enter 4-digit PIN to access this section",
@@ -736,7 +739,19 @@
     "addNewWarehouse": "Add Warehouse",
     "mainWarehouse": "Main Warehouse",
     "cannotDeleteOnlyWarehouse": "Cannot delete the only warehouse",
-    "selectWarehouse": "Select Warehouse"
+    "selectWarehouse": "Select Warehouse",
+    "tour": {
+      "warehouseSelectorTitle": "Warehouse Selection",
+      "warehouseSelectorDesc": "Choose the warehouse you want to manage. Each warehouse has its own independent stock.",
+      "mainTabsTitle": "Navigation",
+      "mainTabsDesc": "Switch between product lists, suppliers database, and detailed transaction history.",
+      "receiveTitle": "Receive Stock",
+      "receiveDesc": "Click here when you receive a new batch of items from a supplier.",
+      "dispatchTitle": "Dispatch/Write-off",
+      "dispatchDesc": "Use this to record sales or write off damaged goods.",
+      "transferTitle": "Inter-warehouse Transfer",
+      "transferDesc": "New! Easily move items from one of your warehouses to another in a few clicks."
+    }
   },
   "modules": {
     "storeTitle": "Choose your modules",
