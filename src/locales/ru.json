@@ -697,7 +697,9 @@
     "stockDispatchedSuccess": "Списание успешно завершено",
     "addItemsToDispatch": "Выбрать товары для списания",
     "dispatchListEmpty": "Список списания пуст",
-    "completeDispatch": "Подтвердить списание"
+    "completeDispatch": "Подтвердить списание",
+    "totalQuantity": "Общее кол-во",
+    "dispatchedDate": "Дата операции"
   },
   "modules": {
     "storeTitle": "Выберите модули",
