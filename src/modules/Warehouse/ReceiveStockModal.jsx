@@ -197,7 +197,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
                   onChange={val => setFormData({...formData, received_at: val})}
                 />
                 
-                <div className="pt-6">
+                <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{t('common.notes') || 'Заметки'}</label>
                   <textarea 
                     value={formData.notes}
