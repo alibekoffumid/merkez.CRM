@@ -24,9 +24,25 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
         try {
           const parsed = JSON.parse(saved);
           setSettings(parsed);
-          setFormData(prev => ({ ...prev, critical_stock: parsed.lowStockThreshold || '5' }));
+          let initialBarcode = '';
+          if (parsed.autoGenerateBarcode) {
+            const prefix = parsed.barcodePrefix || '';
+            const randomNum = Math.floor(100000 + Math.random() * 900000);
+            initialBarcode = `${prefix}${randomNum}`;
+          }
+
+          setFormData(prev => ({ 
+            ...prev, 
+            critical_stock: parsed.lowStockThreshold || '5',
+            barcode: prev.barcode || initialBarcode
+          }));
         } catch (e) {}
       }
+    } else {
+      setFormData({
+        name: '', price: '', purchase_price: '', barcode: '',
+        category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: ''
+      });
     }
   }, [isOpen]);
   
@@ -92,7 +108,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
       imageUrl = await uploadImage(imageFile);
     }
 
-    let finalBarcode = formData.barcode;
+    let finalBarcode = formData.barcode?.trim();
     if (!finalBarcode && settings?.autoGenerateBarcode) {
       const prefix = settings.barcodePrefix || '';
       const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -124,15 +140,6 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
     if (!error && data) {
       onProductAdded();
       onClose();
-      setFormData({ 
-        name: '', 
-        price: '', 
-        purchase_price: '',
-        barcode: '',
-        category_id: '',
-        stock_quantity: '0',
-        critical_stock: '5'
-      });
       setImageFile(null);
       setImagePreview(null);
     }
