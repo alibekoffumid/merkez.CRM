@@ -18,6 +18,10 @@ const WarehouseTour = ({ isOpen, onClose }) => {
     { targetId: 'tour-search', radius: 12 },
     { targetId: 'tour-add-product-btn', radius: 12 },
     { targetId: 'tour-import-btn', radius: 12 },
+    { targetId: 'tour-filter', radius: 12 },
+    { targetId: 'tour-select-all', radius: 12 },
+    { targetId: 'tour-bulk-delete', radius: 12 },
+    { targetId: 'tour-actions', radius: 12 },
     { targetId: 'tour-receive-btn', radius: 12 },
     { targetId: 'tour-dispatch-btn', radius: 12 },
     { targetId: 'tour-transfer-btn', radius: 12 }

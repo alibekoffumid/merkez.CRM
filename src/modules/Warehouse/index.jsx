@@ -622,6 +622,7 @@ const WarehouseModule = () => {
 
             {selectedItems.length > 0 && activeTab === 'finished' && (
               <button 
+                id="tour-bulk-delete"
                 onClick={() => setConfirmDelete({ type: 'bulk' })} 
                 className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
               >
@@ -1209,6 +1210,7 @@ const WarehouseModule = () => {
             </div>
             <div className="relative" ref={filterRef}>
               <button 
+                id="tour-filter"
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                 className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
               >
@@ -1261,6 +1263,7 @@ const WarehouseModule = () => {
                     <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
                       <th className="pl-8 pr-2 py-4 w-10">
                         <button 
+                          id="tour-select-all"
                           onClick={toggleSelectAll}
                           className="text-gray-400 hover:text-merkez-blue transition-colors"
                         >
@@ -1282,7 +1285,7 @@ const WarehouseModule = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {filteredProducts.map(item => (
+                    {filteredProducts.map((item, index) => (
                       <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
                         <td className="pl-8 pr-2 py-4">
                           <button 
@@ -1323,6 +1326,7 @@ const WarehouseModule = () => {
                         <td className="px-2 py-4 pr-6 text-right">
                           <div className="relative inline-block">
                             <button
+                              id={index === 0 ? "tour-actions" : undefined}
                               onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
                               className="text-gray-400 hover:text-merkez-blue transition-colors p-1.5 rounded-md hover:bg-blue-50"
                             >
