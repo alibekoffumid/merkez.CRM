@@ -120,15 +120,15 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                   </div>
                 </div>
 
-                <div className="mt-7 pt-6 border-t border-gray-100/50 flex justify-between items-center">
+                <div className="mt-7 pt-6 border-t border-gray-100/50 flex flex-col gap-4">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">
-                    {t('warehouse.addedDate') || 'Добавлен'}: {new Date(supplier.created_at).toLocaleDateString()}
+                    {t('warehouse.addedDate') || 'Дата добавления'}: {new Date(supplier.created_at).toLocaleDateString()}
                   </span>
                   <button 
                     onClick={() => onViewHistory(supplier.id)}
-                    className="bg-blue-50 text-merkez-blue px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-merkez-blue hover:text-white transition-all"
+                    className="w-fit bg-blue-50 text-merkez-blue px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-merkez-blue hover:text-white transition-all shadow-sm shadow-blue-100"
                   >
-                    {t('warehouse.viewHistory') || 'История'} <ExternalLink className="w-3 h-3" />
+                    {t('warehouse.viewHistory') || 'Смотреть историю'} <ExternalLink className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
