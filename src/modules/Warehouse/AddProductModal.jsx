@@ -7,7 +7,7 @@ import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
-const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded }) => {
+const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -34,9 +34,15 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
           setFormData(prev => ({ 
             ...prev, 
             critical_stock: parsed.lowStockThreshold || '5',
-            barcode: prev.barcode || initialBarcode
+            barcode: prev.barcode || initialBarcode,
+            category_id: initialCategoryId || ''
           }));
         } catch (e) {}
+      } else {
+        setFormData(prev => ({ 
+          ...prev, 
+          category_id: initialCategoryId || ''
+        }));
       }
     } else {
       setFormData({
@@ -44,7 +50,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
         category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: ''
       });
     }
-  }, [isOpen]);
+  }, [isOpen, initialCategoryId]);
   
   const [formData, setFormData] = useState({
     name: '',

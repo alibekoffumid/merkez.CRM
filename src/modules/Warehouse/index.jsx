@@ -252,7 +252,7 @@ const WarehouseModule = () => {
   };
 
   const filteredProducts = products
-    .filter(p => selectedCategory ? p.categories?.name === selectedCategory : true)
+    .filter(p => selectedCategory ? p.category_id === selectedCategory : true)
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .filter(p => {
       if (statusFilter === 'all') return true;
@@ -270,7 +270,7 @@ const WarehouseModule = () => {
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
       {/* Modals */}
-      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} />
+      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} initialCategoryId={selectedCategory} />
       <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
       <EditProductModal 
@@ -582,8 +582,8 @@ const WarehouseModule = () => {
               {categories.filter(c => !c.parent_id).map(cat => (
                 <React.Fragment key={cat.id}>
                   <div 
-                    className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.name ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
-                    onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
+                    className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
+                    onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
                   >
                     <div className="flex items-center flex-1 truncate" title={cat.name}>
                       <Folder className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
@@ -597,7 +597,7 @@ const WarehouseModule = () => {
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                        {products.filter(p => p.categories?.name === cat.name).length}
+                        {products.filter(p => p.category_id === cat.id).length}
                       </span>
                     </div>
                   </div>
@@ -605,8 +605,8 @@ const WarehouseModule = () => {
                   {categories.filter(sub => sub.parent_id === cat.id).map(subcat => (
                     <div 
                       key={subcat.id} 
-                      className={`group p-2 pl-8 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === subcat.name ? 'bg-blue-50 text-merkez-blue' : 'text-gray-600 hover:bg-gray-50'}`} 
-                      onClick={() => setSelectedCategory(selectedCategory === subcat.name ? null : subcat.name)}
+                      className={`group p-2 pl-8 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === subcat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-600 hover:bg-gray-50'}`} 
+                      onClick={() => setSelectedCategory(selectedCategory === subcat.id ? null : subcat.id)}
                     >
                       <div className="flex items-center flex-1 truncate" title={subcat.name}>
                         <CornerDownRight className="w-3.5 h-3.5 mr-2 text-gray-300 shrink-0" />
@@ -620,7 +620,7 @@ const WarehouseModule = () => {
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                          {products.filter(p => p.categories?.name === subcat.name).length}
+                          {products.filter(p => p.category_id === subcat.id).length}
                         </span>
                       </div>
                     </div>
