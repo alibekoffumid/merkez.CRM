@@ -224,10 +224,13 @@ const WarehouseModule = () => {
 
     // Fetch transfer items with product/ingredient names
     const transferIds = transfersData.map(t => t.id);
-    const { data: itemsData } = await supabase
+    const { data: itemsData, error: itemsError } = await supabase
       .from('stock_transfer_items')
       .select('*, products(name, barcode), ingredients(name, barcode)')
       .in('transfer_id', transferIds);
+    
+    if (itemsError) console.error('Transfer items error:', itemsError);
+    console.log('Transfer items:', itemsData, 'for transfer IDs:', transferIds);
 
     // Group items by transfer_id
     const itemsByTransfer = {};
