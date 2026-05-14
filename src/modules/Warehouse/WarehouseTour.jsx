@@ -81,10 +81,22 @@ const WarehouseTour = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  const getTranslationKey = (id, suffix) => {
+    const base = id.replace('tour-', '').replace('-btn', '');
+    // Convert kebab-case to camelCase
+    const camelBase = base.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+    return `warehouse.tour.${camelBase}${suffix}`;
+  };
+
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none">
+    <div className="fixed inset-0 z-[10000] pointer-events-none" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       {/* Dimmed backdrop with hole */}
       <div className="absolute inset-0 bg-black/60 pointer-events-auto" style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
         clipPath: `polygon(
           0% 0%, 
           0% 100%, 
@@ -103,7 +115,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
       <div 
         className="absolute p-6 bg-white rounded-2xl shadow-2xl pointer-events-auto transition-all duration-300 w-[340px]"
         style={{
-          top: `${Math.min(window.innerHeight - 280, coords.top + coords.height + 20)}px`,
+          top: `${Math.min(window.innerHeight - 300, Math.max(20, coords.top + coords.height + 20))}px`,
           left: `${Math.min(window.innerWidth - 360, Math.max(20, coords.left + (coords.width / 2) - 170))}px`
         }}
       >
@@ -118,14 +130,14 @@ const WarehouseTour = ({ isOpen, onClose }) => {
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center justify-between">
-          {t(`warehouse.tour.${steps[currentStep].targetId.replace('tour-', '').replace('-btn', '')}Title`)}
+          {t(getTranslationKey(steps[currentStep].targetId, 'Title'))}
           <button onClick={handleSkip} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
           </button>
         </h3>
         
         <p className="text-sm text-gray-600 leading-relaxed mb-6">
-          {t(`warehouse.tour.${steps[currentStep].targetId.replace('tour-', '').replace('-btn', '')}Desc`)}
+          {t(getTranslationKey(steps[currentStep].targetId, 'Desc'))}
         </p>
 
         <div className="flex items-center justify-between">
