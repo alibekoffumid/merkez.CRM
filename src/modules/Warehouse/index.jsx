@@ -557,6 +557,7 @@ const WarehouseModule = () => {
                 {t('warehouse.suppliers') || 'Поставщики'}
               </button>
               <button 
+                id="tour-history-tab"
                 onClick={() => setActiveTab('history')}
                 className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
@@ -595,10 +596,10 @@ const WarehouseModule = () => {
                 <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
                 </button>
-                <button onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
                   <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
                 </button>
-                <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
                 </button>
               </>
@@ -1048,7 +1049,7 @@ const WarehouseModule = () => {
         ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
-              <div className={`
+              <div id="tour-categories" className={`
                 fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-md shadow-2xl p-6 flex flex-col 
                 lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-2xl
                 transition-transform duration-300 border-r border-gray-100 lg:border-r-0
@@ -1193,7 +1194,7 @@ const WarehouseModule = () => {
         {/* Products/Ingredients Table Area */}
         <div className="flex-1 flex flex-col bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
           <div className="p-4 border-b border-gray-100 flex gap-4">
-            <div className="relative flex-1 max-w-md">
+            <div id="tour-search" className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 

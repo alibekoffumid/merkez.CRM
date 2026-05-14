@@ -6,40 +6,32 @@ import ModalPortal from '../../components/Common/ModalPortal';
 const WarehouseTour = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 });
+  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0, radius: 12 });
 
   const steps = [
-    {
-      targetId: 'tour-warehouse-selector',
-      position: 'bottom'
-    },
-    {
-      targetId: 'tour-main-tabs',
-      position: 'bottom'
-    },
-    {
-      targetId: 'tour-receive-btn',
-      position: 'bottom'
-    },
-    {
-      targetId: 'tour-dispatch-btn',
-      position: 'bottom'
-    },
-    {
-      targetId: 'tour-transfer-btn',
-      position: 'bottom'
-    }
+    { targetId: 'tour-warehouse-selector', radius: 16 },
+    { targetId: 'tour-main-tabs', radius: 16 },
+    { targetId: 'tour-categories', radius: 16 },
+    { targetId: 'tour-search', radius: 12 },
+    { targetId: 'tour-add-product-btn', radius: 12 },
+    { targetId: 'tour-import-btn', radius: 12 },
+    { targetId: 'tour-receive-btn', radius: 12 },
+    { targetId: 'tour-dispatch-btn', radius: 12 },
+    { targetId: 'tour-transfer-btn', radius: 12 },
+    { targetId: 'tour-history-tab', radius: 12 }
   ];
 
   const updateCoords = useCallback(() => {
-    const target = document.getElementById(steps[currentStep].targetId);
+    const step = steps[currentStep];
+    const target = document.getElementById(step.targetId);
     if (target) {
       const rect = target.getBoundingClientRect();
       setCoords({
         top: rect.top,
         left: rect.left,
         width: rect.width,
-        height: rect.height
+        height: rect.height,
+        radius: step.radius || 12
       });
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -48,13 +40,13 @@ const WarehouseTour = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       updateCoords();
-      const handleResize = () => updateCoords();
-      window.addEventListener('resize', handleResize);
-      window.addEventListener('scroll', handleResize);
+      const handleUpdate = () => updateCoords();
+      window.addEventListener('resize', handleUpdate);
+      window.addEventListener('scroll', handleUpdate);
       document.body.style.overflow = 'hidden';
       return () => {
-        window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleResize);
+        window.removeEventListener('resize', handleUpdate);
+        window.removeEventListener('scroll', handleUpdate);
         document.body.style.overflow = 'auto';
       };
     }
@@ -73,69 +65,71 @@ const WarehouseTour = ({ isOpen, onClose }) => {
   };
 
   const getTranslationKey = (id, suffix) => {
-    const base = id.replace('tour-', '').replace('-btn', '');
-    // Convert kebab-case to camelCase
+    const base = id.replace('tour-', '').replace('-btn', '').replace('-tab', '');
     const camelBase = base.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
     return `warehouse.tour.${camelBase}${suffix}`;
   };
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 z-[10000] pointer-events-none" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', backgroundColor: 'transparent' }}>
-        {/* Dimmed backdrop with hole using 4-div method for maximum reliability */}
-        <div className="absolute inset-0 pointer-events-auto overflow-hidden" style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh' }}>
-          {/* Top */}
-          <div className="absolute bg-black/60 transition-all duration-300" style={{ top: 0, left: 0, right: 0, height: `${coords.top}px` }} />
-          {/* Bottom */}
-          <div className="absolute bg-black/60 transition-all duration-300" style={{ top: `${coords.top + coords.height}px`, left: 0, right: 0, bottom: 0 }} />
-          {/* Left */}
-          <div className="absolute bg-black/60 transition-all duration-300" style={{ top: `${coords.top}px`, left: 0, width: `${coords.left}px`, height: `${coords.height}px` }} />
-          {/* Right */}
-          <div className="absolute bg-black/60 transition-all duration-300" style={{ top: `${coords.top}px`, left: `${coords.left + coords.width}px`, right: 0, height: `${coords.height}px` }} />
-        </div>
+      <div className="fixed inset-0 z-[10000] pointer-events-none overflow-hidden">
+        {/* Rounded highlight using box-shadow */}
+        <div 
+          className="absolute transition-all duration-500 ease-in-out pointer-events-none"
+          style={{
+            top: `${coords.top}px`,
+            left: `${coords.left}px`,
+            width: `${coords.width}px`,
+            height: `${coords.height}px`,
+            borderRadius: `${coords.radius}px`,
+            boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.65)',
+            zIndex: 10001
+          }}
+        />
 
         {/* Tooltip */}
         <div 
-          className="absolute p-6 bg-white rounded-2xl shadow-2xl pointer-events-auto transition-all duration-300 w-[340px]"
+          className="absolute p-6 bg-white rounded-3xl shadow-2xl pointer-events-auto transition-all duration-500 ease-in-out w-[350px]"
           style={{
-            top: `${Math.min(window.innerHeight - 320, Math.max(20, coords.top + coords.height + 20))}px`,
-            left: `${Math.min(window.innerWidth - 360, Math.max(20, coords.left + (coords.width / 2) - 170))}px`
+            top: `${Math.min(window.innerHeight - 340, Math.max(20, coords.top + coords.height + 24))}px`,
+            left: `${Math.min(window.innerWidth - 370, Math.max(20, coords.left + (coords.width / 2) - 175))}px`,
+            zIndex: 10002
           }}
         >
-          {/* Progress indicator */}
-          <div className="flex gap-1 mb-4">
+          {/* Progress dots */}
+          <div className="flex gap-1.5 mb-5">
             {steps.map((_, idx) => (
               <div 
                 key={idx} 
-                className={`h-1 flex-1 rounded-full transition-all ${idx <= currentStep ? 'bg-merkez-blue' : 'bg-gray-100'}`}
+                className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${idx === currentStep ? 'bg-merkez-blue scale-110' : idx < currentStep ? 'bg-blue-200' : 'bg-gray-100'}`}
               />
             ))}
           </div>
 
-          <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center justify-between">
+          <h3 className="text-xl font-black text-gray-900 mb-2.5 flex items-center justify-between">
             {t(getTranslationKey(steps[currentStep].targetId, 'Title'))}
-            <button onClick={handleSkip} className="text-gray-400 hover:text-gray-600">
+            <button onClick={handleSkip} className="text-gray-300 hover:text-gray-500 transition-colors p-1 hover:bg-gray-50 rounded-lg">
               <X className="w-5 h-5" />
             </button>
           </h3>
           
-          <p className="text-sm text-gray-600 leading-relaxed mb-6">
+          <p className="text-sm text-gray-600 leading-relaxed mb-8">
             {t(getTranslationKey(steps[currentStep].targetId, 'Desc'))}
           </p>
 
           <div className="flex items-center justify-between">
             <button 
               onClick={handleSkip}
-              className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors"
             >
-              {t('common.skip') || 'Пропустить'}
+              {t('common.skip')}
             </button>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               {currentStep > 0 && (
                 <button 
                   onClick={() => setCurrentStep(prev => prev - 1)}
-                  className="p-2 rounded-xl border border-gray-100 text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="p-2.5 rounded-2xl border border-gray-100 text-gray-500 hover:bg-gray-50 transition-all active:scale-95"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -144,18 +138,18 @@ const WarehouseTour = ({ isOpen, onClose }) => {
               {currentStep < steps.length - 1 ? (
                 <button 
                   onClick={() => setCurrentStep(prev => prev + 1)}
-                  className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-600 transition-colors flex items-center gap-2"
+                  className="bg-merkez-blue text-white px-6 py-3 rounded-2xl text-sm font-black shadow-lg shadow-blue-600/30 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2"
                 >
-                  {t('common.next') || 'Далее'}
+                  {t('common.next')}
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
                 <button 
                   onClick={handleFinish}
-                  className="bg-merkez-green text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-green-600/20 hover:bg-green-600 transition-colors flex items-center gap-2"
+                  className="bg-merkez-green text-white px-6 py-3 rounded-2xl text-sm font-black shadow-lg shadow-green-600/30 hover:bg-green-600 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2"
                 >
-                  {t('common.finish') || 'Готово'}
-                  <Check className="w-4 h-4" />
+                  {t('common.finish')}
+                  <Check className="w-5 h-5" />
                 </button>
               )}
             </div>
@@ -163,8 +157,11 @@ const WarehouseTour = ({ isOpen, onClose }) => {
 
           {/* Pointer arrow */}
           <div 
-            className="absolute -top-2 w-4 h-4 bg-white rotate-45"
-            style={{ left: `${Math.max(20, Math.min(320, coords.left + (coords.width / 2) - (Math.min(window.innerWidth - 360, Math.max(20, coords.left + (coords.width / 2) - 170)))))}px` }}
+            className="absolute -top-2 w-4 h-4 bg-white rotate-45 transition-all duration-500"
+            style={{ 
+              left: `${Math.max(30, Math.min(300, coords.left + (coords.width / 2) - (Math.min(window.innerWidth - 370, Math.max(20, coords.left + (coords.width / 2) - 175)))))}px`,
+              opacity: (coords.top + coords.height + 24) > window.innerHeight - 340 ? 0 : 1
+            }}
           />
         </div>
       </div>
