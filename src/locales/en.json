@@ -704,7 +704,14 @@
     "dispatches": "Dispatches",
     "dispatchHistory": "Dispatch History",
     "dispatchHistoryDesc": "List of all issued and disposed items",
-    "noDispatchesFound": "Dispatch history is empty"
+    "noDispatchesFound": "Dispatch history is empty",
+    "management": "Warehouse Management",
+    "warehouseName": "Warehouse Name",
+    "createFirstWarehouse": "Create First Warehouse",
+    "addNewWarehouse": "Add Warehouse",
+    "mainWarehouse": "Main Warehouse",
+    "cannotDeleteOnlyWarehouse": "Cannot delete the only warehouse",
+    "selectWarehouse": "Select Warehouse"
   },
   "modules": {
     "storeTitle": "Choose your modules",

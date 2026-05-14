@@ -702,7 +702,14 @@
     "dispatches": "Silinmələr",
     "dispatchHistory": "Silinmə tarixi",
     "dispatchHistoryDesc": "Bütün verilmiş və silinmiş malların siyahısı",
-    "noDispatchesFound": "Silinmə tarixi boşdur"
+    "noDispatchesFound": "Silinmə tarixi boşdur",
+    "management": "Anbar İdarəetməsi",
+    "warehouseName": "Anbar adı",
+    "createFirstWarehouse": "İlk anbarı yarat",
+    "addNewWarehouse": "Anbar əlavə et",
+    "mainWarehouse": "Əsas anbar",
+    "cannotDeleteOnlyWarehouse": "Yeganə anbarı silmək olmaz",
+    "selectWarehouse": "Anbar seçin"
   },
   "modules": {
     "storeTitle": "Modulları seçin",

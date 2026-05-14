@@ -704,7 +704,14 @@
     "dispatches": "Списания",
     "dispatchHistory": "История списаний",
     "dispatchHistoryDesc": "Список всех выданных и списанных товаров",
-    "noDispatchesFound": "История списаний пуста"
+    "noDispatchesFound": "История списаний пуста",
+    "management": "Управление складами",
+    "warehouseName": "Название склада",
+    "createFirstWarehouse": "Создать первый склад",
+    "addNewWarehouse": "Добавить склад",
+    "mainWarehouse": "Основной склад",
+    "cannotDeleteOnlyWarehouse": "Нельзя удалить единственный склад",
+    "selectWarehouse": "Выберите склад"
   },
   "modules": {
     "storeTitle": "Выберите модули",
