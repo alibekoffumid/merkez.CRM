@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronRight, ChevronLeft, X, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const WarehouseTour = ({ isOpen, onClose }) => {
   const { t } = useTranslation();
@@ -89,7 +90,8 @@ const WarehouseTour = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] pointer-events-none" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+    <ModalPortal>
+      <div className="fixed inset-0 z-[10000] pointer-events-none" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}>
       {/* Dimmed backdrop with hole */}
       <div className="absolute inset-0 bg-black/60 pointer-events-auto" style={{
         position: 'absolute',
@@ -184,7 +186,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
           style={{ left: `${Math.max(20, Math.min(320, coords.left + (coords.width / 2) - (Math.min(window.innerWidth - 360, Math.max(20, coords.left + (coords.width / 2) - 170)))))}px` }}
         />
       </div>
-    </div>
+    </ModalPortal>
   );
 };
 
