@@ -15,7 +15,7 @@ const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
     cost_price: ''
   });
 
-  const [availableUnits, setAvailableUnits] = useState(['kg', 'g', 'liter', 'ml', 'pcs', 'pack', 'bottle']);
+  const [availableUnits, setAvailableUnits] = useState(['kg', 'g', 'liter', 'ml', 'pcs', 'pack', 'bottle', 'm', 'm2']);
 
   useEffect(() => {
     if (isOpen) {

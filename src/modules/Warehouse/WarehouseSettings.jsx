@@ -10,7 +10,7 @@ const WarehouseSettings = () => {
   const [settings, setSettings] = useState({
     currency: 'AZN',
     defaultUnit: 'pcs',
-    availableUnits: ['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle'],
+    availableUnits: ['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2'],
     lowStockThreshold: '10'
   });
 
@@ -47,6 +47,8 @@ const WarehouseSettings = () => {
     { value: 'g', label: t('restaurant.g') || 'Граммы (г)' },
     { value: 'liter', label: t('restaurant.liter') || 'Литры (л)' },
     { value: 'ml', label: t('restaurant.ml') || 'Миллилитры (мл)' },
+    { value: 'm', label: t('restaurant.m') || 'Метры (м)' },
+    { value: 'm2', label: t('restaurant.m2') || 'Кв. метры (м²)' },
     { value: 'pack', label: t('restaurant.pack') || 'Упаковка (уп)' },
     { value: 'bottle', label: t('restaurant.bottle') || 'Бутылка (бут)' }
   ];

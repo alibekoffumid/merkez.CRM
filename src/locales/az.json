@@ -1056,7 +1056,9 @@
     "noParent": "Yoxdur (Ana Kateqoriya)",
     "g": "q",
     "ml": "ml",
-    "bottle": "şüşə"
+    "bottle": "şüşə",
+    "m": "metr",
+    "m2": "kv. metr"
   },
   "auth": {
     "sessionExpired": "Sessiya bitib"

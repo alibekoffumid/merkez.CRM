@@ -1060,7 +1060,9 @@
     "noParent": "No Parent (Main Category)",
     "g": "g",
     "ml": "ml",
-    "bottle": "bottle"
+    "bottle": "bottle",
+    "m": "meter",
+    "m2": "sq. meter"
   },
   "auth": {
     "sessionExpired": "Session expired"
