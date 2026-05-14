@@ -666,107 +666,143 @@ const WarehouseModule = () => {
               </table>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
-            {/* Categories Sidebar - Only for Finished Goods */}
-            {activeTab === 'finished' && (
+        </div>
+      ) : (
+        <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
+          {activeTab === 'finished' && (
               <div className={`
-                fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4 flex flex-col 
-                2xl:static 2xl:z-auto 2xl:shadow-none 2xl:border 2xl:border-gray-50 2xl:rounded-xl
-                transition-transform duration-300 
+                fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-md shadow-2xl p-6 flex flex-col 
+                2xl:static 2xl:z-auto 2xl:shadow-none 2xl:bg-gray-50/30 2xl:border 2xl:border-gray-100 2xl:rounded-2xl
+                transition-transform duration-300 border-r border-gray-100 2xl:border-r-0
                 ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full 2xl:hidden'}
               `}>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('warehouse.categories')}</h3>
-                  <button onClick={() => setShowCategorySidebar(false)} className="2xl:hidden p-1 text-gray-400 hover:text-gray-600">
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-merkez-blue/10 flex items-center justify-center">
+                      <FolderTree className="w-4 h-4 text-merkez-blue" />
+                    </div>
+                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.categories')}</h3>
+                  </div>
+                  <button onClick={() => setShowCategorySidebar(false)} className="2xl:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-            <div className="space-y-1 overflow-y-auto flex-1">
-              <div className={`p-2 rounded-lg cursor-pointer text-sm font-medium transition-colors ${selectedCategory === null ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(null)}>
-                {t('warehouse.allCategories')}
-              </div>
-              {categories.filter(c => !c.parent_id).map(cat => {
-                const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
-                const isExpanded = expandedCategories.includes(cat.id);
-                
-                return (
-                  <React.Fragment key={cat.id}>
-                    <div 
-                      className={`group p-2 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === cat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} 
-                      onClick={() => {
-                        setSelectedCategory(selectedCategory === cat.id ? null : cat.id);
-                        if (hasSubcategories && !isExpanded) {
-                          setExpandedCategories(prev => [...prev, cat.id]);
-                        }
-                      }}
-                    >
-                      <div className="flex items-center flex-1 truncate">
-                        {hasSubcategories && (
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpandedCategories(prev => 
-                                prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                              );
-                            }}
-                            className="mr-1 p-0.5 hover:bg-gray-100 rounded transition-colors"
-                          >
-                            <ChevronRight className={`w-3.5 h-3.5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                          </button>
-                        )}
-                        {!hasSubcategories && <Folder className="w-4 h-4 mr-2 text-gray-400 shrink-0" />}
-                        <span className="truncate">{cat.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                          {products.filter(p => {
-                            if (p.category_id === cat.id) return true;
-                            const subIds = categories.filter(s => s.parent_id === cat.id).map(s => s.id);
-                            return subIds.includes(p.category_id);
-                          }).length}
-                        </span>
-                      </div>
+
+                <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                  <div 
+                    className={`group p-3 rounded-xl cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${selectedCategory === null ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                    onClick={() => setSelectedCategory(null)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-1.5 h-1.5 rounded-full ${selectedCategory === null ? 'bg-white' : 'bg-gray-300 group-hover:bg-merkez-blue'}`} />
+                      {t('warehouse.allCategories')}
                     </div>
-                    {/* Subcategories */}
-                    {isExpanded && categories.filter(sub => sub.parent_id === cat.id).map(subcat => (
-                      <div 
-                        key={subcat.id} 
-                        className={`group p-2 pl-8 rounded-lg cursor-pointer text-sm flex items-center justify-between font-medium transition-colors ${selectedCategory === subcat.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-600 hover:bg-gray-50'}`} 
-                        onClick={() => setSelectedCategory(selectedCategory === subcat.id ? null : subcat.id)}
-                      >
-                        <div className="flex items-center flex-1 truncate" title={subcat.name}>
-                          <CornerDownRight className="w-3.5 h-3.5 mr-2 text-gray-300 shrink-0" />
-                          <span className="truncate">{subcat.name}</span>
+                  </div>
+
+                  <div className="my-4 border-t border-gray-100/50" />
+
+                  {categories.filter(c => !c.parent_id).map(cat => {
+                    const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
+                    const isExpanded = expandedCategories.includes(cat.id);
+                    const isActive = selectedCategory === cat.id;
+                    const count = products.filter(p => {
+                      if (p.category_id === cat.id) return true;
+                      const subIds = categories.filter(s => s.parent_id === cat.id).map(s => s.id);
+                      return subIds.includes(p.category_id);
+                    }).length;
+                    
+                    return (
+                      <React.Fragment key={cat.id}>
+                        <div 
+                          className={`group p-3 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                          onClick={() => {
+                            setSelectedCategory(isActive ? null : cat.id);
+                            if (hasSubcategories && !isExpanded) {
+                              setExpandedCategories(prev => [...prev, cat.id]);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center flex-1 truncate gap-3">
+                            {hasSubcategories ? (
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedCategories(prev => 
+                                    prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                                  );
+                                }}
+                                className={`p-1 rounded-md transition-colors ${isExpanded ? 'bg-blue-50 text-merkez-blue' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}
+                              >
+                                <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                              </button>
+                            ) : (
+                              <div className="w-5 h-5 flex items-center justify-center opacity-40">
+                                <Folder className="w-3.5 h-3.5" />
+                              </div>
+                            )}
+                            <span className="truncate">{cat.name}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
+                              className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}>
+                              {count}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); setEditingCategory(subcat); }}
-                            className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                            {products.filter(p => p.category_id === subcat.id).length}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-            <button onClick={() => setShowAddCategory(true)} className="mt-4 w-full py-2 border-2 border-dashed border-gray-200 text-gray-400 rounded-lg text-sm font-medium hover:text-merkez-blue hover:border-merkez-blue transition-colors flex items-center justify-center">
-              <Plus className="w-4 h-4 mr-1.5" /> {t('warehouse.addCategory')}
-            </button>
-          </div>
-        )}
+
+                        {/* Subcategories */}
+                        {isExpanded && categories.filter(sub => sub.parent_id === cat.id).map(subcat => {
+                          const isSubActive = selectedCategory === subcat.id;
+                          const subCount = products.filter(p => p.category_id === subcat.id).length;
+                          
+                          return (
+                            <div 
+                              key={subcat.id} 
+                              className={`group mt-1 mx-2 p-2.5 pl-6 rounded-xl cursor-pointer text-xs flex items-center justify-between font-bold transition-all duration-200 ${isSubActive ? 'bg-blue-50/50 text-merkez-blue' : 'text-gray-500 hover:bg-white hover:text-gray-900'}`} 
+                              onClick={() => setSelectedCategory(isSubActive ? null : subcat.id)}
+                            >
+                              <div className="flex items-center flex-1 truncate" title={subcat.name}>
+                                <CornerDownRight className="w-3.5 h-3.5 mr-2 text-gray-300 shrink-0" />
+                                <span className="truncate">{subcat.name}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); setEditingCategory(subcat); }}
+                                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </button>
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isSubActive ? 'bg-merkez-blue/20 text-merkez-blue' : 'bg-gray-100 text-gray-400'}`}>
+                                  {subCount}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+                
+                <div className="pt-6 mt-auto border-t border-gray-100/50">
+                  <button 
+                    onClick={() => setShowAddCategory(true)} 
+                    className="w-full py-3 bg-white border border-gray-200 text-gray-500 rounded-2xl text-xs font-black hover:border-merkez-blue hover:text-merkez-blue hover:shadow-lg hover:shadow-blue-600/5 transition-all flex items-center justify-center gap-2 group"
+                  >
+                    <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                      <Plus className="w-3.5 h-3.5" />
+                    </div>
+                    {t('warehouse.addCategory')}
+                  </button>
+                </div>
+              </div>
+            )}
 
         {/* Overlay for mobile sidebar */}
         {activeTab === 'finished' && showCategorySidebar && (
