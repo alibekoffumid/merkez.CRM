@@ -530,8 +530,9 @@ const WarehouseModule = () => {
 
           <div className="flex-1 flex justify-center">
             {/* Main Navigation Tabs */}
-            <div className="flex p-1.5 bg-gray-50 rounded-xl border border-gray-100" id="tour-main-tabs">
+            <div className="flex p-1.5 bg-gray-50 rounded-xl border border-gray-100">
               <button 
+                id="tour-products-tab"
                 onClick={() => setActiveTab('finished')}
                 className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
@@ -550,6 +551,7 @@ const WarehouseModule = () => {
               )}
 
               <button 
+                id="tour-suppliers-tab"
                 onClick={() => setActiveTab('suppliers')}
                 className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
@@ -565,6 +567,7 @@ const WarehouseModule = () => {
                 {t('warehouse.history') || 'История'}
               </button>
               <button 
+                id="tour-settings-tab"
                 onClick={() => setActiveTab('settings')}
                 className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >

@@ -10,15 +10,17 @@ const WarehouseTour = ({ isOpen, onClose }) => {
 
   const steps = [
     { targetId: 'tour-warehouse-selector', radius: 16 },
-    { targetId: 'tour-main-tabs', radius: 16 },
+    { targetId: 'tour-products-tab', radius: 12 },
+    { targetId: 'tour-suppliers-tab', radius: 12 },
+    { targetId: 'tour-history-tab', radius: 12 },
+    { targetId: 'tour-settings-tab', radius: 12 },
     { targetId: 'tour-categories', radius: 16 },
     { targetId: 'tour-search', radius: 12 },
     { targetId: 'tour-add-product-btn', radius: 12 },
     { targetId: 'tour-import-btn', radius: 12 },
     { targetId: 'tour-receive-btn', radius: 12 },
     { targetId: 'tour-dispatch-btn', radius: 12 },
-    { targetId: 'tour-transfer-btn', radius: 12 },
-    { targetId: 'tour-history-tab', radius: 12 }
+    { targetId: 'tour-transfer-btn', radius: 12 }
   ];
 
   const updateCoords = useCallback(() => {
@@ -65,7 +67,11 @@ const WarehouseTour = ({ isOpen, onClose }) => {
   };
 
   const getTranslationKey = (id, suffix) => {
-    const base = id.replace('tour-', '').replace('-btn', '').replace('-tab', '');
+    // Remove tour- prefix and then remove -btn or -tab suffixes if they are AT THE END
+    let base = id.replace('tour-', '');
+    if (base.endsWith('-btn')) base = base.slice(0, -4);
+    if (base.endsWith('-tab')) base = base.slice(0, -4);
+    
     const camelBase = base.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
     return `warehouse.tour.${camelBase}${suffix}`;
   };
