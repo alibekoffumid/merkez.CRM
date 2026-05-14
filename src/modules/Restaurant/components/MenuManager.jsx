@@ -23,6 +23,7 @@ const MenuManager = () => {
   // New Dish Form State
   const [newDish, setNewDish] = useState({ name: '', price: '', category_id: '', status: 'Available' });
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryParentId, setNewCategoryParentId] = useState('');
 
   // Filtering states
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,12 +90,14 @@ const MenuManager = () => {
       .from('categories')
       .insert([{ 
         name: newCategoryName,
+        parent_id: newCategoryParentId || null,
         user_id: user.id 
       }]);
     
     if (!error) {
       setIsAddCategoryModalOpen(false);
       setNewCategoryName('');
+      setNewCategoryParentId('');
       fetchData();
     } else {
       console.error('Error adding category:', error);
@@ -422,7 +425,18 @@ const MenuManager = () => {
                     className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none transition-colors" 
                   />
                </div>
-               <button onClick={handleAddCategory} className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-2">
+               <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('restaurant.parentCategory') || 'Parent Category (Optional)'}</label>
+                  <Dropdown 
+                    value={newCategoryParentId}
+                    onChange={(val) => setNewCategoryParentId(val)}
+                    options={[
+                      { value: '', label: t('restaurant.noParent') || 'No Parent (Main Category)' },
+                      ...categories.filter(c => !c.parent_id).map(cat => ({ value: cat.id, label: cat.name }))
+                    ]}
+                  />
+               </div>
+               <button onClick={handleAddCategory} className="w-full bg-merkez-blue text-white py-2.5 rounded-lg text-sm font-bold shadow-sm hover:bg-blue-600 transition-colors mt-4">
                  {t('restaurant.createCategory')}
                </button>
             </div>

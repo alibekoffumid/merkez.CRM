@@ -293,7 +293,7 @@
     "noTeachersAvailable": "Müəllim tapılmadı",
     "noLessonsToday": "BU GÜN ÜÇÜN DƏRS YOXDUR",
     "selectTeacher": "Müəllim Seçin",
-    "selectRoom": "Otaq Seçin",
+    "selectRoom": "Otaq seçin",
     "noRoomsAvailable": "Otaq tapılmadı",
     "editLesson": "Dərsi Redaktə et",
     "placeholders": {
@@ -336,7 +336,7 @@
     "individual": "Fərdi",
     "group": "Qrup",
     "groupName": "Ad",
-    "type": "Növ",
+    "type": "Növü",
     "program": "Proqram",
     "manageGroupsDesc": "Qrup və ya fərdi dərsləri idarə edin",
     "deleteGroup": "Qrupu sil",
@@ -345,7 +345,6 @@
     "noTeacherAssigned": "Müəllim təyin edilməyib",
     "unassignTeacher": "Təyin edilməsin",
     "teacherColor": "Müəllim rəngi",
-    "selectRoom": "Otaq seçin",
     "noRoom": "Otaq yoxdur",
     "trackPerformance": "Performans səviyyələrini və akademik nailiyyətləri izləyin",
     "level": "Səviyyə",
@@ -400,7 +399,6 @@
     "seats": "yer",
     "roomName": "Otaq Adı",
     "capacity": "Tutumu",
-    "type": "Növü",
     "saveRoom": "Otağı Saxla",
     "addNewRoom": "Yeni Otaq Əlavə et",
     "defineNewSpace": "Yeni sinif və ya studiya sahəsi təyin edin",
@@ -435,7 +433,6 @@
     "allTeachers": "Bütün müəllimlər",
     "noCourse": "Kurs yoxdur",
     "selectGroup": "Qrup seçin",
-    "group": "Qrup",
     "manageTeacherGroups": "Müəllimin Qrupları",
     "manageTeacherGroupsDesc": "Bu müəllimə təhkim olunmuş qrupları seçin.",
     "noGroupsAvailable": "Hələ heç bir qrup yaradılmayıb.",
@@ -659,7 +656,9 @@
     "viewHistory": "Tarixçəyə bax",
     "noDeletePermission": "Silmə icazəsi yoxdur",
     "noEditPermission": "Redaktə icazəsi yoxdur",
-    "noProductEditPermission": "Məhsul redaktə icazəsi yoxdur"
+    "noProductEditPermission": "Məhsul redaktə icazəsi yoxdur",
+    "parentCategory": "Əsas Kateqoriya (İstəyə bağlı)",
+    "noParent": "Yoxdur (Ana Kateqoriya)"
   },
   "modules": {
     "storeTitle": "Modulları seçin",
@@ -1042,7 +1041,9 @@
     "staffWaiters": "Ofisiantlar",
     "tablesSettings": "Masa tənzimləmələri",
     "inventory": "İnventar",
-    "reportsAnalytics": "Hesabatlar"
+    "reportsAnalytics": "Hesabatlar",
+    "parentCategory": "Əsas Kateqoriya (İstəyə bağlı)",
+    "noParent": "Yoxdur (Ana Kateqoriya)"
   },
   "auth": {
     "sessionExpired": "Sessiya bitib"

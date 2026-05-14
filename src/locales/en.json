@@ -341,7 +341,7 @@
     "noTeacherAssigned": "No teacher assigned",
     "unassignTeacher": "Unassign",
     "teacherColor": "Teacher color",
-    "selectRoom": "Select room",
+    "selectRoom": "Select Room",
     "noRoom": "No room",
     "trackPerformance": "Track performance levels and academic achievements",
     "level": "Level",
@@ -396,7 +396,6 @@
     "seats": "seats",
     "roomName": "Room Name",
     "capacity": "Capacity",
-    "type": "Type",
     "saveRoom": "Save Room",
     "addNewRoom": "Add New Room",
     "defineNewSpace": "Define a new classroom or studio space",
@@ -431,10 +430,8 @@
     "allTeachers": "All Teachers",
     "noCourse": "No course",
     "selectGroup": "Select group",
-    "group": "Group",
     "noLessonsToday": "NO LESSONS TODAY",
     "selectTeacher": "Select Teacher",
-    "selectRoom": "Select Room",
     "noRoomsAvailable": "No rooms available",
     "editLesson": "Edit Lesson",
     "date": "Date",
@@ -661,7 +658,9 @@
     "viewHistory": "View History",
     "noDeletePermission": "No delete permission",
     "noEditPermission": "No edit permission",
-    "noProductEditPermission": "No product edit permission"
+    "noProductEditPermission": "No product edit permission",
+    "parentCategory": "Parent Category (Optional)",
+    "noParent": "No Parent (Main Category)"
   },
   "modules": {
     "storeTitle": "Choose your modules",
@@ -1046,7 +1045,9 @@
     "inventory": "Inventory",
     "reportsAnalytics": "Analytics",
     "title": "Restaurant",
-    "subtitle": "Restaurant Management"
+    "subtitle": "Restaurant Management",
+    "parentCategory": "Parent Category (Optional)",
+    "noParent": "No Parent (Main Category)"
   },
   "auth": {
     "sessionExpired": "Session expired"

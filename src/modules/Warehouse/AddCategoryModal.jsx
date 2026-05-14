@@ -10,7 +10,20 @@ import { toast } from 'react-hot-toast';
   const { t } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false); 
-  const [formData, setFormData] = useState({ name: '' }); 
+  const [formData, setFormData] = useState({ name: '', parent_id: '' }); 
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCategories();
+    }
+  }, [isOpen]);
+
+  const fetchCategories = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase.from('categories').select('id, name, parent_id').eq('user_id', profile.id);
+    if (data) setCategories(data);
+  };
 
   if (!isOpen) return null;
 
@@ -23,6 +36,7 @@ import { toast } from 'react-hot-toast';
       .from('categories')
       .insert([{ 
         name: formData.name.trim(),
+        parent_id: formData.parent_id || null,
         user_id: profile?.id 
       }])
       .select();
@@ -34,7 +48,7 @@ import { toast } from 'react-hot-toast';
     } else if (data) {
       onCategoryAdded();
       onClose();
-      setFormData({ name: '' });
+      setFormData({ name: '', parent_id: '' });
       toast.success(t('common.added') || 'Добавлено');
     }
   };
@@ -68,6 +82,19 @@ import { toast } from 'react-hot-toast';
               className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
               placeholder={t('warehouse.categoryPlaceholder')}
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.parentCategory') || 'Parent Category (Optional)'}</label>
+            <select 
+              value={formData.parent_id}
+              onChange={e => setFormData({...formData, parent_id: e.target.value})}
+              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
+            >
+              <option value="">{t('warehouse.noParent') || 'No Parent (Main Category)'}</option>
+              {categories.filter(c => !c.parent_id).map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
           </div>
           <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">
             <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">

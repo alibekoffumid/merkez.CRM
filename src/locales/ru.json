@@ -396,7 +396,6 @@
     "seats": "мест",
     "roomName": "Название класса",
     "capacity": "Вместимость",
-    "type": "Тип",
     "saveRoom": "Сохранить класс",
     "addNewRoom": "Добавить новый класс",
     "defineNewSpace": "Определите новое помещение или студию",
@@ -431,10 +430,8 @@
     "allTeachers": "Все учителя",
     "noCourse": "Нет курса",
     "selectGroup": "Выберите группу",
-    "group": "Группа",
     "noLessonsToday": "СЕГОДНЯ УРОКОВ НЕТ",
     "selectTeacher": "Выберите учителя",
-    "selectRoom": "Выберите класс",
     "noRoomsAvailable": "Нет доступных классов",
     "editLesson": "Редактировать урок",
     "date": "Дата",
@@ -661,7 +658,9 @@
     "viewHistory": "Смотреть историю",
     "noDeletePermission": "Нет разрешения на удаление",
     "noEditPermission": "Нет разрешения на редактирование",
-    "noProductEditPermission": "Нет разрешения на редактирование товара"
+    "noProductEditPermission": "Нет разрешения на редактирование товара",
+    "parentCategory": "Родительская категория (необязательно)",
+    "noParent": "Нет (Главная категория)"
   },
   "modules": {
     "storeTitle": "Выберите модули",
@@ -1046,7 +1045,9 @@
     "inventory": "Инвентарь",
     "reportsAnalytics": "Аналитика",
     "title": "Ресторан",
-    "subtitle": "Управление рестораном"
+    "subtitle": "Управление рестораном",
+    "parentCategory": "Родительская категория (необязательно)",
+    "noParent": "Нет (Главная категория)"
   },
   "auth": {
     "sessionExpired": "Сессия истекла"
