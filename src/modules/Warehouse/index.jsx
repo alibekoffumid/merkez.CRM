@@ -31,8 +31,9 @@ const WarehouseModule = () => {
   const [products, setProducts] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
-  const [receipts, setReceipts] = useState([]);
+  const [dispatches, setDispatches] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
+  const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -111,7 +112,8 @@ const WarehouseModule = () => {
       fetchProducts(), 
       fetchIngredients(), 
       fetchSuppliers(),
-      fetchReceipts()
+      fetchReceipts(),
+      fetchDispatches()
     ]);
     setLoading(false);
   };
@@ -124,6 +126,16 @@ const WarehouseModule = () => {
       .eq('user_id', profile.id)
       .order('received_at', { ascending: false });
     if (data) setReceipts(data);
+  };
+
+  const fetchDispatches = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase
+      .from('stock_dispatches')
+      .select('*, products(name, barcode)')
+      .eq('user_id', profile.id)
+      .order('issued_at', { ascending: false });
+    if (data) setDispatches(data);
   };
 
   const fetchSuppliers = async () => {
@@ -464,8 +476,24 @@ const WarehouseModule = () => {
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">{t('warehouse.receiptHistory') || 'История приёмок'}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков'}</p>
+                  <h3 className="text-lg font-bold text-gray-900">{historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : (t('warehouse.dispatchHistory') || 'История списаний')}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров')}</p>
+                </div>
+                <div className="flex gap-4 items-center">
+                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+                    <button 
+                      onClick={() => setHistoryTab('receipts')}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      {t('warehouse.receipts') || 'Приёмки'}
+                    </button>
+                    <button 
+                      onClick={() => setHistoryTab('dispatches')}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      {t('warehouse.dispatches') || 'Списания'}
+                    </button>
+                  </div>
                 </div>
                 {(historyFilter || startDate || endDate) && (
                   <button 
@@ -484,22 +512,24 @@ const WarehouseModule = () => {
 
               {/* Filters Bar */}
               <div className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
-                  <Dropdown 
-                    value={historyFilter || ''} 
-                    onChange={(val) => setHistoryFilter(val || null)}
-                    options={[
-                      { value: '', label: t('common.all') || 'Все', icon: Truck },
-                      ...suppliers.map(s => ({
-                        value: s.id,
-                        label: s.name,
-                        icon: Truck
-                      }))
-                    ]}
-                    className="w-full"
-                  />
-                </div>
+                {historyTab === 'receipts' && (
+                  <div className="flex-1 flex flex-col gap-1.5">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
+                    <Dropdown 
+                      value={historyFilter || ''} 
+                      onChange={(val) => setHistoryFilter(val || null)}
+                      options={[
+                        { value: '', label: t('common.all') || 'Все', icon: Truck },
+                        ...suppliers.map(s => ({
+                          value: s.id,
+                          label: s.name,
+                          icon: Truck
+                        }))
+                      ]}
+                      className="w-full"
+                    />
+                  </div>
+                )}
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
                   <DateRangePicker 
@@ -518,67 +548,133 @@ const WarehouseModule = () => {
               <table className="w-full text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.receivedDate')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>
+                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{historyTab === 'receipts' ? t('warehouse.receivedDate') : (t('warehouse.dispatchedDate') || 'Дата операции')}</th>
+                    {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>}
+                    {historyTab === 'dispatches' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.reason') || 'Причина'}</th>}
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.product')}</th>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>
-                    <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>
+                    {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
+                    {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {receipts.filter(receipt => {
-                    if (historyFilter && receipt.supplier_id !== historyFilter) return false;
-                    if (startDate && new Date(receipt.received_at) < new Date(startDate)) return false;
-                    if (endDate) {
-                      const end = new Date(endDate);
-                      end.setHours(23, 59, 59, 999);
-                      if (new Date(receipt.received_at) > end) return false;
-                    }
-                    return true;
-                  }).length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="px-6 py-20 text-center">
-                        <div className="flex flex-col items-center gap-3 text-gray-400">
-                          <Package className="w-12 h-12 text-gray-100" />
-                          <p className="font-medium">{t('warehouse.noReceiptsFound') || 'История приёмок пуста'}</p>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    receipts.map(receipt => (
-                      <tr key={receipt.id} className="hover:bg-gray-50/50 transition-colors group">
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-bold text-gray-700">{new Date(receipt.received_at).toLocaleDateString()}</span>
-                          {receipt.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{receipt.notes}</p>}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-merkez-blue">
-                              <Truck className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-bold text-gray-900">{receipt.suppliers?.name || '—'}</span>
+                  {historyTab === 'receipts' ? (
+                    receipts.filter(receipt => {
+                      if (historyFilter && receipt.supplier_id !== historyFilter) return false;
+                      if (startDate && new Date(receipt.received_at) < new Date(startDate)) return false;
+                      if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        if (new Date(receipt.received_at) > end) return false;
+                      }
+                      return true;
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="px-6 py-20 text-center">
+                          <div className="flex flex-col items-center gap-3 text-gray-400">
+                            <Package className="w-12 h-12 text-gray-100" />
+                            <p className="font-medium">{t('warehouse.noReceiptsFound') || 'История приёмок пуста'}</p>
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-gray-900">{receipt.products?.name || '—'}</span>
-                            <span className="text-[10px] text-gray-400 font-mono">{receipt.products?.barcode || '—'}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <span className="text-sm font-black text-gray-900">{receipt.quantity}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-gray-600 text-sm">
-                          ₼{receipt.unit_price || '0.00'}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <span className="text-sm font-black text-merkez-blue">
-                            ₼{(receipt.quantity * (receipt.unit_price || 0)).toFixed(2)}
-                          </span>
                         </td>
                       </tr>
-                    ))
+                    ) : (
+                      receipts.filter(receipt => {
+                        if (historyFilter && receipt.supplier_id !== historyFilter) return false;
+                        if (startDate && new Date(receipt.received_at) < new Date(startDate)) return false;
+                        if (endDate) {
+                          const end = new Date(endDate);
+                          end.setHours(23, 59, 59, 999);
+                          if (new Date(receipt.received_at) > end) return false;
+                        }
+                        return true;
+                      }).map(receipt => (
+                        <tr key={receipt.id} className="hover:bg-gray-50/50 transition-colors group">
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-gray-700">{new Date(receipt.received_at).toLocaleDateString()}</span>
+                            {receipt.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{receipt.notes}</p>}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-merkez-blue">
+                                <Truck className="w-4 h-4" />
+                              </div>
+                              <span className="text-sm font-bold text-gray-900">{receipt.suppliers?.name || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-gray-900">{receipt.products?.name || '—'}</span>
+                              <span className="text-[10px] text-gray-400 font-mono">{receipt.products?.barcode || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className="text-sm font-black text-gray-900">{receipt.quantity}</span>
+                          </td>
+                          <td className="px-6 py-4 text-right font-bold text-gray-600 text-sm">
+                            ₼{receipt.unit_price || '0.00'}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className="text-sm font-black text-merkez-blue">
+                              ₼{(receipt.quantity * (receipt.unit_price || 0)).toFixed(2)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )
+                  ) : (
+                    dispatches.filter(dispatch => {
+                      if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                      if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        if (new Date(dispatch.issued_at) > end) return false;
+                      }
+                      return true;
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-20 text-center">
+                          <div className="flex flex-col items-center gap-3 text-gray-400">
+                            <Package className="w-12 h-12 text-gray-100" />
+                            <p className="font-medium">{t('warehouse.noDispatchesFound') || 'История списаний пуста'}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      dispatches.filter(dispatch => {
+                        if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                        if (endDate) {
+                          const end = new Date(endDate);
+                          end.setHours(23, 59, 59, 999);
+                          if (new Date(dispatch.issued_at) > end) return false;
+                        }
+                        return true;
+                      }).map(dispatch => (
+                        <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at).toLocaleDateString()}</span>
+                            {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{dispatch.notes}</p>}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                              dispatch.reason === 'sale' ? 'bg-green-50 text-merkez-green' : 
+                              dispatch.reason === 'damaged' ? 'bg-red-50 text-red-500' :
+                              'bg-gray-100 text-gray-500'
+                            }`}>
+                              {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-gray-900">{dispatch.products?.name || '—'}</span>
+                              <span className="text-[10px] text-gray-400 font-mono">{dispatch.products?.barcode || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
+                          </td>
+                        </tr>
+                      ))
+                    )
                   )}
                 </tbody>
               </table>
