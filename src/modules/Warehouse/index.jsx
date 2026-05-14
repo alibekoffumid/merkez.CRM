@@ -190,13 +190,41 @@ const WarehouseModule = () => {
   
   const fetchTransfers = async () => {
     if (!profile?.id) return;
+    
+    // First, try simple query to check if data exists
+    const { data: raw, error: rawError } = await supabase
+      .from('stock_transfers')
+      .select('*')
+      .eq('user_id', profile.id);
+    
+    console.log('fetchTransfers raw data:', raw, 'error:', rawError, 'profile.id:', profile.id);
+    
+    if (rawError) {
+      console.error('fetchTransfers error:', rawError);
+      toast.error('Transfer history error: ' + rawError.message);
+      return;
+    }
+    
+    if (!raw || raw.length === 0) {
+      console.log('No transfers found for user_id:', profile.id);
+      setTransfers([]);
+      return;
+    }
+
+    // If we have data, fetch with full joins
     const { data, error } = await supabase
       .from('stock_transfers')
-      .select('*, from_warehouse:from_warehouse_id(name), to_warehouse:to_warehouse_id(name), stock_transfer_items(*, products(name, barcode), ingredients(name, barcode))')
+      .select('*, from_warehouse:warehouses!stock_transfers_from_warehouse_id_fkey(name), to_warehouse:warehouses!stock_transfers_to_warehouse_id_fkey(name), stock_transfer_items(*, products(name, barcode), ingredients(name, barcode))')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false });
-    if (error) console.error('fetchTransfers error:', error);
-    if (data) setTransfers(data);
+    
+    if (error) {
+      console.error('fetchTransfers join error:', error);
+      // Fallback: use raw data without joins
+      setTransfers(raw);
+    } else {
+      setTransfers(data || []);
+    }
   };
 
   const fetchSuppliers = async () => {
