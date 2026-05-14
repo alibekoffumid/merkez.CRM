@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, Minus, Menu, X } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -19,6 +19,7 @@ import DateRangePicker from '../../components/Common/DateRangePicker';
 import Dropdown from '../../components/Common/Dropdown';
 import WarehouseSettings from './WarehouseSettings';
 import DispatchStockModal from './DispatchStockModal';
+import TransferStockModal from './TransferStockModal';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -46,6 +47,7 @@ const WarehouseModule = () => {
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [showReceiveStock, setShowReceiveStock] = useState(false);
   const [showDispatchStock, setShowDispatchStock] = useState(false);
+  const [showTransferStock, setShowTransferStock] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
@@ -521,11 +523,13 @@ const WarehouseModule = () => {
             >
               <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
             </button>
-            <button 
-              onClick={() => setShowDispatchStock(true)} 
-              className="bg-white border border-merkez-red text-merkez-red px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
-            >
               <Minus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.dispatchStock') || 'Списание'}
+            </button>
+            <button 
+              onClick={() => setShowTransferStock(true)} 
+              className="bg-white border border-merkez-blue text-merkez-blue px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center shadow-sm"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.transferStock') || 'Перемещение'}
             </button>
           </div>
         </div>
@@ -1172,6 +1176,15 @@ const WarehouseModule = () => {
         onStockDispatched={fetchAll}
         type={activeTab === 'finished' ? 'product' : 'ingredient'}
         warehouseId={currentWarehouseId}
+      />
+
+      <TransferStockModal
+        isOpen={showTransferStock}
+        onClose={() => setShowTransferStock(false)}
+        products={activeTab === 'finished' ? products : ingredients}
+        warehouses={warehouses}
+        onStockTransferred={fetchAll}
+        type={activeTab === 'finished' ? 'product' : 'ingredient'}
       />
       {confirmDelete && (
         <ModalPortal>
