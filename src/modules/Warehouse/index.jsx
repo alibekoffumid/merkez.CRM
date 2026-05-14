@@ -659,16 +659,17 @@ const WarehouseModule = () => {
                             <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                           </td>
                         </tr>
-                      ))
-                    </tbody>
-                  </table>
-                </div>
+                      )
+                    )
+                  </tbody>
+                </table>
               </div>
             </div>
-          )
+          </div>
         )
-      )}
-    ) : (
+      )
+    )}
+  ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
               <div className={`
