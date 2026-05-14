@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -627,6 +627,13 @@ const WarehouseModule = () => {
           </div>
           
           <div className="flex gap-2 ml-auto">
+            <button 
+              onClick={() => setShowTour(true)}
+              className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100"
+              title={t('common.tutorial') || 'Обучение'}
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
             <button 
               id="tour-receive-btn"
               onClick={() => setShowReceiveStock(true)} 
