@@ -99,7 +99,7 @@ const EnrollmentForm = () => {
               value={formData.firstName}
               onChange={(e) => setFormData({...formData, firstName: e.target.value})}
               className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-              placeholder="e.g. Aysel" 
+              placeholder={t('education.placeholders.firstName', 'e.g. Aysel')}
             />
           </div>
           <div className="space-y-2">
@@ -110,7 +110,7 @@ const EnrollmentForm = () => {
               value={formData.lastName}
               onChange={(e) => setFormData({...formData, lastName: e.target.value})}
               className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-              placeholder="e.g. Jafarova" 
+              placeholder={t('education.placeholders.lastName', 'e.g. Jafarova')}
             />
           </div>
           <DatePicker 
@@ -131,7 +131,7 @@ const EnrollmentForm = () => {
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 className="w-full p-4 pl-14 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-                placeholder="e.g. aysel@example.com" 
+                placeholder={t('education.placeholders.email', 'e.g. aysel@example.com')}
               />
             </div>
           </div>
@@ -157,7 +157,7 @@ const EnrollmentForm = () => {
               value={formData.monthlyPayment}
               onChange={(e) => setFormData({...formData, monthlyPayment: e.target.value})}
               className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900" 
-              placeholder="e.g. 50" 
+              placeholder={t('education.placeholders.monthlyPayment', 'e.g. 50')}
             />
           </div>
         </div>

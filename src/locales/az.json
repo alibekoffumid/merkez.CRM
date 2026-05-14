@@ -78,7 +78,8 @@
       "fri": "Cüm",
       "sat": "Şən",
       "sun": "Baz"
-    }
+    },
+    "selectDate": "Tarix seçin"
   },
   "sidebar": {
     "dashboard": "Panel",
@@ -303,7 +304,8 @@
       "lastName": "Məmmədov",
       "email": "anar@example.com",
       "phone": "+994 ...",
-      "groupName": "məs. Piano Qrup A"
+      "groupName": "məs. Piano Qrup A",
+      "monthlyPayment": "məs. 50"
     },
     "newLesson": "Yeni Dərs",
     "teacherName": "Müəllim Adı",

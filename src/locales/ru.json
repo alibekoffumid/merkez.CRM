@@ -78,7 +78,8 @@
       "fri": "Пт",
       "sat": "Сб",
       "sun": "Вс"
-    }
+    },
+    "selectDate": "Выберите дату"
   },
   "sidebar": {
     "dashboard": "Дашборд",
@@ -299,7 +300,8 @@
       "lastName": "Иванов",
       "email": "ivan@example.com",
       "phone": "+994 ...",
-      "groupName": "напр. Группа Фортепиано А"
+      "groupName": "напр. Группа Фортепиано А",
+      "monthlyPayment": "напр. 50"
     },
     "newLesson": "Новый урок",
     "teacherName": "Имя учителя",

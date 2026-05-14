@@ -78,7 +78,8 @@
       "fri": "Fri",
       "sat": "Sat",
       "sun": "Sun"
-    }
+    },
+    "selectDate": "Select date"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -299,7 +300,8 @@
       "lastName": "Doe",
       "email": "john@example.com",
       "phone": "+1 ...",
-      "groupName": "e.g. Piano Group A"
+      "groupName": "e.g. Piano Group A",
+      "monthlyPayment": "e.g. 50"
     },
     "newLesson": "New Lesson",
     "teacherName": "Teacher Name",
