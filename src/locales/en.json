@@ -699,7 +699,12 @@
     "dispatchListEmpty": "Dispatch list is empty",
     "completeDispatch": "Confirm Dispatch",
     "totalQuantity": "Total Quantity",
-    "dispatchedDate": "Operation Date"
+    "dispatchedDate": "Operation Date",
+    "receipts": "Receipts",
+    "dispatches": "Dispatches",
+    "dispatchHistory": "Dispatch History",
+    "dispatchHistoryDesc": "List of all issued and disposed items",
+    "noDispatchesFound": "Dispatch history is empty"
   },
   "modules": {
     "storeTitle": "Choose your modules",

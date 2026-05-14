@@ -699,7 +699,12 @@
     "dispatchListEmpty": "Список списания пуст",
     "completeDispatch": "Подтвердить списание",
     "totalQuantity": "Общее кол-во",
-    "dispatchedDate": "Дата операции"
+    "dispatchedDate": "Дата операции",
+    "receipts": "Приёмки",
+    "dispatches": "Списания",
+    "dispatchHistory": "История списаний",
+    "dispatchHistoryDesc": "Список всех выданных и списанных товаров",
+    "noDispatchesFound": "История списаний пуста"
   },
   "modules": {
     "storeTitle": "Выберите модули",

@@ -697,7 +697,12 @@
     "dispatchListEmpty": "Silinmə siyahısı boşdur",
     "completeDispatch": "Silinməni təsdiqlə",
     "totalQuantity": "Ümumi miqdar",
-    "dispatchedDate": "Əməliyyat tarixi"
+    "dispatchedDate": "Əməliyyat tarixi",
+    "receipts": "Qəbullar",
+    "dispatches": "Silinmələr",
+    "dispatchHistory": "Silinmə tarixi",
+    "dispatchHistoryDesc": "Bütün verilmiş və silinmiş malların siyahısı",
+    "noDispatchesFound": "Silinmə tarixi boşdur"
   },
   "modules": {
     "storeTitle": "Modulları seçin",
