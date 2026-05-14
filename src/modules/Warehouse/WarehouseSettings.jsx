@@ -10,8 +10,8 @@ import { useUser } from '../../core/UserContext';
 const WarehouseSettings = () => {
   const { t } = useTranslation();
   const { profile } = useUser();
-  const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [settings, setSettings] = useState({
     currency: 'AZN',
     defaultUnit: 'pcs',
@@ -25,21 +25,19 @@ const WarehouseSettings = () => {
     const savedSettings = localStorage.getItem('merkez_warehouse_settings');
     if (savedSettings) {
       try {
-        setSettings(JSON.parse(savedSettings));
+        setSettings(prev => ({ ...prev, ...JSON.parse(savedSettings) }));
       } catch (e) {
         console.error('Failed to parse warehouse settings');
       }
     }
+    setLoaded(true);
   }, []);
 
-  const handleSave = () => {
-    setLoading(true);
-    setTimeout(() => {
+  useEffect(() => {
+    if (loaded) {
       localStorage.setItem('merkez_warehouse_settings', JSON.stringify(settings));
-      setLoading(false);
-      toast.success(t('common.saved') || 'Настройки сохранены');
-    }, 400);
-  };
+    }
+  }, [settings, loaded]);
 
   const exportBarcodes = async () => {
     if (!profile) return;
@@ -270,19 +268,6 @@ const WarehouseSettings = () => {
             <Barcode className="w-4 h-4" />
           )}
           {t('warehouse.exportBarcodes') || 'Выгрузить список штрихкодов (CSV)'}
-        </button>
-
-        <button 
-          onClick={handleSave}
-          disabled={loading}
-          className="bg-merkez-blue text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-600/20 flex items-center gap-2"
-        >
-          {loading ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          {t('common.saveSettings') || 'Сохранить настройки'}
         </button>
       </div>
     </div>
