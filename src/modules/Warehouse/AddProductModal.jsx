@@ -126,6 +126,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
         stock_quantity: parseFloat(formData.stock_quantity || 0),
         critical_stock: parseFloat(formData.critical_stock || 5),
         image_url: imageUrl,
+        supplier_id: formData.supplier_id || null,
         user_id: profile?.id
       }])
       .select('*, categories(name)');
