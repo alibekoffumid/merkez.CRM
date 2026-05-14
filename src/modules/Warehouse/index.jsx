@@ -253,7 +253,13 @@ const WarehouseModule = () => {
   };
 
   const filteredProducts = products
-    .filter(p => selectedCategory ? p.category_id === selectedCategory : true)
+    .filter(p => {
+      if (!selectedCategory) return true;
+      if (p.category_id === selectedCategory) return true;
+      // Also include subcategories
+      const subCategoryIds = categories.filter(c => c.parent_id === selectedCategory).map(c => c.id);
+      return subCategoryIds.includes(p.category_id);
+    })
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .filter(p => {
       if (statusFilter === 'all') return true;
@@ -620,7 +626,11 @@ const WarehouseModule = () => {
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full shrink-0">
-                          {products.filter(p => p.category_id === cat.id).length}
+                          {products.filter(p => {
+                            if (p.category_id === cat.id) return true;
+                            const subIds = categories.filter(s => s.parent_id === cat.id).map(s => s.id);
+                            return subIds.includes(p.category_id);
+                          }).length}
                         </span>
                       </div>
                     </div>
