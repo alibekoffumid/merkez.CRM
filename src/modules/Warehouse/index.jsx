@@ -222,19 +222,52 @@ const WarehouseModule = () => {
     const warehouseMap = {};
     (warehousesData || []).forEach(w => { warehouseMap[w.id] = w.name; });
 
-    // Fetch transfer items with product/ingredient names
+    // Fetch transfer items - try simple query first (no joins)
     const transferIds = transfersData.map(t => t.id);
-    const { data: itemsData, error: itemsError } = await supabase
+    const { data: itemsRaw, error: itemsError } = await supabase
       .from('stock_transfer_items')
-      .select('*, products(name, barcode), ingredients(name, barcode)')
+      .select('*')
       .in('transfer_id', transferIds);
     
-    if (itemsError) console.error('Transfer items error:', itemsError);
-    console.log('Transfer items:', itemsData, 'for transfer IDs:', transferIds);
+    if (itemsError) {
+      console.error('Transfer items error:', itemsError);
+    }
+
+    // Look up product/ingredient names for items
+    let itemsEnriched = itemsRaw || [];
+    if (itemsRaw && itemsRaw.length > 0) {
+      const productIds = itemsRaw.map(i => i.product_id).filter(Boolean);
+      const ingredientIds = itemsRaw.map(i => i.ingredient_id).filter(Boolean);
+      
+      let productsMap = {};
+      let ingredientsMap = {};
+      
+      if (productIds.length > 0) {
+        const { data: prods } = await supabase
+          .from('products')
+          .select('id, name, barcode')
+          .in('id', productIds);
+        (prods || []).forEach(p => { productsMap[p.id] = p; });
+      }
+      
+      if (ingredientIds.length > 0) {
+        const { data: ings } = await supabase
+          .from('ingredients')
+          .select('id, name, barcode')
+          .in('id', ingredientIds);
+        (ings || []).forEach(i => { ingredientsMap[i.id] = i; });
+      }
+
+      itemsEnriched = itemsRaw.map(item => ({
+        ...item,
+        products: item.product_id ? productsMap[item.product_id] || null : null,
+        ingredients: item.ingredient_id ? ingredientsMap[item.ingredient_id] || null : null
+      }));
+    }
 
     // Group items by transfer_id
     const itemsByTransfer = {};
-    (itemsData || []).forEach(item => {
+    itemsEnriched.forEach(item => {
       if (!itemsByTransfer[item.transfer_id]) itemsByTransfer[item.transfer_id] = [];
       itemsByTransfer[item.transfer_id].push(item);
     });
