@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 import Dropdown from '../../components/Common/Dropdown';
 import DatePicker from '../../components/Common/DatePicker';
 
-const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
+const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product', warehouseId }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && warehouseId) {
       fetchCategories();
       fetchSuppliers();
       fetchProducts();
@@ -52,7 +52,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
         unit_price: ''
       });
     }
-  }, [isOpen]);
+  }, [isOpen, warehouseId, type]);
 
   const fetchCategories = async () => {
     if (!profile?.id) return;
@@ -67,8 +67,15 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
   };
 
   const fetchProducts = async () => {
-    if (!profile?.id) return;
-    const { data } = await supabase.from('products').select('id, name, barcode, purchase_price, supplier_id, category_id').eq('user_id', profile.id).eq('archived', false).order('name');
+    if (!profile?.id || !warehouseId) return;
+    const table = type === 'product' ? 'products' : 'ingredients';
+    const { data } = await supabase
+      .from(table)
+      .select('id, name, barcode, purchase_price, supplier_id, category_id')
+      .eq('user_id', profile.id)
+      .eq('warehouse_id', warehouseId)
+      .eq('archived', false)
+      .order('name');
     if (data) setProducts(data);
   };
 
@@ -144,6 +151,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
     }
     
     setLoading(true);
+    const targetTable = type === 'product' ? 'products' : 'ingredients';
+    
     try {
       // Process each item
       for (const item of items) {
@@ -151,32 +160,41 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived }) => {
         const { error: receiptError } = await supabase
           .from('stock_receipts')
           .insert([{ 
-            product_id: item.product_id,
+            product_id: type === 'product' ? item.product_id : null,
+            ingredient_id: type === 'ingredient' ? item.product_id : null,
             supplier_id: headerData.supplier_id || null,
             quantity: parseFloat(item.quantity),
             unit_price: item.unit_price ? parseFloat(item.unit_price) : null,
             received_at: headerData.received_at,
             notes: headerData.notes,
-            user_id: profile?.id 
+            user_id: profile?.id,
+            warehouse_id: warehouseId
           }]);
 
         if (receiptError) throw receiptError;
 
-        // 2. Update the product stock quantity
-        const { data: currentProduct } = await supabase
-          .from('products')
-          .select('stock_quantity, purchase_price')
+        // 2. Update the stock quantity
+        const { data: currentItemData } = await supabase
+          .from(targetTable)
+          .select('stock_quantity, quantity, purchase_price, cost_price')
           .eq('id', item.product_id)
           .single();
 
-        const newQuantity = (currentProduct?.stock_quantity || 0) + parseFloat(item.quantity);
+        const currentQtyField = type === 'product' ? 'stock_quantity' : 'quantity';
+        const currentQty = (currentItemData?.[currentQtyField] || 0);
+        const newQuantity = currentQty + parseFloat(item.quantity);
+
+        const updatePayload = {
+            [currentQtyField]: newQuantity
+        };
+
+        if (item.unit_price) {
+            updatePayload[type === 'product' ? 'purchase_price' : 'cost_price'] = parseFloat(item.unit_price);
+        }
 
         const { error: updateError } = await supabase
-          .from('products')
-          .update({ 
-            stock_quantity: newQuantity,
-            purchase_price: item.unit_price ? parseFloat(item.unit_price) : currentProduct?.purchase_price
-          })
+          .from(targetTable)
+          .update(updatePayload)
           .eq('id', item.product_id);
 
         if (updateError) throw updateError;

@@ -7,7 +7,7 @@ import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
-const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId }) => {
+const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -133,7 +133,8 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
         critical_stock: parseFloat(formData.critical_stock || 5),
         image_url: imageUrl,
         supplier_id: formData.supplier_id || null,
-        user_id: profile?.id
+        user_id: profile?.id,
+        warehouse_id: warehouseId
       }])
       .select('*, categories(name)');
 

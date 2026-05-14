@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 import Dropdown from '../../components/Common/Dropdown';
 import DatePicker from '../../components/Common/DatePicker';
 
-const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
+const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'product', warehouseId }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
   });
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && warehouseId) {
       fetchCategories();
       fetchProducts();
       setItems([]);
@@ -48,7 +48,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
         quantity: ''
       });
     }
-  }, [isOpen]);
+  }, [isOpen, warehouseId, type]);
 
   const fetchCategories = async () => {
     if (!profile?.id) return;
@@ -57,9 +57,25 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
   };
 
   const fetchProducts = async () => {
-    if (!profile?.id) return;
-    const { data } = await supabase.from('products').select('id, name, barcode, stock_quantity, category_id').eq('user_id', profile.id).eq('archived', false).order('name');
-    if (data) setProducts(data);
+    if (!profile?.id || !warehouseId) return;
+    const table = type === 'product' ? 'products' : 'ingredients';
+    const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
+    
+    const { data } = await supabase
+      .from(table)
+      .select(`id, name, barcode, ${qtyField}, category_id`)
+      .eq('user_id', profile.id)
+      .eq('warehouse_id', warehouseId)
+      .eq('archived', false)
+      .order('name');
+    
+    if (data) {
+      // Map the qty field to a common name for internal use
+      setProducts(data.map(p => ({
+        ...p,
+        stock_quantity: p[qtyField]
+      })));
+    }
   };
 
   const handleCategoryChange = (val) => {
@@ -128,29 +144,39 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched }) => {
     }
     
     setLoading(true);
+    const targetTable = type === 'product' ? 'products' : 'ingredients';
+    const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
+
     try {
       for (const item of items) {
         // 1. Record the dispatch
         const { error: dispatchError } = await supabase
           .from('stock_dispatches')
           .insert([{ 
-            product_id: item.product_id,
+            product_id: type === 'product' ? item.product_id : null,
+            ingredient_id: type === 'ingredient' ? item.product_id : null,
             quantity: parseFloat(item.quantity),
             issued_at: headerData.issued_at,
             reason: headerData.reason,
             notes: headerData.notes,
-            user_id: profile?.id 
+            user_id: profile?.id,
+            warehouse_id: warehouseId
           }]);
 
         if (dispatchError) throw dispatchError;
 
-        // 2. Update product quantity
-        const { data: product } = await supabase.from('products').select('stock_quantity').eq('id', item.product_id).single();
-        const newQty = (product?.stock_quantity || 0) - parseFloat(item.quantity);
+        // 2. Update quantity
+        const { data: currentData } = await supabase
+          .from(targetTable)
+          .select(qtyField)
+          .eq('id', item.product_id)
+          .single();
+        
+        const newQty = (currentData?.[qtyField] || 0) - parseFloat(item.quantity);
 
         const { error: updateError } = await supabase
-          .from('products')
-          .update({ stock_quantity: newQty })
+          .from(targetTable)
+          .update({ [qtyField]: newQty })
           .eq('id', item.product_id);
 
         if (updateError) throw updateError;

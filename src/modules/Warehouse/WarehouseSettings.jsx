@@ -20,6 +20,11 @@ const WarehouseSettings = () => {
     autoGenerateBarcode: false,
     barcodePrefix: 'MRKZ-'
   });
+  const [warehouses, setWarehouses] = useState([]);
+  const [loadingWarehouses, setLoadingWarehouses] = useState(false);
+  const [showAddWarehouse, setShowAddWarehouse] = useState(false);
+  const [newWarehouse, setNewWarehouse] = useState({ name: '', address: '' });
+  const [editingWarehouseId, setEditingWarehouseId] = useState(null);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('merkez_warehouse_settings');
@@ -31,7 +36,66 @@ const WarehouseSettings = () => {
       }
     }
     setLoaded(true);
+    fetchWarehouses();
   }, []);
+
+  const fetchWarehouses = async () => {
+    if (!profile?.id) return;
+    setLoadingWarehouses(true);
+    const { data } = await supabase
+      .from('warehouses')
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('created_at', { ascending: true });
+    if (data) setWarehouses(data);
+    setLoadingWarehouses(false);
+  };
+
+  const addWarehouse = async () => {
+    if (!newWarehouse.name || !profile?.id) return;
+    const { data, error } = await supabase
+      .from('warehouses')
+      .insert({ 
+        name: newWarehouse.name, 
+        address: newWarehouse.address,
+        user_id: profile.id,
+        is_default: warehouses.length === 0
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setWarehouses([...warehouses, data]);
+      setNewWarehouse({ name: '', address: '' });
+      setShowAddWarehouse(false);
+      toast.success(t('common.success'));
+    }
+  };
+
+  const deleteWarehouse = async (id) => {
+    if (warehouses.length <= 1) {
+      toast.error(t('warehouse.cannotDeleteOnlyWarehouse') || 'Нельзя удалить единственный склад');
+      return;
+    }
+    const { error } = await supabase.from('warehouses').delete().eq('id', id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setWarehouses(warehouses.filter(w => w.id !== id));
+      toast.success(t('common.success'));
+    }
+  };
+
+  const setAsDefault = async (id) => {
+    // 1. Reset all
+    await supabase.from('warehouses').update({ is_default: false }).eq('user_id', profile.id);
+    // 2. Set new default
+    await supabase.from('warehouses').update({ is_default: true }).eq('id', id);
+    fetchWarehouses();
+    toast.success(t('common.success'));
+  };
 
   useEffect(() => {
     if (loaded) {
@@ -256,6 +320,88 @@ const WarehouseSettings = () => {
                 </div>
               )}
               <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара.'}</p>
+            </div>
+          </div>
+          {/* Warehouse Management */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.management') || 'Управление складами'}</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+              <div className="space-y-3">
+                {warehouses.map(w => (
+                  <div key={w.id} className="bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between shadow-sm group">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-sm font-bold text-gray-900">{w.name}</h5>
+                        {w.is_default && (
+                          <span className="bg-blue-50 text-merkez-blue text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                            {t('common.default') || 'По умолчанию'}
+                          </span>
+                        )}
+                      </div>
+                      {w.address && <p className="text-[11px] text-gray-400 mt-0.5">{w.address}</p>}
+                    </div>
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {!w.is_default && (
+                        <button 
+                          onClick={() => setAsDefault(w.id)}
+                          className="text-[10px] font-bold text-gray-400 hover:text-merkez-blue uppercase tracking-widest px-2 py-1"
+                        >
+                          {t('common.makeDefault') || 'Сделать основным'}
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => deleteWarehouse(w.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {showAddWarehouse ? (
+                <div className="bg-white p-6 rounded-2xl border-2 border-dashed border-gray-100 space-y-4 animate-in fade-in slide-in-from-top-4">
+                  <div className="space-y-4">
+                    <input 
+                      type="text" 
+                      placeholder={t('warehouse.warehouseName') || 'Название склада'}
+                      className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-merkez-blue"
+                      value={newWarehouse.name}
+                      onChange={e => setNewWarehouse({...newWarehouse, name: e.target.value})}
+                    />
+                    <input 
+                      type="text" 
+                      placeholder={t('common.address') || 'Адрес (необязательно)'}
+                      className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-medium outline-none focus:ring-1 focus:ring-merkez-blue"
+                      value={newWarehouse.address}
+                      onChange={e => setNewWarehouse({...newWarehouse, address: e.target.value})}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setShowAddWarehouse(false)}
+                      className="flex-1 py-2 text-xs font-bold text-gray-500 hover:text-gray-700"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    <button 
+                      onClick={addWarehouse}
+                      className="flex-1 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all"
+                    >
+                      {t('common.add')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setShowAddWarehouse(true)}
+                  className="w-full py-4 border-2 border-dashed border-gray-200 rounded-2xl text-xs font-black text-gray-400 uppercase tracking-[0.2em] hover:border-merkez-blue hover:text-merkez-blue hover:bg-blue-50/50 transition-all"
+                >
+                  <Plus className="w-4 h-4 inline mr-2" />
+                  {t('warehouse.addNewWarehouse') || 'Добавить склад'}
+                </button>
+              )}
             </div>
           </div>
         </div>

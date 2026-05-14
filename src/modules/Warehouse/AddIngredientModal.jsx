@@ -4,7 +4,7 @@ import { X, Save, Box, Scale, DollarSign, AlertCircle } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 
-const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
+const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded, warehouseId }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -51,7 +51,8 @@ const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
         unit: formData.unit,
         quantity: parseFloat(formData.quantity),
         min_quantity: parseFloat(formData.min_quantity || 0),
-        cost_price: parseFloat(formData.cost_price)
+        cost_price: parseFloat(formData.cost_price),
+        warehouse_id: warehouseId
       }])
       .select()
       .single();
@@ -62,7 +63,8 @@ const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
         ingredient_id: ingredient.id,
         type: 'in',
         quantity: parseFloat(formData.quantity),
-        notes: 'Initial stock'
+        notes: 'Initial stock',
+        warehouse_id: warehouseId
       }]);
 
       onIngredientAdded();

@@ -56,6 +56,9 @@ const WarehouseModule = () => {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [currentWarehouseId, setCurrentWarehouseId] = useState(null);
+  const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -64,6 +67,15 @@ const WarehouseModule = () => {
       fetchAll();
     }
   }, [profile?.id]);
+
+  useEffect(() => {
+    if (currentWarehouseId) {
+      fetchProducts();
+      fetchIngredients();
+      fetchReceipts();
+      fetchDispatches();
+    }
+  }, [currentWarehouseId]);
 
   useEffect(() => {
     if (!isRestaurantActive && activeTab === 'raw') {
@@ -109,6 +121,8 @@ const WarehouseModule = () => {
 
   const fetchAll = async () => {
     setLoading(true);
+    // Fetch warehouses first to get the current context
+    await fetchWarehouses();
     await Promise.all([
       fetchCategories(), 
       fetchProducts(), 
@@ -120,22 +134,52 @@ const WarehouseModule = () => {
     setLoading(false);
   };
 
-  const fetchReceipts = async () => {
+  const fetchWarehouses = async () => {
     if (!profile?.id) return;
+    const { data, error } = await supabase
+      .from('warehouses')
+      .select('*')
+      .eq('user_id', profile.id)
+      .order('is_default', { ascending: false });
+    
+    if (data) {
+      if (data.length === 0) {
+        const { data: newW } = await supabase
+          .from('warehouses')
+          .insert({ name: t('warehouse.mainWarehouse') || 'Main Warehouse', is_default: true, user_id: profile.id })
+          .select()
+          .single();
+        if (newW) {
+          setWarehouses([newW]);
+          setCurrentWarehouseId(newW.id);
+        }
+      } else {
+        setWarehouses(data);
+        if (!currentWarehouseId) {
+          setCurrentWarehouseId(data[0].id);
+        }
+      }
+    }
+  };
+
+  const fetchReceipts = async () => {
+    if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('stock_receipts')
       .select('*, products(name, barcode), suppliers(name)')
       .eq('user_id', profile.id)
+      .eq('warehouse_id', currentWarehouseId)
       .order('received_at', { ascending: false });
     if (data) setReceipts(data);
   };
 
   const fetchDispatches = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('stock_dispatches')
       .select('*, products(name, barcode)')
       .eq('user_id', profile.id)
+      .eq('warehouse_id', currentWarehouseId)
       .order('issued_at', { ascending: false });
     if (data) setDispatches(data);
   };
@@ -157,19 +201,25 @@ const WarehouseModule = () => {
   };
 
   const fetchProducts = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('products')
       .select('*, categories(name)')
       .eq('archived', false)
       .eq('user_id', profile.id)
+      .eq('warehouse_id', currentWarehouseId)
       .order('name', { ascending: true });
     if (data) setProducts(data);
   };
 
   const fetchIngredients = async () => {
-    if (!profile?.id) return;
-    const { data } = await supabase.from('ingredients').select('*').eq('user_id', profile.id).order('name', { ascending: true });
+    if (!profile?.id || !currentWarehouseId) return;
+    const { data } = await supabase
+      .from('ingredients')
+      .select('*')
+      .eq('user_id', profile.id)
+      .eq('warehouse_id', currentWarehouseId)
+      .order('name', { ascending: true });
     if (data) setIngredients(data);
   };
 
@@ -293,8 +343,8 @@ const WarehouseModule = () => {
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
       {/* Modals */}
-      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} initialCategoryId={selectedCategory} />
-      <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} />
+      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} initialCategoryId={selectedCategory} warehouseId={currentWarehouseId} />
+      <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} warehouseId={currentWarehouseId} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
       <EditProductModal 
         isOpen={!!editingProduct} 
@@ -310,6 +360,7 @@ const WarehouseModule = () => {
         isOpen={showAddIngredient} 
         onClose={() => setShowAddIngredient(false)} 
         onIngredientAdded={fetchIngredients} 
+        warehouseId={currentWarehouseId}
       />
       <EditIngredientModal 
         isOpen={!!editingIngredient} 
@@ -326,7 +377,27 @@ const WarehouseModule = () => {
             <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
               <Package className="w-5 h-5 text-merkez-blue" />
             </div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
+              {warehouses.length > 0 && (
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Dropdown
+                    trigger={
+                      <button className="flex items-center gap-1 text-[10px] font-black text-gray-400 hover:text-merkez-blue transition-colors uppercase tracking-widest">
+                        <span className="max-w-[150px] truncate">{warehouses.find(w => w.id === currentWarehouseId)?.name}</span>
+                        <ChevronRight className="w-2.5 h-2.5 rotate-90" />
+                      </button>
+                    }
+                    items={warehouses.map(w => ({
+                      id: w.id,
+                      label: w.name,
+                      onClick: () => setCurrentWarehouseId(w.id),
+                      active: w.id === currentWarehouseId
+                    }))}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Main Navigation Tabs */}
@@ -1067,14 +1138,22 @@ const WarehouseModule = () => {
       )}
 
       <ReceiveStockModal 
-        isOpen={showReceiveStock}
-        onClose={() => setShowReceiveStock(false)}
+        isOpen={showReceiveStock} 
+        onClose={() => setShowReceiveStock(false)} 
+        products={activeTab === 'finished' ? products : ingredients} 
+        suppliers={suppliers}
         onStockReceived={fetchAll}
+        type={activeTab === 'finished' ? 'product' : 'ingredient'}
+        warehouseId={currentWarehouseId}
       />
-      <DispatchStockModal 
+
+      <DispatchStockModal
         isOpen={showDispatchStock}
         onClose={() => setShowDispatchStock(false)}
+        products={activeTab === 'finished' ? products : ingredients}
         onStockDispatched={fetchAll}
+        type={activeTab === 'finished' ? 'product' : 'ingredient'}
+        warehouseId={currentWarehouseId}
       />
       {confirmDelete && (
         <ModalPortal>
