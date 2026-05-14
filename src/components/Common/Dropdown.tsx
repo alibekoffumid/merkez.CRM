@@ -8,23 +8,41 @@ interface DropdownOption {
   icon?: React.ElementType;
 }
 
+interface DropdownItem {
+  id: string;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+  className?: string;
+}
+
 interface DropdownProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: DropdownOption[];
+  value?: string;
+  onChange?: (value: string) => void;
+  options?: DropdownOption[];
   label?: string;
   className?: string;
   position?: 'top' | 'bottom' | 'auto';
+  trigger?: React.ReactNode;
+  items?: DropdownItem[];
 }
 
-const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, className = '', position = 'auto' }) => {
+const Dropdown: React.FC<DropdownProps> = ({ 
+  value, 
+  onChange, 
+  options, 
+  label, 
+  className = '', 
+  position = 'auto',
+  trigger,
+  items
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, isTop: false });
   const containerRef = useRef<HTMLDivElement>(null);
-
-  const selectedOption = options.find(opt => opt.value === value) || options[0];
-
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options ? (options.find(opt => opt.value === value) || options[0]) : null;
 
   const updateCoords = () => {
     if (containerRef.current) {
@@ -67,13 +85,6 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
     }
   }, [isOpen]);
 
-  const handleSelect = (val: string, e: React.MouseEvent | React.FocusEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onChange(val);
-    setIsOpen(false);
-  };
-
   const dropdownMenu = isOpen && createPortal(
     <div 
       ref={menuRef}
@@ -86,23 +97,40 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
       }}
     >
       <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-        {options.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onMouseDown={(e) => {
-              // Using onMouseDown because it fires before the click-outside/blur
-              e.preventDefault();
-              e.stopPropagation();
-              onChange(opt.value);
-              setIsOpen(false);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
-          >
-            {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
-            <span className="text-sm font-bold whitespace-nowrap">{opt.label}</span>
-          </button>
-        ))}
+        {options ? (
+          options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onChange?.(opt.value);
+                setIsOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
+            >
+              {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
+              <span className="text-sm font-bold whitespace-nowrap">{opt.label}</span>
+            </button>
+          ))
+        ) : (
+          items?.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                item.onClick();
+                setIsOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${item.active ? 'bg-blue-50 text-blue-600' : 'text-gray-600'} ${item.className || ''}`}
+            >
+              <span className="text-sm font-bold whitespace-nowrap">{item.label}</span>
+            </button>
+          ))
+        )}
       </div>
     </div>,
     document.body
@@ -110,27 +138,46 @@ const Dropdown: React.FC<DropdownProps> = ({ value, onChange, options, label, cl
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {label && (
-        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">
-          {label}
-        </label>
-      )}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setIsOpen(!isOpen);
-        }}
-        className="w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-blue-500 hover:bg-white rounded-2xl px-4 py-2.5 transition-all group shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
-      >
-        <div className="flex items-center gap-3 overflow-hidden">
-          {selectedOption.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors" />}
-          <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">{selectedOption.label}</span>
+      {trigger ? (
+        <div 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          className="cursor-pointer"
+        >
+          {trigger}
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
-      </button>
+      ) : (
+        <>
+          {label && (
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">
+              {label}
+            </label>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsOpen(!isOpen);
+            }}
+            className="w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-blue-500 hover:bg-white rounded-2xl px-4 py-2.5 transition-all group shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              {selectedOption?.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors" />}
+              <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">{selectedOption?.label}</span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
+          </button>
+        </>
+      )}
 
+      {dropdownMenu}
+    </div>
+  );
+};
       {dropdownMenu}
     </div>
   );
