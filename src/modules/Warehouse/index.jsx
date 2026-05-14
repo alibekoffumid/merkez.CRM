@@ -318,8 +318,8 @@ const WarehouseModule = () => {
       />
 
       {/* Header & Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col lg:flex-row flex-wrap items-center justify-between gap-6 shrink-0">
-        <div className="flex items-center gap-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-col xl:flex-row items-center justify-between gap-6 shrink-0">
+        <div className="flex items-center gap-4 min-w-[180px]">
           <div className="w-12 h-12 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
             <Package className="w-6 h-6 text-merkez-blue" />
           </div>
@@ -328,132 +328,102 @@ const WarehouseModule = () => {
           </div>
         </div>
 
-        {/* Tab Switcher Inline - Only if Restaurant is active */}
-        {isRestaurantActive && (
-          <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
-            <button 
-              onClick={() => setActiveTab('finished')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Package className="w-3.5 h-3.5" />
-              {t('warehouse.finishedGoods')}
-            </button>
+        {/* Tab Switcher - Centered */}
+        <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
+          <button 
+            onClick={() => setActiveTab('finished')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            <Package className="w-4 h-4" />
+            {t('warehouse.finishedGoods')}
+          </button>
+          
+          {isRestaurantActive && (
             <button 
               onClick={() => setActiveTab('raw')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <FolderTree className="w-3.5 h-3.5" />
+              <FolderTree className="w-4 h-4" />
               {t('warehouse.ingredients')}
             </button>
-            <button 
-              onClick={() => setActiveTab('suppliers')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Truck className="w-3.5 h-3.5" />
-              {t('warehouse.suppliers') || 'Поставщики'}
-            </button>
-            <button 
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Search className="w-3.5 h-3.5" />
-              {t('warehouse.history') || 'История'}
-            </button>
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Settings className="w-3.5 h-3.5" />
-              {t('common.settings') || 'Настройки'}
-            </button>
-          </div>
-        )}
-
-        {!isRestaurantActive && (
-          <div className="flex p-1 bg-gray-50 rounded-2xl border border-gray-100">
-            <button 
-              onClick={() => setActiveTab('finished')}
-              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Package className="w-4 h-4" />
-              {t('warehouse.finishedGoods')}
-            </button>
-            <button 
-              onClick={() => setActiveTab('suppliers')}
-              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Truck className="w-4 h-4" />
-              {t('warehouse.suppliers') || 'Поставщики'}
-            </button>
-            <button 
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Search className="w-4 h-4" />
-              {t('warehouse.history') || 'История'}
-            </button>
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-            >
-              <Settings className="w-4 h-4" />
-              {t('common.settings') || 'Настройки'}
-            </button>
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          {activeTab === 'finished' && (
-            <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addCategory')}
-            </button>
-          )}
-          
-          {activeTab === 'finished' && (
-            <button onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-              <Upload className="w-4 h-4 mr-2" /> {t('warehouse.import')}
-            </button>
           )}
 
-          {activeTab === 'finished' && (
-            <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
-              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addProduct')}
-            </button>
-          )}
-
-          {activeTab === 'raw' && isRestaurantActive && (
-            <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors flex items-center shadow-lg shadow-green-600/20">
-              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addIngredient')}
-            </button>
-          )}
-
-          {activeTab === 'suppliers' && (
-            <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
-              <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addSupplier')}
-            </button>
-          )}
-
-          {selectedItems.length > 0 && activeTab === 'finished' && (
-            <button 
-              onClick={() => setConfirmDelete({ type: 'bulk' })} 
-              className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
-            >
-              <Trash2 className="w-4 h-4 mr-2" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
-            </button>
-          )}
-          
           <button 
-            onClick={() => setShowReceiveStock(true)} 
-            className="bg-white border border-merkez-green text-merkez-green px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
+            onClick={() => setActiveTab('suppliers')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
           >
-            <Truck className="w-4 h-4 mr-2" /> {t('warehouse.receiveStock') || 'Приемка'}
+            <Truck className="w-4 h-4" />
+            {t('warehouse.suppliers') || 'Поставщики'}
           </button>
           <button 
-            onClick={() => setShowDispatchStock(true)} 
-            className="bg-white border border-merkez-red text-merkez-red px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
           >
-            <Minus className="w-4 h-4 mr-2" /> {t('warehouse.dispatchStock') || 'Списание'}
+            <Search className="w-4 h-4" />
+            {t('warehouse.history') || 'История'}
           </button>
+          <button 
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            <Settings className="w-4 h-4" />
+            {t('common.settings') || 'Настройки'}
+          </button>
+        </div>
+
+        {/* Actions - Right Aligned */}
+        <div className="flex flex-wrap justify-center lg:justify-end gap-2">
+          <div className="flex gap-2">
+            {activeTab === 'finished' && (
+              <>
+                <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                  <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addCategory')}
+                </button>
+                <button onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                  <Upload className="w-4 h-4 mr-2" /> {t('warehouse.import')}
+                </button>
+                <button onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
+                  <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addProduct')}
+                </button>
+              </>
+            )}
+            
+            {activeTab === 'raw' && isRestaurantActive && (
+              <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-600 transition-colors flex items-center shadow-lg shadow-green-600/20">
+                <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addIngredient')}
+              </button>
+            )}
+
+            {activeTab === 'suppliers' && (
+              <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors flex items-center shadow-lg shadow-blue-600/20">
+                <Plus className="w-4 h-4 mr-2" /> {t('warehouse.addSupplier')}
+              </button>
+            )}
+
+            {selectedItems.length > 0 && activeTab === 'finished' && (
+              <button 
+                onClick={() => setConfirmDelete({ type: 'bulk' })} 
+                className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
+              >
+                <Trash2 className="w-4 h-4 mr-2" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
+              </button>
+            )}
+          </div>
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setShowReceiveStock(true)} 
+              className="bg-white border border-merkez-green text-merkez-green px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
+            >
+              <Truck className="w-4 h-4 mr-2" /> {t('warehouse.receiveStock') || 'Приемка'}
+            </button>
+            <button 
+              onClick={() => setShowDispatchStock(true)} 
+              className="bg-white border border-merkez-red text-merkez-red px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
+            >
+              <Minus className="w-4 h-4 mr-2" /> {t('warehouse.dispatchStock') || 'Списание'}
+            </button>
+          </div>
         </div>
       </div>
 
