@@ -667,16 +667,21 @@ const WarehouseModule = () => {
             </div>
           </div>
         ) : (
-          <>
+          <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
             {/* Categories Sidebar - Only for Finished Goods */}
-        {activeTab === 'finished' && showCategorySidebar && (
-          <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4 flex flex-col 2xl:static 2xl:w-72 2xl:bg-white 2xl:rounded-xl 2xl:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] 2xl:border 2xl:border-gray-50 2xl:z-auto transition-transform duration-300 ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full 2xl:translate-x-0'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('warehouse.categories')}</h3>
-              <button onClick={() => setShowCategorySidebar(false)} className="2xl:hidden p-1 text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            {activeTab === 'finished' && (
+              <div className={`
+                fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4 flex flex-col 
+                2xl:static 2xl:z-auto 2xl:shadow-none 2xl:border 2xl:border-gray-50 2xl:rounded-xl
+                transition-transform duration-300 
+                ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full 2xl:hidden'}
+              `}>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('warehouse.categories')}</h3>
+                  <button onClick={() => setShowCategorySidebar(false)} className="2xl:hidden p-1 text-gray-400 hover:text-gray-600">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
             <div className="space-y-1 overflow-y-auto flex-1">
               <div className={`p-2 rounded-lg cursor-pointer text-sm font-medium transition-colors ${selectedCategory === null ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(null)}>
                 {t('warehouse.allCategories')}
@@ -1008,7 +1013,7 @@ const WarehouseModule = () => {
           </div>
         </div>
       </>
-    )}
+    </div>
   </div>
 
       <AddSupplierModal 
