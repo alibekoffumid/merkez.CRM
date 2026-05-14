@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, Minus } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, Minus, Menu, X } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -35,6 +35,7 @@ const WarehouseModule = () => {
   const [dispatches, setDispatches] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
+  const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1280);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -379,6 +380,16 @@ const WarehouseModule = () => {
         <div className="px-4 py-3 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             {activeTab === 'finished' && (
+              <button 
+                onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                className={`xl:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
+                title={t('warehouse.categories')}
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+            
+            {activeTab === 'finished' && (
               <>
                 <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
@@ -658,9 +669,14 @@ const WarehouseModule = () => {
         ) : (
           <>
             {/* Categories Sidebar - Only for Finished Goods */}
-        {activeTab === 'finished' && (
-          <div className="w-72 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 p-4 flex flex-col shrink-0">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">{t('warehouse.categories')}</h3>
+        {activeTab === 'finished' && showCategorySidebar && (
+          <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl p-4 flex flex-col xl:static xl:w-72 xl:bg-white xl:rounded-xl xl:shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] xl:border xl:border-gray-50 xl:z-auto transition-transform duration-300 ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{t('warehouse.categories')}</h3>
+              <button onClick={() => setShowCategorySidebar(false)} className="xl:hidden p-1 text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
             <div className="space-y-1 overflow-y-auto flex-1">
               <div className={`p-2 rounded-lg cursor-pointer text-sm font-medium transition-colors ${selectedCategory === null ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700 hover:bg-gray-50'}`} onClick={() => setSelectedCategory(null)}>
                 {t('warehouse.allCategories')}
@@ -745,6 +761,14 @@ const WarehouseModule = () => {
               <Plus className="w-4 h-4 mr-1.5" /> {t('warehouse.addCategory')}
             </button>
           </div>
+        )}
+
+        {/* Overlay for mobile sidebar */}
+        {activeTab === 'finished' && showCategorySidebar && (
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 xl:hidden"
+            onClick={() => setShowCategorySidebar(false)}
+          />
         )}
 
         {/* Products/Ingredients Table Area */}
