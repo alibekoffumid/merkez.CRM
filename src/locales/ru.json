@@ -683,7 +683,21 @@
     "addItemsToReceipt": "Добавить товары в список",
     "receiptEmpty": "Список приёмки пуст",
     "selectProductAndQty": "Выберите товар и укажите количество",
-    "noItemsToReceive": "Добавьте хотя бы один товар"
+    "noItemsToReceive": "Добавьте хотя бы один товар",
+    "dispatchStock": "Отгрузка / Списание",
+    "dispatchStockDesc": "Оформите выдачу или списание товаров со склада",
+    "reason": "Причина",
+    "reasonSale": "Продажа",
+    "reasonDamaged": "Повреждение/Брак",
+    "reasonExpired": "Срок годности",
+    "reasonInternal": "Внутреннее использование",
+    "reasonReturn": "Возврат поставщику",
+    "insufficientStock": "Недостаточно товара на складе",
+    "noItemsToDispatch": "Добавьте хотя бы один товар",
+    "stockDispatchedSuccess": "Списание успешно завершено",
+    "addItemsToDispatch": "Выбрать товары для списания",
+    "dispatchListEmpty": "Список списания пуст",
+    "completeDispatch": "Подтвердить списание"
   },
   "modules": {
     "storeTitle": "Выберите модули",

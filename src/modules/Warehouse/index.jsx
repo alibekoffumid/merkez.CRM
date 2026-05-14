@@ -18,6 +18,7 @@ import ProductImportModal from './ProductImportModal';
 import DateRangePicker from '../../components/Common/DateRangePicker';
 import Dropdown from '../../components/Common/Dropdown';
 import WarehouseSettings from './WarehouseSettings';
+import DispatchStockModal from './DispatchStockModal';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -41,6 +42,7 @@ const WarehouseModule = () => {
   const [showAddIngredient, setShowAddIngredient] = useState(false);
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [showReceiveStock, setShowReceiveStock] = useState(false);
+  const [showDispatchStock, setShowDispatchStock] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
@@ -432,6 +434,12 @@ const WarehouseModule = () => {
             className="bg-white border border-merkez-green text-merkez-green px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
           >
             <Truck className="w-4 h-4 mr-2" /> {t('warehouse.receiveStock') || 'Приемка'}
+          </button>
+          <button 
+            onClick={() => setShowDispatchStock(true)} 
+            className="bg-white border border-merkez-red text-merkez-red px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
+          >
+            <Minus className="w-4 h-4 mr-2" /> {t('warehouse.dispatchStock') || 'Списание'}
           </button>
         </div>
       </div>
@@ -927,6 +935,11 @@ const WarehouseModule = () => {
         isOpen={showReceiveStock}
         onClose={() => setShowReceiveStock(false)}
         onStockReceived={fetchAll}
+      />
+      <DispatchStockModal 
+        isOpen={showDispatchStock}
+        onClose={() => setShowDispatchStock(false)}
+        onStockDispatched={fetchAll}
       />
       {confirmDelete && (
         <ModalPortal>
