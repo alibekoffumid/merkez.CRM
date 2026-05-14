@@ -10,16 +10,26 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
   const { t } = useTranslation();
   const { profile } = useUser();
   const [name, setName] = useState('');
+  const [parentId, setParentId] = useState('');
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   useEffect(() => {
-    if (category) {
+    if (category && isOpen) {
       setName(category.name);
+      setParentId(category.parent_id || '');
       setShowConfirmDelete(false);
+      fetchCategories();
     }
   }, [category, isOpen]);
+
+  const fetchCategories = async () => {
+    if (!profile?.id) return;
+    const { data } = await supabase.from('categories').select('id, name, parent_id').eq('user_id', profile.id);
+    if (data) setCategories(data);
+  };
 
   if (!isOpen || !category) return null;
 
@@ -30,7 +40,10 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
     setLoading(true);
     const { data, error } = await supabase
       .from('categories')
-      .update({ name: name.trim() })
+      .update({ 
+        name: name.trim(),
+        parent_id: parentId || null
+      })
       .eq('id', category.id)
       .select();
 
@@ -144,6 +157,22 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
+                {t('warehouse.parentCategory') || 'Parent Category (Optional)'}
+              </label>
+              <select 
+                value={parentId}
+                onChange={e => setParentId(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all font-bold"
+              >
+                <option value="">{t('warehouse.noParent') || 'No Parent (Main Category)'}</option>
+                {categories.filter(c => c.id !== category.id && !c.parent_id).map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="flex gap-3 pt-2">
