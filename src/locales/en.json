@@ -81,7 +81,8 @@
     },
     "selectDate": "Select date",
     "select": "Select",
-    "settings": "Settings"
+    "settings": "Settings",
+    "sum": "Sum"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -678,7 +679,11 @@
     "autoGenerateBarcodeDesc": "The system will automatically generate a barcode for new products if left empty.",
     "barcodePrefix": "Barcode Prefix",
     "barcodePrefixDesc": "Text before the number (e.g., MRKZ-). Leave empty if not needed.",
-    "exportBarcodes": "Export Barcodes (CSV)"
+    "exportBarcodes": "Export Barcodes (CSV)",
+    "addItemsToReceipt": "Add items to receipt",
+    "receiptEmpty": "Receipt list is empty",
+    "selectProductAndQty": "Select product and enter quantity",
+    "noItemsToReceive": "Add at least one item"
   },
   "modules": {
     "storeTitle": "Choose your modules",

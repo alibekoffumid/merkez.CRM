@@ -81,7 +81,8 @@
     },
     "selectDate": "Tarix seçin",
     "select": "Seçin",
-    "settings": "Tənzimləmələr"
+    "settings": "Tənzimləmələr",
+    "sum": "Məbləğ"
   },
   "sidebar": {
     "dashboard": "Panel",
@@ -676,7 +677,11 @@
     "autoGenerateBarcodeDesc": "Sahə boşdursa, sistem yeni mal əlavə edərkən barkodu özü yaradacaq.",
     "barcodePrefix": "Barkod prefiksi",
     "barcodePrefixDesc": "Rəqəmdən əvvəlki mətn (məs. MRKZ-). Lazım deyilsə boş buraxın.",
-    "exportBarcodes": "Barkod siyahısını yüklə (CSV)"
+    "exportBarcodes": "Barkod siyahısını yüklə (CSV)",
+    "addItemsToReceipt": "Siyahıya mallar əlavə edin",
+    "receiptEmpty": "Qəbul siyahısı boşdur",
+    "selectProductAndQty": "Məhsulu seçin və miqdarı qeyd edin",
+    "noItemsToReceive": "Ən azı bir məhsul əlavə edin"
   },
   "modules": {
     "storeTitle": "Modulları seçin",

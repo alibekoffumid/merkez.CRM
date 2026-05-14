@@ -81,7 +81,8 @@
     },
     "selectDate": "Выберите дату",
     "select": "Выберите",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "sum": "Сумма"
   },
   "sidebar": {
     "dashboard": "Дашборд",
@@ -678,7 +679,11 @@
     "autoGenerateBarcodeDesc": "Система сама придумает штрихкод при добавлении товара, если поле пустое.",
     "barcodePrefix": "Префикс штрихкода",
     "barcodePrefixDesc": "Текст перед номером (например, MRKZ-). Оставьте пустым, если не нужен.",
-    "exportBarcodes": "Выгрузить список штрихкодов (CSV)"
+    "exportBarcodes": "Выгрузить список штрихкодов (CSV)",
+    "addItemsToReceipt": "Добавить товары в список",
+    "receiptEmpty": "Список приёмки пуст",
+    "selectProductAndQty": "Выберите товар и укажите количество",
+    "noItemsToReceive": "Добавьте хотя бы один товар"
   },
   "modules": {
     "storeTitle": "Выберите модули",
