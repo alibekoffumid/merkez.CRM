@@ -519,44 +519,44 @@ const WarehouseModule = () => {
           </div>
 
           {/* Main Navigation Tabs */}
-          <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="flex p-1.5 bg-gray-50 rounded-xl border border-gray-100">
             <button 
               onClick={() => setActiveTab('finished')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Package className="w-3.5 h-3.5" />
+              <Package className="w-4 h-4" />
               {t('warehouse.finishedGoods')}
             </button>
             
             {isRestaurantActive && (
               <button 
                 onClick={() => setActiveTab('raw')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
               >
-                <FolderTree className="w-3.5 h-3.5" />
+                <FolderTree className="w-4 h-4" />
                 {t('warehouse.ingredients')}
               </button>
             )}
 
             <button 
               onClick={() => setActiveTab('suppliers')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Truck className="w-3.5 h-3.5" />
+              <Truck className="w-4 h-4" />
               {t('warehouse.suppliers') || 'Поставщики'}
             </button>
             <button 
               onClick={() => setActiveTab('history')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-4 h-4" />
               {t('warehouse.history') || 'История'}
             </button>
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
             >
-              <Settings className="w-3.5 h-3.5" />
+              <Settings className="w-4 h-4" />
               {t('common.settings') || 'Настройки'}
             </button>
           </div>
