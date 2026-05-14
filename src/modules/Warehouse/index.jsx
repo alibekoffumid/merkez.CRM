@@ -20,6 +20,7 @@ import Dropdown from '../../components/Common/Dropdown';
 import WarehouseSettings from './WarehouseSettings';
 import DispatchStockModal from './DispatchStockModal';
 import TransferStockModal from './TransferStockModal';
+import WarehouseTour from './WarehouseTour';
 
 const WarehouseModule = () => {
   const { t, i18n } = useTranslation();
@@ -63,6 +64,7 @@ const WarehouseModule = () => {
   const [warehouses, setWarehouses] = useState([]);
   const [currentWarehouseId, setCurrentWarehouseId] = useState(null);
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -100,6 +102,14 @@ const WarehouseModule = () => {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('warehouse_tour_seen');
+    if (!hasSeenTour && warehouses.length > 0) {
+      const timer = setTimeout(() => setShowTour(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [warehouses.length]);
 
   // Realtime updates for products
   useEffect(() => {
@@ -479,7 +489,7 @@ const WarehouseModule = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-0.5" id="tour-warehouse-selector">
                 {warehouses?.length > 0 ? (
                   <Dropdown
                     trigger={
@@ -520,7 +530,7 @@ const WarehouseModule = () => {
 
           <div className="flex-1 flex justify-center">
             {/* Main Navigation Tabs */}
-            <div className="flex p-1.5 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex p-1.5 bg-gray-50 rounded-xl border border-gray-100" id="tour-main-tabs">
               <button 
                 onClick={() => setActiveTab('finished')}
                 className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
@@ -618,18 +628,21 @@ const WarehouseModule = () => {
           
           <div className="flex gap-2 ml-auto">
             <button 
+              id="tour-receive-btn"
               onClick={() => setShowReceiveStock(true)} 
               className="bg-white border border-merkez-green text-merkez-green px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
             >
               <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
             </button>
             <button 
+              id="tour-dispatch-btn"
               onClick={() => setShowDispatchStock(true)} 
               className="bg-white border border-merkez-red text-merkez-red px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
             >
               <Minus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.dispatchStock') || 'Списание'}
             </button>
             <button 
+              id="tour-transfer-btn"
               onClick={() => setShowTransferStock(true)} 
               className="bg-white border border-merkez-blue text-merkez-blue px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center shadow-sm"
             >
@@ -1496,6 +1509,11 @@ const WarehouseModule = () => {
           </div>
         </ModalPortal>
       )}
+
+      <WarehouseTour 
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+      />
     </div>
   );
 };
