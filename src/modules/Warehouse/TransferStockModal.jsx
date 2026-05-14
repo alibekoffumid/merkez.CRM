@@ -4,6 +4,7 @@ import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '../../core/UserContext';
+import Dropdown from '../../components/Common/Dropdown';
 
 const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTransferred, type = 'product' }) => {
   const { t } = useTranslation();
@@ -167,30 +168,26 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
           {/* Warehouse Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-blue-50/30 rounded-2xl border border-blue-100/50">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.fromWarehouse') || 'Откуда'}</label>
-              <select 
+              <Dropdown 
+                label={t('warehouse.fromWarehouse') || 'Откуда'}
                 value={fromWarehouseId}
-                onChange={(e) => setFromWarehouseId(e.target.value)}
-                className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none font-bold shadow-sm"
-              >
-                <option value="">{t('warehouse.selectWarehouse')}</option>
-                {warehouses.map(w => (
-                  <option key={w.id} value={w.id}>{w.name}</option>
-                ))}
-              </select>
+                onChange={setFromWarehouseId}
+                options={[
+                  { value: '', label: t('warehouse.selectWarehouse') },
+                  ...warehouses.map(w => ({ value: w.id, label: w.name }))
+                ]}
+              />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.toWarehouse') || 'Куда'}</label>
-              <select 
+              <Dropdown 
+                label={t('warehouse.toWarehouse') || 'Куда'}
                 value={toWarehouseId}
-                onChange={(e) => setToWarehouseId(e.target.value)}
-                className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none font-bold shadow-sm"
-              >
-                <option value="">{t('warehouse.selectWarehouse')}</option>
-                {warehouses.map(w => (
-                  <option key={w.id} value={w.id}>{w.name}</option>
-                ))}
-              </select>
+                onChange={setToWarehouseId}
+                options={[
+                  { value: '', label: t('warehouse.selectWarehouse') },
+                  ...warehouses.map(w => ({ value: w.id, label: w.name }))
+                ]}
+              />
             </div>
           </div>
 
@@ -210,30 +207,33 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
             <div className="space-y-3">
               {items.map((item, index) => (
                 <div key={item.id} className="flex gap-3 items-end animate-in fade-in slide-in-from-top-2">
-                  <div className="flex-1 space-y-2">
-                    <select 
+                  <div className="flex-1">
+                    <Dropdown 
                       value={item.item_id}
-                      onChange={(e) => updateItem(item.id, 'item_id', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none font-bold"
-                    >
-                      <option value="">{t('warehouse.selectItem')}</option>
-                      {products.filter(p => p.warehouse_id === fromWarehouseId || !fromWarehouseId).map(p => (
-                        <option key={p.id} value={p.id}>{p.name} ({type === 'product' ? p.stock_quantity : p.quantity} {type === 'product' ? 'шт' : p.unit})</option>
-                      ))}
-                    </select>
+                      onChange={(val) => updateItem(item.id, 'item_id', val)}
+                      options={[
+                        { value: '', label: t('warehouse.selectItem') },
+                        ...products
+                          .filter(p => p.warehouse_id === fromWarehouseId || !fromWarehouseId)
+                          .map(p => ({ 
+                            value: p.id, 
+                            label: `${p.name} (${type === 'product' ? p.stock_quantity : p.quantity} ${type === 'product' ? 'шт' : p.unit})` 
+                          }))
+                      ]}
+                    />
                   </div>
-                  <div className="w-32 space-y-2">
+                  <div className="w-32">
                     <input 
                       type="number"
                       placeholder={t('warehouse.quantity')}
                       value={item.quantity}
                       onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none font-bold shadow-sm"
+                      className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-2xl focus:ring-4 focus:ring-merkez-blue/10 focus:border-merkez-blue block p-2.5 outline-none font-bold shadow-sm transition-all"
                     />
                   </div>
                   <button 
                     onClick={() => removeItem(item.id)}
-                    className="p-3 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-3 text-gray-400 hover:text-red-500 transition-colors mb-0.5"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
