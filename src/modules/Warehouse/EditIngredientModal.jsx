@@ -15,7 +15,7 @@ const EditIngredientModal = ({ isOpen, ingredient, onClose, onIngredientUpdated 
     cost_price: ''
   });
 
-  const units = ['kg', 'g', 'liter', 'ml', 'pcs', 'pack', 'bottle'];
+  const [availableUnits, setAvailableUnits] = useState(['kg', 'g', 'liter', 'ml', 'pcs', 'pack', 'bottle']);
 
   useEffect(() => {
     if (ingredient) {
@@ -26,8 +26,18 @@ const EditIngredientModal = ({ isOpen, ingredient, onClose, onIngredientUpdated 
         min_quantity: ingredient.min_quantity.toString(),
         cost_price: ingredient.cost_price.toString()
       });
+      
+      const saved = localStorage.getItem('merkez_warehouse_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.availableUnits && parsed.availableUnits.length > 0) {
+            setAvailableUnits(parsed.availableUnits);
+          }
+        } catch (e) {}
+      }
     }
-  }, [ingredient]);
+  }, [ingredient, isOpen]);
 
   if (!isOpen || !ingredient) return null;
 
@@ -99,7 +109,7 @@ const EditIngredientModal = ({ isOpen, ingredient, onClose, onIngredientUpdated 
               <Dropdown 
                 value={formData.unit}
                 onChange={val => setFormData({ ...formData, unit: val })}
-                options={units.map(u => ({ value: u, label: t('restaurant.' + u) }))}
+                options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
               />
             </div>
             <div>

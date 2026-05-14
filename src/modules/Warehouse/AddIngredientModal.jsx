@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Save, Box, Scale, DollarSign, AlertCircle } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -15,7 +15,27 @@ const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
     cost_price: ''
   });
 
-  const units = ['kg', 'g', 'liter', 'ml', 'pcs', 'pack', 'bottle'];
+  const [availableUnits, setAvailableUnits] = useState(['kg', 'g', 'liter', 'ml', 'pcs', 'pack', 'bottle']);
+
+  useEffect(() => {
+    if (isOpen) {
+      const saved = localStorage.getItem('merkez_warehouse_settings');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.availableUnits && parsed.availableUnits.length > 0) {
+            setAvailableUnits(parsed.availableUnits);
+            if (!parsed.availableUnits.includes(formData.unit)) {
+              setFormData(prev => ({ ...prev, unit: parsed.defaultUnit || parsed.availableUnits[0] }));
+            } else if (parsed.defaultUnit && formData.unit === 'kg') {
+              // Only override if it was the hardcoded default
+              setFormData(prev => ({ ...prev, unit: parsed.defaultUnit }));
+            }
+          }
+        } catch (e) {}
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -87,7 +107,7 @@ const AddIngredientModal = ({ isOpen, onClose, onIngredientAdded }) => {
               <Dropdown 
                 value={formData.unit}
                 onChange={val => setFormData({ ...formData, unit: val })}
-                options={units.map(u => ({ value: u, label: t('restaurant.' + u) }))}
+                options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
               />
             </div>
             <div>

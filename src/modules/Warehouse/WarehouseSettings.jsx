@@ -10,6 +10,7 @@ const WarehouseSettings = () => {
   const [settings, setSettings] = useState({
     currency: 'AZN',
     defaultUnit: 'pcs',
+    availableUnits: ['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle'],
     lowStockThreshold: '10'
   });
 
@@ -83,6 +84,38 @@ const WarehouseSettings = () => {
 
         <div className="border-t border-gray-50" />
 
+        {/* Available Units Setting */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+              <Scale className="w-4 h-4 text-gray-400" />
+              {t('warehouse.availableUnits') || 'Доступные единицы измерения'}
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">{t('warehouse.availableUnitsDesc') || 'Отметьте те единицы, которые вы используете (они появятся в выпадающем списке при добавлении товара).'}</p>
+          </div>
+          <div className="md:col-span-2 flex flex-wrap gap-2">
+            {units.map(unit => {
+              const isSelected = settings.availableUnits?.includes(unit.value);
+              return (
+                <button
+                  key={unit.value}
+                  onClick={() => {
+                    const newUnits = isSelected 
+                      ? settings.availableUnits.filter(u => u !== unit.value)
+                      : [...(settings.availableUnits || []), unit.value];
+                    setSettings({ ...settings, availableUnits: newUnits });
+                  }}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue'}`}
+                >
+                  {unit.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-t border-gray-50" />
+
         {/* Default Unit Setting */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1">
@@ -96,7 +129,7 @@ const WarehouseSettings = () => {
             <Dropdown 
               value={settings.defaultUnit}
               onChange={(val) => setSettings({ ...settings, defaultUnit: val })}
-              options={units}
+              options={units.filter(u => settings.availableUnits?.includes(u.value))}
             />
           </div>
         </div>

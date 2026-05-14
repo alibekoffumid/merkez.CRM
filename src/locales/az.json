@@ -80,7 +80,8 @@
       "sun": "Baz"
     },
     "selectDate": "Tarix seçin",
-    "select": "Seçin"
+    "select": "Seçin",
+    "settings": "Tənzimləmələr"
   },
   "sidebar": {
     "dashboard": "Panel",
@@ -665,7 +666,9 @@
     "defaultUnit": "Standart ölçü vahidi",
     "defaultUnitDesc": "Yeni mallar və inqrediyentlər əlavə edərkən avtomatik olaraq tətbiq olunacaq.",
     "lowStockThreshold": "Standart kritik qalıq",
-    "lowStockThresholdDesc": "Məhsulun sarı və ya qırmızı rənglə işarələnəcəyi dəyər."
+    "lowStockThresholdDesc": "Məhsulun sarı və ya qırmızı rənglə işarələnəcəyi dəyər.",
+    "availableUnits": "Mövcud ölçü vahidləri",
+    "availableUnitsDesc": "İstifadə etdiyiniz ölçü vahidlərini seçin (onlar mal əlavə edərkən siyahıda görünəcək)."
   },
   "modules": {
     "storeTitle": "Modulları seçin",
@@ -1050,7 +1053,10 @@
     "inventory": "İnventar",
     "reportsAnalytics": "Hesabatlar",
     "parentCategory": "Əsas Kateqoriya (İstəyə bağlı)",
-    "noParent": "Yoxdur (Ana Kateqoriya)"
+    "noParent": "Yoxdur (Ana Kateqoriya)",
+    "g": "q",
+    "ml": "ml",
+    "bottle": "şüşə"
   },
   "auth": {
     "sessionExpired": "Sessiya bitib"

@@ -80,7 +80,8 @@
       "sun": "Sun"
     },
     "selectDate": "Select date",
-    "select": "Select"
+    "select": "Select",
+    "settings": "Settings"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -667,7 +668,9 @@
     "defaultUnit": "Default Measurement Unit",
     "defaultUnitDesc": "Will be automatically applied when adding new products and ingredients.",
     "lowStockThreshold": "Default Low Stock Threshold",
-    "lowStockThresholdDesc": "Value below which the product will be marked in yellow or red."
+    "lowStockThresholdDesc": "Value below which the product will be marked in yellow or red.",
+    "availableUnits": "Available Measurement Units",
+    "availableUnitsDesc": "Select the units you use (they will appear in the dropdown when adding a product)."
   },
   "modules": {
     "storeTitle": "Choose your modules",
@@ -1054,7 +1057,10 @@
     "title": "Restaurant",
     "subtitle": "Restaurant Management",
     "parentCategory": "Parent Category (Optional)",
-    "noParent": "No Parent (Main Category)"
+    "noParent": "No Parent (Main Category)",
+    "g": "g",
+    "ml": "ml",
+    "bottle": "bottle"
   },
   "auth": {
     "sessionExpired": "Session expired"
