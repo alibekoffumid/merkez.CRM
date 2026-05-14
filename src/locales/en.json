@@ -674,7 +674,8 @@
     "autoGenerateBarcode": "Auto-generate Barcodes",
     "autoGenerateBarcodeDesc": "The system will automatically generate a barcode for new products if left empty.",
     "barcodePrefix": "Barcode Prefix",
-    "barcodePrefixDesc": "Text before the number (e.g., MRKZ-). Leave empty if not needed."
+    "barcodePrefixDesc": "Text before the number (e.g., MRKZ-). Leave empty if not needed.",
+    "exportBarcodes": "Export Barcodes (CSV)"
   },
   "modules": {
     "storeTitle": "Choose your modules",

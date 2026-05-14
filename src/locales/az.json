@@ -672,7 +672,8 @@
     "autoGenerateBarcode": "Avtomatik barkod generasiyası",
     "autoGenerateBarcodeDesc": "Sahə boşdursa, sistem yeni mal əlavə edərkən barkodu özü yaradacaq.",
     "barcodePrefix": "Barkod prefiksi",
-    "barcodePrefixDesc": "Rəqəmdən əvvəlki mətn (məs. MRKZ-). Lazım deyilsə boş buraxın."
+    "barcodePrefixDesc": "Rəqəmdən əvvəlki mətn (məs. MRKZ-). Lazım deyilsə boş buraxın.",
+    "exportBarcodes": "Barkod siyahısını yüklə (CSV)"
   },
   "modules": {
     "storeTitle": "Modulları seçin",

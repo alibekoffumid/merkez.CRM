@@ -3,10 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Save, Settings2, DollarSign, Scale, BellRing, Barcode } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../../supabaseClient';
+import Papa from 'papaparse';
+import { useUser } from '../../core/UserContext';
 
 const WarehouseSettings = () => {
   const { t } = useTranslation();
+  const { profile } = useUser();
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [settings, setSettings] = useState({
     currency: 'AZN',
     defaultUnit: 'pcs',
@@ -34,6 +39,51 @@ const WarehouseSettings = () => {
       setLoading(false);
       toast.success(t('common.saved') || 'Настройки сохранены');
     }, 400);
+  };
+
+  const exportBarcodes = async () => {
+    if (!profile) return;
+    setExporting(true);
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('name, barcode, price')
+        .eq('user_id', profile.id)
+        .eq('archived', false)
+        .not('barcode', 'is', null)
+        .neq('barcode', '');
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.error(t('common.noData') || 'Нет данных для экспорта');
+        setExporting(false);
+        return;
+      }
+
+      // Convert to CSV
+      const csv = Papa.unparse(data.map(p => ({
+        'Товар / Product': p.name,
+        'Штрихкод / Barcode': p.barcode,
+        'Цена / Price': p.price
+      })));
+
+      // Trigger download
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', `barcodes_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(t('common.success') || 'Экспорт завершен');
+    } catch (err) {
+      console.error(err);
+      toast.error(t('common.error') || 'Ошибка экспорта');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const currencies = [
@@ -207,7 +257,20 @@ const WarehouseSettings = () => {
 
       </div>
 
-      <div className="mt-10 pt-6 border-t border-gray-100 flex justify-end">
+      <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <button 
+          onClick={exportBarcodes}
+          disabled={exporting}
+          className="bg-gray-50 border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-bold hover:bg-white hover:border-merkez-blue hover:text-merkez-blue transition-colors flex items-center gap-2"
+        >
+          {exporting ? (
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+          ) : (
+            <Barcode className="w-4 h-4" />
+          )}
+          {t('warehouse.exportBarcodes') || 'Выгрузить список штрихкодов (CSV)'}
+        </button>
+
         <button 
           onClick={handleSave}
           disabled={loading}
