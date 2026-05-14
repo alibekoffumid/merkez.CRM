@@ -88,6 +88,17 @@ const WarehouseSettings = () => {
     }
   };
 
+  const updateWarehouse = async (id, updates) => {
+    const { error } = await supabase.from('warehouses').update(updates).eq('id', id);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setWarehouses(warehouses.map(w => w.id === id ? { ...w, ...updates } : w));
+      setEditingWarehouseId(null);
+      toast.success(t('common.success'));
+    }
+  };
+
   const setAsDefault = async (id) => {
     // 1. Reset all
     await supabase.from('warehouses').update({ is_default: false }).eq('user_id', profile.id);
@@ -341,34 +352,76 @@ const WarehouseSettings = () => {
             <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
               <div className="space-y-3">
                 {warehouses.map(w => (
-                  <div key={w.id} className="bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between shadow-sm group">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h5 className="text-sm font-bold text-gray-900">{w.name}</h5>
-                        {w.is_default && (
-                          <span className="bg-blue-50 text-merkez-blue text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                            {t('common.default') || 'По умолчанию'}
-                          </span>
-                        )}
+                  <div key={w.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm group transition-all">
+                    {editingWarehouseId === w.id ? (
+                      <div className="space-y-4 animate-in fade-in zoom-in-95">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <input 
+                            type="text" 
+                            className="bg-gray-50 border-none rounded-xl p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-merkez-blue w-full"
+                            value={w.name}
+                            onChange={e => setWarehouses(warehouses.map(item => item.id === w.id ? {...item, name: e.target.value} : item))}
+                          />
+                          <input 
+                            type="text" 
+                            placeholder={t('common.address')}
+                            className="bg-gray-50 border-none rounded-xl p-3 text-sm font-medium outline-none focus:ring-1 focus:ring-merkez-blue w-full"
+                            value={w.address || ''}
+                            onChange={e => setWarehouses(warehouses.map(item => item.id === w.id ? {...item, address: e.target.value} : item))}
+                          />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                          <button 
+                            onClick={() => setEditingWarehouseId(null)}
+                            className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700"
+                          >
+                            {t('common.cancel')}
+                          </button>
+                          <button 
+                            onClick={() => updateWarehouse(w.id, { name: w.name, address: w.address })}
+                            className="px-6 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all"
+                          >
+                            {t('common.save')}
+                          </button>
+                        </div>
                       </div>
-                      {w.address && <p className="text-[11px] text-gray-400 mt-0.5">{w.address}</p>}
-                    </div>
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {!w.is_default && (
-                        <button 
-                          onClick={() => setAsDefault(w.id)}
-                          className="text-[10px] font-bold text-gray-400 hover:text-merkez-blue uppercase tracking-widest px-2 py-1"
-                        >
-                          {t('common.makeDefault') || 'Сделать основным'}
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => deleteWarehouse(w.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h5 className="text-sm font-bold text-gray-900">{w.name}</h5>
+                            {w.is_default && (
+                              <span className="bg-blue-50 text-merkez-blue text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                                {t('common.default') || 'По умолчанию'}
+                              </span>
+                            )}
+                          </div>
+                          {w.address && <p className="text-[11px] text-gray-400 mt-0.5">{w.address}</p>}
+                        </div>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => setEditingWarehouseId(w.id)}
+                            className="p-1.5 text-gray-400 hover:text-merkez-blue transition-colors"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          {!w.is_default && (
+                            <button 
+                              onClick={() => setAsDefault(w.id)}
+                              className="text-[10px] font-bold text-gray-400 hover:text-merkez-blue uppercase tracking-widest px-2 py-1"
+                            >
+                              {t('common.makeDefault') || 'Сделать основным'}
+                            </button>
+                          )}
+                          <button 
+                            onClick={() => deleteWarehouse(w.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
