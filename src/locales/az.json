@@ -79,7 +79,8 @@
       "sat": "Şən",
       "sun": "Baz"
     },
-    "selectDate": "Tarix seçin"
+    "selectDate": "Tarix seçin",
+    "select": "Seçin"
   },
   "sidebar": {
     "dashboard": "Panel",
@@ -305,7 +306,8 @@
       "email": "anar@example.com",
       "phone": "+994 ...",
       "groupName": "məs. Piano Qrup A",
-      "monthlyPayment": "məs. 50"
+      "monthlyPayment": "məs. 50",
+      "specialization": "məs. Piano"
     },
     "newLesson": "Yeni Dərs",
     "teacherName": "Müəllim Adı",
@@ -342,6 +344,9 @@
     "noProgram": "Proqram yoxdur",
     "noTeacherAssigned": "Müəllim təyin edilməyib",
     "unassignTeacher": "Təyin edilməsin",
+    "teacherColor": "Müəllim rəngi",
+    "selectRoom": "Otaq seçin",
+    "noRoom": "Otaq yoxdur",
     "trackPerformance": "Performans səviyyələrini və akademik nailiyyətləri izləyin",
     "level": "Səviyyə",
     "semesterProgress": "Semestr Tərəqqisi",

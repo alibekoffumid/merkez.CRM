@@ -79,7 +79,8 @@
       "sat": "Сб",
       "sun": "Вс"
     },
-    "selectDate": "Выберите дату"
+    "selectDate": "Выберите дату",
+    "select": "Выберите"
   },
   "sidebar": {
     "dashboard": "Дашборд",
@@ -301,7 +302,8 @@
       "email": "ivan@example.com",
       "phone": "+994 ...",
       "groupName": "напр. Группа Фортепиано А",
-      "monthlyPayment": "напр. 50"
+      "monthlyPayment": "напр. 50",
+      "specialization": "напр. Фортепиано"
     },
     "newLesson": "Новый урок",
     "teacherName": "Имя учителя",
@@ -338,6 +340,9 @@
     "noProgram": "Нет программы",
     "noTeacherAssigned": "Учитель не назначен",
     "unassignTeacher": "Не назначать",
+    "teacherColor": "Цвет в календаре",
+    "selectRoom": "Выберите класс",
+    "noRoom": "Нет класса",
     "trackPerformance": "Отслеживайте успеваемость и достижения",
     "level": "Уровень",
     "semesterProgress": "Прогресс семестра",

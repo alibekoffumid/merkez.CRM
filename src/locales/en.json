@@ -79,7 +79,8 @@
       "sat": "Sat",
       "sun": "Sun"
     },
-    "selectDate": "Select date"
+    "selectDate": "Select date",
+    "select": "Select"
   },
   "sidebar": {
     "dashboard": "Dashboard",
@@ -301,7 +302,8 @@
       "email": "john@example.com",
       "phone": "+1 ...",
       "groupName": "e.g. Piano Group A",
-      "monthlyPayment": "e.g. 50"
+      "monthlyPayment": "e.g. 50",
+      "specialization": "e.g. Piano"
     },
     "newLesson": "New Lesson",
     "teacherName": "Teacher Name",
@@ -338,6 +340,9 @@
     "noProgram": "No program",
     "noTeacherAssigned": "No teacher assigned",
     "unassignTeacher": "Unassign",
+    "teacherColor": "Teacher color",
+    "selectRoom": "Select room",
+    "noRoom": "No room",
     "trackPerformance": "Track performance levels and academic achievements",
     "level": "Level",
     "semesterProgress": "Semester Progress",
