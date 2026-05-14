@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, Minus, Menu, X } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, Minus, Menu, X } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
