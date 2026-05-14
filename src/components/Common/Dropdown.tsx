@@ -178,9 +178,5 @@ const Dropdown: React.FC<DropdownProps> = ({
     </div>
   );
 };
-      {dropdownMenu}
-    </div>
-  );
-};
 
 export default Dropdown;
