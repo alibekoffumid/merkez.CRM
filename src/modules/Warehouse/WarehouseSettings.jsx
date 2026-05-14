@@ -104,7 +104,7 @@ const WarehouseSettings = () => {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-3xl w-full flex-1">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-3xl w-full flex-1 overflow-y-auto">
       <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
         <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
           <Settings2 className="w-5 h-5 text-gray-600" />
