@@ -469,7 +469,7 @@ const WarehouseModule = () => {
             {activeTab === 'finished' && (
               <button 
                 onClick={() => setShowCategorySidebar(!showCategorySidebar)}
-                className={`2xl:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
+                className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
                 title={t('warehouse.categories')}
               >
                 <Menu className="w-5 h-5" />
@@ -758,9 +758,9 @@ const WarehouseModule = () => {
           {activeTab === 'finished' && (
               <div className={`
                 fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-md shadow-2xl p-6 flex flex-col 
-                2xl:static 2xl:z-auto 2xl:shadow-none 2xl:bg-gray-50/30 2xl:border 2xl:border-gray-100 2xl:rounded-2xl
-                transition-transform duration-300 border-r border-gray-100 2xl:border-r-0
-                ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full 2xl:hidden'}
+                lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-2xl
+                transition-transform duration-300 border-r border-gray-100 lg:border-r-0
+                ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full lg:hidden'}
               `}>
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
@@ -769,7 +769,7 @@ const WarehouseModule = () => {
                     </div>
                     <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.categories')}</h3>
                   </div>
-                  <button onClick={() => setShowCategorySidebar(false)} className="2xl:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
+                  <button onClick={() => setShowCategorySidebar(false)} className="lg:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
