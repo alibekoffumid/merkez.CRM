@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
  import { X, Plus, Save, FolderTree } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
+import Dropdown from '../../components/Common/Dropdown';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 
@@ -85,16 +86,14 @@ import { toast } from 'react-hot-toast';
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">{t('warehouse.parentCategory') || 'Parent Category (Optional)'}</label>
-            <select 
+            <Dropdown 
               value={formData.parent_id}
-              onChange={e => setFormData({...formData, parent_id: e.target.value})}
-              className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2.5 outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm text-sm"
-            >
-              <option value="">{t('warehouse.noParent') || 'No Parent (Main Category)'}</option>
-              {categories.filter(c => !c.parent_id).map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
+              onChange={val => setFormData({...formData, parent_id: val})}
+              options={[
+                { value: '', label: t('warehouse.noParent') || 'No Parent (Main Category)' },
+                ...categories.filter(c => !c.parent_id).map(cat => ({ value: cat.id, label: cat.name }))
+              ]}
+            />
           </div>
           <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">
             <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">

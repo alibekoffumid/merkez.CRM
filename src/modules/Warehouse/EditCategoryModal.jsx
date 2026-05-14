@@ -5,6 +5,7 @@ import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import Dropdown from '../../components/Common/Dropdown';
 
 const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => {
   const { t } = useTranslation();
@@ -163,16 +164,14 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
                 {t('warehouse.parentCategory') || 'Parent Category (Optional)'}
               </label>
-              <select 
+              <Dropdown 
                 value={parentId}
-                onChange={e => setParentId(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-merkez-blue transition-all font-bold"
-              >
-                <option value="">{t('warehouse.noParent') || 'No Parent (Main Category)'}</option>
-                {categories.filter(c => c.id !== category.id && !c.parent_id).map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+                onChange={val => setParentId(val)}
+                options={[
+                  { value: '', label: t('warehouse.noParent') || 'No Parent (Main Category)' },
+                  ...categories.filter(c => c.id !== category.id && !c.parent_id).map(cat => ({ value: cat.id, label: cat.name }))
+                ]}
+              />
             </div>
 
             <div className="flex gap-3 pt-2">
