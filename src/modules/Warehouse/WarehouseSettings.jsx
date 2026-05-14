@@ -104,171 +104,162 @@ const WarehouseSettings = () => {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-3xl w-full flex-1 overflow-y-auto">
-      <div className="flex items-center gap-3 mb-8 pb-4 border-b border-gray-100">
-        <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
-          <Settings2 className="w-5 h-5 text-gray-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">{t('common.settings') || 'Настройки'}</h2>
-          <p className="text-sm text-gray-500">{t('warehouse.settingsDesc') || 'Настройка параметров складского учета'}</p>
-        </div>
-      </div>
-
-      <div className="space-y-8">
-        {/* Currency Setting */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-gray-400" />
-              {t('warehouse.currency') || 'Валюта'}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">{t('warehouse.currencyDesc') || 'Базовая валюта для расчета стоимости запасов и себестоимости.'}</p>
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full flex-1 overflow-y-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
+            <Settings2 className="w-6 h-6 text-gray-600" />
           </div>
-          <div className="md:col-span-2">
-            <Dropdown 
-              value={settings.currency}
-              onChange={(val) => setSettings({ ...settings, currency: val })}
-              options={currencies}
-            />
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('common.settings') || 'Настройки'}</h2>
+            <p className="text-sm text-gray-500 font-medium">{t('warehouse.settingsDesc') || 'Настройка параметров складского учета'}</p>
           </div>
         </div>
 
-        <div className="border-t border-gray-50" />
-
-        {/* Available Units Setting */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-gray-400" />
-              {t('warehouse.availableUnits') || 'Доступные единицы измерения'}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">{t('warehouse.availableUnitsDesc') || 'Отметьте те единицы, которые вы используете (они появятся в выпадающем списке при добавлении товара).'}</p>
-          </div>
-          <div className="md:col-span-2 flex flex-wrap gap-2">
-            {units.map(unit => {
-              const isSelected = settings.availableUnits?.includes(unit.value);
-              return (
-                <button
-                  key={unit.value}
-                  onClick={() => {
-                    const newUnits = isSelected 
-                      ? settings.availableUnits.filter(u => u !== unit.value)
-                      : [...(settings.availableUnits || []), unit.value];
-                    setSettings({ ...settings, availableUnits: newUnits });
-                  }}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue'}`}
-                >
-                  {unit.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="border-t border-gray-50" />
-
-        {/* Auto-generate Barcodes Setting */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Barcode className="w-4 h-4 text-gray-400" />
-              {t('warehouse.autoGenerateBarcode') || 'Автогенерация штрихкодов'}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара, если поле пустое.'}</p>
-          </div>
-          <div className="md:col-span-2 space-y-4">
-            <label className="flex items-center cursor-pointer">
-              <div className="relative">
-                <input 
-                  type="checkbox" 
-                  className="sr-only" 
-                  checked={settings.autoGenerateBarcode}
-                  onChange={(e) => setSettings({ ...settings, autoGenerateBarcode: e.target.checked })}
-                />
-                <div className={`block w-14 h-8 rounded-full transition-colors ${settings.autoGenerateBarcode ? 'bg-merkez-blue' : 'bg-gray-200'}`}></div>
-                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${settings.autoGenerateBarcode ? 'transform translate-x-6' : ''}`}></div>
-              </div>
-              <div className="ml-3 text-sm font-bold text-gray-700">
-                {settings.autoGenerateBarcode ? t('common.yes') || 'Да' : t('common.no') || 'Нет'}
-              </div>
-            </label>
-
-            {settings.autoGenerateBarcode && (
-              <div className="animate-in fade-in slide-in-from-top-2">
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
-                  {t('warehouse.barcodePrefix') || 'Префикс штрихкода'}
-                </label>
-                <input 
-                  type="text" 
-                  value={settings.barcodePrefix}
-                  onChange={(e) => setSettings({ ...settings, barcodePrefix: e.target.value })}
-                  placeholder="MRKZ-"
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold" 
-                />
-                <p className="text-[10px] text-gray-400 mt-1.5 ml-1">
-                  {t('warehouse.barcodePrefixDesc') || 'Текст перед номером (например, MRKZ-). Оставьте пустым, если не нужен.'}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-50" />
-
-        {/* Default Unit Setting */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-gray-400" />
-              {t('warehouse.defaultUnit') || 'Ед. измерения по умолчанию'}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">{t('warehouse.defaultUnitDesc') || 'Будет автоматически подставляться при добавлении новых товаров и ингредиентов.'}</p>
-          </div>
-          <div className="md:col-span-2">
-            <Dropdown 
-              value={settings.defaultUnit}
-              onChange={(val) => setSettings({ ...settings, defaultUnit: val })}
-              options={units.filter(u => settings.availableUnits?.includes(u.value))}
-            />
-          </div>
-        </div>
-
-        <div className="border-t border-gray-50" />
-
-        {/* Low Stock Alert Threshold */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <BellRing className="w-4 h-4 text-gray-400" />
-              {t('warehouse.lowStockThreshold') || 'Критический остаток по умолчанию'}
-            </h3>
-            <p className="text-xs text-gray-500 mt-1">{t('warehouse.lowStockThresholdDesc') || 'Значение, ниже которого товар будет отмечаться желтым или красным цветом.'}</p>
-          </div>
-          <div className="md:col-span-2">
-            <input 
-              type="number" 
-              value={settings.lowStockThreshold}
-              onChange={(e) => setSettings({ ...settings, lowStockThreshold: e.target.value })}
-              className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold" 
-            />
-          </div>
-        </div>
-
-      </div>
-
-      <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <button 
           onClick={exportBarcodes}
           disabled={exporting}
-          className="bg-gray-50 border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-bold hover:bg-white hover:border-merkez-blue hover:text-merkez-blue transition-colors flex items-center gap-2"
+          className="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center gap-2 shadow-sm"
         >
           {exporting ? (
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-merkez-blue rounded-full animate-spin" />
           ) : (
             <Barcode className="w-4 h-4" />
           )}
-          {t('warehouse.exportBarcodes') || 'Выгрузить список штрихкодов (CSV)'}
+          {t('warehouse.exportBarcodes') || 'Выгрузить штрихкоды (CSV)'}
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Left Column: Core Settings */}
+        <div className="space-y-10">
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.coreSettings') || 'Основные параметры'}</h3>
+            
+            {/* Currency */}
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <DollarSign className="w-4 h-4 text-merkez-blue" />
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">{t('warehouse.currency') || 'Валюта'}</h4>
+              </div>
+              <Dropdown 
+                value={settings.currency}
+                onChange={(val) => setSettings({ ...settings, currency: val })}
+                options={currencies}
+              />
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.currencyDesc') || 'Базовая валюта для расчета стоимости запасов и себестоимости.'}</p>
+            </div>
+
+            {/* Default Unit */}
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <Scale className="w-4 h-4 text-merkez-blue" />
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">{t('warehouse.defaultUnit') || 'Ед. измерения по умолчанию'}</h4>
+              </div>
+              <Dropdown 
+                value={settings.defaultUnit}
+                onChange={(val) => setSettings({ ...settings, defaultUnit: val })}
+                options={units.filter(u => settings.availableUnits?.includes(u.value))}
+              />
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.defaultUnitDesc') || 'Автоматически подставляется при добавлении новых товаров.'}</p>
+            </div>
+
+            {/* Critical Stock */}
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <BellRing className="w-4 h-4 text-merkez-blue" />
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">{t('warehouse.lowStockThreshold') || 'Критический остаток'}</h4>
+              </div>
+              <input 
+                type="number" 
+                value={settings.lowStockThreshold}
+                onChange={(e) => setSettings({ ...settings, lowStockThreshold: e.target.value })}
+                className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
+              />
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.lowStockThresholdDesc') || 'Порог уведомления о низком запасе товара.'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Advanced & Units */}
+        <div className="space-y-10">
+          {/* Units Selection */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.unitSettings') || 'Единицы измерения'}</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+              <p className="text-xs text-gray-500 font-medium">{t('warehouse.availableUnitsDesc') || 'Отметьте те единицы, которые вы используете:'}</p>
+              <div className="flex flex-wrap gap-2">
+                {units.map(unit => {
+                  const isSelected = settings.availableUnits?.includes(unit.value);
+                  return (
+                    <button
+                      key={unit.value}
+                      onClick={() => {
+                        const newUnits = isSelected 
+                          ? settings.availableUnits.filter(u => u !== unit.value)
+                          : [...(settings.availableUnits || []), unit.value];
+                        setSettings({ ...settings, availableUnits: newUnits });
+                      }}
+                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue shadow-sm'}`}
+                    >
+                      {unit.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Barcode Automation */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.automation') || 'Автоматизация'}</h3>
+            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                    <Barcode className="w-4 h-4 text-merkez-blue" />
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-900">{t('warehouse.autoGenerateBarcode') || 'Автоштрихкоды'}</h4>
+                </div>
+                <label className="flex items-center cursor-pointer">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only" 
+                      checked={settings.autoGenerateBarcode}
+                      onChange={(e) => setSettings({ ...settings, autoGenerateBarcode: e.target.checked })}
+                    />
+                    <div className={`block w-12 h-7 rounded-full transition-colors ${settings.autoGenerateBarcode ? 'bg-merkez-blue' : 'bg-gray-300'}`}></div>
+                    <div className={`dot absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition-transform ${settings.autoGenerateBarcode ? 'transform translate-x-5' : ''}`}></div>
+                  </div>
+                </label>
+              </div>
+
+              {settings.autoGenerateBarcode && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                    {t('warehouse.barcodePrefix') || 'Префикс'}
+                  </label>
+                  <input 
+                    type="text" 
+                    value={settings.barcodePrefix}
+                    onChange={(e) => setSettings({ ...settings, barcodePrefix: e.target.value })}
+                    placeholder="MRKZ-"
+                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
+                  />
+                </div>
+              )}
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара.'}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
