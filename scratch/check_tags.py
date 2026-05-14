@@ -7,16 +7,13 @@ def check_jsx_balance(filepath):
         content = f.read()
     
     stack = []
-    # Simplified: just count <div and </div across lines
-    # Using re.DOTALL to match across lines
-    
-    pattern = re.compile(r'<(div|React\.Fragment|ModalPortal)|</(div|React\.Fragment|ModalPortal)>')
-    
-    # We also need to detect if a tag is self-closing
-    # Let's use a more robust way: find all < and >
-    
     tokens = re.finditer(r'<(/?[a-zA-Z0-9\.]+)([^>]*?)(/?)>', content)
     
+    lines = content.split('\n')
+    
+    def get_line_no(offset):
+        return content.count('\n', 0, offset) + 1
+
     for match in tokens:
         tag_full = match.group(0)
         tag_name = match.group(1)
@@ -27,17 +24,19 @@ def check_jsx_balance(filepath):
             clean_name = tag_name[1:]
             if clean_name in ['div', 'React.Fragment', 'ModalPortal']:
                 if not stack:
-                    print(f"Unexpected closing tag: {tag_full}")
+                    print(f"Unexpected closing tag at line {get_line_no(match.start())}: {tag_full}")
                 else:
                     stack.pop()
         elif is_self_closing:
             pass
         else:
             if tag_name in ['div', 'React.Fragment', 'ModalPortal']:
-                stack.append(tag_name)
+                stack.append((tag_name, get_line_no(match.start())))
                 
     if stack:
-        print("Unclosed tags:", stack)
+        print("Unclosed tags:")
+        for tag, line in stack:
+            print(f"{tag} opened at line {line}")
 
 if __name__ == "__main__":
     check_jsx_balance(sys.argv[1])
