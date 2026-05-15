@@ -31,7 +31,7 @@ const IntegrationsModule = () => {
     let query = supabase
       .from('integration_contacts')
       .select('*')
-      .eq('tenant_id', tenantId);
+      .or(`tenant_id.eq.${tenantId},tenant_id.eq.00000000-0000-0000-0000-000000000000`);
 
     if (sourceFilter !== 'all') {
       query = query.eq('source', sourceFilter);
