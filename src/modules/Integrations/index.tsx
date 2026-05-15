@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayoutGrid, MessageSquare, Instagram, Phone, Search, MoreHorizontal, Send, Settings } from 'lucide-react';
 import UnifiedChat, { UnifiedMessage } from './components/UnifiedChat';
+import ChannelSettings from './components/ChannelSettings';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 
