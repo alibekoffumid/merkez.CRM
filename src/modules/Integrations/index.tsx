@@ -5,6 +5,7 @@ import UnifiedChat, { UnifiedMessage } from './components/UnifiedChat';
 import ChannelSettings from './components/ChannelSettings';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
+import { TelegramService } from './services/TelegramService';
 
 const IntegrationsModule = () => {
   const { profile } = useUser();
@@ -208,6 +209,21 @@ const IntegrationsModule = () => {
         }
       } catch (error) {
         console.error('Failed to send Instagram message:', error);
+        await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
+        setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
+      }
+    }
+
+    // 4. Send via Telegram Bot API
+    if (selectedContact.source === 'telephony' || selectedContact.source === 'telegram') {
+      try {
+        if (!channel) throw new Error('No channel config found for Telegram');
+        await TelegramService.sendMessage(tenantId, channel.id, selectedContact.external_id, messageText);
+        
+        await supabase.from('integration_messages').update({ status: 'sent' }).eq('id', savedMsg.id);
+        setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'sent' } : m));
+      } catch (error) {
+        console.error('Failed to send Telegram message:', error);
         await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
         setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
       }

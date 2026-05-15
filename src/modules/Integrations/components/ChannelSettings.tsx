@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, MessageSquare, Instagram, Phone, Trash2, Settings, Globe, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { Plus, MessageSquare, Instagram, Phone, Trash2, Settings, Globe, CheckCircle2, AlertCircle, Loader2, X, Send } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { toast } from 'react-hot-toast';
 
 interface Channel {
   id: string;
   name: string;
-  provider: 'whatsapp' | 'instagram' | 'telephony';
+  provider: 'whatsapp' | 'instagram' | 'telephony' | 'telegram';
   status: 'active' | 'error' | 'maintenance';
   settings: any;
   is_verified: boolean;
@@ -23,7 +23,8 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
     provider: 'whatsapp' as const,
     apiKey: '',
     phoneId: '',
-    instaId: ''
+    instaId: '',
+    botToken: ''
   });
 
   const fetchChannels = async () => {
@@ -51,6 +52,8 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
     } else if (newChannel.provider === 'instagram') {
       settings.api_key = newChannel.apiKey;
       settings.instagram_business_id = newChannel.instaId;
+    } else if (newChannel.provider === 'telephony' as any) {
+      settings.bot_token = newChannel.botToken;
     }
 
     const { error } = await supabase
@@ -217,20 +220,27 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
 
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">{t('integrations.provider')}</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <button 
                     onClick={() => setNewChannel({ ...newChannel, provider: 'whatsapp' })}
                     className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${newChannel.provider === 'whatsapp' ? 'border-green-500 bg-green-50/50' : 'border-gray-100 hover:border-gray-200'}`}
                   >
                     <MessageSquare className={`w-6 h-6 ${newChannel.provider === 'whatsapp' ? 'text-green-500' : 'text-gray-400'}`} />
-                    <span className={`text-xs font-bold ${newChannel.provider === 'whatsapp' ? 'text-green-700' : 'text-gray-600'}`}>WhatsApp</span>
+                    <span className={`text-[10px] font-bold ${newChannel.provider === 'whatsapp' ? 'text-green-700' : 'text-gray-600'}`}>WhatsApp</span>
                   </button>
                   <button 
                     onClick={() => setNewChannel({ ...newChannel, provider: 'instagram' })}
                     className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${newChannel.provider === 'instagram' ? 'border-pink-500 bg-pink-50/50' : 'border-gray-100 hover:border-gray-200'}`}
                   >
                     <Instagram className={`w-6 h-6 ${newChannel.provider === 'instagram' ? 'text-pink-500' : 'text-gray-400'}`} />
-                    <span className={`text-xs font-bold ${newChannel.provider === 'instagram' ? 'text-pink-700' : 'text-gray-600'}`}>Instagram</span>
+                    <span className={`text-[10px] font-bold ${newChannel.provider === 'instagram' ? 'text-pink-700' : 'text-gray-600'}`}>Instagram</span>
+                  </button>
+                  <button 
+                    onClick={() => setNewChannel({ ...newChannel, provider: 'telephony' as any })}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${newChannel.provider === 'telephony' ? 'border-blue-500 bg-blue-50/50' : 'border-gray-100 hover:border-gray-200'}`}
+                  >
+                    <Send className={`w-6 h-6 ${newChannel.provider === 'telephony' ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <span className={`text-[10px] font-bold ${newChannel.provider === 'telephony' ? 'text-blue-700' : 'text-gray-600'}`}>Telegram</span>
                   </button>
                 </div>
               </div>
@@ -248,22 +258,37 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
 
               <div>
                 <div className="flex justify-between items-center mb-2 ml-1">
-                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">API Key / Token</label>
-                   <a href="https://developers.facebook.com/docs/whatsapp/business-platform/get-started" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1">
-                      <Globe className="w-3 h-3" />
-                      {t('integrations.getManual') || 'Как получить?'}
-                   </a>
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                     {newChannel.provider === 'telephony' ? 'Telegram Bot Token' : 'API Key / Token'}
+                   </label>
+                   {newChannel.provider === 'telephony' ? (
+                     <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1">
+                        <Send className="w-3 h-3" />
+                        {t('integrations.getBot') || 'Создать бота'}
+                     </a>
+                   ) : (
+                     <a href="https://developers.facebook.com/docs/whatsapp/business-platform/get-started" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1">
+                        <Globe className="w-3 h-3" />
+                        {t('integrations.getManual') || 'Как получить?'}
+                     </a>
+                   )}
                 </div>
                 <input 
                   type="password"
-                  placeholder="Paste your System User Access Token"
-                  value={newChannel.apiKey}
-                  onChange={(e) => setNewChannel({ ...newChannel, apiKey: e.target.value })}
+                  placeholder={newChannel.provider === 'telephony' ? 'Enter HTTP API Token from BotFather' : 'Paste your System User Access Token'}
+                  value={newChannel.provider === 'telephony' ? newChannel.botToken : newChannel.apiKey}
+                  onChange={(e) => {
+                    if (newChannel.provider === 'telephony') {
+                      setNewChannel({ ...newChannel, botToken: e.target.value });
+                    } else {
+                      setNewChannel({ ...newChannel, apiKey: e.target.value });
+                    }
+                  }}
                   className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:bg-white outline-none transition-all"
                 />
               </div>
 
-              {newChannel.provider === 'whatsapp' ? (
+              {newChannel.provider === 'whatsapp' && (
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Phone Number ID</label>
@@ -277,7 +302,9 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:bg-white outline-none transition-all"
                   />
                 </div>
-              ) : (
+              )}
+
+              {newChannel.provider === 'instagram' && (
                 <div>
                    <div className="flex justify-between items-center mb-2 ml-1">
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Instagram Business ID</label>
@@ -302,7 +329,7 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                 </button>
                 <button 
                   onClick={handleAddChannel}
-                  disabled={!newChannel.name || !newChannel.apiKey}
+                  disabled={!newChannel.name || (newChannel.provider === 'telephony' ? !newChannel.botToken : !newChannel.apiKey)}
                   className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
                 >
                   {t('integrations.connect') || 'Подключить'}
