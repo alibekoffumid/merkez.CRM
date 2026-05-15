@@ -13,8 +13,17 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     fetchProfile();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchProfile();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      // Only trigger profile refresh on meaningful events
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        fetchProfile();
+      }
+      if (event === 'SIGNED_OUT') {
+        setProfile(null);
+        setActiveModules([]);
+        setNeedsOnboarding(false);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -34,10 +43,6 @@ export const UserProvider = ({ children }) => {
           setProfile(data);
           await fetchActiveModules(data.tenant_id || data.id);
         }
-      } else {
-        setProfile(null);
-        setActiveModules([]);
-        setNeedsOnboarding(false);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);

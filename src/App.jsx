@@ -28,7 +28,7 @@ import { Toaster } from 'react-hot-toast';
 const ModuleGuard = ({ moduleId, children }) => {
   const { activeModules, modulesLoading } = useUser();
   
-  if (modulesLoading) {
+  if (modulesLoading && activeModules.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -45,9 +45,9 @@ const ModuleGuard = ({ moduleId, children }) => {
 
 // Onboarding guard: redirects to module store if no modules are selected
 const OnboardingGuard = ({ children }) => {
-  const { needsOnboarding, modulesLoading, loading } = useUser();
+  const { profile, needsOnboarding, modulesLoading, loading } = useUser();
   
-  if (loading || modulesLoading) {
+  if ((loading || modulesLoading) && !profile) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
