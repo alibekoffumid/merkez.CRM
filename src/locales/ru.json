@@ -948,7 +948,12 @@
     "telegramNotice": "Для работы создайте бота в @BotFather. Используйте команду /token, чтобы получить HTTP API Token, и вставьте его ниже.",
     "getBot": "Создать бота",
     "channelAdded": "Канал успешно добавлен",
-    "channelDeleted": "Канал успешно удален"
+    "channelDeleted": "Канал успешно удален",
+    "filterAll": "Все",
+    "filterToday": "Сегодня",
+    "filterYesterday": "Вчера",
+    "filterWeek": "Неделя",
+    "filterAny": "Любой"
   },
   "callCenter": {
     "title": "Колл-центр",

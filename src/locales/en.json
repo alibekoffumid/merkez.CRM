@@ -947,7 +947,12 @@
     "telegramNotice": "To start, create a bot in @BotFather. Use the /token command to get the HTTP API Token and paste it below.",
     "getBot": "Create bot",
     "channelAdded": "Channel added successfully",
-    "channelDeleted": "Channel deleted successfully"
+    "channelDeleted": "Channel deleted successfully",
+    "filterAll": "All",
+    "filterToday": "Today",
+    "filterYesterday": "Yesterday",
+    "filterWeek": "Week",
+    "filterAny": "Any"
   },
   "callCenter": {
     "title": "Call Center",

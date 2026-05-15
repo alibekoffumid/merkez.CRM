@@ -294,7 +294,7 @@ const IntegrationsModule = () => {
               onClick={() => setSourceFilter('all')}
               className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${sourceFilter === 'all' ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}
             >
-              All
+              {t('integrations.filterAll')}
             </button>
             <button 
               onClick={() => setSourceFilter('whatsapp')}
@@ -324,7 +324,10 @@ const IntegrationsModule = () => {
                 onClick={() => setDateFilter(filter)}
                 className={`py-1 rounded-lg text-[9px] font-bold uppercase transition-all ${dateFilter === filter ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
               >
-                {filter === 'all' ? 'Any' : filter === 'today' ? 'Today' : filter === 'yesterday' ? 'Yest.' : 'Week'}
+                {filter === 'all' ? t('integrations.filterAny') : 
+                 filter === 'today' ? t('integrations.filterToday') : 
+                 filter === 'yesterday' ? t('integrations.filterYesterday') : 
+                 t('integrations.filterWeek')}
               </button>
             ))}
           </div>
