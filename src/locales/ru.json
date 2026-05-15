@@ -625,7 +625,7 @@
     "notesPlaceholder": "Введите ваши примечания...",
     "completeReceipt": "Завершить приёмку",
     "importProducts": "Импорт товаров",
-    "chooseCsv": "Выберите CSV файл",
+    "chooseCsv": "Выберите CSV или Excel файл",
     "dragAndDrop": "Перетащите файл сюда или нажмите для выбора",
     "csvFormatHeaders": "Формат файла",
     "processingData": "Обработка данных...",

@@ -624,7 +624,7 @@
     "notesPlaceholder": "Enter your notes here...",
     "completeReceipt": "Complete Receipt",
     "importProducts": "Import Products",
-    "chooseCsv": "Choose CSV File",
+    "chooseCsv": "Choose CSV or Excel file",
     "dragAndDrop": "Drag and drop file here or click to select",
     "csvFormatHeaders": "File Format",
     "processingData": "Processing data...",

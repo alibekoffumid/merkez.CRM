@@ -8,6 +8,8 @@ import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
 
+import * as XLSX from 'xlsx';
+
 const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
@@ -27,10 +29,91 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
     onDrop,
     accept: {
       'text/csv': ['.csv'],
-      'application/vnd.ms-excel': ['.csv'],
+      'application/vnd.ms-excel': ['.csv', '.xls'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     multiple: false
   });
+
+  const processImportData = async (rawData) => {
+    if (!rawData || rawData.length === 0) {
+      toast.error("Файл пуст или имеет неверный формат");
+      setIsProcessing(false);
+      return;
+    }
+
+    const businessId = profile?.business_id || profile?.tenant_id || profile?.id;
+    
+    // Try to get a default category if none provided
+    let defaultCategoryId = null;
+    try {
+      const { data: catData } = await supabase
+        .from('categories')
+        .select('id')
+        .limit(1);
+      if (catData && catData.length > 0) {
+        defaultCategoryId = catData[0].id;
+      }
+    } catch (e) {}
+
+    // Map data to the required format
+    const dataToUpload = rawData.map(row => {
+      const price = parseFloat(row.sale_price || row.Price || row['Цена'] || row.price) || 0;
+      return {
+        barcode: String(row.barcode || row.Barcode || row['Баркод'] || '').trim(),
+        name: String(row.name || row.Name || row['Наименование'] || '').trim(),
+        stock_quantity: parseFloat(row.stock_quantity || row.Quantity || row['Количество'] || row.stock) || 0,
+        expiry_date: row.expiry_date || row['Срок годности'] || null,
+        user_id: profile?.id,
+        price: price,
+        category_id: row.category_id || defaultCategoryId
+      };
+    }).filter(item => item.barcode && item.name);
+
+    if (dataToUpload.length === 0) {
+      toast.error("Не найдено корректных данных для импорта. Проверьте заголовки: barcode, name...");
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      const chunkSize = 50;
+      let successCount = 0;
+      let errorCount = 0;
+      let lastError = null;
+
+      for (let i = 0; i < dataToUpload.length; i += chunkSize) {
+        const chunk = dataToUpload.slice(i, i + chunkSize);
+        const { error } = await supabase
+          .from('products')
+          .insert(chunk);
+
+        if (error) {
+          console.error('Upsert error:', error);
+          errorCount += chunk.length;
+          lastError = error.message;
+        } else {
+          successCount += chunk.length;
+        }
+        
+        const currentProgress = Math.min(100, Math.round(((i + chunk.length) / dataToUpload.length) * 100));
+        setProgress(currentProgress);
+      }
+
+      setResult({ success: successCount, error: errorCount });
+      setErrorMessage(lastError);
+      
+      if (successCount > 0) {
+        toast.success(`Успешно: ${successCount}`);
+        onImportComplete && onImportComplete();
+      }
+    } catch (err) {
+      toast.error("Ошибка при загрузке");
+      setErrorMessage(err.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleParse = (file) => {
     setIsProcessing(true);
@@ -38,96 +121,44 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
     setResult(null);
     setErrorMessage(null);
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const rawData = results.data;
-        if (rawData.length === 0) {
-          toast.error("Файл пуст или имеет неверный формат");
-          setIsProcessing(false);
-          return;
-        }
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
 
-        const businessId = profile?.business_id || profile?.tenant_id || profile?.id;
-        
-        // Try to get a default category if none provided
-        let defaultCategoryId = null;
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
         try {
-          const { data: catData } = await supabase
-            .from('categories')
-            .select('id')
-            .limit(1);
-          if (catData && catData.length > 0) {
-            defaultCategoryId = catData[0].id;
-          }
-        } catch (e) {}
-
-        // Map data to the required format as requested by user
-        const dataToUpload = rawData.map(row => {
-          const price = parseFloat(row.sale_price || row.Price || row['Цена'] || row.price) || 0;
-          return {
-            barcode: String(row.barcode || row.Barcode || row['Баркод'] || '').trim(),
-            name: String(row.name || row.Name || row['Наименование'] || '').trim(),
-            stock_quantity: parseFloat(row.stock_quantity || row.Quantity || row['Количество'] || row.stock) || 0,
-            expiry_date: row.expiry_date || row['Срок годности'] || null,
-            // Compatibility with existing schema
-            user_id: profile?.id,
-            price: price,
-            category_id: row.category_id || defaultCategoryId
-          };
-        }).filter(item => item.barcode && item.name);
-
-        if (dataToUpload.length === 0) {
-          toast.error("Не найдено корректных данных для импорта. Проверьте заголовки: barcode, name...");
-          setIsProcessing(false);
-          return;
-        }
-
-        try {
-          const chunkSize = 50;
-          let successCount = 0;
-          let errorCount = 0;
-          let lastError = null;
-
-          for (let i = 0; i < dataToUpload.length; i += chunkSize) {
-            const chunk = dataToUpload.slice(i, i + chunkSize);
-            const { error } = await supabase
-              .from('products')
-              .insert(chunk);
-
-            if (error) {
-              console.error('Upsert error:', error);
-              errorCount += chunk.length;
-              lastError = error.message;
-            } else {
-              successCount += chunk.length;
-            }
-            
-            const currentProgress = Math.min(100, Math.round(((i + chunk.length) / dataToUpload.length) * 100));
-            setProgress(currentProgress);
-          }
-
-          setResult({ success: successCount, error: errorCount });
-          setErrorMessage(lastError);
-          
-          if (successCount > 0) {
-            toast.success(`Успешно: ${successCount}`);
-            onImportComplete && onImportComplete();
-          }
-        } catch (err) {
-          toast.error("Ошибка при загрузке");
-          setErrorMessage(err.message);
-        } finally {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          processImportData(jsonData);
+        } catch (error) {
+          toast.error("Ошибка при чтении Excel файла");
+          console.error(error);
           setIsProcessing(false);
         }
-      },
-      error: (error) => {
+      };
+      reader.onerror = () => {
         toast.error("Ошибка при чтении файла");
-        console.error(error);
         setIsProcessing(false);
-      }
-    });
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Handle CSV
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          processImportData(results.data);
+        },
+        error: (error) => {
+          toast.error("Ошибка при чтении CSV файла");
+          console.error(error);
+          setIsProcessing(false);
+        }
+      });
+    }
   };
 
   if (!isOpen) return null;

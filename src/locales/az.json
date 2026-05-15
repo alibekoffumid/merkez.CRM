@@ -622,7 +622,7 @@
     "notesPlaceholder": "Qeydlərinizi bura daxil edin...",
     "completeReceipt": "Qəbulu Tamamla",
     "importProducts": "Məhsulların İdxalı",
-    "chooseCsv": "CSV faylını seçin",
+    "chooseCsv": "CSV və ya Excel faylı seçin",
     "dragAndDrop": "Faylı bura sürün və ya seçmək üçün klikləyin",
     "csvFormatHeaders": "Fayl formatı",
     "processingData": "Məlumatlar emal olunur...",
