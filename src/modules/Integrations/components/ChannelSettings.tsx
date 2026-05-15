@@ -207,6 +207,14 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
             </div>
 
             <div className="p-8 space-y-6">
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                <div className="text-xs text-blue-700 leading-relaxed font-medium">
+                  {t('integrations.setupNotice') || 'Для работы требуется Meta Business App. Получите ключи в '}
+                  <a href="https://developers.facebook.com/" target="_blank" rel="noreferrer" className="underline font-black hover:text-blue-900">Facebook Developers Portal</a>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">{t('integrations.provider')}</label>
                 <div className="grid grid-cols-2 gap-3">
@@ -239,10 +247,16 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">API Key / Token</label>
+                <div className="flex justify-between items-center mb-2 ml-1">
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">API Key / Token</label>
+                   <a href="https://developers.facebook.com/docs/whatsapp/business-platform/get-started" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1">
+                      <Globe className="w-3 h-3" />
+                      {t('integrations.getManual') || 'Как получить?'}
+                   </a>
+                </div>
                 <input 
                   type="password"
-                  placeholder="Paste your API key here"
+                  placeholder="Paste your System User Access Token"
                   value={newChannel.apiKey}
                   onChange={(e) => setNewChannel({ ...newChannel, apiKey: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:bg-white outline-none transition-all"
@@ -251,7 +265,10 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
 
               {newChannel.provider === 'whatsapp' ? (
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Phone Number ID</label>
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Phone Number ID</label>
+                    <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">Required for WhatsApp</span>
+                  </div>
                   <input 
                     type="text"
                     placeholder="e.g. 104523945239"
@@ -262,7 +279,10 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                 </div>
               ) : (
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">Instagram Business ID</label>
+                   <div className="flex justify-between items-center mb-2 ml-1">
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Instagram Business ID</label>
+                    <span className="text-[9px] font-bold text-pink-400 bg-pink-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">Required for Instagram</span>
+                  </div>
                   <input 
                     type="text"
                     placeholder="e.g. 178414000000"
