@@ -213,7 +213,7 @@ const IntegrationsModule = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-140px)] flex bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl shadow-gray-200/50">
+    <div className="h-full flex bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl shadow-gray-200/50">
       {/* 1. Contact List (Left Sidebar) */}
       <div className="w-80 border-r border-gray-100 flex flex-col bg-gray-50/20">
         <div className="p-6 border-b border-gray-100">

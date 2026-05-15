@@ -929,7 +929,20 @@
     "emptyDescription": "Подключите каналы",
     "searchPlaceholder": "Поиск чатов...",
     "messagePlaceholder": "Введите сообщение...",
-    "online": "Онлайн"
+    "online": "Онлайн",
+    "noMessages": "Нет сообщений",
+    "connectChannels": "Подключить каналы",
+    "channelManagement": "Управление каналами",
+    "channelDesc": "Подключите и настройте каналы связи с клиентами",
+    "addChannel": "Добавить канал",
+    "noChannels": "Каналы не подключены",
+    "noChannelsDesc": "Начните с подключения WhatsApp или Instagram для общения с вашими клиентами",
+    "connectFirstChannel": "Подключить первый канал",
+    "connectChannel": "Подключить канал",
+    "newConnection": "Новое соединение",
+    "provider": "Провайдер",
+    "channelName": "Название канала",
+    "connect": "Подключить"
   },
   "callCenter": {
     "title": "Колл-центр",
