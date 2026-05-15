@@ -7,6 +7,8 @@ import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
 
+import { formatCategoriesHierarchically } from './categoryUtils';
+
 const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
@@ -16,6 +18,13 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+
+  // Format categories for hierarchical dropdown, excluding current category and its children
+  const hierarchicalCategories = React.useMemo(() => 
+    formatCategoriesHierarchically(categories, category?.id), 
+    [categories, category?.id]
+  );
+
 
   useEffect(() => {
     if (category && isOpen) {
@@ -169,7 +178,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                 onChange={val => setParentId(val)}
                 options={[
                   { value: '', label: t('warehouse.noParent') || 'No Parent (Main Category)' },
-                  ...categories.filter(c => c.id !== category.id && !c.parent_id).map(cat => ({ value: cat.id, label: cat.name }))
+                  ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
                 ]}
               />
             </div>

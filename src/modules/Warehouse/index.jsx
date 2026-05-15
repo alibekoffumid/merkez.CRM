@@ -432,9 +432,20 @@ const WarehouseModule = () => {
     .filter(p => {
       if (!selectedCategory) return true;
       if (p.category_id === selectedCategory) return true;
-      // Also include subcategories
-      const subCategoryIds = categories.filter(c => c.parent_id === selectedCategory).map(c => c.id);
-      return subCategoryIds.includes(p.category_id);
+      
+      // Recursive check for subcategories
+      const getAllDescendantIds = (catId) => {
+        let ids = [];
+        const children = categories.filter(c => c.parent_id === catId);
+        ids = [...children.map(c => c.id)];
+        children.forEach(child => {
+          ids = [...ids, ...getAllDescendantIds(child.id)];
+        });
+        return ids;
+      };
+
+      const allSubIds = getAllDescendantIds(selectedCategory);
+      return allSubIds.includes(p.category_id);
     })
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .filter(p => {
@@ -1084,93 +1095,85 @@ const WarehouseModule = () => {
 
                   <div className="my-4 border-t border-gray-100/50" />
 
-                  {categories.filter(c => !c.parent_id).map(cat => {
-                    const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
-                    const isExpanded = expandedCategories.includes(cat.id);
-                    const isActive = selectedCategory === cat.id;
-                    const count = products.filter(p => {
-                      if (p.category_id === cat.id) return true;
-                      const subIds = categories.filter(s => s.parent_id === cat.id).map(s => s.id);
-                      return subIds.includes(p.category_id);
-                    }).length;
-                    
-                    return (
-                      <React.Fragment key={cat.id}>
-                        <div 
-                          className={`group p-3 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
-                          onClick={() => {
-                            setSelectedCategory(isActive ? null : cat.id);
-                            if (hasSubcategories && !isExpanded) {
-                              setExpandedCategories(prev => [...prev, cat.id]);
-                            }
-                          }}
-                        >
-                          <div className="flex items-center flex-1 truncate gap-3">
-                            {hasSubcategories ? (
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedCategories(prev => 
-                                    prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                                  );
-                                }}
-                                className={`p-1 rounded-md transition-colors ${isExpanded ? 'bg-blue-50 text-merkez-blue' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}
-                              >
-                                <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
-                              </button>
-                            ) : (
-                              <div className="w-5 h-5 flex items-center justify-center opacity-40">
-                                <Folder className="w-3.5 h-3.5" />
-                              </div>
-                            )}
-                            <span className="truncate">{cat.name}</span>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <button 
-                              onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
-                              className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}>
-                              {count}
-                            </span>
-                          </div>
-                        </div>
+                  {(() => {
+                    const getDescendantIds = (catId) => {
+                      let ids = [];
+                      const children = categories.filter(c => c.parent_id === catId);
+                      ids = [...children.map(c => c.id)];
+                      children.forEach(child => {
+                        ids = [...ids, ...getDescendantIds(child.id)];
+                      });
+                      return ids;
+                    };
 
-                        {/* Subcategories */}
-                        {isExpanded && categories.filter(sub => sub.parent_id === cat.id).map(subcat => {
-                          const isSubActive = selectedCategory === subcat.id;
-                          const subCount = products.filter(p => p.category_id === subcat.id).length;
-                          
-                          return (
-                            <div 
-                              key={subcat.id} 
-                              className={`group mt-1 mx-2 p-2.5 pl-6 rounded-xl cursor-pointer text-xs flex items-center justify-between font-bold transition-all duration-200 ${isSubActive ? 'bg-blue-50/50 text-merkez-blue' : 'text-gray-500 hover:bg-white hover:text-gray-900'}`} 
-                              onClick={() => setSelectedCategory(isSubActive ? null : subcat.id)}
-                            >
-                              <div className="flex items-center flex-1 truncate" title={subcat.name}>
-                                <CornerDownRight className="w-3.5 h-3.5 mr-2 text-gray-300 shrink-0" />
-                                <span className="truncate">{subcat.name}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
+                    const renderCategory = (cat, level = 0) => {
+                      const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
+                      const isExpanded = expandedCategories.includes(cat.id);
+                      const isActive = selectedCategory === cat.id;
+                      
+                      const descendantIds = getDescendantIds(cat.id);
+                      const count = products.filter(p => p.category_id === cat.id || descendantIds.includes(p.category_id)).length;
+                      
+                      return (
+                        <React.Fragment key={cat.id}>
+                          <div 
+                            className={`group p-3 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                            style={{ marginLeft: level > 0 ? `${level * 12}px` : '0' }}
+                            onClick={() => {
+                              setSelectedCategory(isActive ? null : cat.id);
+                              if (hasSubcategories && !isExpanded) {
+                                setExpandedCategories(prev => [...prev, cat.id]);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center flex-1 truncate gap-3">
+                              {hasSubcategories ? (
                                 <button 
-                                  onClick={(e) => { e.stopPropagation(); setEditingCategory(subcat); }}
-                                  className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-merkez-blue transition-all"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedCategories(prev => 
+                                      prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                                    );
+                                  }}
+                                  className={`p-1 rounded-md transition-colors ${isExpanded ? 'bg-blue-50 text-merkez-blue' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}
                                 >
-                                  <Pencil className="w-3 h-3" />
+                                  <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
                                 </button>
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${isSubActive ? 'bg-merkez-blue/20 text-merkez-blue' : 'bg-gray-100 text-gray-400'}`}>
-                                  {subCount}
-                                </span>
-                              </div>
+                              ) : (
+                                <div className="w-5 h-5 flex items-center justify-center opacity-40">
+                                  <Folder className="w-3.5 h-3.5" />
+                                </div>
+                              )}
+                              <span className="truncate" title={cat.name}>{cat.name}</span>
                             </div>
-                          );
-                        })}
-                      </React.Fragment>
-                    );
-                  })}
+                            
+                            <div className="flex items-center gap-2">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
+                                className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                {count}
+                              </span>
+                            </div>
+                          </div>
+
+                          {isExpanded && categories
+                            .filter(sub => sub.parent_id === cat.id)
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(subcat => renderCategory(subcat, level + 1))
+                          }
+                        </React.Fragment>
+                      );
+                    };
+
+                    return categories
+                      .filter(c => !c.parent_id)
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(cat => renderCategory(cat));
+                  })()}
                 </div>
                 
                 <div className="pt-6 mt-auto border-t border-gray-100/50">

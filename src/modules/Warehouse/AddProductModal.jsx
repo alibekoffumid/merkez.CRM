@@ -7,8 +7,17 @@ import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
+import { formatCategoriesHierarchically } from './categoryUtils';
+
 const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
   const { t } = useTranslation();
+  
+  // Format categories for hierarchical dropdown
+  const hierarchicalCategories = React.useMemo(() => 
+    formatCategoriesHierarchically(categories), 
+    [categories]
+  );
+
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -240,7 +249,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                       onChange={val => setFormData({ ...formData, category_id: val })}
                       options={[
                         { value: '', label: t('warehouse.selectCategory') },
-                        ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+                        ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
                       ]}
                     />
                   </div>

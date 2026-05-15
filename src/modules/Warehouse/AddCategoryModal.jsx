@@ -7,12 +7,21 @@ import Dropdown from '../../components/Common/Dropdown';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 
- const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
+import { formatCategoriesHierarchically } from './categoryUtils';
+
+const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false); 
   const [formData, setFormData] = useState({ name: '', parent_id: '' }); 
   const [categories, setCategories] = useState([]);
+
+  // Format categories for hierarchical dropdown
+  const hierarchicalCategories = React.useMemo(() => 
+    formatCategoriesHierarchically(categories), 
+    [categories]
+  );
+
 
   useEffect(() => {
     if (isOpen) {
@@ -91,7 +100,7 @@ import { toast } from 'react-hot-toast';
               onChange={val => setFormData({...formData, parent_id: val})}
               options={[
                 { value: '', label: t('warehouse.noParent') || 'No Parent (Main Category)' },
-                ...categories.filter(c => !c.parent_id).map(cat => ({ value: cat.id, label: cat.name }))
+                ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
               ]}
             />
           </div>
