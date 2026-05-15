@@ -19,6 +19,7 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingChannelId, setEditingChannelId] = useState<string | null>(null);
   const [newChannel, setNewChannel] = useState({
     name: '',
     provider: 'whatsapp' as const,
@@ -43,6 +44,32 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
     fetchChannels();
   }, [tenantId]);
 
+  const openAddModal = () => {
+    setEditingChannelId(null);
+    setNewChannel({
+      name: '',
+      provider: 'whatsapp',
+      apiKey: '',
+      phoneId: '',
+      instaId: '',
+      botToken: ''
+    });
+    setShowAddModal(true);
+  };
+
+  const openEditModal = (channel: Channel) => {
+    setEditingChannelId(channel.id);
+    setNewChannel({
+      name: channel.name,
+      provider: channel.provider as any,
+      apiKey: channel.settings?.api_key || '',
+      phoneId: channel.settings?.phone_number_id || '',
+      instaId: channel.settings?.instagram_business_id || '',
+      botToken: channel.settings?.bot_token || ''
+    });
+    setShowAddModal(true);
+  };
+
   const handleAddChannel = async () => {
     if (!newChannel.name) return;
 
@@ -53,38 +80,68 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
     } else if (newChannel.provider === 'instagram') {
       settings.api_key = newChannel.apiKey;
       settings.instagram_business_id = newChannel.instaId;
-    } else if (newChannel.provider === 'telephony' as any) {
+    } else if (newChannel.provider === 'telephony' as any || newChannel.provider === 'telegram') {
       settings.bot_token = newChannel.botToken;
     }
 
-    const { data: createdChannel, error } = await supabase
-      .from('integration_channels')
-      .insert({
-        tenant_id: tenantId,
-        name: newChannel.name,
-        provider: newChannel.provider,
-        settings,
-        status: 'active'
-      })
-      .select().single();
+    if (editingChannelId) {
+      // UPDATE
+      const { error } = await supabase
+        .from('integration_channels')
+        .update({
+          name: newChannel.name,
+          settings
+        })
+        .eq('id', editingChannelId);
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      // 3. Set up webhook for Telegram
-      if (newChannel.provider === 'telephony' as any && createdChannel) {
-        try {
-          await TelegramService.setupWebhook(newChannel.botToken, createdChannel.id);
-          toast.success('Telegram Webhook Configured');
-        } catch (webhookError: any) {
-          console.error('Webhook error:', webhookError);
-          toast.error('Bot connected, but webhook setup failed. Please check BotToken.');
+      if (error) {
+        toast.error(error.message);
+      } else {
+        if ((newChannel.provider === 'telephony' as any || newChannel.provider === 'telegram') && newChannel.botToken) {
+          try {
+            await TelegramService.setupWebhook(newChannel.botToken, editingChannelId);
+            toast.success('Telegram Webhook Configured');
+          } catch (webhookError: any) {
+             console.error('Webhook error:', webhookError);
+             toast.error('Bot connected, but webhook setup failed.');
+          }
         }
+        toast.success(t('common.saved') || 'Настройки сохранены');
+        setShowAddModal(false);
+        setEditingChannelId(null);
+        fetchChannels();
       }
-      
-      toast.success(t('integrations.channelAdded') || 'Канал добавлен');
-      setShowAddModal(false);
-      fetchChannels();
+    } else {
+      // INSERT
+      const { data: createdChannel, error } = await supabase
+        .from('integration_channels')
+        .insert({
+          tenant_id: tenantId,
+          name: newChannel.name,
+          provider: newChannel.provider,
+          settings,
+          status: 'active'
+        })
+        .select().single();
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        // Set up webhook for Telegram
+        if ((newChannel.provider === 'telephony' as any || newChannel.provider === 'telegram') && createdChannel) {
+          try {
+            await TelegramService.setupWebhook(newChannel.botToken, createdChannel.id);
+            toast.success('Telegram Webhook Configured');
+          } catch (webhookError: any) {
+            console.error('Webhook error:', webhookError);
+            toast.error('Bot connected, but webhook setup failed. Please check BotToken.');
+          }
+        }
+        
+        toast.success(t('integrations.channelAdded') || 'Канал добавлен');
+        setShowAddModal(false);
+        fetchChannels();
+      }
     }
   };
 
@@ -140,7 +197,7 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
             <h3 className="text-lg font-bold text-gray-900 mb-2">{t('integrations.noChannels') || 'Каналы не подключены'}</h3>
             <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">{t('integrations.noChannelsDesc') || 'Начните с подключения WhatsApp или Instagram для общения с вашими клиентами'}</p>
             <button 
-              onClick={() => setShowAddModal(true)}
+              onClick={openAddModal}
               className="px-8 py-3 bg-gray-900 text-white rounded-2xl text-sm font-bold hover:bg-black transition-all"
             >
               {t('integrations.connectFirstChannel') || 'Подключить первый канал'}
@@ -195,7 +252,10 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="flex-1 py-3 bg-gray-50 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100 flex items-center justify-center gap-2">
+                    <button 
+                      onClick={() => openEditModal(channel)}
+                      className="flex-1 py-3 bg-gray-50 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100 flex items-center justify-center gap-2"
+                    >
                       <Settings className="w-3.5 h-3.5" />
                       {t('common.settings')}
                     </button>
@@ -219,8 +279,12 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 border-b border-gray-50 bg-gray-50/30 flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-black text-gray-900">{t('integrations.connectChannel') || 'Подключить канал'}</h3>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{t('integrations.newConnection') || 'Новое соединение'}</p>
+                <h3 className="text-xl font-black text-gray-900">
+                  {editingChannelId ? (t('common.settings') || 'Настройки канала') : (t('integrations.connectChannel') || 'Подключить канал')}
+                </h3>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
+                  {editingChannelId ? (t('common.edit') || 'Редактирование') : (t('integrations.newConnection') || 'Новое соединение')}
+                </p>
               </div>
               <button onClick={() => setShowAddModal(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
                 <X className="w-6 h-6" />
@@ -358,10 +422,10 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                 </button>
                 <button 
                   onClick={handleAddChannel}
-                  disabled={!newChannel.name || (newChannel.provider === 'telephony' ? !newChannel.botToken : !newChannel.apiKey)}
+                  disabled={!newChannel.name || ((newChannel.provider === 'telephony' as any || newChannel.provider === 'telegram') ? !newChannel.botToken : !newChannel.apiKey)}
                   className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
                 >
-                  {t('integrations.connect') || 'Подключить'}
+                  {editingChannelId ? (t('common.save') || 'Сохранить') : (t('integrations.connect') || 'Подключить')}
                 </button>
               </div>
             </div>
