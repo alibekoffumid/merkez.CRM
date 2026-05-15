@@ -1250,5 +1250,27 @@
         "desc": "İstənilən cihazdan — telefon, planşet, kompüter."
       }
     }
+  },
+  "auth": {
+    "welcomeBack": "Xoş gəlmisiniz.",
+    "join": "Merkez-ə qoşulun.",
+    "descLogin": "Mərkəzləşdirilmiş idarəetmə iş sahənizə daxil olun.",
+    "descRegister": "Vahid CRM ilə biznes əməliyyatlarınızı mərkəzləşdirməyə başlayın.",
+    "continueGoogle": "Google ilə davam et",
+    "businessName": "Şirkət adı",
+    "fullName": "Ad Soyad",
+    "workEmail": "İş Email-i",
+    "password": "Şifrə",
+    "confirmPassword": "Şifrəni təsdiqləyin",
+    "signIn": "Sistemə daxil ol",
+    "createAccount": "Hesab yarat",
+    "noAccount": "Hesabınız yoxdur?",
+    "alreadyJoined": "Artıq bizimləsiniz?",
+    "register": "Qeydiyyat",
+    "login": "Daxil ol",
+    "checkEmail": "E-poçtunuzu yoxlayın!",
+    "verifyDesc": "Təsdiq linkini göndərdik: ",
+    "verifyDescEnd": ". Davam etmək üçün hesabınızı təsdiqləyin.",
+    "backLogin": "Girişə qayıt"
   }
 }

@@ -1252,5 +1252,27 @@
         "desc": "From any device — phone, tablet, computer."
       }
     }
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back.",
+    "join": "Join Merkez.",
+    "descLogin": "Access your centralized restaurant management workspace.",
+    "descRegister": "Start centralizing your business operations with our unified CRM.",
+    "continueGoogle": "Continue with Google",
+    "businessName": "Business Name",
+    "fullName": "Full Name",
+    "workEmail": "Work Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "signIn": "Sign In to Workspace",
+    "createAccount": "Create Business Account",
+    "noAccount": "No account?",
+    "alreadyJoined": "Already joined?",
+    "register": "Register",
+    "login": "Login",
+    "checkEmail": "Check your email!",
+    "verifyDesc": "We've sent a confirmation link to ",
+    "verifyDescEnd": ". Please verify your account to continue.",
+    "backLogin": "Back to Login"
   }
 }

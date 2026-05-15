@@ -4,11 +4,13 @@ import { Mail, Lock, User, Building, ArrowRight, CheckCircle2, ChevronRight, Gra
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import TelegramLoginButton from './TelegramLoginButton';
+import { useTranslation } from 'react-i18next';
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, needsOnboarding, loading: userLoading, modulesLoading } = useUser();
+  const { t, i18n } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -171,13 +173,13 @@ const Auth = () => {
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-merkez-green" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email!</h2>
-          <p className="text-gray-500 mb-8">We've sent a confirmation link to {formData.email}. Please verify your account to continue.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.checkEmail') || 'Check your email!'}</h2>
+          <p className="text-gray-500 mb-8">{t('auth.verifyDesc') || "We've sent a confirmation link to "} <span className="font-bold text-gray-900">{formData.email}</span>{t('auth.verifyDescEnd') || ". Please verify your account to continue."}</p>
           <button 
             onClick={() => setIsLogin(true)}
             className="text-merkez-blue font-bold hover:underline"
           >
-            Back to Login
+            {t('auth.backLogin') || 'Back to Login'}
           </button>
         </div>
       </div>
@@ -185,7 +187,27 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] relative">
+      <div className="absolute top-6 right-6 flex items-center gap-2 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-gray-100 z-10">
+        {[
+          { code: 'ru', label: 'RU' },
+          { code: 'en', label: 'EN' },
+          { code: 'az', label: 'AZ' }
+        ].map((lang) => (
+          <button
+            key={lang.code}
+            type="button"
+            onClick={() => i18n.changeLanguage(lang.code)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+              i18n.language === lang.code 
+                ? 'bg-merkez-blue text-white shadow-md shadow-blue-500/20' 
+                : 'text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            {lang.label}
+          </button>
+        ))}
+      </div>
 
       <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl shadow-gray-200/60 p-8 md:p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col md:flex-row gap-10 items-stretch">
@@ -195,18 +217,18 @@ const Auth = () => {
             <div className="mb-6">
               <img src="/logo.svg" alt="Merkez Logo" className="h-20 w-auto object-contain mb-6" />
               <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
-                {isLogin ? 'Welcome Back.' : 'Join Merkez.'}
+                {isLogin ? (t('auth.welcomeBack') || 'Welcome Back.') : (t('auth.join') || 'Join Merkez.')}
               </h1>
               <p className="text-gray-500 text-sm font-medium leading-relaxed">
                 {isLogin 
-                  ? 'Access your centralized restaurant management workspace.' 
-                  : 'Start centralizing your business operations with our unified CRM.'}
+                  ? (t('auth.descLogin') || 'Access your centralized restaurant management workspace.') 
+                  : (t('auth.descRegister') || 'Start centralizing your business operations with our unified CRM.')}
               </p>
             </div>
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center space-x-3 py-4 bg-white border border-gray-200 rounded-2xl text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.98] shadow-sm mb-4"
+              className="w-full max-w-[240px] mx-auto flex items-center justify-center space-x-3 py-4 bg-white border border-gray-200 rounded-2xl text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.98] shadow-sm mb-4"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -214,7 +236,7 @@ const Auth = () => {
                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              <span>Continue with Google</span>
+              <span>{t('auth.continueGoogle') || 'Continue with Google'}</span>
             </button>
             
             <div className="mb-4">
@@ -248,7 +270,7 @@ const Auth = () => {
               {!isLogin && (
                 <>
                   <div className="space-y-1.5 col-span-2 md:col-span-1">
-                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">Business</label>
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('auth.businessName') || 'Business Name'}</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                         <Building className="w-4 h-4" />
@@ -258,7 +280,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-1.5 col-span-2 md:col-span-1">
-                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">Full Name</label>
+                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('auth.fullName') || 'Full Name'}</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                         <User className="w-4 h-4" />
@@ -270,7 +292,7 @@ const Auth = () => {
               )}
 
               <div className="space-y-1.5 col-span-2">
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">Work Email</label>
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('auth.workEmail') || 'Work Email'}</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                     <Mail className="w-4 h-4" />
@@ -280,7 +302,7 @@ const Auth = () => {
               </div>
 
               <div className={`space-y-1.5 ${isLogin ? 'col-span-2' : 'col-span-2 md:col-span-1'}`}>
-                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">Password</label>
+                <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('auth.password') || 'Password'}</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                     <Lock className="w-4 h-4" />
@@ -291,7 +313,7 @@ const Auth = () => {
 
               {!isLogin && (
                 <div className="space-y-1.5 col-span-2 md:col-span-1">
-                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">Confirm</label>
+                  <label className="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">{t('auth.confirmPassword') || 'Confirm'}</label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                       <Lock className="w-4 h-4" />
@@ -311,7 +333,7 @@ const Auth = () => {
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
                     <>
-                      <span>{isLogin ? 'Sign In to Workspace' : 'Create Business Account'}</span>
+                      <span>{isLogin ? (t('auth.signIn') || 'Sign In to Workspace') : (t('auth.createAccount') || 'Create Business Account')}</span>
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -319,9 +341,9 @@ const Auth = () => {
               </div>
 
               <p className="col-span-2 text-center text-gray-400 font-bold text-[10px] uppercase tracking-widest pt-2">
-                {isLogin ? "No account?" : "Already joined?"}{' '}
+                {isLogin ? (t('auth.noAccount') || 'No account?') : (t('auth.alreadyJoined') || 'Already joined?')} {' '}
                 <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-merkez-blue hover:underline">
-                  {isLogin ? 'Register' : 'Login'}
+                  {isLogin ? (t('auth.register') || 'Register') : (t('auth.login') || 'Login')}
                 </button>
               </p>
             </form>
