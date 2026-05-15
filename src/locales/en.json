@@ -945,7 +945,9 @@
     "setupNotice": "Meta Business App is required. Get your keys at ",
     "getManual": "How to get?",
     "telegramNotice": "To start, create a bot in @BotFather. Use the /token command to get the HTTP API Token and paste it below.",
-    "getBot": "Create bot"
+    "getBot": "Create bot",
+    "channelAdded": "Channel added successfully",
+    "channelDeleted": "Channel deleted successfully"
   },
   "callCenter": {
     "title": "Call Center",

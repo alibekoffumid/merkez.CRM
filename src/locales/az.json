@@ -945,7 +945,9 @@
     "setupNotice": "İşləmək üçün Meta Business App tələb olunur. Açarları buradan əldə edin: ",
     "getManual": "Necə əldə etməli?",
     "telegramNotice": "İşləmək üçün @BotFather-da bot yaradın. HTTP API Tokenini əldə etmək üçün /token əmrindən istifadə edin və aşağıya yapışdırın.",
-    "getBot": "Bot yarat"
+    "getBot": "Bot yarat",
+    "channelAdded": "Kanal uğurla əlavə edildi",
+    "channelDeleted": "Kanal uğurla silindi"
   },
   "callCenter": {
     "title": "Çağrı Mərkəzi",
