@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, User, Building, ArrowRight, CheckCircle2, ChevronRight, Grape } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
+import TelegramLoginButton from './TelegramLoginButton';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -133,6 +134,36 @@ const Auth = () => {
     }
   };
 
+  const handleTelegramAuth = async (telegramUser) => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Call our Edge Function to verify hash and get/create user
+      const { data, error: functionError } = await supabase.functions.invoke('telegram-auth', {
+        body: { user: telegramUser }
+      });
+
+      if (functionError) throw functionError;
+      if (data.error) throw new Error(data.error);
+
+      // Sign in with the credentials returned by the Edge Function
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password
+      });
+
+      if (authError) throw authError;
+
+      // Force navigate to dashboard
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error('Telegram Auth Error:', err);
+      setError('Telegram Login Error: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -185,6 +216,15 @@ const Auth = () => {
               </svg>
               <span>Continue with Google</span>
             </button>
+            
+            <div className="mb-4">
+               <TelegramLoginButton 
+                 botName="merkezcrmbot" 
+                 onAuth={handleTelegramAuth} 
+                 buttonSize="large" 
+                 cornerRadius={16}
+               />
+            </div>
             
             <div className="mt-auto pt-6 text-[11px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-between">
               <span>© 2024 Merkez</span>
