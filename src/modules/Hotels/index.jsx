@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Building, Calendar, Settings, Bed, Plus, Search, Filter } from 'lucide-react';
 import BookingCalendar from './components/BookingCalendar';
+import { useTranslation } from 'react-i18next';
 
 const HotelsModule = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('calendar'); // 'calendar', 'housekeeping', 'settings'
 
   return (
@@ -15,10 +17,10 @@ const HotelsModule = () => {
               <div className="w-8 h-8 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center mr-3">
                 <Building className="w-5 h-5" />
               </div>
-              Hotels & Hostels
+              {t('hotels.title') || 'Hotels & Hostels'}
             </h1>
             <p className="text-sm font-medium text-gray-500 mt-1 ml-11">
-              Property Management System
+              {t('hotels.subtitle') || 'Property Management System'}
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -30,7 +32,7 @@ const HotelsModule = () => {
             </button>
             <button className="bg-pink-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center text-sm hover:bg-pink-700 transition-all shadow-lg shadow-pink-500/30 active:scale-[0.98]">
               <Plus className="w-4 h-4 mr-2" />
-              New Booking
+              {t('hotels.newBooking') || 'New Booking'}
             </button>
           </div>
         </div>
@@ -45,7 +47,7 @@ const HotelsModule = () => {
           >
             <div className="flex items-center">
               <Calendar className={`w-4 h-4 mr-2 ${activeTab === 'calendar' ? 'text-pink-600' : ''}`} />
-              Booking Calendar
+              {t('hotels.bookingCalendar') || 'Booking Calendar'}
             </div>
           </button>
           <button
@@ -56,7 +58,7 @@ const HotelsModule = () => {
           >
             <div className="flex items-center">
               <Bed className={`w-4 h-4 mr-2 ${activeTab === 'housekeeping' ? 'text-pink-600' : ''}`} />
-              Housekeeping
+              {t('hotels.housekeeping') || 'Housekeeping'}
             </div>
           </button>
           <button
@@ -67,7 +69,7 @@ const HotelsModule = () => {
           >
             <div className="flex items-center">
               <Settings className={`w-4 h-4 mr-2 ${activeTab === 'settings' ? 'text-pink-600' : ''}`} />
-              Settings
+              {t('hotels.settings') || 'Settings'}
             </div>
           </button>
         </div>
@@ -79,13 +81,13 @@ const HotelsModule = () => {
          
          {activeTab === 'housekeeping' && (
            <div className="flex h-full items-center justify-center text-gray-400 font-medium">
-              Housekeeping module coming soon...
+              {t('hotels.housekeepingComingSoon') || 'Housekeeping module coming soon...'}
            </div>
          )}
          
          {activeTab === 'settings' && (
            <div className="flex h-full items-center justify-center text-gray-400 font-medium">
-              Hotel settings coming soon...
+              {t('hotels.settingsComingSoon') || 'Hotel settings coming soon...'}
            </div>
          )}
       </div>

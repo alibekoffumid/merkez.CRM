@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { addDays, subDays, format, isSameDay, differenceInDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, User, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const BookingCalendar = () => {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState(new Date());
   
   // Временные данные для демонстрации интерфейса
@@ -49,14 +51,14 @@ const BookingCalendar = () => {
               onClick={() => setStartDate(new Date())}
               className="text-xs font-bold text-gray-500 hover:text-pink-600 transition-colors uppercase tracking-wider bg-gray-50 hover:bg-pink-50 px-3 py-2 rounded-xl"
             >
-              Today
+              {t('hotels.today') || 'Today'}
             </button>
          </div>
 
          <div className="flex items-center space-x-3 text-xs font-bold text-gray-500">
-            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#f59e0b] mr-1.5" /> Pending</div>
-            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#ec4899] mr-1.5" /> Confirmed</div>
-            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#3b82f6] mr-1.5" /> Checked In</div>
+            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#f59e0b] mr-1.5" /> {t('hotels.pending') || 'Pending'}</div>
+            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#ec4899] mr-1.5" /> {t('hotels.confirmed') || 'Confirmed'}</div>
+            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#3b82f6] mr-1.5" /> {t('hotels.checkedIn') || 'Checked In'}</div>
          </div>
       </div>
 
@@ -66,7 +68,7 @@ const BookingCalendar = () => {
         {/* Левая колонка: Список номеров */}
         <div className="w-56 border-r border-gray-100 flex-shrink-0 sticky left-0 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
            <div className="h-14 border-b border-gray-100 flex items-center px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md">
-             Rooms & Beds
+             {t('hotels.roomsAndBeds') || 'Rooms & Beds'}
            </div>
            {rooms.map(room => (
              <div key={room.id} className="h-20 border-b border-gray-100 flex flex-col justify-center px-5 hover:bg-gray-50/50 transition-colors group cursor-pointer">

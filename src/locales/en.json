@@ -109,7 +109,8 @@
     "modules": "Modules",
     "settings": "Settings",
     "logout": "Logout",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "hotels": "Hotels"
   },
   "profile": {
     "title": "My Profile",
@@ -799,7 +800,8 @@
     "eTaxesDesc": "Electronic tax reports and declarations",
     "integrationsDesc": "Unified hub for WhatsApp, Instagram and Telephony messages",
     "retailDesc": "Fast retail sales, barcode scanning and inventory for stores",
-    "fleetDesc": "Complete fleet management for taxi companies, drivers and rent control"
+    "fleetDesc": "Complete fleet management for taxi companies, drivers and rent control",
+    "hotelsDesc": "Booking calendar, reservations, and room inventory"
   },
   "header": {
     "search": "Search...",
@@ -957,6 +959,10 @@
   "callCenter": {
     "title": "Call Center",
     "subtitle": "Call management, scripts and inquiry analytics"
+  },
+  "hotels": {
+    "title": "Hotels",
+    "subtitle": "Property management, reservations and calendar"
   },
   "kitchen": {
     "kdsTitle": "Kitchen Display",
@@ -1274,5 +1280,20 @@
     "verifyDesc": "We've sent a confirmation link to ",
     "verifyDescEnd": ". Please verify your account to continue.",
     "backLogin": "Back to Login"
+  },
+  "hotels": {
+    "title": "Hotels & Hostels",
+    "subtitle": "Property Management System",
+    "newBooking": "New Booking",
+    "bookingCalendar": "Booking Calendar",
+    "housekeeping": "Housekeeping",
+    "settings": "Settings",
+    "today": "Today",
+    "roomsAndBeds": "Rooms & Beds",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "checkedIn": "Checked In",
+    "housekeepingComingSoon": "Housekeeping module coming soon...",
+    "settingsComingSoon": "Hotel settings coming soon..."
   }
 }

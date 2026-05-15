@@ -106,6 +106,7 @@
     "callCenter": "Çağrı Mərkəzi",
     "integrations": "İnteqrasiyalar",
     "etaxes": "e-Vergilər",
+    "hotels": "Hotellər",
     "modules": "Modullar",
     "settings": "Tənzimləmələr",
     "logout": "Çıxış",
@@ -799,7 +800,8 @@
     "eTaxesDesc": "Elektron vergi hesabatları və bəyannamələr",
     "integrationsDesc": "WhatsApp, Instagram və Teleqram mesajları üçün vahid mərkəz",
     "retailDesc": "Sürətli pərakəndə satış, barkod skan edilməsi və mağaza inventarı",
-    "fleetDesc": "Taksi şirkətləri, sürücülər və kirayə nəzarəti üçün tam donanma idarəetməsi"
+    "fleetDesc": "Taksi şirkətləri, sürücülər və kirayə nəzarəti üçün tam donanma idarəetməsi",
+    "hotelsDesc": "Şahmat cədvəli, rezervasiyalar və otaq inventarı"
   },
   "header": {
     "search": "Axtar...",
@@ -1272,5 +1274,20 @@
     "verifyDesc": "Təsdiq linkini göndərdik: ",
     "verifyDescEnd": ". Davam etmək üçün hesabınızı təsdiqləyin.",
     "backLogin": "Girişə qayıt"
+  },
+  "hotels": {
+    "title": "Hotellər və Hostellər",
+    "subtitle": "Obyekt İdarəetmə Sistemi (PMS)",
+    "newBooking": "Yeni Rezervasiya",
+    "bookingCalendar": "Şahmat Cədvəli",
+    "housekeeping": "Təmizlik",
+    "settings": "Tənzimləmələr",
+    "today": "Bu gün",
+    "roomsAndBeds": "Otaqlar və Çarpayılar",
+    "pending": "Gözləmədə",
+    "confirmed": "Təsdiqləndi",
+    "checkedIn": "Giriş etdi",
+    "housekeepingComingSoon": "Təmizlik modulu hazırlanır...",
+    "settingsComingSoon": "Hotel tənzimləmələri hazırlanır..."
   }
 }
