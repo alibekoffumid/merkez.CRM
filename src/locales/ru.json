@@ -945,7 +945,7 @@
     "connect": "Подключить",
     "setupNotice": "Для работы требуется Meta Business App. Получите ключи в ",
     "getManual": "Как получить?",
-    "telegramNotice": "Для работы создайте бота в BotFather. Получите HTTP API Token и вставьте его ниже.",
+    "telegramNotice": "Для работы создайте бота в @BotFather. Используйте команду /token, чтобы получить HTTP API Token, и вставьте его ниже.",
     "getBot": "Создать бота"
   },
   "callCenter": {

@@ -944,7 +944,7 @@
     "connect": "Connect",
     "setupNotice": "Meta Business App is required. Get your keys at ",
     "getManual": "How to get?",
-    "telegramNotice": "To start, create a bot in BotFather. Get the HTTP API Token and paste it below.",
+    "telegramNotice": "To start, create a bot in @BotFather. Use the /token command to get the HTTP API Token and paste it below.",
     "getBot": "Create bot"
   },
   "callCenter": {
