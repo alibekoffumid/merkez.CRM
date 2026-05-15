@@ -165,10 +165,15 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                     {channel.provider === 'instagram' && <Instagram className="w-6 h-6 text-white" />}
                     {channel.provider === 'telephony' && <Phone className="w-6 h-6 text-white" />}
                   </div>
-                  <div>
-                    <h4 className="font-black text-gray-900">{channel.name}</h4>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{channel.provider}</p>
-                  </div>
+                    <div>
+                      <h4 className="font-black text-gray-900">{channel.name}</h4>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        {channel.provider === 'telephony' ? 'Telegram' : 
+                         channel.provider === 'whatsapp' ? 'WhatsApp' :
+                         channel.provider === 'instagram' ? 'Instagram' : 
+                         channel.provider}
+                      </span>
+                    </div>
                 </div>
 
                 <div className="space-y-4">
