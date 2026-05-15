@@ -123,7 +123,7 @@ const BookingCalendar = () => {
            </div>
            {rooms.length === 0 ? (
              <div className="p-6 text-center text-sm text-gray-400 font-medium">
-               No rooms yet. <br/><span className="text-pink-600 cursor-pointer" onClick={() => setIsRoomModalOpen(true)}>Add one</span>
+               {t('hotels.noRoomsYet')} <br/><span className="text-pink-600 cursor-pointer" onClick={() => setIsRoomModalOpen(true)}>{t('hotels.addOne')}</span>
              </div>
            ) : rooms.map(room => (
              <div key={room.id} className="h-20 border-b border-gray-100 flex flex-col justify-center px-5 hover:bg-gray-50/50 transition-colors group cursor-pointer">

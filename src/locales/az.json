@@ -1288,6 +1288,27 @@
     "confirmed": "Təsdiqləndi",
     "checkedIn": "Giriş etdi",
     "housekeepingComingSoon": "Təmizlik modulu hazırlanır...",
-    "settingsComingSoon": "Hotel tənzimləmələri hazırlanır..."
+    "settingsComingSoon": "Hotel tənzimləmələri hazırlanır...",
+    "addRoom": "Otaq / Çarpayı əlavə et",
+    "roomName": "Ad / Nömrə",
+    "roomNamePlaceholder": "məs. 101 və ya Çarpayı 3",
+    "roomType": "Növ",
+    "typeSingle": "Tək nəfərlik",
+    "typeDouble": "İki nəfərlik",
+    "typeSuite": "Lyuks",
+    "typeHostel": "Hostel (çarpayı)",
+    "capacity": "Tutum",
+    "pricePerNight": "Gecəlik qiymət",
+    "saveRoom": "Otağı saxla",
+    "saving": "Saxlanılır...",
+    "guestName": "Qonaq adı",
+    "guestPhone": "Qonaq telefonu",
+    "checkIn": "Giriş tarixi",
+    "checkOut": "Çıxış tarixi",
+    "status": "Status",
+    "saveBooking": "Rezervasiyanı saxla",
+    "selectRoom": "Otaq seçin...",
+    "noRoomsYet": "Hələ otaq yoxdur.",
+    "addOne": "Əlavə et"
   }
 }

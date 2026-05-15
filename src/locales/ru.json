@@ -1291,6 +1291,27 @@
     "confirmed": "Подтверждена",
     "checkedIn": "Заселен",
     "housekeepingComingSoon": "Модуль уборки в разработке...",
-    "settingsComingSoon": "Настройки отеля в разработке..."
+    "settingsComingSoon": "Настройки отеля в разработке...",
+    "addRoom": "Добавить номер / койку",
+    "roomName": "Название / Номер",
+    "roomNamePlaceholder": "напр. 101 или Койка 3",
+    "roomType": "Тип",
+    "typeSingle": "Одноместный",
+    "typeDouble": "Двухместный",
+    "typeSuite": "Люкс",
+    "typeHostel": "Хостел (койка)",
+    "capacity": "Вместимость",
+    "pricePerNight": "Цена за ночь",
+    "saveRoom": "Сохранить номер",
+    "saving": "Сохранение...",
+    "guestName": "Имя гостя",
+    "guestPhone": "Телефон гостя",
+    "checkIn": "Дата заселения",
+    "checkOut": "Дата выселения",
+    "status": "Статус",
+    "saveBooking": "Сохранить бронь",
+    "selectRoom": "Выберите номер...",
+    "noRoomsYet": "Номеров пока нет.",
+    "addOne": "Добавить"
   }
 }

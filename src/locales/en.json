@@ -1294,6 +1294,27 @@
     "confirmed": "Confirmed",
     "checkedIn": "Checked In",
     "housekeepingComingSoon": "Housekeeping module coming soon...",
-    "settingsComingSoon": "Hotel settings coming soon..."
+    "settingsComingSoon": "Hotel settings coming soon...",
+    "addRoom": "Add Room / Bed",
+    "roomName": "Name / Number",
+    "roomNamePlaceholder": "e.g. 101 or Dorm Bed 3",
+    "roomType": "Type",
+    "typeSingle": "Single",
+    "typeDouble": "Double",
+    "typeSuite": "Suite",
+    "typeHostel": "Hostel Bed",
+    "capacity": "Capacity",
+    "pricePerNight": "Price per Night",
+    "saveRoom": "Save Room",
+    "saving": "Saving...",
+    "guestName": "Guest Name",
+    "guestPhone": "Guest Phone",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "status": "Status",
+    "saveBooking": "Save Booking",
+    "selectRoom": "Select a room...",
+    "noRoomsYet": "No rooms yet.",
+    "addOne": "Add one"
   }
 }
