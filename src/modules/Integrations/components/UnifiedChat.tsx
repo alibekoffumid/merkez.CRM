@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { MessageSquare, Instagram, Phone, Check, CheckCheck, Clock, LayoutGrid, AlertCircle } from 'lucide-react';
+import { MessageSquare, Instagram, Phone, Check, CheckCheck, Clock, LayoutGrid, AlertCircle, Send } from 'lucide-react';
 
 export interface UnifiedMessage {
   id: string;
-  source: 'whatsapp' | 'instagram' | 'phone';
+  source: 'whatsapp' | 'instagram' | 'phone' | 'telephony';
   direction: 'inbound' | 'outbound';
   content: string;
   timestamp: string;
@@ -25,6 +25,7 @@ const UnifiedChat: React.FC<{ messages: UnifiedMessage[] }> = ({ messages }) => 
       case 'whatsapp': return <MessageSquare className="w-3 h-3 text-green-500" />;
       case 'instagram': return <Instagram className="w-3 h-3 text-pink-500" />;
       case 'phone': return <Phone className="w-3 h-3 text-blue-500" />;
+      case 'telephony': return <Send className="w-3 h-3 text-blue-400" />; // Use Send icon for Telegram/Telephony
       default: return null;
     }
   };

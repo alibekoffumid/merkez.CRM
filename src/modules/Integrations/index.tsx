@@ -277,6 +277,7 @@ const IntegrationsModule = () => {
                   {contact.source === 'whatsapp' && <MessageSquare className="w-3 h-3 text-green-500" />}
                   {contact.source === 'instagram' && <Instagram className="w-3 h-3 text-pink-500" />}
                   {contact.source === 'phone' && <Phone className="w-3 h-3 text-blue-500" />}
+                  {contact.source === 'telephony' && <Send className="w-3 h-3 text-blue-400" />}
                 </div>
               </div>
               <div className="flex-1 text-left min-w-0">
