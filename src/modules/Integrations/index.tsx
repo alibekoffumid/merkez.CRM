@@ -17,6 +17,9 @@ const IntegrationsModule = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   const [contacts, setContacts] = useState<any[]>([]);
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'whatsapp' | 'instagram' | 'telephony'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'yesterday' | 'week'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const selectedContactRef = React.useRef<any>(null);
 
   // Keep ref in sync with state so realtime callback sees latest value
@@ -25,17 +28,41 @@ const IntegrationsModule = () => {
   }, [selectedContact]);
 
   const fetchContacts = async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('integration_contacts')
       .select('*')
-      .order('created_at', { ascending: false });
+      .eq('tenant_id', tenantId);
+
+    if (sourceFilter !== 'all') {
+      query = query.eq('source', sourceFilter);
+    }
+
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      let startDate = new Date();
+      
+      if (dateFilter === 'today') {
+        startDate.setHours(0, 0, 0, 0);
+      } else if (dateFilter === 'yesterday') {
+        startDate.setDate(now.getDate() - 1);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date();
+        endDate.setHours(0, 0, 0, 0);
+        query = query.lt('created_at', endDate.toISOString());
+      } else if (dateFilter === 'week') {
+        startDate.setDate(now.getDate() - 7);
+      }
+      
+      query = query.gte('created_at', startDate.toISOString());
+    }
+
+    const { data } = await query.order('created_at', { ascending: false });
     if (data) setContacts(data);
   };
 
   useEffect(() => {
     fetchContacts();
 
-    // Subscribe to new contacts
     const contactSub = supabase
       .channel('realtime:integration_contacts')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'integration_contacts' }, () => {
@@ -43,21 +70,17 @@ const IntegrationsModule = () => {
       })
       .subscribe();
 
-    // Subscribe to new messages
     const messageSub = supabase
       .channel('realtime:integration_messages')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'integration_messages' }, (payload) => {
         const newMsg = payload.new as any;
         const current = selectedContactRef.current;
-        // Only append if the message belongs to the currently selected contact
         if (current && newMsg.contact_id === current.id) {
           setMessages((prev) => {
-            // Prevent duplicates
             if (prev.some(m => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
         }
-        // Always refresh contacts list (to update last message preview)
         fetchContacts();
       })
       .subscribe();
@@ -66,7 +89,11 @@ const IntegrationsModule = () => {
       supabase.removeChannel(contactSub);
       supabase.removeChannel(messageSub);
     };
-  }, []);
+  }, [sourceFilter, dateFilter, tenantId]);
+
+  const filteredContacts = contacts.filter(contact => 
+    contact.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     if (!selectedContact) return;
@@ -238,8 +265,8 @@ const IntegrationsModule = () => {
     <div className="h-full flex bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-2xl shadow-gray-200/50">
       {/* 1. Contact List (Left Sidebar) */}
       <div className="w-80 border-r border-gray-100 flex flex-col bg-gray-50/20">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between mb-4">
+        <div className="p-6 border-b border-gray-100 space-y-4">
+          <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-gray-900">{t('integrations.title')}</h2>
             <button 
               onClick={() => setShowSettings(!showSettings)}
@@ -249,18 +276,62 @@ const IntegrationsModule = () => {
               <Settings className="w-5 h-5" />
             </button>
           </div>
+          
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
               placeholder={t('integrations.searchPlaceholder')} 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium"
             />
+          </div>
+
+          {/* Source Filters */}
+          <div className="flex gap-1 overflow-x-auto no-scrollbar pb-1">
+            <button 
+              onClick={() => setSourceFilter('all')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${sourceFilter === 'all' ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/20' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}
+            >
+              All
+            </button>
+            <button 
+              onClick={() => setSourceFilter('whatsapp')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${sourceFilter === 'whatsapp' ? 'bg-green-600 text-white border-green-600 shadow-md shadow-green-600/20' : 'bg-white text-gray-400 border-gray-100 hover:border-green-200'}`}
+            >
+              WhatsApp
+            </button>
+            <button 
+              onClick={() => setSourceFilter('telephony')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${sourceFilter === 'telephony' ? 'bg-blue-400 text-white border-blue-400 shadow-md shadow-blue-400/20' : 'bg-white text-gray-400 border-gray-100 hover:border-blue-200'}`}
+            >
+              Telegram
+            </button>
+            <button 
+              onClick={() => setSourceFilter('instagram')}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${sourceFilter === 'instagram' ? 'bg-pink-600 text-white border-pink-600 shadow-md shadow-pink-600/20' : 'bg-white text-gray-400 border-gray-100 hover:border-pink-200'}`}
+            >
+              Instagram
+            </button>
+          </div>
+
+          {/* Date Filters */}
+          <div className="grid grid-cols-4 gap-1">
+            {(['all', 'today', 'yesterday', 'week'] as const).map((filter) => (
+              <button 
+                key={filter}
+                onClick={() => setDateFilter(filter)}
+                className={`py-1 rounded-lg text-[9px] font-bold uppercase transition-all ${dateFilter === filter ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+              >
+                {filter === 'all' ? 'Any' : filter === 'today' ? 'Today' : filter === 'yesterday' ? 'Yest.' : 'Week'}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto no-scrollbar">
-          {contacts.map((contact) => (
+          {filteredContacts.map((contact) => (
             <button
               key={contact.id}
               onClick={() => {
