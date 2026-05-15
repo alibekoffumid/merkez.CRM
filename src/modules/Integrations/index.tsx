@@ -128,14 +128,15 @@ const IntegrationsModule = () => {
     });
 
     // 2. Send via WhatsApp API
-    if (selectedContact.source === 'whatsapp' && channel) {
+    if (selectedContact.source === 'whatsapp') {
       try {
-        const phoneId = channel.settings.phone_number_id;
-        const token = channel.settings.api_key;
+        // Fallback logic: Use DB channel settings, or environment variables if no channel exists
+        const phoneId = channel?.settings?.phone_number_id || (import.meta as any).env.VITE_WA_PHONE_ID;
+        const token = channel?.settings?.api_key || (import.meta as any).env.VITE_WA_ACCESS_TOKEN;
         const toPhone = selectedContact.external_id;
 
         if (!phoneId || !token) {
-          console.warn("WhatsApp API credentials missing in channel settings");
+          console.warn("WhatsApp API credentials missing (neither in DB nor in ENV)");
           await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
           setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
           return;
@@ -173,13 +174,13 @@ const IntegrationsModule = () => {
     }
 
     // 3. Send via Instagram API
-    if (selectedContact.source === 'instagram' && channel) {
+    if (selectedContact.source === 'instagram') {
       try {
-        const token = channel.settings.api_key;
+        const token = channel?.settings?.api_key || (import.meta as any).env.VITE_IG_ACCESS_TOKEN;
         const recipientId = selectedContact.external_id;
 
         if (!token) {
-          console.warn("Instagram Access Token missing in channel settings");
+          console.warn("Instagram Access Token missing (neither in DB nor in ENV)");
           await supabase.from('integration_messages').update({ status: 'failed' }).eq('id', savedMsg.id);
           setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'failed' } : m));
           return;

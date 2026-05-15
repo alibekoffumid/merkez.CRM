@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { MessageSquare, Instagram, Phone, Check, CheckCheck, Clock, LayoutGrid } from 'lucide-react';
+import { MessageSquare, Instagram, Phone, Check, CheckCheck, Clock, LayoutGrid, AlertCircle } from 'lucide-react';
 
 export interface UnifiedMessage {
   id: string;
@@ -35,7 +35,7 @@ const UnifiedChat: React.FC<{ messages: UnifiedMessage[] }> = ({ messages }) => 
       case 'sent': return <Check className="w-3 h-3 text-blue-100" />;
       case 'delivered': return <CheckCheck className="w-3 h-3 text-blue-100" />;
       case 'read': return <CheckCheck className="w-3 h-3 text-white" />;
-      case 'failed': return <Clock className="w-3 h-3 text-red-300" />;
+      case 'failed': return <AlertCircle className="w-3 h-3 text-red-200" />;
       default: return null;
     }
   };
