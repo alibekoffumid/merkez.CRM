@@ -302,7 +302,7 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                 </div>
               )}
 
-              {newChannel.provider === ('telephony' as any) && (
+              {(newChannel.provider === 'telephony' as any || newChannel.provider === 'telegram') && (
                 <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
                   <Send className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                   <div className="text-xs text-blue-700 leading-relaxed font-medium">
@@ -330,10 +330,10 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                   </button>
                   <button 
                     onClick={() => setNewChannel({ ...newChannel, provider: 'telephony' as any })}
-                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${newChannel.provider === 'telephony' ? 'border-blue-500 bg-blue-50/50' : 'border-gray-100 hover:border-gray-200'}`}
+                    className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? 'border-blue-500 bg-blue-50/50' : 'border-gray-100 hover:border-gray-200'}`}
                   >
-                    <Send className={`w-6 h-6 ${newChannel.provider === 'telephony' ? 'text-blue-500' : 'text-gray-400'}`} />
-                    <span className={`text-[10px] font-bold ${newChannel.provider === 'telephony' ? 'text-blue-700' : 'text-gray-600'}`}>Telegram</span>
+                    <Send className={`w-6 h-6 ${(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? 'text-blue-500' : 'text-gray-400'}`} />
+                    <span className={`text-[10px] font-bold ${(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? 'text-blue-700' : 'text-gray-600'}`}>Telegram</span>
                   </button>
                 </div>
               </div>
@@ -352,9 +352,9 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
               <div>
                 <div className="flex justify-between items-center mb-2 ml-1">
                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                     {newChannel.provider === 'telephony' ? 'Telegram Bot Token' : 'API Key / Token'}
+                     {(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? 'Telegram Bot Token' : 'API Key / Token'}
                    </label>
-                   {newChannel.provider === 'telephony' ? (
+                   {(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? (
                      <a href="https://t.me/BotFather" target="_blank" rel="noreferrer" className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1">
                         <Send className="w-3 h-3" />
                         {t('integrations.getBot') || 'Создать бота'}
@@ -368,10 +368,10 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                 </div>
                 <input 
                   type="password"
-                  placeholder={newChannel.provider === 'telephony' ? 'Enter HTTP API Token from BotFather' : 'Paste your System User Access Token'}
-                  value={newChannel.provider === 'telephony' ? newChannel.botToken : newChannel.apiKey}
+                  placeholder={(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? 'Enter HTTP API Token from BotFather' : (editingChannelId ? 'Enter new token to overwrite existing' : 'Paste your System User Access Token')}
+                  value={(newChannel.provider === 'telephony' || newChannel.provider === 'telegram') ? newChannel.botToken : newChannel.apiKey}
                   onChange={(e) => {
-                    if (newChannel.provider === 'telephony') {
+                    if (newChannel.provider === 'telephony' || newChannel.provider === 'telegram') {
                       setNewChannel({ ...newChannel, botToken: e.target.value });
                     } else {
                       setNewChannel({ ...newChannel, apiKey: e.target.value });
