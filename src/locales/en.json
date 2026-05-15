@@ -943,7 +943,9 @@
     "channelName": "Channel Name",
     "connect": "Connect",
     "setupNotice": "Meta Business App is required. Get your keys at ",
-    "getManual": "How to get?"
+    "getManual": "How to get?",
+    "telegramNotice": "To start, create a bot in BotFather. Get the HTTP API Token and paste it below.",
+    "getBot": "Create bot"
   },
   "callCenter": {
     "title": "Call Center",

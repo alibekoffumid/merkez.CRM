@@ -210,13 +210,24 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
             </div>
 
             <div className="p-8 space-y-6">
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
-                <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-700 leading-relaxed font-medium">
-                  {t('integrations.setupNotice') || 'Для работы требуется Meta Business App. Получите ключи в '}
-                  <a href="https://developers.facebook.com/" target="_blank" rel="noreferrer" className="underline font-black hover:text-blue-900">Facebook Developers Portal</a>
+              {newChannel.provider !== ('telephony' as any) && (
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                  <div className="text-xs text-blue-700 leading-relaxed font-medium">
+                    {t('integrations.setupNotice') || 'Для работы требуется Meta Business App. Получите ключи в '}
+                    <a href="https://developers.facebook.com/" target="_blank" rel="noreferrer" className="underline font-black hover:text-blue-900">Facebook Developers Portal</a>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {newChannel.provider === ('telephony' as any) && (
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+                  <Send className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                  <div className="text-xs text-blue-700 leading-relaxed font-medium">
+                    {t('integrations.telegramNotice') || 'Для работы создайте бота в BotFather. Получите HTTP API Token и вставьте его ниже.'}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">{t('integrations.provider')}</label>
@@ -249,7 +260,7 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 ml-1">{t('integrations.channelName')}</label>
                 <input 
                   type="text"
-                  placeholder="e.g. Sales WhatsApp"
+                  placeholder={newChannel.provider === 'whatsapp' ? 'e.g. Sales WhatsApp' : newChannel.provider === 'instagram' ? 'e.g. Support Instagram' : 'e.g. My Telegram Bot'}
                   value={newChannel.name}
                   onChange={(e) => setNewChannel({ ...newChannel, name: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:bg-white outline-none transition-all"
