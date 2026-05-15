@@ -941,7 +941,9 @@
     "newConnection": "New Connection",
     "provider": "Provider",
     "channelName": "Channel Name",
-    "connect": "Connect"
+    "connect": "Connect",
+    "setupNotice": "Meta Business App is required. Get your keys at ",
+    "getManual": "How to get?"
   },
   "callCenter": {
     "title": "Call Center",

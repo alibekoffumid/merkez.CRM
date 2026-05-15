@@ -941,7 +941,9 @@
     "newConnection": "Yeni Bağlantı",
     "provider": "Provayder",
     "channelName": "Kanal Adı",
-    "connect": "Qoşul"
+    "connect": "Qoşul",
+    "setupNotice": "İşləmək üçün Meta Business App tələb olunur. Açarları buradan əldə edin: ",
+    "getManual": "Necə əldə etməli?"
   },
   "callCenter": {
     "title": "Çağrı Mərkəzi",

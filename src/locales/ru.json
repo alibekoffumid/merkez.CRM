@@ -942,7 +942,9 @@
     "newConnection": "Новое соединение",
     "provider": "Провайдер",
     "channelName": "Название канала",
-    "connect": "Подключить"
+    "connect": "Подключить",
+    "setupNotice": "Для работы требуется Meta Business App. Получите ключи в ",
+    "getManual": "Как получить?"
   },
   "callCenter": {
     "title": "Колл-центр",
