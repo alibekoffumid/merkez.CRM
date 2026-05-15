@@ -12,6 +12,7 @@ const IntegrationsModule = () => {
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [messages, setMessages] = useState<UnifiedMessage[]>([]);
   const [inputText, setInputText] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
 
   const [contacts, setContacts] = useState<any[]>([]);
   const selectedContactRef = React.useRef<any>(null);
