@@ -6,15 +6,19 @@ import { useUser } from '../../core/UserContext';
 const AuthGuard = ({ children }) => {
   const { profile, loading: profileLoading } = useUser();
   const [session, setSession] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(!profile); // If we have a profile, we've already been through here
   const location = useLocation();
 
   useEffect(() => {
     // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    if (!profile) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setAuthLoading(false);
+      });
+    } else {
       setAuthLoading(false);
-    });
+    }
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -35,7 +39,7 @@ const AuthGuard = ({ children }) => {
     );
   }
 
-  if (!session) {
+  if (!session && !profile) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 

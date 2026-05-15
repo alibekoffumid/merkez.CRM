@@ -67,15 +67,23 @@ const OnboardingGuard = ({ children }) => {
 
 // Redirects native mobile apps directly to the scanner
 const NativeRedirect = ({ children }) => {
-  const [isNative, setIsNative] = React.useState(null);
+  const [isNative, setIsNative] = React.useState(() => {
+    // Check if we already know the platform from a previous detection
+    const saved = localStorage.getItem('merkez_is_native');
+    return saved === 'true' ? true : saved === 'false' ? false : null;
+  });
 
   React.useEffect(() => {
+    if (isNative !== null) return;
+    
     import('@capacitor/core').then(({ Capacitor }) => {
-      setIsNative(Capacitor.isNativePlatform());
+      const native = Capacitor.isNativePlatform();
+      setIsNative(native);
+      localStorage.setItem('merkez_is_native', native.toString());
     });
-  }, []);
+  }, [isNative]);
 
-  if (isNative === null) return null;
+  if (isNative === null) return children; // Don't block UI if detection is in progress
 
   if (isNative) {
     return <Navigate to="/scanner" replace />;

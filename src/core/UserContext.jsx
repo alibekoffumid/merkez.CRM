@@ -76,7 +76,13 @@ export const UserProvider = ({ children }) => {
           }
           return true;
         });
-        setActiveModules(validModules.map(m => m.module_id));
+        const newModules = validModules.map(m => m.module_id);
+        
+        // Only update state if modules actually changed (to prevent unnecessary re-renders)
+        setActiveModules(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(newModules)) return prev;
+          return newModules;
+        });
         setNeedsOnboarding(false);
       }
     } catch (err) {
