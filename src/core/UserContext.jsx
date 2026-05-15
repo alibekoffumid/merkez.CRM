@@ -47,7 +47,10 @@ export const UserProvider = ({ children }) => {
   };
 
   const fetchActiveModules = async (tenantId) => {
-    setModulesLoading(true);
+    // Only show global loading spinner if we don't have any modules yet
+    if (activeModules.length === 0) {
+      setModulesLoading(true);
+    }
     try {
       const { data, error } = await supabase
         .from('tenant_modules')
