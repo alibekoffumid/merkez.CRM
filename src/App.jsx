@@ -19,6 +19,7 @@ import IntegrationsModule from './modules/Integrations';
 import RetailModule from './modules/Retail';
 import FleetModule from './modules/Fleet';
 import ScannerModule from './modules/Scanner';
+import HotelsModule from './modules/Hotels';
 import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
@@ -221,6 +222,9 @@ function App() {
           } />
           <Route path="retail/*" element={
             <ModuleGuard moduleId="retail"><RetailModule /></ModuleGuard>
+          } />
+          <Route path="hotels/*" element={
+            <ModuleGuard moduleId="hotels"><HotelsModule /></ModuleGuard>
           } />
           <Route path="settings" element={<Profile />} />
           <Route path="profile" element={<Profile />} />

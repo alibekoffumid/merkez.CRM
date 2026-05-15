@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare, ShoppingCart, Car } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare, ShoppingCart, Car, Bed } from 'lucide-react';
 
 // Master registry of all available modules in the platform
 // This is the single source of truth for module metadata
@@ -164,6 +164,21 @@ export const MODULE_REGISTRY = {
     activeBg: 'bg-teal-600',
     activeShadow: 'shadow-teal-500/30',
     activeText: 'text-teal-600',
+    price: 49,
+    isFree: false,
+    isCore: false,
+  },
+  hotels: {
+    id: 'hotels',
+    nameKey: 'sidebar.hotels',
+    descriptionKey: 'modules.hotelsDesc',
+    icon: Bed,
+    path: '/hotels',
+    color: 'hover:text-pink-600 hover:bg-pink-50',
+    accentColor: 'pink',
+    activeBg: 'bg-pink-600',
+    activeShadow: 'shadow-pink-500/30',
+    activeText: 'text-pink-600',
     price: 49,
     isFree: false,
     isCore: false,
