@@ -1,37 +1,85 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { addDays, subDays, format, isSameDay, differenceInDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, User, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, Plus, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '../../../supabaseClient';
+import { useUser } from '../../../core/UserContext';
+import RoomModal from './RoomModal';
+import BookingModal from './BookingModal';
 
 const BookingCalendar = () => {
   const { t } = useTranslation();
+  const { profile } = useUser();
   const [startDate, setStartDate] = useState(new Date());
   
-  // Временные данные для демонстрации интерфейса
-  const rooms = [
-    { id: 1, name: '101', type: 'Single', status: 'clean' },
-    { id: 2, name: '102', type: 'Double', status: 'dirty' },
-    { id: 3, name: '201', type: 'Suite', status: 'clean' },
-    { id: 4, name: 'Dorm A - Bed 1', type: 'Hostel', status: 'clean' },
-    { id: 5, name: 'Dorm A - Bed 2', type: 'Hostel', status: 'clean' },
-    { id: 6, name: 'Dorm A - Bed 3', type: 'Hostel', status: 'maintenance' },
-  ];
+  const [rooms, setRooms] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
 
-  const bookings = [
-    { id: 101, roomId: 1, guestName: 'Алексей Иванов', checkIn: new Date(), checkOut: addDays(new Date(), 3), status: 'confirmed', color: '#ec4899' },
-    { id: 102, roomId: 2, guestName: 'Maria Smith', checkIn: addDays(new Date(), 1), checkOut: addDays(new Date(), 5), status: 'checked_in', color: '#3b82f6' },
-    { id: 103, roomId: 4, guestName: 'John Doe', checkIn: subDays(new Date(), 2), checkOut: addDays(new Date(), 1), status: 'checked_out', color: '#10b981' },
-    { id: 104, roomId: 3, guestName: 'VIP Guest', checkIn: addDays(new Date(), 4), checkOut: addDays(new Date(), 7), status: 'pending', color: '#f59e0b' },
-  ];
+  const fetchData = async () => {
+    try {
+      const tenantId = profile?.tenant_id || profile?.id;
+      if (!tenantId) return;
 
-  const daysToShow = 21; // Показывать 3 недели
-  const cellWidth = 96; // 6rem = 96px
+      const [roomsRes, bookingsRes] = await Promise.all([
+        supabase.from('hotel_rooms').select('*').eq('tenant_id', tenantId).order('name'),
+        supabase.from('hotel_bookings').select('*').eq('tenant_id', tenantId)
+      ]);
+
+      if (roomsRes.error) throw roomsRes.error;
+      if (bookingsRes.error) throw bookingsRes.error;
+
+      setRooms(roomsRes.data || []);
+      
+      // Parse dates safely for frontend
+      const parsedBookings = (bookingsRes.data || []).map(b => ({
+        ...b,
+        checkIn: new Date(b.check_in_date),
+        checkOut: new Date(b.check_out_date),
+        color: b.status === 'checked_in' ? '#3b82f6' : b.status === 'confirmed' ? '#ec4899' : '#f59e0b'
+      }));
+      setBookings(parsedBookings);
+
+    } catch (err) {
+      console.error('Error fetching hotel data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [profile]);
+  
+  const daysToShow = 21; 
+  const cellWidth = 96; 
 
   const dates = useMemo(() => {
     return Array.from({ length: daysToShow }).map((_, i) => addDays(startDate, i));
   }, [startDate]);
 
+  const handleCellClick = (room, date) => {
+    setSelectedDate(date);
+    setSelectedRoomId(room.id);
+    setIsBookingModalOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center bg-white rounded-3xl border border-gray-100 shadow-sm">
+        <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
+      </div>
+    );
+  }
+
   return (
+    <>
     <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col h-full overflow-hidden animate-in fade-in zoom-in-95 duration-300">
       {/* Панель управления календарем */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
@@ -67,10 +115,17 @@ const BookingCalendar = () => {
         
         {/* Левая колонка: Список номеров */}
         <div className="w-56 border-r border-gray-100 flex-shrink-0 sticky left-0 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
-           <div className="h-14 border-b border-gray-100 flex items-center px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md">
-             {t('hotels.roomsAndBeds') || 'Rooms & Beds'}
+           <div className="h-14 border-b border-gray-100 flex items-center justify-between px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md">
+             <span>{t('hotels.roomsAndBeds') || 'Rooms & Beds'}</span>
+             <button onClick={() => setIsRoomModalOpen(true)} className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-900 transition-colors">
+               <Plus className="w-4 h-4" />
+             </button>
            </div>
-           {rooms.map(room => (
+           {rooms.length === 0 ? (
+             <div className="p-6 text-center text-sm text-gray-400 font-medium">
+               No rooms yet. <br/><span className="text-pink-600 cursor-pointer" onClick={() => setIsRoomModalOpen(true)}>Add one</span>
+             </div>
+           ) : rooms.map(room => (
              <div key={room.id} className="h-20 border-b border-gray-100 flex flex-col justify-center px-5 hover:bg-gray-50/50 transition-colors group cursor-pointer">
                <div className="flex items-center justify-between mb-1">
                  <span className="font-black text-gray-900 text-sm">{room.name}</span>
@@ -111,6 +166,7 @@ const BookingCalendar = () => {
                  {dates.map(d => (
                    <div 
                      key={d.toString()} 
+                     onClick={() => handleCellClick(room, d)}
                      className={`w-24 flex-shrink-0 border-r border-dashed border-gray-100 hover:bg-pink-50/30 transition-colors cursor-pointer flex items-center justify-center group/cell ${
                        d.getDay() === 0 || d.getDay() === 6 ? 'bg-gray-50/30' : ''
                      }`}
@@ -122,7 +178,7 @@ const BookingCalendar = () => {
                  ))}
                  
                  {/* Блоки бронирований для этой комнаты */}
-                 {bookings.filter(b => b.roomId === room.id).map(booking => {
+                 {bookings.filter(b => b.room_id === room.id).map(booking => {
                     const startDiff = differenceInDays(booking.checkIn, startDate);
                     const length = differenceInDays(booking.checkOut, booking.checkIn);
                     
@@ -155,7 +211,7 @@ const BookingCalendar = () => {
                       >
                         <div className="flex items-center text-white/90 font-black text-xs truncate">
                           <User className="w-3 h-3 mr-1 opacity-70" />
-                          <span className="truncate">{booking.guestName}</span>
+                          <span className="truncate">{booking.guest_name}</span>
                         </div>
                         <div className="text-[9px] font-bold text-white/70 uppercase tracking-wider mt-0.5">
                           {booking.status}
@@ -169,6 +225,22 @@ const BookingCalendar = () => {
         </div>
       </div>
     </div>
+    
+    <RoomModal 
+      isOpen={isRoomModalOpen} 
+      onClose={() => setIsRoomModalOpen(false)} 
+      onSaved={fetchData} 
+    />
+    
+    <BookingModal 
+      isOpen={isBookingModalOpen} 
+      onClose={() => setIsBookingModalOpen(false)} 
+      onSaved={fetchData}
+      rooms={rooms}
+      initialDate={selectedDate}
+      initialRoomId={selectedRoomId}
+    />
+    </>
   );
 };
 
