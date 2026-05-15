@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus, MessageSquare, Instagram, Phone, Trash2, Settings, Globe, CheckCircle2, AlertCircle, Loader2, X, Send } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import { toast } from 'react-hot-toast';
+import { TelegramService } from '../services/TelegramService';
 
 interface Channel {
   id: string;
@@ -56,7 +57,7 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
       settings.bot_token = newChannel.botToken;
     }
 
-    const { error } = await supabase
+    const { data: createdChannel, error } = await supabase
       .from('integration_channels')
       .insert({
         tenant_id: tenantId,
@@ -64,11 +65,23 @@ const ChannelSettings = ({ tenantId, onClose }: { tenantId: string; onClose: () 
         provider: newChannel.provider,
         settings,
         status: 'active'
-      });
+      })
+      .select().single();
 
     if (error) {
       toast.error(error.message);
     } else {
+      // 3. Set up webhook for Telegram
+      if (newChannel.provider === 'telephony' as any && createdChannel) {
+        try {
+          await TelegramService.setupWebhook(newChannel.botToken, createdChannel.id);
+          toast.success('Telegram Webhook Configured');
+        } catch (webhookError: any) {
+          console.error('Webhook error:', webhookError);
+          toast.error('Bot connected, but webhook setup failed. Please check BotToken.');
+        }
+      }
+      
       toast.success(t('integrations.channelAdded') || 'Канал добавлен');
       setShowAddModal(false);
       fetchChannels();

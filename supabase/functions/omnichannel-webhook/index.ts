@@ -169,6 +169,55 @@ serve(async (req: Request) => {
       }
     }
 
+    // ─────────────────────────────────────────────
+    // D) Telegram Bot API
+    // ─────────────────────────────────────────────
+    if (body.message && body.update_id) {
+      const url = new URL(req.url)
+      const channelId = url.searchParams.get('channel_id')
+      
+      if (!channelId) {
+        return new Response('Missing channel_id', { status: 400 })
+      }
+
+      const { data: channel } = await supabase
+        .from('integration_channels')
+        .select('id, tenant_id')
+        .eq('id', channelId)
+        .single()
+
+      if (channel) {
+        const msg = body.message
+        const sender = msg.from
+        const text = msg.text || '[media]'
+
+        const { data: contact } = await supabase
+          .from('integration_contacts')
+          .upsert({
+            tenant_id: channel.tenant_id,
+            external_id: sender.id.toString(),
+            source: 'telephony', // We use 'telephony'/telegram in unified logic
+            name: sender.username || `${sender.first_name} ${sender.last_name || ''}`.trim()
+          }, { onConflict: 'tenant_id,external_id,source' })
+          .select().single()
+
+        if (contact) {
+          await supabase.from('integration_messages').insert({
+            tenant_id: channel.tenant_id,
+            channel_id: channel.id,
+            contact_id: contact.id,
+            direction: 'inbound',
+            type: 'text',
+            content: text,
+            metadata: { 
+              telegram_msg_id: msg.message_id,
+              chat_id: msg.chat.id
+            }
+          })
+        }
+      }
+    }
+
     return new Response(JSON.stringify({ status: 'ok' }), { status: 200 })
   } catch (error: any) {
     console.error("Webhook Error:", error)
