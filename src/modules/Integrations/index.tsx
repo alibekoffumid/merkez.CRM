@@ -218,7 +218,11 @@ const IntegrationsModule = () => {
     if (selectedContact.source === 'telephony' || selectedContact.source === 'telegram') {
       try {
         if (!channel) throw new Error('No channel config found for Telegram');
-        await TelegramService.sendMessage(tenantId, channel.id, selectedContact.external_id, messageText);
+        
+        const botToken = channel.settings?.bot_token;
+        if (!botToken) throw new Error('Telegram Bot Token missing in channel settings');
+
+        await TelegramService.sendMessage(botToken, selectedContact.external_id, messageText);
         
         await supabase.from('integration_messages').update({ status: 'sent' }).eq('id', savedMsg.id);
         setMessages((prev) => prev.map(m => m.id === savedMsg.id ? { ...m, status: 'sent' } : m));
