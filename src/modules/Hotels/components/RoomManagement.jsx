@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import RoomModal from './RoomModal';
+import RoomTypeModal from './RoomTypeModal';
 import toast from 'react-hot-toast';
+import { Tag } from 'lucide-react';
 
 const RoomManagement = () => {
   const { t } = useTranslation();
@@ -12,6 +14,8 @@ const RoomManagement = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
+  const [roomTypes, setRoomTypes] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -35,8 +39,24 @@ const RoomManagement = () => {
     }
   };
 
+  const fetchRoomTypes = async () => {
+    try {
+      const tenantId = profile?.tenant_id || profile?.id;
+      const { data, error } = await supabase
+        .from('hotel_room_categories')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .order('name', { ascending: true });
+      if (error) throw error;
+      setRoomTypes(data || []);
+    } catch (err) {
+      console.warn('Room types table might not exist');
+    }
+  };
+
   useEffect(() => {
     fetchRooms();
+    fetchRoomTypes();
   }, [profile]);
 
   const filteredRooms = rooms.filter(room => {
@@ -54,6 +74,9 @@ const RoomManagement = () => {
   };
 
   const getRoomTypeLabel = (type) => {
+    const found = roomTypes.find(t => t.id === type || t.name === type);
+    if (found) return found.name;
+
     switch (type) {
       case 'Single': return t('hotels.typeSingle');
       case 'Double': return t('hotels.typeDouble');
@@ -79,31 +102,70 @@ const RoomManagement = () => {
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            {['all', 'Single', 'Double', 'Suite', 'Hostel'].map(type => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                  filterType === type 
-                    ? 'bg-gray-900 text-white shadow-lg' 
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                {type === 'all' ? t('common.all') : getRoomTypeLabel(type)}
-              </button>
-            ))}
+            <button
+              onClick={() => setFilterType('all')}
+              className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                filterType === 'all' 
+                  ? 'bg-gray-900 text-white shadow-lg' 
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              {t('common.all')}
+            </button>
+            
+            {/* Hardcoded defaults if no custom types */}
+            {roomTypes.length === 0 ? (
+               ['Single', 'Double', 'Suite', 'Hostel'].map(type => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    filterType === type 
+                      ? 'bg-gray-900 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {getRoomTypeLabel(type)}
+                </button>
+              ))
+            ) : (
+              roomTypes.map(type => (
+                <button
+                  key={type.id}
+                  onClick={() => setFilterType(type.name)}
+                  className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    filterType === type.name 
+                      ? 'bg-gray-900 text-white shadow-lg' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {type.name}
+                </button>
+              ))
+            )}
           </div>
         </div>
-        <button
-          onClick={() => {
-            setSelectedRoom(null);
-            setIsModalOpen(true);
-          }}
-          className="flex items-center justify-center gap-2 px-6 py-3.5 bg-pink-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all group"
-        >
-          <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
-          {t('hotels.addRoom')}
-        </button>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsTypeModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-gray-100 text-gray-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-50 transition-all shadow-sm"
+          >
+            <Tag className="w-4 h-4 text-pink-600" />
+            {t('hotels.manageCategories')}
+          </button>
+          
+          <button
+            onClick={() => {
+              setSelectedRoom(null);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-pink-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all group"
+          >
+            <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
+            {t('hotels.addRoom')}
+          </button>
+        </div>
       </div>
 
       {/* Rooms Grid */}
@@ -187,6 +249,11 @@ const RoomManagement = () => {
         onClose={() => setIsModalOpen(false)}
         onSaved={fetchRooms}
         room={selectedRoom}
+      />
+      <RoomTypeModal
+        isOpen={isTypeModalOpen}
+        onClose={() => setIsTypeModalOpen(false)}
+        onSaved={fetchRoomTypes}
       />
     </div>
   );

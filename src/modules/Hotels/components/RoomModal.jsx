@@ -19,6 +19,25 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     capacity: 2,
     price_per_night: 0
   });
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const tenantId = profile?.tenant_id || profile?.id;
+        const { data, error } = await supabase
+          .from('hotel_room_categories')
+          .select('*')
+          .eq('tenant_id', tenantId)
+          .order('name', { ascending: true });
+        if (error) throw error;
+        setCategories(data || []);
+      } catch (err) {
+        console.warn('Categories table might not exist');
+      }
+    };
+    if (isOpen) fetchCategories();
+  }, [isOpen, profile]);
 
   useEffect(() => {
     if (room) {
@@ -94,6 +113,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     { value: 'Double', label: t('hotels.typeDouble') },
     { value: 'Suite', label: t('hotels.typeSuite') },
     { value: 'Hostel', label: t('hotels.typeHostel') },
+    ...categories.map(c => ({ value: c.name, label: c.name }))
   ];
 
   return createPortal(
