@@ -11,7 +11,7 @@ import BookingDetailsModal from './BookingDetailsModal';
 const BookingCalendar = () => {
   const { t } = useTranslation();
   const { profile } = useUser();
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(startOfDay(new Date()));
   const [viewMode, setViewMode] = useState('week');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 'week' or 'day'
   const [is24Hour, setIs24Hour] = useState(true);
@@ -375,13 +375,14 @@ const BookingCalendar = () => {
                      {bookings
                         .filter(b => b.room_id === room.id && activeStatuses.includes(b.status))
                         .map(booking => {
-                        const startDiff = differenceInDays(booking.checkIn, startDate);
-                        const length = differenceInDays(booking.checkOut, booking.checkIn);
+                        const startDiff = (booking.checkIn.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+                        const length = (booking.checkOut.getTime() - booking.checkIn.getTime()) / (1000 * 60 * 60 * 24);
                         
                         if (startDiff + length <= 0 || startDiff >= daysToShow) return null;
                         
                         const visibleStartDiff = Math.max(0, startDiff);
-                        const visibleLength = Math.min(daysToShow, startDiff + length) - visibleStartDiff;
+                        const visibleEndDiff = Math.min(daysToShow, startDiff + length);
+                         const visibleLength = visibleEndDiff - visibleStartDiff;
                         
                         const left = visibleStartDiff * cellWidth;
                         const width = visibleLength * cellWidth;
