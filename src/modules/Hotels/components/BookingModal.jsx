@@ -17,7 +17,9 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
     guest_name: '',
     guest_phone: '',
     check_in_date: initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+    check_in_time: '14:00',
     check_out_date: initialDate ? format(new Date(initialDate.getTime() + 86400000), 'yyyy-MM-dd') : format(new Date(Date.now() + 86400000), 'yyyy-MM-dd'),
+    check_out_time: '12:00',
     status: 'confirmed'
   });
 
@@ -31,10 +33,18 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
         throw new Error(t('hotels.selectRoom'));
       }
       const tenantId = profile?.tenant_id || profile?.id;
-      const { error } = await supabase.from('hotel_bookings').insert([{
+      
+      const payload = {
         tenant_id: tenantId,
-        ...formData
-      }]);
+        room_id: formData.room_id,
+        guest_name: formData.guest_name,
+        guest_phone: formData.guest_phone,
+        status: formData.status,
+        check_in_date: `${formData.check_in_date}T${formData.check_in_time}:00`,
+        check_out_date: `${formData.check_out_date}T${formData.check_out_time}:00`
+      };
+
+      const { error } = await supabase.from('hotel_bookings').insert([payload]);
       if (error) throw error;
       toast.success(t('hotels.saveBooking') + ' ✓');
       onSaved();
@@ -84,18 +94,35 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
           </div>
 
           <div className="grid grid-cols-2 gap-6">
-            <DatePicker
-              label={t('hotels.checkIn')}
-              value={formData.check_in_date}
-              onChange={(val) => setFormData({...formData, check_in_date: val})}
-              position="top"
-            />
-            <DatePicker
-              label={t('hotels.checkOut')}
-              value={formData.check_out_date}
-              onChange={(val) => setFormData({...formData, check_out_date: val})}
-              position="top"
-            />
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <DatePicker
+                  label={t('hotels.checkIn')}
+                  value={formData.check_in_date.split('T')[0] || formData.check_in_date}
+                  onChange={(val) => setFormData({...formData, check_in_date: val})}
+                  position="top"
+                />
+              </div>
+              <div className="w-24 space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Time</label>
+                <input type="time" value={formData.check_in_time || '14:00'} onChange={e => setFormData({...formData, check_in_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px]" />
+              </div>
+            </div>
+            
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <DatePicker
+                  label={t('hotels.checkOut')}
+                  value={formData.check_out_date.split('T')[0] || formData.check_out_date}
+                  onChange={(val) => setFormData({...formData, check_out_date: val})}
+                  position="top"
+                />
+              </div>
+              <div className="w-24 space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Time</label>
+                <input type="time" value={formData.check_out_time || '12:00'} onChange={e => setFormData({...formData, check_out_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px]" />
+              </div>
+            </div>
           </div>
 
           <CustomSelect
