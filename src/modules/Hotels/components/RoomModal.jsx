@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     has_minibar: false
   });
   const [categories, setCategories] = useState([]);
+  const [productCategories, setProductCategories] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [minibarItems, setMinibarItems] = useState([]);
   const [activeTab, setActiveTab] = useState('general'); // general, minibar
@@ -45,15 +46,21 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     };
     const fetchProducts = async () => {
       try {
-        const tenantId = profile?.tenant_id || profile?.id;
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, name, price')
-          .eq('user_id', profile?.id) // Warehouse uses user_id usually
+        const { data: catData } = await supabase
+          .from('categories')
+          .select('id, name')
+          .eq('user_id', profile?.id)
           .order('name');
-        if (!error) setAllProducts(data || []);
+        setProductCategories(catData || []);
+
+        const { data: prodData } = await supabase
+          .from('products')
+          .select('id, name, price, category_id')
+          .eq('user_id', profile?.id)
+          .order('name');
+        setAllProducts(prodData || []);
       } catch (err) {
-        console.warn('Products table might not exist');
+        console.warn('Products/Categories table might not exist');
       }
     };
 
@@ -197,6 +204,15 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     ));
   };
 
+  const groupedProductOptions = useMemo(() => {
+    return productCategories.map(cat => ({
+      category: cat.name,
+      items: allProducts
+        .filter(p => p.category_id === cat.id)
+        .map(p => ({ value: p.id, label: p.name }))
+    })).filter(group => group.items.length > 0);
+  }, [productCategories, allProducts]);
+
   const typeOptions = categories.map(c => ({ value: c.name, label: c.name }));
 
   return createPortal(
@@ -311,21 +327,14 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
               ) : (
                 /* Minibar Settings Tab */
                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('hotels.addProductToMinibar') || 'Add product from warehouse'}</label>
-                    <div className="flex gap-2">
-                      <select 
-                        onChange={(e) => addMinibarItem(e.target.value)}
-                        className="flex-1 p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 outline-none transition-all text-sm font-bold appearance-none"
-                        defaultValue=""
-                      >
-                        <option value="" disabled>{t('common.selectProduct') || 'Select a product...'}</option>
-                        {allProducts.map(p => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                  <CustomSelect
+                    label={t('hotels.addProductToMinibar') || 'Add product from warehouse'}
+                    placeholder={t('common.selectProduct') || 'Select a product...'}
+                    value=""
+                    onChange={(val) => addMinibarItem(val)}
+                    options={groupedProductOptions}
+                    isGrouped={true}
+                  />
 
                   <div className="space-y-3 max-h-[300px] overflow-auto pr-2 custom-scrollbar">
                     {minibarItems.map(item => (
