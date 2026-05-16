@@ -97,7 +97,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
 
   return (
     <>
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed top-0 left-0 w-screen h-screen z-[10000] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" />
       <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-8">
