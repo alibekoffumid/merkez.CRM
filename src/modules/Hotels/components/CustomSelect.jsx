@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped = false }) => {
+const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped = false, position = 'bottom' }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,7 +61,7 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
       </button>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[1000] animate-in zoom-in-95 fade-in duration-200 origin-top max-h-[350px] overflow-hidden flex flex-col">
+        <div className={`absolute left-0 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[1000] animate-in zoom-in-95 fade-in duration-200 max-h-[350px] overflow-hidden flex flex-col ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'}`}>
           {/* Search Bar */}
           <div className="px-3 mb-2">
             <div className="relative">

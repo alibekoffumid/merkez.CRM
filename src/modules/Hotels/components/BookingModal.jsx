@@ -172,6 +172,7 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
             value={formData.status}
             onChange={(val) => setFormData({...formData, status: val})}
             options={statusOptions}
+            position="top"
           />
 
           <button type="submit" disabled={loading} className="w-full py-4 bg-pink-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all disabled:opacity-50 flex items-center justify-center">
