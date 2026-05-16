@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../../supabaseClient';
@@ -95,7 +96,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     { value: 'Hostel', label: t('hotels.typeHostel') },
   ];
 
-  return (
+  return createPortal(
     <>
     <div className="fixed top-0 left-0 w-screen h-screen z-[10000] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" />
@@ -158,7 +159,8 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
       cancelText={t('common.no') || 'Xeyr'}
       isDanger={true}
     />
-    </>
+    </>,
+    document.body
   );
 };
 export default RoomModal;
