@@ -1,3 +1,11 @@
+-- Add warehouse_id to hotel_rooms table if it doesn't exist (multi-warehouse support for minibars)
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='hotel_rooms' AND column_name='warehouse_id') THEN
+        ALTER TABLE public.hotel_rooms ADD COLUMN warehouse_id UUID REFERENCES public.warehouses(id) ON DELETE SET NULL;
+    END IF;
+END $$;
+
 -- Create hotel_room_minibar_items table if it doesn't exist
 CREATE TABLE IF NOT EXISTS public.hotel_room_minibar_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

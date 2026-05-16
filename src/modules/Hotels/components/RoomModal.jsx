@@ -19,12 +19,14 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     capacity: 2,
     price_per_night: 0,
     has_minibar: false,
-    housekeeping_note: ''
+    housekeeping_note: '',
+    warehouse_id: ''
   });
   const [categories, setCategories] = useState([]);
   const [productCategories, setProductCategories] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [minibarItems, setMinibarItems] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [activeTab, setActiveTab] = useState('general'); // general, minibar
 
   useEffect(() => {
@@ -56,21 +58,12 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
 
         const { data: prodData } = await supabase
           .from('products')
-          .select('id, name, price, category_id, stock_quantity')
+          .select('id, name, price, category_id, stock_quantity, warehouse_id')
           .eq('user_id', profile?.id)
           .eq('archived', false)
           .order('name');
         
-        // Remove duplicates by name
-        const uniqueProds = [];
-        const seenNames = new Set();
-        (prodData || []).forEach(p => {
-          if (!seenNames.has(p.name)) {
-            seenNames.add(p.name);
-            uniqueProds.push(p);
-          }
-        });
-        setAllProducts(uniqueProds);
+        setAllProducts(prodData || []);
       } catch (err) {
         console.warn('Products/Categories table might not exist');
       }
@@ -94,10 +87,30 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
       }
     };
 
+    const fetchWarehouses = async () => {
+      if (!profile?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('warehouses')
+          .select('*')
+          .eq('user_id', profile.id)
+          .order('is_default', { ascending: false });
+        if (error) throw error;
+        setWarehouses(data || []);
+        if (data && data.length > 0 && !room?.warehouse_id && !formData.warehouse_id) {
+          const defaultW = data.find(w => w.is_default) || data[0];
+          setFormData(prev => ({ ...prev, warehouse_id: defaultW.id }));
+        }
+      } catch (err) {
+        console.error('Error fetching warehouses:', err);
+      }
+    };
+
     if (isOpen) {
       fetchCategories();
       fetchProducts();
       fetchMinibarItems();
+      fetchWarehouses();
     }
   }, [isOpen, profile, room]);
 
@@ -109,10 +122,11 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
         capacity: room.capacity || 2,
         price_per_night: room.price_per_night || 0,
         has_minibar: room.has_minibar || false,
-        housekeeping_note: room.housekeeping_note || ''
+        housekeeping_note: room.housekeeping_note || '',
+        warehouse_id: room.warehouse_id || ''
       });
     } else {
-      setFormData({ name: '', type: '', capacity: 2, price_per_night: 0, has_minibar: false, housekeeping_note: '' });
+      setFormData({ name: '', type: '', capacity: 2, price_per_night: 0, has_minibar: false, housekeeping_note: '', warehouse_id: '' });
       setMinibarItems([]);
     }
     setActiveTab('general');
@@ -247,7 +261,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     return productCategories.map(cat => ({
       category: getCategoryPath(cat),
       items: allProducts
-        .filter(p => p.category_id === cat.id)
+        .filter(p => p.category_id === cat.id && p.warehouse_id === formData.warehouse_id)
         .map(p => ({ 
           value: p.id, 
           label: `${p.name} (${p.stock_quantity || 0} ${t('common.unit')})` 
@@ -255,7 +269,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     }))
     .filter(group => group.items.length > 0)
     .sort((a, b) => a.category.localeCompare(b.category));
-  }, [productCategories, allProducts]);
+  }, [productCategories, allProducts, formData.warehouse_id]);
 
   const typeOptions = categories.map(c => ({ value: c.name, label: c.name }));
 
@@ -358,6 +372,16 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
               ) : (
                 /* Minibar Settings Tab */
                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                  {warehouses.length > 0 && (
+                    <CustomSelect
+                      label={t('warehouse.selectWarehouse') || 'Склад мини-бара'}
+                      placeholder={t('warehouse.selectWarehouse') || 'Выберите склад...'}
+                      value={formData.warehouse_id}
+                      onChange={(val) => setFormData(prev => ({ ...prev, warehouse_id: val }))}
+                      options={warehouses.map(w => ({ value: w.id, label: w.name }))}
+                    />
+                  )}
+
                   <CustomSelect
                     label={t('hotels.addProductToMinibar') || 'Add product from warehouse'}
                     placeholder={t('common.selectProduct') || 'Select a product...'}
