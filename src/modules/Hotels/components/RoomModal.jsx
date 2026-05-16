@@ -83,9 +83,14 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
           .from('hotel_room_minibar_items')
           .select('*, product:products(name)')
           .eq('room_id', room.id);
-        if (!error) setMinibarItems(data || []);
+        if (error) {
+          console.error('Error fetching minibar items:', error);
+          toast.error(`Minibar items error: ${error.message}`);
+          return;
+        }
+        setMinibarItems(data || []);
       } catch (err) {
-        console.warn('Minibar items table might not exist');
+        console.error('Unexpected error fetching minibar items:', err);
       }
     };
 
@@ -175,7 +180,16 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
   const saveMinibarItems = async (roomId) => {
     const tenantId = profile?.tenant_id || profile?.id;
     // Simple approach: delete all and re-insert
-    await supabase.from('hotel_room_minibar_items').delete().eq('room_id', roomId);
+    const { error: deleteError } = await supabase
+      .from('hotel_room_minibar_items')
+      .delete()
+      .eq('room_id', roomId);
+      
+    if (deleteError) {
+      console.error('Error clearing old minibar items:', deleteError);
+      throw new Error(`Failed to clear old minibar items: ${deleteError.message}`);
+    }
+
     if (minibarItems.length > 0) {
       const itemsToInsert = minibarItems.map(item => ({
         tenant_id: tenantId,
@@ -184,7 +198,14 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
         quantity: item.quantity,
         price_override: item.price_override
       }));
-      await supabase.from('hotel_room_minibar_items').insert(itemsToInsert);
+      const { error: insertError } = await supabase
+        .from('hotel_room_minibar_items')
+        .insert(itemsToInsert);
+        
+      if (insertError) {
+        console.error('Error saving minibar items:', insertError);
+        throw new Error(`Failed to save minibar items: ${insertError.message}`);
+      }
     }
   };
 
