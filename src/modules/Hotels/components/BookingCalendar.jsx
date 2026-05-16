@@ -14,6 +14,7 @@ const BookingCalendar = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 'week' or 'day'
+  const [is24Hour, setIs24Hour] = useState(true);
   const calendarRef = useRef(null);
 
   useEffect(() => {
@@ -158,6 +159,16 @@ const BookingCalendar = () => {
                 {t('hotels.dayView') || 'Day'}
               </button>
             </div>
+
+            {/* Time Format Toggle */}
+            <button 
+              onClick={() => setIs24Hour(!is24Hour)}
+              className={`p-2 px-3 rounded-xl text-xs font-black transition-all border ${
+                is24Hour ? 'bg-gray-50 text-gray-400 border-gray-100' : 'bg-pink-50 text-pink-600 border-pink-100 shadow-sm'
+              }`}
+            >
+              {is24Hour ? '24H' : '12H'}
+            </button>
 
             {/* Date Navigation */}
             <div ref={calendarRef} className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 relative">
@@ -399,10 +410,14 @@ const BookingCalendar = () => {
                   return (
                     <div key={i} className={`flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center ${isCurrentHour ? 'bg-pink-50/50' : ''}`} style={{ width: `${hourCellWidth}px` }}>
                        <span className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${isCurrentHour ? 'text-pink-500' : 'text-gray-400'}`}>
-                         {i < 12 ? 'AM' : 'PM'}
+                         {!is24Hour ? (i < 12 ? 'AM' : 'PM') : ''}
                        </span>
                        <span className={`text-base font-black ${isCurrentHour ? 'text-pink-600' : 'text-gray-900'}`}>
-                         {format(h, 'HH:mm')}
+                         {(() => {
+                           if (is24Hour) return format(h, 'H:00');
+                           const h12 = i % 12 || 12;
+                           return `${h12}:00`;
+                         })()}
                        </span>
                     </div>
                   );
