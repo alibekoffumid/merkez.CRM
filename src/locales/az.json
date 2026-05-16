@@ -1327,6 +1327,8 @@
     "minibarSyncDescription": "Burada seçilən məhsullar avtomatik olaraq Anbarınızla əlaqələndiriləcək. Satışlar zamanı anbardan silinmə baş verəcək.",
     "addProductToMinibar": "Anbardan məhsul əlavə et",
     "noMinibarItems": "Məhsul əlavə edilməyib",
+    "noRoomsYet": "Hələlik otaq yoxdur",
+    "addOneToGetStarted": "Rezervasiyaları idarə etmək üçün ilk otağınızı əlavə edin",
     "guests": "Qonaq",
     "noBookings": "Rezervasiya yoxdur",
     "saving": "Saxlanılır...",

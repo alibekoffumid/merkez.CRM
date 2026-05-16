@@ -1333,6 +1333,8 @@
     "minibarSyncDescription": "Products selected here will be automatically linked to your Warehouse inventory. Sales from this room will generate stock deductions.",
     "addProductToMinibar": "Add product from warehouse",
     "noMinibarItems": "No products added yet",
+    "noRoomsYet": "No rooms yet",
+    "addOneToGetStarted": "Add your first room to start managing bookings",
     "guests": "Guests",
     "noBookings": "No bookings",
     "saving": "Saving...",

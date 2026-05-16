@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped = false }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const ref = useRef(null);
@@ -67,7 +68,7 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
               <input 
                 type="text"
                 autoFocus
-                placeholder="Axtar..."
+                placeholder={t('common.search') + '...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-50 rounded-xl text-xs font-bold focus:bg-white focus:border-pink-200 outline-none transition-all"
@@ -123,7 +124,7 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
               ))
             )}
             {filteredOptions.length === 0 && (
-              <div className="text-center py-8 text-gray-400 italic text-xs">Məlumat tapılmadı</div>
+              <div className="text-center py-8 text-gray-400 italic text-xs">{t('common.noData')}</div>
             )}
           </div>
         </div>
