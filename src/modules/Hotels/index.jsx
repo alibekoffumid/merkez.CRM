@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Calendar, Bed, Settings } from 'lucide-react';
 import BookingCalendar from './components/BookingCalendar';
+import RoomManagement from './components/RoomManagement';
 import { useTranslation } from 'react-i18next';
+import { Home } from 'lucide-react';
 
 const HotelsModule = () => {
   const { t } = useTranslation();
@@ -9,6 +11,7 @@ const HotelsModule = () => {
 
   const tabs = [
     { id: 'calendar', label: t('hotels.bookingCalendar') || 'Booking Calendar', icon: Calendar },
+    { id: 'rooms', label: t('hotels.roomsManagement') || 'Rooms', icon: Home },
     { id: 'housekeeping', label: t('hotels.housekeeping') || 'Housekeeping', icon: Bed },
     { id: 'settings', label: t('hotels.settings') || 'Settings', icon: Settings },
   ];
@@ -39,6 +42,7 @@ const HotelsModule = () => {
       {/* Main Content Area */}
       <div className="flex-1 mt-2 px-4">
         {activeTab === 'calendar' && <BookingCalendar />}
+        {activeTab === 'rooms' && <RoomManagement />}
         
         {activeTab === 'housekeeping' && (
           <div className="bg-white rounded-[2.5rem] p-16 text-center border border-gray-100 shadow-sm">
