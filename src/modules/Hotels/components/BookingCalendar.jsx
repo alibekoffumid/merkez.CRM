@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { addDays, subDays, format, isSameDay, differenceInDays, addHours, startOfDay } from 'date-fns';
 import { ChevronLeft, ChevronRight, User, Plus, Loader2, CalendarDays, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,22 @@ const BookingCalendar = () => {
   const [startDate, setStartDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week');
   const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 'week' or 'day'
+  const calendarRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setIsCalendarOpen(false);
+      }
+    };
+
+    if (isCalendarOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCalendarOpen]);
   
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -144,7 +160,7 @@ const BookingCalendar = () => {
             </div>
 
             {/* Date Navigation */}
-            <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 relative">
+            <div ref={calendarRef} className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 relative">
               <button onClick={navigateBack} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900">
                 <ChevronLeft className="w-5 h-5" />
               </button>
