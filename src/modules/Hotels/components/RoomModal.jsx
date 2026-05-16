@@ -15,7 +15,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    type: 'Single',
+    type: '',
     capacity: 2,
     price_per_night: 0
   });
@@ -32,6 +32,9 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
           .order('name', { ascending: true });
         if (error) throw error;
         setCategories(data || []);
+        if (data && data.length > 0 && !room) {
+          setFormData(prev => ({ ...prev, type: data[0].name }));
+        }
       } catch (err) {
         console.warn('Categories table might not exist');
       }
@@ -108,13 +111,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     }
   };
 
-  const typeOptions = [
-    { value: 'Single', label: t('hotels.typeSingle') },
-    { value: 'Double', label: t('hotels.typeDouble') },
-    { value: 'Suite', label: t('hotels.typeSuite') },
-    { value: 'Hostel', label: t('hotels.typeHostel') },
-    ...categories.map(c => ({ value: c.name, label: c.name }))
-  ];
+  const typeOptions = categories.map(c => ({ value: c.name, label: c.name }));
 
   return createPortal(
     <>

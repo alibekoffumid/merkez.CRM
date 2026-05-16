@@ -113,36 +113,19 @@ const RoomManagement = () => {
               {t('common.all')}
             </button>
             
-            {/* Hardcoded defaults if no custom types */}
-            {roomTypes.length === 0 ? (
-               ['Single', 'Double', 'Suite', 'Hostel'].map(type => (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type)}
-                  className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    filterType === type 
-                      ? 'bg-gray-900 text-white shadow-lg' 
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  {getRoomTypeLabel(type)}
-                </button>
-              ))
-            ) : (
-              roomTypes.map(type => (
-                <button
-                  key={type.id}
-                  onClick={() => setFilterType(type.name)}
-                  className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    filterType === type.name 
-                      ? 'bg-gray-900 text-white shadow-lg' 
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  }`}
-                >
-                  {type.name}
-                </button>
-              ))
-            )}
+            {roomTypes.map(type => (
+              <button
+                key={type.id}
+                onClick={() => setFilterType(type.name)}
+                className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  filterType === type.name 
+                    ? 'bg-gray-900 text-white shadow-lg' 
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {type.name}
+              </button>
+            ))}
           </div>
         </div>
         
