@@ -40,6 +40,7 @@ const BookingCalendar = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [hoveredDate, setHoveredDate] = useState(null);
   
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
@@ -126,9 +127,9 @@ const BookingCalendar = () => {
     );
   }
 
-  // Check if a booking covers the current day (for day view)
-  const isBookingOnDay = (booking) => {
-    const dayStart = startOfDay(startDate);
+  // Check if a booking covers a specific day
+  const isBookingOnDay = (booking, day = startDate) => {
+    const dayStart = startOfDay(day);
     const dayEnd = addDays(dayStart, 1);
     return booking.checkIn < dayEnd && booking.checkOut > dayStart;
   };
@@ -341,13 +342,45 @@ const BookingCalendar = () => {
                   const isToday = isSameDay(d, new Date());
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                   return (
-                    <div key={d.toString()} className={`w-24 flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center ${isToday ? 'bg-pink-50/50' : isWeekend ? 'bg-gray-100/30' : ''}`}>
+                    <div 
+                      key={d.toString()} 
+                      onMouseEnter={() => setHoveredDate(d)}
+                      onMouseLeave={() => setHoveredDate(null)}
+                      className={`w-24 flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center relative ${isToday ? 'bg-pink-50/50' : isWeekend ? 'bg-gray-100/30' : ''}`}
+                    >
                        <span className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${isToday ? 'text-pink-500' : 'text-gray-400'}`}>
                          {format(d, 'EEE')}
                        </span>
                        <span className={`text-base font-black ${isToday ? 'text-pink-600' : 'text-gray-900'}`}>
                          {format(d, 'd')}
                        </span>
+
+                       {/* Guest Tooltip */}
+                       {hoveredDate && isSameDay(d, hoveredDate) && (
+                         <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-64 z-[100] animate-in fade-in zoom-in-95 duration-200">
+                           <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-50 pb-2 flex items-center justify-between">
+                             <span>{format(d, 'dd MMMM')}</span>
+                             <span className="text-pink-600">{bookings.filter(b => isBookingOnDay(b, d)).length} {t('hotels.guests') || 'Guests'}</span>
+                           </div>
+                           <div className="space-y-2 max-h-60 overflow-auto pr-2 custom-scrollbar">
+                             {bookings.filter(b => isBookingOnDay(b, d)).length === 0 ? (
+                               <div className="text-xs text-gray-400 italic py-2">{t('hotels.noBookings') || 'No bookings'}</div>
+                             ) : (
+                               bookings.filter(b => isBookingOnDay(b, d)).map(b => (
+                                 <div key={b.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors cursor-default group">
+                                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
+                                   <div className="flex-1 min-w-0">
+                                     <div className="text-xs font-bold text-gray-900 truncate">{b.guest_name}</div>
+                                     <div className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">
+                                       {format(b.checkIn, 'HH:mm')} - {format(b.checkOut, 'HH:mm')}
+                                     </div>
+                                   </div>
+                                 </div>
+                               ))
+                             )}
+                           </div>
+                         </div>
+                       )}
                     </div>
                   );
                 })}
@@ -402,7 +435,7 @@ const BookingCalendar = () => {
                             `}
                             style={{ 
                               left: `${left + 4}px`,
-                              width: `${Math.max(width - 8, 120)}px`, // Minimum width for readability
+                              width: `${Math.max(width - 8, 88)}px`, // Reduced min-width to prevent blocking next cell "+" button // Minimum width for readability
                               backgroundColor: booking.color,
                               zIndex: 5
                             }}
