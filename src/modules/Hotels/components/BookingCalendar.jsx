@@ -39,6 +39,7 @@ const BookingCalendar = () => {
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
   
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
@@ -287,23 +288,45 @@ const BookingCalendar = () => {
         <div className="w-56 border-r border-gray-100 flex-shrink-0 sticky left-0 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
            <div className="h-14 border-b border-gray-100 flex items-center justify-between px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md">
              <span>{t('hotels.roomsAndBeds') || 'Rooms & Beds'}</span>
-             <button onClick={() => setIsRoomModalOpen(true)} className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-900 transition-colors">
-               <Plus className="w-4 h-4" />
-             </button>
+              <button 
+                onClick={() => {
+                  setSelectedRoom(null);
+                  setIsRoomModalOpen(true);
+                }} 
+                className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-900 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
            </div>
            {rooms.length === 0 ? (
-             <div className="p-6 text-center text-sm text-gray-400 font-medium">
-               {t('hotels.noRoomsYet')} <br/><span className="text-pink-600 cursor-pointer" onClick={() => setIsRoomModalOpen(true)}>{t('hotels.addOne')}</span>
-             </div>
-           ) : rooms.map(room => (
-             <div key={room.id} className="h-20 border-b border-gray-100 flex flex-col justify-center px-5 hover:bg-gray-50/50 transition-colors group cursor-pointer">
-               <div className="flex items-center justify-between mb-1">
-                 <span className="font-black text-gray-900 text-sm">{room.name}</span>
-                 <div className={`w-2 h-2 rounded-full ${room.status === 'clean' ? 'bg-green-500' : room.status === 'dirty' ? 'bg-red-500' : 'bg-orange-500'}`} title={room.status} />
-               </div>
-               <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">{room.type}</span>
-             </div>
-           ))}
+              <div className="p-6 text-center text-sm text-gray-400 font-medium">
+                {t('hotels.noRoomsYet')} <br/>
+                <span 
+                  className="text-pink-600 cursor-pointer" 
+                  onClick={() => {
+                    setSelectedRoom(null);
+                    setIsRoomModalOpen(true);
+                  }}
+                >
+                  {t('hotels.addOne')}
+                </span>
+              </div>
+            ) : rooms.map(room => (
+              <div 
+                key={room.id} 
+                onClick={() => {
+                  setSelectedRoom(room);
+                  setIsRoomModalOpen(true);
+                }}
+                className="h-20 border-b border-gray-100 flex flex-col justify-center px-5 hover:bg-gray-50/50 transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-black text-gray-900 text-sm group-hover:text-pink-600 transition-colors">{room.name}</span>
+                  <div className={`w-2 h-2 rounded-full ${room.status === 'clean' ? 'bg-green-500' : room.status === 'dirty' ? 'bg-red-500' : 'bg-orange-500'}`} title={room.status} />
+                </div>
+                <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">{room.type}</span>
+              </div>
+            ))}
         </div>
 
         {/* Правая часть */}
@@ -507,8 +530,12 @@ const BookingCalendar = () => {
     
     <RoomModal 
       isOpen={isRoomModalOpen} 
-      onClose={() => setIsRoomModalOpen(false)} 
+      onClose={() => {
+        setIsRoomModalOpen(false);
+        setSelectedRoom(null);
+      }} 
       onSaved={fetchData} 
+      room={selectedRoom}
     />
     
     <BookingModal 

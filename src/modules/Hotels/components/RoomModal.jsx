@@ -1,21 +1,36 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import toast from 'react-hot-toast';
 import CustomSelect from './CustomSelect';
+import ConfirmModal from '../../../components/Common/ConfirmModal';
 
-const RoomModal = ({ isOpen, onClose, onSaved }) => {
+const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'Single',
     capacity: 2,
     price_per_night: 0
   });
+
+  useEffect(() => {
+    if (room) {
+      setFormData({
+        name: room.name || '',
+        type: room.type || 'Single',
+        capacity: room.capacity || 2,
+        price_per_night: room.price_per_night || 0
+      });
+    } else {
+      setFormData({ name: '', type: 'Single', capacity: 2, price_per_night: 0 });
+    }
+  }, [room, isOpen]);
 
   if (!isOpen) return null;
 
@@ -24,13 +39,25 @@ const RoomModal = ({ isOpen, onClose, onSaved }) => {
     setLoading(true);
     try {
       const tenantId = profile?.tenant_id || profile?.id;
-      const { error } = await supabase.from('hotel_rooms').insert([{
-        tenant_id: tenantId,
-        ...formData
-      }]);
-      if (error) throw error;
-      toast.success(t('hotels.saveRoom') + ' ✓');
-      setFormData({ name: '', type: 'Single', capacity: 2, price_per_night: 0 });
+      
+      if (room?.id) {
+        // Update existing room
+        const { error } = await supabase
+          .from('hotel_rooms')
+          .update(formData)
+          .eq('id', room.id);
+        if (error) throw error;
+        toast.success(t('hotels.roomUpdated') || 'Room updated ✓');
+      } else {
+        // Insert new room
+        const { error } = await supabase.from('hotel_rooms').insert([{
+          tenant_id: tenantId,
+          ...formData
+        }]);
+        if (error) throw error;
+        toast.success(t('hotels.saveRoom') + ' ✓');
+      }
+      
       onSaved();
       onClose();
     } catch (err) {
@@ -38,6 +65,26 @@ const RoomModal = ({ isOpen, onClose, onSaved }) => {
       toast.error(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('hotel_rooms')
+        .delete()
+        .eq('id', room.id);
+      if (error) throw error;
+      toast.success(t('common.deletedSuccessfully') || 'Deleted ✓');
+      onSaved();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+      setShowConfirmDelete(false);
     }
   };
 
@@ -49,14 +96,26 @@ const RoomModal = ({ isOpen, onClose, onSaved }) => {
   ];
 
   return (
+    <>
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" />
       <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-black text-gray-900">{t('hotels.addRoom')}</h2>
+            <h2 className="text-2xl font-black text-gray-900">{room ? t('hotels.editRoom') || 'Edit Room' : t('hotels.addRoom')}</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2">
+            {room && (
+              <button 
+                onClick={() => setShowConfirmDelete(true)}
+                className="p-2 hover:bg-red-50 text-red-500 rounded-full transition-colors"
+                type="button"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+          </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -83,11 +142,23 @@ const RoomModal = ({ isOpen, onClose, onSaved }) => {
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-4 bg-pink-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all disabled:opacity-50 flex items-center justify-center">
-            {loading ? t('hotels.saving') : t('hotels.saveRoom')}
+            {loading ? t('hotels.saving') : (room ? t('common.save') || 'Save' : t('hotels.saveRoom'))}
           </button>
         </form>
       </div>
     </div>
+
+    <ConfirmModal 
+      isOpen={showConfirmDelete}
+      onClose={() => setShowConfirmDelete(false)}
+      onConfirm={handleDelete}
+      title={t('common.confirmDelete') || 'Silməyi təsdiqləyin'}
+      message={t('common.confirmDeleteMessage') || 'Bu qeydi silmək istədiyinizə əminsiniz?'}
+      confirmText={t('common.yes') || 'Bəli'}
+      cancelText={t('common.no') || 'Xeyr'}
+      isDanger={true}
+    />
+    </>
   );
 };
 export default RoomModal;
