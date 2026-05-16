@@ -384,10 +384,25 @@ const BookingCalendar = () => {
                          </div>
                        ))}
                        
-                       {/* Блоки бронирований (DAY) — полная полоса на весь день */}
+                       {/* Блоки бронирований (DAY) */}
                        {roomBookings.map(booking => {
-                         // В дневном виде показываем бронь как полосу на весь видимый диапазон
-                         const totalWidth = hoursToShow * hourCellWidth;
+                         const dayStart = startOfDay(startDate);
+                         const dayEnd = addDays(dayStart, 1);
+                         
+                         const visibleStart = new Date(Math.max(booking.checkIn.getTime(), dayStart.getTime()));
+                         const visibleEnd = new Date(Math.min(booking.checkOut.getTime(), dayEnd.getTime()));
+                         
+                         const startHourOffset = (visibleStart.getTime() - dayStart.getTime()) / (1000 * 60 * 60);
+                         const durationHours = (visibleEnd.getTime() - visibleStart.getTime()) / (1000 * 60 * 60);
+                         
+                         const left = startHourOffset * hourCellWidth;
+                         const width = durationHours * hourCellWidth;
+                         
+                         const isCutLeft = booking.checkIn < dayStart;
+                         const isCutRight = booking.checkOut > dayEnd;
+                         
+                         // Если ширина слишком мала (например, 0), не рисуем (хотя функция isBookingOnDay это уже фильтрует)
+                         if (width <= 0) return null;
                          
                          return (
                            <div 
@@ -396,10 +411,12 @@ const BookingCalendar = () => {
                                e.stopPropagation();
                                setSelectedBooking(booking);
                              }}
-                             className="absolute top-2.5 h-14 shadow-sm border border-white/20 flex flex-col justify-center px-3 cursor-pointer hover:shadow-lg hover:z-10 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden rounded-2xl"
+                             className={`absolute top-2.5 h-14 shadow-sm border border-white/20 flex flex-col justify-center px-3 cursor-pointer hover:shadow-lg hover:z-10 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
+                               ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-2xl'}
+                             `}
                              style={{ 
-                               left: '4px',
-                               width: `${totalWidth - 8}px`,
+                               left: `${left + (isCutLeft ? 0 : 4)}px`,
+                               width: `${width - (isCutLeft ? 0 : 4) - (isCutRight ? 0 : 4)}px`,
                                backgroundColor: booking.color,
                                zIndex: 5
                              }}
