@@ -346,7 +346,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
                     isGrouped={true}
                   />
 
-                  <div className="space-y-3 max-h-[300px] overflow-auto pr-2 custom-scrollbar">
+                  <div className="space-y-3 max-h-[300px] overflow-auto pr-2 custom-scrollbar md:hidden">
                     {minibarItems.map(item => (
                       <div key={item.product_id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm group">
                         <div className="flex-1">
@@ -398,8 +398,49 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
 
           {/* Right Preview/Illustration Section (Optional but looks premium) */}
           {formData.has_minibar && (
-            <div className="hidden md:flex md:col-span-5 flex-col bg-gray-50 rounded-[2rem] p-8 border border-gray-100">
-               <div className="flex-1 flex flex-col items-center justify-center text-center">
+            <div className="hidden md:flex md:col-span-5 flex-col bg-gray-50 rounded-[2rem] p-8 border border-gray-100 overflow-hidden h-full">
+              {minibarItems.length > 0 ? (
+                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                  <h4 className="text-lg font-black text-gray-900 mb-4">{t('hotels.minibarItems') || 'Minibar Items'}</h4>
+                  <div className="flex-1 overflow-auto space-y-3 pr-2 custom-scrollbar">
+                    {minibarItems.map(item => (
+                      <div key={item.product_id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm group">
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="text-sm font-black text-gray-900 truncate">{item.product?.name}</p>
+                          <div className="flex items-center gap-4 mt-2">
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{t('common.quantity') || 'Qty'}</span>
+                              <input 
+                                type="number" 
+                                value={item.quantity} 
+                                onChange={e => updateMinibarItem(item.product_id, 'quantity', parseInt(e.target.value))}
+                                className="w-16 p-1 bg-gray-50 border border-transparent hover:border-gray-200 text-xs font-bold rounded focus:bg-white focus:border-pink-500 transition-colors outline-none"
+                              />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{t('common.price') || 'Price'}</span>
+                              <input 
+                                type="number" 
+                                value={item.price_override} 
+                                onChange={e => updateMinibarItem(item.product_id, 'price_override', parseFloat(e.target.value))}
+                                className="w-20 p-1 bg-gray-50 border border-transparent hover:border-gray-200 text-xs font-bold rounded focus:bg-white focus:border-pink-500 transition-colors outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => removeMinibarItem(item.product_id)}
+                          className="p-2 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-center">
                   <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-inner mb-6">
                     <div className="w-12 h-16 bg-pink-100 rounded-lg relative">
                       <div className="absolute top-2 left-2 right-2 h-2 bg-pink-200 rounded-sm" />
@@ -411,6 +452,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
                     {t('hotels.minibarSyncDescription') || 'Products selected here will be automatically linked to your Warehouse inventory. Sales from this room will generate stock deductions.'}
                   </p>
                </div>
+              )}
             </div>
           )}
         </div>
