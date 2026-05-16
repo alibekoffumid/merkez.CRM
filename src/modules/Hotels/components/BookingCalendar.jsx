@@ -489,7 +489,7 @@ const BookingCalendar = () => {
                        {hours.map((h, i) => (
                          <div 
                            key={i}
-                           onClick={() => handleCellClick(room, startDate)}
+                           onClick={() => handleCellClick(room, h)}
                            className="flex-shrink-0 border-r border-dashed border-gray-100 hover:bg-pink-50/30 transition-colors cursor-pointer flex items-center justify-center group/cell"
                            style={{ width: `${hourCellWidth}px` }}
                          >

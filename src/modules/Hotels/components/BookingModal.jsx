@@ -14,15 +14,33 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    room_id: initialRoomId || (rooms.length > 0 ? rooms[0].id : ''),
+    room_id: '',
     guest_name: '',
     guest_phone: '',
-    check_in_date: initialDate ? format(initialDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+    check_in_date: '',
     check_in_time: '14:00',
-    check_out_date: initialDate ? format(new Date(initialDate.getTime() + 86400000), 'yyyy-MM-dd') : format(new Date(Date.now() + 86400000), 'yyyy-MM-dd'),
+    check_out_date: '',
     check_out_time: '12:00',
     status: 'confirmed'
   });
+
+  React.useEffect(() => {
+    if (isOpen) {
+      const inDate = initialDate || new Date();
+      const outDate = new Date(inDate.getTime() + 86400000); // Default +1 day
+      
+      setFormData(prev => ({
+        ...prev,
+        room_id: initialRoomId || (rooms.length > 0 ? rooms[0].id : ''),
+        check_in_date: format(inDate, 'yyyy-MM-dd'),
+        check_in_time: initialDate ? format(initialDate, 'HH:mm') : '14:00',
+        check_out_date: format(outDate, 'yyyy-MM-dd'),
+        check_out_time: initialDate ? format(new Date(initialDate.getTime() + 3600000), 'HH:mm') : '12:00', // Default +1 hour if from grid
+        guest_name: '',
+        guest_phone: ''
+      }));
+    }
+  }, [isOpen, initialDate, initialRoomId]);
 
   if (!isOpen) return null;
 
