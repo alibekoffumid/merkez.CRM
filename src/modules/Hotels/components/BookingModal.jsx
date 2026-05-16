@@ -45,6 +45,20 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
         check_out_date: `${formData.check_out_date}T${formData.check_out_time}:00`
       };
 
+      // Проверка на пересечение бронирований
+      const { data: overlappingBookings, error: checkError } = await supabase
+        .from('hotel_bookings')
+        .select('id')
+        .eq('room_id', payload.room_id)
+        .lt('check_in_date', payload.check_out_date)
+        .gt('check_out_date', payload.check_in_date);
+
+      if (checkError) throw checkError;
+
+      if (overlappingBookings && overlappingBookings.length > 0) {
+        throw new Error(t('hotels.roomAlreadyBooked') || 'This room is already booked for the selected dates/times!');
+      }
+
       const { error } = await supabase.from('hotel_bookings').insert([payload]);
       if (error) throw error;
       toast.success(t('hotels.saveBooking') + ' ✓');

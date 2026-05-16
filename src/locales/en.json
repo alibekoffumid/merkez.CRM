@@ -1291,6 +1291,7 @@
     "today": "Today",
     "weekView": "Week",
     "dayView": "Day",
+    "roomAlreadyBooked": "This room is already booked for the selected dates/times!",
     "time": "Time",
     "roomsAndBeds": "Rooms & Beds",
     "pending": "Pending",
