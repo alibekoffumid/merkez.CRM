@@ -397,12 +397,12 @@ const BookingCalendar = () => {
                               e.stopPropagation();
                               setSelectedBooking(booking);
                             }}
-                            className={`absolute top-2.5 h-14 shadow-sm border border-white/20 flex flex-col justify-center px-3 cursor-pointer hover:shadow-lg hover:z-10 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
+                            className={`absolute top-2.5 h-14 shadow-md border border-white/30 flex flex-col justify-center px-3 cursor-pointer hover:shadow-xl hover:z-[20] transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
                               ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-2xl'}
                             `}
                             style={{ 
                               left: `${left + 4}px`,
-                              width: `${width - 8}px`,
+                              width: `${Math.max(width - 8, 120)}px`, // Minimum width for readability
                               backgroundColor: booking.color,
                               zIndex: 5
                             }}
@@ -495,7 +495,7 @@ const BookingCalendar = () => {
                                e.stopPropagation();
                                setSelectedBooking(booking);
                              }}
-                             className={`absolute top-2.5 h-14 shadow-sm border border-white/20 flex flex-col justify-center px-3 cursor-pointer hover:shadow-lg hover:z-10 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
+                             className={`absolute top-2.5 h-14 shadow-md border border-white/30 flex flex-col justify-center px-3 cursor-pointer hover:shadow-xl hover:z-[20] transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
                                ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-2xl'}
                              `}
                              style={{ 
