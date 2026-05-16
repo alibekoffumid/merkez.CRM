@@ -58,6 +58,8 @@
     "exportAll": "Export All",
     "loadMore": "Load More",
     "confirmDelete": "Are you sure you want to delete?",
+    "confirmDeleteMessage": "Are you sure you want to delete this record?",
+    "deletedSuccessfully": "Deleted successfully",
     "optional": "Optional",
     "description": "Description",
     "noResults": "No results found",
@@ -1349,6 +1351,7 @@
     "saveBooking": "Save Booking",
     "selectRoom": "Select a room...",
     "noRoomsYet": "No rooms yet.",
-    "addOne": "Add one"
+    "addOne": "Add one",
+    "minibarItems": "Minibar Items"
   }
 }

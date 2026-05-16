@@ -61,6 +61,8 @@
     "exportAll": "Экспортировать всё",
     "loadMore": "Загрузить ещё",
     "confirmDelete": "Вы уверены, что хотите удалить?",
+    "confirmDeleteMessage": "Вы уверены, что хотите удалить эту запись?",
+    "deletedSuccessfully": "Успешно удалено",
     "optional": "Необязательно",
     "description": "Описание",
     "noResults": "Ничего не найдено",
@@ -1348,6 +1350,7 @@
     "saveBooking": "Сохранить бронь",
     "selectRoom": "Выберите номер...",
     "noRoomsYet": "Номеров пока нет.",
-    "addOne": "Добавить"
+    "addOne": "Добавить",
+    "minibarItems": "Товары в мини-баре"
   }
 }

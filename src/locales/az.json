@@ -44,6 +44,8 @@
     "exportAll": "Hamısını ixrac et",
     "loadMore": "Daha çox yüklə",
     "confirmDelete": "Silmək istədiyinizdən əminsiniz?",
+    "confirmDeleteMessage": "Bu qeydi silmək istədiyinizə əminsiniz?",
+    "deletedSuccessfully": "Uğurla silindi",
     "optional": "İstəyə bağlı",
     "description": "Təsvir",
     "noResults": "Nəticə tapılmadı",
@@ -1343,6 +1345,7 @@
     "saveBooking": "Rezervasiyanı saxla",
     "selectRoom": "Otaq seçin...",
     "noRoomsYet": "Hələ otaq yoxdur.",
-    "addOne": "Əlavə et"
+    "addOne": "Əlavə et",
+    "minibarItems": "Mini-bardakı məhsullar"
   }
 }
