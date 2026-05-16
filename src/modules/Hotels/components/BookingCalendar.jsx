@@ -83,6 +83,18 @@ const BookingCalendar = () => {
     setIsBookingModalOpen(true);
   };
 
+  const handleDeleteBooking = async (bookingId) => {
+    try {
+      const { error } = await supabase.from('hotel_bookings').delete().eq('id', bookingId);
+      if (error) throw error;
+      setBookings(bookings.filter(b => b.id !== bookingId));
+      setSelectedBooking(null);
+    } catch (err) {
+      console.error(err);
+      alert('Ошибка при удалении брони');
+    }
+  };
+
   const navigateBack = () => {
     setStartDate(viewMode === 'week' ? subDays(startDate, 7) : subDays(startDate, 1));
   };
@@ -465,6 +477,7 @@ const BookingCalendar = () => {
       onClose={() => setSelectedBooking(null)}
       booking={selectedBooking}
       room={rooms.find(r => r.id === selectedBooking?.room_id)}
+      onDelete={handleDeleteBooking}
     />
     </>
   );

@@ -3,7 +3,7 @@ import { X, Calendar, Clock, User, Phone, Bed } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 
-const BookingDetailsModal = ({ isOpen, onClose, booking, room }) => {
+const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
   const { t } = useTranslation();
 
   if (!isOpen || !booking) return null;
@@ -64,6 +64,19 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room }) => {
             }`}>
               {t(`hotels.${booking.status === 'checked_in' ? 'checkedIn' : booking.status === 'confirmed' ? 'confirmed' : 'pending'}`)}
             </div>
+          </div>
+
+          <div className="pt-2">
+            <button 
+              onClick={() => {
+                if(window.confirm('Вы уверены, что хотите удалить эту бронь?')) {
+                  onDelete(booking.id);
+                }
+              }}
+              className="w-full py-4 bg-red-50 text-red-600 hover:bg-red-100 font-black uppercase tracking-widest text-sm rounded-2xl transition-all flex items-center justify-center"
+            >
+              Удалить бронь
+            </button>
           </div>
         </div>
       </div>
