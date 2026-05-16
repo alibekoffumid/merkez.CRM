@@ -1289,6 +1289,8 @@
     "housekeeping": "Housekeeping",
     "settings": "Settings",
     "today": "Today",
+    "weekView": "Week",
+    "dayView": "Day",
     "roomsAndBeds": "Rooms & Beds",
     "pending": "Pending",
     "confirmed": "Confirmed",

@@ -1286,6 +1286,8 @@
     "housekeeping": "Уборка",
     "settings": "Настройки",
     "today": "Сегодня",
+    "weekView": "Неделя",
+    "dayView": "День",
     "roomsAndBeds": "Номера и Койки",
     "pending": "Ожидание",
     "confirmed": "Подтверждена",
