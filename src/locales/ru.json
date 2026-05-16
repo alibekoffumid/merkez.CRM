@@ -93,6 +93,7 @@
     },
     "selectDate": "Выберите дату",
     "select": "Выберите",
+    "selectProduct": "Выберите товар...",
     "settings": "Настройки",
     "sum": "Сумма"
   },
@@ -1324,6 +1325,7 @@
     "markAsInProgress": "Начать уборку",
     "lastCleaned": "Последняя уборка",
     "housekeepingNote": "Заметка для горничной",
+    "housekeepingNotePlaceholder": "Особые инструкции для уборки...",
     "roomUpdated": "Данные номера обновлены",
     "hasMinibar": "Мини-бар в номере",
     "minibarDescription": "Включить отслеживание товаров в этом номере",
@@ -1332,6 +1334,7 @@
     "minibarSyncDescription": "Выбранные здесь товары будут автоматически связаны с вашим Складом. Продажи будут генерировать списания.",
     "addProductToMinibar": "Добавить товар со склада",
     "noMinibarItems": "Товары еще не добавлены",
+    "productAlreadyInMinibar": "Товар уже добавлен в мини-бар",
     "noRoomsYet": "Номеров пока нет",
     "addOneToGetStarted": "Добавьте свой первый номер, чтобы начать управлять бронированиями",
     "guests": "Гостей",

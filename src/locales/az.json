@@ -90,7 +90,8 @@
     },
     "selectDate": "Tarix seçin",
     "select": "Seçin",
-    "settings": "Tənzimləmələr",
+    "selectProduct": "Məhsul seçin...",
+    "settings": "Parametrlər",
     "sum": "Məbləğ"
   },
   "sidebar": {
@@ -1319,6 +1320,7 @@
     "markAsInProgress": "Təmizliyə başla",
     "lastCleaned": "Son təmizlik",
     "housekeepingNote": "Təmizlik qeydi",
+    "housekeepingNotePlaceholder": "Təmizlik üçün xüsusi qeydlər...",
     "roomUpdated": "Otaq məlumatları yeniləndi",
     "hasMinibar": "Otaqda mini-bar",
     "minibarDescription": "Bu otaqda mal dövriyyəsini izləməyi aktivləşdir",
@@ -1327,6 +1329,7 @@
     "minibarSyncDescription": "Burada seçilən məhsullar avtomatik olaraq Anbarınızla əlaqələndiriləcək. Satışlar zamanı anbardan silinmə baş verəcək.",
     "addProductToMinibar": "Anbardan məhsul əlavə et",
     "noMinibarItems": "Məhsul əlavə edilməyib",
+    "productAlreadyInMinibar": "Məhsul artıq mini-barda var",
     "noRoomsYet": "Hələlik otaq yoxdur",
     "addOneToGetStarted": "Rezervasiyaları idarə etmək üçün ilk otağınızı əlavə edin",
     "guests": "Qonaq",

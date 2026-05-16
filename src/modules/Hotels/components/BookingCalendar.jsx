@@ -136,7 +136,7 @@ const BookingCalendar = () => {
 
   return (
     <>
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300" style={{ minHeight: '500px' }}>
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 h-full flex-1 min-h-[500px]">
       {/* Панель управления календарем */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white flex-shrink-0">
          <div className="flex items-center space-x-4">
@@ -283,10 +283,10 @@ const BookingCalendar = () => {
       </div>
 
       {/* Сетка Шахматки */}
-      <div className="flex-1 overflow-auto flex relative bg-gray-50/30">
+      <div className="flex-1 overflow-auto flex relative bg-white">
         
         {/* Левая колонка: Список номеров */}
-        <div className="w-56 border-r border-gray-100 flex-shrink-0 sticky left-0 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
+        <div className="w-56 border-r border-gray-100 flex-shrink-0 sticky left-0 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.02)] min-h-full">
            <div className="h-14 border-b border-gray-100 flex items-center justify-between px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md z-40 sticky top-0">
              <span>{t('hotels.roomsAndBeds') || 'Rooms & Beds'}</span>
               <button 
@@ -331,7 +331,7 @@ const BookingCalendar = () => {
         </div>
 
         {/* Правая часть */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-full flex flex-col bg-gray-50/30">
           
           {/* ============ WEEK VIEW ============ */}
           {viewMode === 'week' && (
@@ -387,9 +387,16 @@ const BookingCalendar = () => {
               </div>
               
               {/* Сетка ячеек и брони (WEEK) */}
-              <div className="relative w-max min-w-full">
+              <div className="relative w-max min-w-full flex-1 flex flex-col">
+                 {/* Background grid lines extending full height */}
+                 <div className="absolute inset-0 flex pointer-events-none w-max min-w-full">
+                   {dates.map((d, i) => (
+                     <div key={`bg-${i}`} className={`w-24 flex-shrink-0 border-r border-dashed border-gray-100 ${d.getDay() === 0 || d.getDay() === 6 ? 'bg-gray-50/50' : 'bg-transparent'}`} />
+                   ))}
+                 </div>
+                 
                  {rooms.map(room => (
-                   <div key={room.id} className="flex h-20 border-b border-gray-100 relative group/row">
+                   <div key={room.id} className="flex h-20 border-b border-gray-100 relative group/row z-10 bg-white hover:bg-pink-50/10 transition-colors">
                      {dates.map(d => (
                        <div 
                          key={d.toString()} 
@@ -482,10 +489,17 @@ const BookingCalendar = () => {
               </div>
 
               {/* Сетка ячеек (DAY) */}
-              <div className="relative w-max min-w-full">
+              <div className="relative w-max min-w-full flex-1 flex flex-col">
+                 {/* Background grid lines extending full height */}
+                 <div className="absolute inset-0 flex pointer-events-none w-max min-w-full">
+                   {hours.map((h, i) => (
+                     <div key={`bg-${i}`} className="flex-shrink-0 border-r border-dashed border-gray-100" style={{ width: `${hourCellWidth}px` }} />
+                   ))}
+                 </div>
+
                  {rooms.map(room => {
                    return (
-                     <div key={room.id} className="flex h-20 border-b border-gray-100 relative group/row">
+                     <div key={room.id} className="flex h-20 border-b border-gray-100 relative group/row z-10 bg-white hover:bg-pink-50/10 transition-colors">
                        {hours.map((h, i) => (
                          <div 
                            key={i}

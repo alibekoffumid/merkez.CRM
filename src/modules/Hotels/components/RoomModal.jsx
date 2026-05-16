@@ -18,7 +18,8 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     type: '',
     capacity: 2,
     price_per_night: 0,
-    has_minibar: false
+    has_minibar: false,
+    housekeeping_note: ''
   });
   const [categories, setCategories] = useState([]);
   const [productCategories, setProductCategories] = useState([]);
@@ -48,17 +49,28 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
       try {
         const { data: catData } = await supabase
           .from('categories')
-          .select('id, name')
+          .select('id, name, parent_id')
           .eq('user_id', profile?.id)
           .order('name');
         setProductCategories(catData || []);
 
         const { data: prodData } = await supabase
           .from('products')
-          .select('id, name, price, category_id')
+          .select('id, name, price, category_id, stock_quantity')
           .eq('user_id', profile?.id)
+          .eq('archived', false)
           .order('name');
-        setAllProducts(prodData || []);
+        
+        // Remove duplicates by name
+        const uniqueProds = [];
+        const seenNames = new Set();
+        (prodData || []).forEach(p => {
+          if (!seenNames.has(p.name)) {
+            seenNames.add(p.name);
+            uniqueProds.push(p);
+          }
+        });
+        setAllProducts(uniqueProds);
       } catch (err) {
         console.warn('Products/Categories table might not exist');
       }
@@ -91,10 +103,11 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
         type: room.type || '',
         capacity: room.capacity || 2,
         price_per_night: room.price_per_night || 0,
-        has_minibar: room.has_minibar || false
+        has_minibar: room.has_minibar || false,
+        housekeeping_note: room.housekeeping_note || ''
       });
     } else {
-      setFormData({ name: '', type: '', capacity: 2, price_per_night: 0, has_minibar: false });
+      setFormData({ name: '', type: '', capacity: 2, price_per_night: 0, has_minibar: false, housekeeping_note: '' });
       setMinibarItems([]);
     }
     setActiveTab('general');
@@ -106,27 +119,26 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     setLoading(true);
     try {
       const tenantId = profile?.tenant_id || profile?.id;
+      let roomId = room?.id;
       
-      if (room?.id) {
+      if (roomId) {
         // Update existing room
         const { error } = await supabase
           .from('hotel_rooms')
           .update(formData)
-          .eq('id', room.id);
+          .eq('id', roomId);
         if (error) throw error;
+        await saveMinibarItems(roomId);
         toast.success(t('hotels.roomUpdated') || 'Room updated ✓');
       } else {
+        // Insert new room
         const { data: savedRoom, error } = await supabase.from('hotel_rooms').insert([{
           tenant_id: tenantId,
           ...formData
         }]).select().single();
         if (error) throw error;
         
-        // If we have minibar items to save for a NEW room (though usually added later)
-        if (formData.has_minibar && minibarItems.length > 0) {
-           await saveMinibarItems(savedRoom.id);
-        }
-
+        await saveMinibarItems(savedRoom.id);
         toast.success(t('hotels.saveRoom') + ' ✓');
       }
       
@@ -181,7 +193,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     if (!product) return;
     
     if (minibarItems.find(item => item.product_id === productId)) {
-      toast.error('Product already in minibar');
+      toast.error(t('hotels.productAlreadyInMinibar') || 'Product already in minibar');
       return;
     }
 
@@ -204,12 +216,24 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
   };
 
   const groupedProductOptions = useMemo(() => {
+    const getCategoryPath = (cat) => {
+      if (!cat) return '';
+      if (!cat.parent_id) return cat.name;
+      const parent = productCategories.find(c => c.id === cat.parent_id);
+      return parent ? `${getCategoryPath(parent)} > ${cat.name}` : cat.name;
+    };
+
     return productCategories.map(cat => ({
-      category: cat.name,
+      category: getCategoryPath(cat),
       items: allProducts
         .filter(p => p.category_id === cat.id)
-        .map(p => ({ value: p.id, label: p.name }))
-    })).filter(group => group.items.length > 0);
+        .map(p => ({ 
+          value: p.id, 
+          label: `${p.name} (${p.stock_quantity || 0} ${t('common.unit')})` 
+        }))
+    }))
+    .filter(group => group.items.length > 0)
+    .sort((a, b) => a.category.localeCompare(b.category));
   }, [productCategories, allProducts]);
 
   const typeOptions = categories.map(c => ({ value: c.name, label: c.name }));
@@ -258,32 +282,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* Main Form Section */}
           <div className={`${formData.has_minibar ? 'md:col-span-7' : 'md:col-span-12'}`}>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              setLoading(true);
-              try {
-                const tenantId = profile?.tenant_id || profile?.id;
-                let roomId = room?.id;
-
-                if (roomId) {
-                  const { error } = await supabase.from('hotel_rooms').update(formData).eq('id', roomId);
-                  if (error) throw error;
-                  await saveMinibarItems(roomId);
-                  toast.success(t('hotels.roomUpdated'));
-                } else {
-                  const { data, error } = await supabase.from('hotel_rooms').insert([{ tenant_id: tenantId, ...formData }]).select().single();
-                  if (error) throw error;
-                  await saveMinibarItems(data.id);
-                  toast.success(t('hotels.saveRoom'));
-                }
-                onSaved();
-                onClose();
-              } catch (err) {
-                toast.error(err.message);
-              } finally {
-                setLoading(false);
-              }
-            }} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {activeTab === 'general' ? (
                 <>
                   <div className="space-y-2">
@@ -323,6 +322,16 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                     </label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('hotels.housekeepingNote') || 'Housekeeping Note'}</label>
+                    <textarea 
+                      value={formData.housekeeping_note} 
+                      onChange={e => setFormData({...formData, housekeeping_note: e.target.value})} 
+                      className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 outline-none transition-all text-sm font-bold resize-none h-24"
+                      placeholder={t('hotels.housekeepingNotePlaceholder') || 'Special instructions for cleaning...'}
+                    />
                   </div>
                 </>
               ) : (

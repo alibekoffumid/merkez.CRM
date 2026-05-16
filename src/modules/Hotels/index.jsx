@@ -18,7 +18,7 @@ const HotelsModule = () => {
   ];
 
   return (
-    <div className="flex flex-col min-h-full bg-transparent p-0 rounded-0 border-0 space-y-6">
+    <div className="flex flex-col h-full bg-transparent p-0 rounded-0 border-0 space-y-4">
       {/* Unified Tab Bar — same style as Education, Dental, etc. */}
       <div className="sticky top-0 z-40 flex justify-start lg:justify-center w-full pointer-events-none pb-4 bg-gray-50/80 backdrop-blur-md pt-2 px-4 sm:px-0">
         <div className="pointer-events-auto flex p-1.5 bg-white/90 backdrop-blur-xl rounded-[2rem] border border-gray-100 shadow-2xl shadow-pink-900/5 overflow-x-auto no-scrollbar max-w-full mx-auto w-max">
@@ -41,7 +41,7 @@ const HotelsModule = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 mt-2 px-4">
+      <div className="flex-1 mt-2 px-4 flex flex-col min-h-0">
         {activeTab === 'calendar' && <BookingCalendar />}
         {activeTab === 'rooms' && <RoomManagement />}
         
