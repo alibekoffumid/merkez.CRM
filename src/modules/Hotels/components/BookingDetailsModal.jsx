@@ -1,12 +1,32 @@
-import React from 'react';
-import { X, Calendar, Clock, User, Phone, Bed } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Calendar, Clock, User, Phone, Bed, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
+import { supabase } from '../../../supabaseClient';
+import toast from 'react-hot-toast';
 
 const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
   const { t } = useTranslation();
+  const [deleting, setDeleting] = useState(false);
 
   if (!isOpen || !booking) return null;
+
+  const handleDelete = async () => {
+    if (!window.confirm(t('common.confirmDelete') || 'Are you sure?')) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from('hotel_bookings').delete().eq('id', booking.id);
+      if (error) throw error;
+      toast.success(t('common.deletedSuccessfully') || 'Deleted');
+      onDelete();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
@@ -16,10 +36,20 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
           <div className="w-12 h-12 bg-pink-100 rounded-2xl flex items-center justify-center text-pink-600">
             <User className="w-6 h-6" />
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleDelete} 
+              disabled={deleting}
+              className="p-2 hover:bg-red-50 text-red-500 rounded-full transition-colors disabled:opacity-50"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+          </div>
         </div>
         
         <h2 className="text-2xl font-black text-gray-900 mb-1">{booking.guest_name}</h2>
+... (rest of the file content)
         {booking.guest_phone && (
           <div className="flex items-center text-gray-500 font-medium text-sm mb-6">
             <Phone className="w-3.5 h-3.5 mr-1.5" />
@@ -64,19 +94,6 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
             }`}>
               {t(`hotels.${booking.status === 'checked_in' ? 'checkedIn' : booking.status === 'confirmed' ? 'confirmed' : 'pending'}`)}
             </div>
-          </div>
-
-          <div className="pt-2">
-            <button 
-              onClick={() => {
-                if(window.confirm('Вы уверены, что хотите удалить эту бронь?')) {
-                  onDelete(booking.id);
-                }
-              }}
-              className="w-full py-4 bg-red-50 text-red-600 hover:bg-red-100 font-black uppercase tracking-widest text-sm rounded-2xl transition-all flex items-center justify-center"
-            >
-              Удалить бронь
-            </button>
           </div>
         </div>
       </div>
