@@ -179,7 +179,8 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 export default BookingModal;
