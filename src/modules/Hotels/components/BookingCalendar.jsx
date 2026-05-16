@@ -287,7 +287,7 @@ const BookingCalendar = () => {
         
         {/* Левая колонка: Список номеров */}
         <div className="w-56 border-r border-gray-100 flex-shrink-0 sticky left-0 bg-white z-20 shadow-[4px_0_12px_rgba(0,0,0,0.02)]">
-           <div className="h-14 border-b border-gray-100 flex items-center justify-between px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md">
+           <div className="h-14 border-b border-gray-100 flex items-center justify-between px-5 font-black text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50/80 backdrop-blur-md z-40 sticky top-0">
              <span>{t('hotels.roomsAndBeds') || 'Rooms & Beds'}</span>
               <button 
                 onClick={() => {
@@ -337,7 +337,7 @@ const BookingCalendar = () => {
           {viewMode === 'week' && (
             <>
               {/* Шапка с датами */}
-              <div className="flex h-14 border-b border-gray-100 bg-gray-50/80 backdrop-blur-md sticky top-0 z-10 w-max min-w-full">
+              <div className="flex h-14 border-b border-gray-100 bg-gray-50/80 backdrop-blur-md sticky top-0 z-30 w-max min-w-full">
                 {dates.map(d => {
                   const isToday = isSameDay(d, new Date());
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
@@ -460,7 +460,7 @@ const BookingCalendar = () => {
           {viewMode === 'day' && (
             <>
               {/* Шапка с часами */}
-              <div className="flex h-14 border-b border-gray-100 bg-gray-50/80 backdrop-blur-md sticky top-0 z-10 w-max min-w-full">
+              <div className="flex h-14 border-b border-gray-100 bg-gray-50/80 backdrop-blur-md sticky top-0 z-30 w-max min-w-full">
                 {hours.map((h, i) => {
                   const now = new Date();
                   const isCurrentHour = isSameDay(startDate, now) && now.getHours() === i;
