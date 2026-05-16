@@ -6,6 +6,7 @@ import { useUser } from '../../../core/UserContext';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import CustomSelect from './CustomSelect';
+import CustomTimePicker from './CustomTimePicker';
 import DatePicker from '../../../components/Common/DatePicker';
 
 const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoomId }) => {
@@ -104,10 +105,12 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
                 />
               </div>
               <div className="w-[120px]">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">{t('hotels.time') || 'Time'}</label>
-                <div className="relative">
-                  <input type="time" value={formData.check_in_time || '14:00'} onChange={e => setFormData({...formData, check_in_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px] text-gray-900" />
-                </div>
+                <CustomTimePicker
+                  label={t('hotels.time') || 'Time'}
+                  value={formData.check_in_time || '14:00'}
+                  onChange={val => setFormData({...formData, check_in_time: val})}
+                  position="top"
+                />
               </div>
             </div>
             
@@ -121,10 +124,12 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
                 />
               </div>
               <div className="w-[120px]">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">{t('hotels.time') || 'Time'}</label>
-                <div className="relative">
-                  <input type="time" value={formData.check_out_time || '12:00'} onChange={e => setFormData({...formData, check_out_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px] text-gray-900" />
-                </div>
+                <CustomTimePicker
+                  label={t('hotels.time') || 'Time'}
+                  value={formData.check_out_time || '12:00'}
+                  onChange={val => setFormData({...formData, check_out_time: val})}
+                  position="top"
+                />
               </div>
             </div>
           </div>
