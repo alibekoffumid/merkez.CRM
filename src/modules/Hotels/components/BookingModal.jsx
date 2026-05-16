@@ -93,8 +93,8 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="flex space-x-2">
+          <div className="space-y-6">
+            <div className="flex gap-4 items-end">
               <div className="flex-1">
                 <DatePicker
                   label={t('hotels.checkIn')}
@@ -103,13 +103,15 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
                   position="top"
                 />
               </div>
-              <div className="w-24 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Time</label>
-                <input type="time" value={formData.check_in_time || '14:00'} onChange={e => setFormData({...formData, check_in_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px]" />
+              <div className="w-[120px]">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">{t('hotels.time') || 'Time'}</label>
+                <div className="relative">
+                  <input type="time" value={formData.check_in_time || '14:00'} onChange={e => setFormData({...formData, check_in_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px] text-gray-900" />
+                </div>
               </div>
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex gap-4 items-end">
               <div className="flex-1">
                 <DatePicker
                   label={t('hotels.checkOut')}
@@ -118,9 +120,11 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
                   position="top"
                 />
               </div>
-              <div className="w-24 space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">Time</label>
-                <input type="time" value={formData.check_out_time || '12:00'} onChange={e => setFormData({...formData, check_out_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px]" />
+              <div className="w-[120px]">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">{t('hotels.time') || 'Time'}</label>
+                <div className="relative">
+                  <input type="time" value={formData.check_out_time || '12:00'} onChange={e => setFormData({...formData, check_out_time: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold h-[54px] text-gray-900" />
+                </div>
               </div>
             </div>
           </div>
