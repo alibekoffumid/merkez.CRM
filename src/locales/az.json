@@ -21,6 +21,8 @@
     "next": "Növbəti",
     "finish": "Bitir",
     "notes": "Qeydlər",
+    "quantity": "Miqdar",
+    "selectProduct": "Məhsul seçin...",
     "adminLock": "Admin Kilidi",
     "enterPinToAccess": "Bu bölməyə daxil olmaq üçün 4 rəqəmli PIN kodu daxil edin",
     "wrongPin": "Yanlış PIN kod",

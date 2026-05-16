@@ -21,6 +21,8 @@
     "next": "Next",
     "finish": "Finish",
     "notes": "Notes",
+    "quantity": "Qty",
+    "selectProduct": "Select a product...",
     "adminLock": "Admin Lock",
     "enterPinToAccess": "Enter 4-digit PIN to access this section",
     "wrongPin": "Wrong PIN code",

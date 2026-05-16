@@ -24,6 +24,8 @@
     "next": "Далее",
     "finish": "Готово",
     "notes": "Примечания",
+    "quantity": "Кол-во",
+    "selectProduct": "Выберите товар...",
     "adminLock": "Админ. замок",
     "enterPinToAccess": "Введите 4-значный PIN для доступа",
     "wrongPin": "Неверный PIN-код",
