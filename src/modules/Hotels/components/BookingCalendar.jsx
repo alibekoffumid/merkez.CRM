@@ -349,7 +349,7 @@ const BookingCalendar = () => {
                       className={`w-24 flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center relative ${isToday ? 'bg-pink-50/50' : isWeekend ? 'bg-gray-100/30' : ''}`}
                     >
                        <span className={`text-[10px] font-black uppercase tracking-widest mb-0.5 ${isToday ? 'text-pink-500' : 'text-gray-400'}`}>
-                         {format(d, 'EEE')}
+                         {t(`common.weekdays.${format(d, 'eee').toLowerCase()}`)}
                        </span>
                        <span className={`text-base font-black ${isToday ? 'text-pink-600' : 'text-gray-900'}`}>
                          {format(d, 'd')}
@@ -359,8 +359,8 @@ const BookingCalendar = () => {
                        {hoveredDate && isSameDay(d, hoveredDate) && (
                          <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-64 z-[100] animate-in fade-in zoom-in-95 duration-200">
                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-50 pb-2 flex items-center justify-between">
-                             <span>{format(d, 'dd MMMM')}</span>
-                             <span className="text-pink-600">{bookings.filter(b => isBookingOnDay(b, d)).length} {t('hotels.guests') || 'Guests'}</span>
+                             <span>{format(d, 'd')} {t(`common.months.${format(d, 'MMMM').toLowerCase()}`)}</span>
+                             <span className="text-pink-600">{bookings.filter(b => isBookingOnDay(b, d)).length} {t('hotels.guests')}</span>
                            </div>
                            <div className="space-y-2 max-h-60 overflow-auto pr-2 custom-scrollbar">
                              {bookings.filter(b => isBookingOnDay(b, d)).length === 0 ? (
