@@ -100,7 +100,6 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
     setActiveTab('general');
   }, [room, isOpen]);
 
-  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -214,6 +213,8 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
   }, [productCategories, allProducts]);
 
   const typeOptions = categories.map(c => ({ value: c.name, label: c.name }));
+
+  if (!isOpen) return null;
 
   return createPortal(
     <>
