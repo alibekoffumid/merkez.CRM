@@ -5,6 +5,8 @@ import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import CustomSelect from './CustomSelect';
+import DatePicker from '../../../components/Common/DatePicker';
 
 const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoomId }) => {
   const { t } = useTranslation();
@@ -45,50 +47,65 @@ const BookingModal = ({ isOpen, onClose, onSaved, rooms, initialDate, initialRoo
     }
   };
 
+  const roomOptions = rooms.map(r => ({ value: r.id, label: `${r.name} (${r.type})` }));
+  
+  const statusOptions = [
+    { value: 'pending', label: t('hotels.pending') },
+    { value: 'confirmed', label: t('hotels.confirmed') },
+    { value: 'checked_in', label: t('hotels.checkedIn') },
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-6 animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">{t('hotels.newBooking')}</h2>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" />
+      <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-black text-gray-900">{t('hotels.newBooking')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><X className="w-5 h-5" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">{t('hotels.roomsAndBeds')}</label>
-            <select required value={formData.room_id} onChange={e => setFormData({...formData, room_id: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none">
-              <option value="" disabled>{t('hotels.selectRoom')}</option>
-              {rooms.map(r => (
-                <option key={r.id} value={r.id}>{r.name} ({r.type})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">{t('hotels.guestName')}</label>
-            <input type="text" required value={formData.guest_name} onChange={e => setFormData({...formData, guest_name: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">{t('hotels.guestPhone')}</label>
-            <input type="tel" value={formData.guest_phone} onChange={e => setFormData({...formData, guest_phone: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">{t('hotels.checkIn')}</label>
-              <input type="date" required value={formData.check_in_date} onChange={e => setFormData({...formData, check_in_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <CustomSelect
+            label={t('hotels.roomsAndBeds')}
+            value={formData.room_id}
+            onChange={(val) => setFormData({...formData, room_id: val})}
+            options={roomOptions}
+            placeholder={t('hotels.selectRoom')}
+          />
+          
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('hotels.guestName')}</label>
+              <input type="text" required value={formData.guest_name} onChange={e => setFormData({...formData, guest_name: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold" />
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">{t('hotels.checkOut')}</label>
-              <input type="date" required value={formData.check_out_date} onChange={e => setFormData({...formData, check_out_date: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none" />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('hotels.guestPhone')}</label>
+              <input type="tel" value={formData.guest_phone} onChange={e => setFormData({...formData, guest_phone: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold" />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">{t('hotels.status')}</label>
-            <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 outline-none">
-              <option value="pending">{t('hotels.pending')}</option>
-              <option value="confirmed">{t('hotels.confirmed')}</option>
-              <option value="checked_in">{t('hotels.checkedIn')}</option>
-            </select>
+
+          <div className="grid grid-cols-2 gap-6">
+            <DatePicker
+              label={t('hotels.checkIn')}
+              value={formData.check_in_date}
+              onChange={(val) => setFormData({...formData, check_in_date: val})}
+              position="top"
+            />
+            <DatePicker
+              label={t('hotels.checkOut')}
+              value={formData.check_out_date}
+              onChange={(val) => setFormData({...formData, check_out_date: val})}
+              position="top"
+            />
           </div>
-          <button type="submit" disabled={loading} className="w-full mt-6 bg-pink-600 text-white font-bold py-3 rounded-xl hover:bg-pink-700 transition-colors disabled:opacity-50">
+
+          <CustomSelect
+            label={t('hotels.status')}
+            value={formData.status}
+            onChange={(val) => setFormData({...formData, status: val})}
+            options={statusOptions}
+          />
+
+          <button type="submit" disabled={loading} className="w-full py-4 bg-pink-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all disabled:opacity-50 flex items-center justify-center">
             {loading ? t('hotels.saving') : t('hotels.saveBooking')}
           </button>
         </form>

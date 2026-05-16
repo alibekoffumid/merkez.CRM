@@ -11,7 +11,8 @@ const BookingCalendar = () => {
   const { t } = useTranslation();
   const { profile } = useUser();
   const [startDate, setStartDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState('week'); // 'week' or 'day'
+  const [viewMode, setViewMode] = useState('week');
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false); // 'week' or 'day'
   
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -132,19 +133,81 @@ const BookingCalendar = () => {
             </div>
 
             {/* Date Navigation */}
-            <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
+            <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 relative">
               <button onClick={navigateBack} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900">
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <div className="px-4 font-black text-gray-900 text-sm tracking-tight w-40 text-center">
+              <button 
+                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                className="px-4 font-black text-gray-900 text-sm tracking-tight w-40 text-center hover:text-pink-600 transition-colors cursor-pointer"
+              >
                 {viewMode === 'week' 
                   ? format(startDate, 'MMM yyyy')
                   : format(startDate, 'dd MMM yyyy')
                 }
-              </div>
+              </button>
               <button onClick={navigateForward} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900">
                 <ChevronRight className="w-5 h-5" />
               </button>
+
+              {/* Calendar Popup */}
+              {isCalendarOpen && (
+                <div className="absolute top-full mt-2 left-0 bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 origin-top">
+                  {(() => {
+                    const viewDate = startDate;
+                    const year = viewDate.getFullYear();
+                    const month = viewDate.getMonth();
+                    const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+                    const daysInMo = new Date(year, month + 1, 0).getDate();
+                    const today = new Date();
+                    const calDays = [];
+                    for (let i = 0; i < firstDay; i++) calDays.push(<div key={`e${i}`} />);
+                    for (let d = 1; d <= daysInMo; d++) {
+                      const date = new Date(year, month, d);
+                      const isToday = date.toDateString() === today.toDateString();
+                      const isSelected = date.toDateString() === startDate.toDateString();
+                      calDays.push(
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => {
+                            setStartDate(date);
+                            setIsCalendarOpen(false);
+                          }}
+                          className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
+                            isSelected ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/30' :
+                            isToday ? 'bg-pink-50 text-pink-600 border border-pink-200' :
+                            'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          {d}
+                        </button>
+                      );
+                    }
+                    return (
+                      <>
+                        <div className="flex items-center justify-between mb-6">
+                          <button type="button" onClick={() => setStartDate(subDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                            <ChevronLeft className="w-5 h-5" />
+                          </button>
+                          <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                            {format(startDate, 'MMMM yyyy')}
+                          </span>
+                          <button type="button" onClick={() => setStartDate(addDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                            <ChevronRight className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                          {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => (
+                            <span key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{d}</span>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">{calDays}</div>
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
             <button 
               onClick={() => setStartDate(new Date())}
