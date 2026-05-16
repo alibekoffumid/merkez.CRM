@@ -1,3 +1,4 @@
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
