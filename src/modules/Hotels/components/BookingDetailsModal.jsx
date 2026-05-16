@@ -4,15 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { supabase } from '../../../supabaseClient';
 import toast from 'react-hot-toast';
+import ConfirmModal from '../../../components/Common/ConfirmModal';
 
 const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
   const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   if (!isOpen || !booking) return null;
 
   const handleDelete = async () => {
-    if (!window.confirm(t('common.confirmDelete') || 'Are you sure?')) return;
     setDeleting(true);
     try {
       const { error } = await supabase.from('hotel_bookings').delete().eq('id', booking.id);
@@ -29,6 +30,7 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
   };
 
   return (
+    <>
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-md" />
       <div className="bg-white rounded-[2.5rem] w-full max-w-sm relative z-10 p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
@@ -38,7 +40,7 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
           </div>
           <div className="flex items-center gap-2">
             <button 
-              onClick={handleDelete} 
+              onClick={() => setShowConfirm(true)} 
               disabled={deleting}
               className="p-2 hover:bg-red-50 text-red-500 rounded-full transition-colors disabled:opacity-50"
             >
@@ -49,7 +51,7 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
         </div>
         
         <h2 className="text-2xl font-black text-gray-900 mb-1">{booking.guest_name}</h2>
-... (rest of the file content)
+
         {booking.guest_phone && (
           <div className="flex items-center text-gray-500 font-medium text-sm mb-6">
             <Phone className="w-3.5 h-3.5 mr-1.5" />
@@ -98,6 +100,18 @@ const BookingDetailsModal = ({ isOpen, onClose, booking, room, onDelete }) => {
         </div>
       </div>
     </div>
+
+    <ConfirmModal 
+      isOpen={showConfirm}
+      onClose={() => setShowConfirm(false)}
+      onConfirm={handleDelete}
+      title={t('common.confirmDelete') || 'Удаление брони'}
+      message={t('common.confirmDeleteMessage') || 'Вы уверены, что хотите удалить это бронирование?'}
+      confirmText={t('common.yes') || 'Да'}
+      cancelText={t('common.no') || 'Нет'}
+      isDanger={true}
+    />
+    </>
   );
 };
 
