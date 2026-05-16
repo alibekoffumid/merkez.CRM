@@ -25,6 +25,15 @@ const BookingCalendar = () => {
   
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
+  const [activeStatuses, setActiveStatuses] = useState(['pending', 'confirmed', 'checked_in']);
+
+  const toggleStatus = (status) => {
+    setActiveStatuses(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status) 
+        : [...prev, status]
+    );
+  };
 
   const fetchData = async () => {
     try {
@@ -219,11 +228,29 @@ const BookingCalendar = () => {
             </button>
          </div>
 
-         <div className="flex items-center space-x-3 text-xs font-bold text-gray-500">
-            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#f59e0b] mr-1.5" /> {t('hotels.pending') || 'Pending'}</div>
-            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#ec4899] mr-1.5" /> {t('hotels.confirmed') || 'Confirmed'}</div>
-            <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-[#3b82f6] mr-1.5" /> {t('hotels.checkedIn') || 'Checked In'}</div>
-         </div>
+          <div className="flex items-center space-x-3 text-xs font-bold text-gray-500">
+            {[
+              { id: 'pending', color: '#f59e0b', label: t('hotels.pending') || 'Pending' },
+              { id: 'confirmed', color: '#ec4899', label: t('hotels.confirmed') || 'Confirmed' },
+              { id: 'checked_in', color: '#3b82f6', label: t('hotels.checkedIn') || 'Checked In' }
+            ].map(s => {
+              const isActive = activeStatuses.includes(s.id);
+              return (
+                <button 
+                  key={s.id}
+                  onClick={() => toggleStatus(s.id)}
+                  className={`flex items-center px-2 py-1 rounded-lg transition-all border ${
+                    isActive 
+                      ? 'bg-white border-gray-100 shadow-sm opacity-100' 
+                      : 'bg-transparent border-transparent opacity-40 grayscale-[0.5] hover:opacity-60'
+                  }`}
+                >
+                  <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: s.color }} />
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
       </div>
 
       {/* Сетка Шахматки */}
@@ -295,7 +322,9 @@ const BookingCalendar = () => {
                      ))}
                      
                      {/* Блоки бронирований (WEEK) */}
-                     {bookings.filter(b => b.room_id === room.id).map(booking => {
+                     {bookings
+                        .filter(b => b.room_id === room.id && activeStatuses.includes(b.status))
+                        .map(booking => {
                         const startDiff = differenceInDays(booking.checkIn, startDate);
                         const length = differenceInDays(booking.checkOut, booking.checkIn);
                         
@@ -367,8 +396,6 @@ const BookingCalendar = () => {
               {/* Сетка ячеек (DAY) */}
               <div className="relative w-max min-w-full">
                  {rooms.map(room => {
-                   const roomBookings = bookings.filter(b => b.room_id === room.id && isBookingOnDay(b));
-                   
                    return (
                      <div key={room.id} className="flex h-20 border-b border-gray-100 relative group/row">
                        {hours.map((h, i) => (
@@ -385,7 +412,9 @@ const BookingCalendar = () => {
                        ))}
                        
                        {/* Блоки бронирований (DAY) */}
-                       {roomBookings.map(booking => {
+                        {bookings
+                          .filter(b => b.room_id === room.id && isBookingOnDay(b) && activeStatuses.includes(b.status))
+                          .map(booking => {
                          const dayStart = startOfDay(startDate);
                          const dayEnd = addDays(dayStart, 1);
                          
