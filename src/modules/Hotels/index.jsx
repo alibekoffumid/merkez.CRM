@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, Bed, Settings } from 'lucide-react';
 import BookingCalendar from './components/BookingCalendar';
 import RoomManagement from './components/RoomManagement';
+import Housekeeping from './components/Housekeeping';
 import { useTranslation } from 'react-i18next';
 import { Home } from 'lucide-react';
 
@@ -44,15 +45,7 @@ const HotelsModule = () => {
         {activeTab === 'calendar' && <BookingCalendar />}
         {activeTab === 'rooms' && <RoomManagement />}
         
-        {activeTab === 'housekeeping' && (
-          <div className="bg-white rounded-[2.5rem] p-16 text-center border border-gray-100 shadow-sm">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Bed className="w-10 h-10 text-gray-300" />
-            </div>
-            <p className="text-xl font-black text-gray-900 mb-2">{t('hotels.housekeeping') || 'Housekeeping'}</p>
-            <p className="text-sm text-gray-500 font-medium">{t('hotels.housekeepingComingSoon') || 'Housekeeping module coming soon...'}</p>
-          </div>
-        )}
+        {activeTab === 'housekeeping' && <Housekeeping />}
         
         {activeTab === 'settings' && (
           <div className="bg-white rounded-[2.5rem] p-16 text-center border border-gray-100 shadow-sm">
