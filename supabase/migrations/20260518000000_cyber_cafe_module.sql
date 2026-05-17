@@ -1,20 +1,20 @@
 -- 1. Таблица Игровых Мест (Компьютеры / Приставки)
 CREATE TABLE IF NOT EXISTS public.cafe_desks (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL,
+    tenant_id UUID NOT NULL,
     name VARCHAR(50) NOT NULL,
     zone VARCHAR(50) NOT NULL CHECK (zone IN ('Standard', 'VIP', 'Bootcamp', 'PS5')),
     status VARCHAR(20) NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'maintenance')),
     ip_address VARCHAR(45),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    UNIQUE(organization_id, name)
+    UNIQUE(tenant_id, name)
 );
 
 -- 2. Таблица Тарифов
 CREATE TABLE IF NOT EXISTS public.cafe_tariffs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL,
+    tenant_id UUID NOT NULL,
     name VARCHAR(100) NOT NULL,
     zone VARCHAR(50) NOT NULL CHECK (zone IN ('Standard', 'VIP', 'Bootcamp', 'PS5')),
     duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.cafe_tariffs (
 -- 3. Таблица Игровых Сессий
 CREATE TABLE IF NOT EXISTS public.cafe_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL,
+    tenant_id UUID NOT NULL,
     desk_id UUID NOT NULL REFERENCES public.cafe_desks(id) ON DELETE CASCADE,
     user_id UUID,
     tariff_id UUID NOT NULL REFERENCES public.cafe_tariffs(id),
@@ -41,9 +41,9 @@ CREATE TABLE IF NOT EXISTS public.cafe_sessions (
 );
 
 -- Индексы
-CREATE INDEX IF NOT EXISTS idx_cafe_desks_org_zone ON public.cafe_desks(organization_id, zone);
+CREATE INDEX IF NOT EXISTS idx_cafe_desks_tenant_zone ON public.cafe_desks(tenant_id, zone);
 CREATE INDEX IF NOT EXISTS idx_cafe_sessions_active ON public.cafe_sessions(desk_id) WHERE status = 'active';
-CREATE INDEX IF NOT EXISTS idx_cafe_tariffs_org ON public.cafe_tariffs(organization_id);
+CREATE INDEX IF NOT EXISTS idx_cafe_tariffs_tenant ON public.cafe_tariffs(tenant_id);
 
 -- RLS
 ALTER TABLE public.cafe_desks ENABLE ROW LEVEL SECURITY;
@@ -52,16 +52,16 @@ ALTER TABLE public.cafe_sessions ENABLE ROW LEVEL SECURITY;
 
 -- Политика изоляции
 CREATE POLICY "Tenant isolation for cafe_desks" ON public.cafe_desks
-    FOR ALL USING (organization_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()))
-    WITH CHECK (organization_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()));
+    FOR ALL USING (tenant_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()))
+    WITH CHECK (tenant_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()));
 
 CREATE POLICY "Tenant isolation for cafe_tariffs" ON public.cafe_tariffs
-    FOR ALL USING (organization_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()))
-    WITH CHECK (organization_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()));
+    FOR ALL USING (tenant_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()))
+    WITH CHECK (tenant_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()));
 
 CREATE POLICY "Tenant isolation for cafe_sessions" ON public.cafe_sessions
-    FOR ALL USING (organization_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()))
-    WITH CHECK (organization_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()));
+    FOR ALL USING (tenant_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()))
+    WITH CHECK (tenant_id IN (SELECT tenant_id FROM public.profiles WHERE id = auth.uid()));
 
 -- Триггерная функция для автоматического управления статусами ПК
 CREATE OR REPLACE FUNCTION public.handle_cafe_session_status_change()

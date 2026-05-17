@@ -58,10 +58,10 @@ export const SessionModal = ({
     try {
       const now = new Date();
       const endsAt = new Date(now.getTime() + selectedTariff.duration_minutes * 60 * 1000);
-      const organizationId = desk.organization_id;
+      const tenantId = desk.tenant_id;
 
       const payload = {
-        organization_id: organizationId,
+        tenant_id: tenantId,
         desk_id: desk.id,
         tariff_id: selectedTariff.id,
         user_id: clientType === 'guest' ? null : null, // В демо оставим анонимный визит
