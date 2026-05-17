@@ -75,7 +75,7 @@ export const DeskCard = ({
       {desk.status === 'occupied' && (
         <div className="absolute top-0 left-0 w-full h-[3px] bg-white/5">
           <div 
-            className="h-full bg-gradient-to-r from-rose-500 to-pink-500 transition-all duration-1000" 
+            className="h-full bg-gradient-to-r from-rose-500 to-purple-500 transition-all duration-1000" 
             style={{ width: `${percentLeft}%` }}
           />
         </div>
@@ -134,7 +134,7 @@ export const DeskCard = ({
         )}
         
         {desk.status === 'occupied' && activeSession?.user_id && (
-          <div className="flex items-center gap-1 text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-lg" title="Постоянный клиент">
+          <div className="flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-lg" title="Постоянный клиент">
             <User className="w-3 h-3" />
             VIP
           </div>

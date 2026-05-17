@@ -111,7 +111,7 @@ export const SessionModal = ({
                 type="button"
                 onClick={() => setClientType('guest')}
                 className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
-                  clientType === 'guest' ? 'bg-pink-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-900'
+                  clientType === 'guest' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 {t('cyberCafe.anonymousGuest') || 'Анонимный гость'}
@@ -120,7 +120,7 @@ export const SessionModal = ({
                 type="button"
                 onClick={() => setClientType('registered')}
                 className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${
-                  clientType === 'registered' ? 'bg-pink-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-900'
+                  clientType === 'registered' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 {t('cyberCafe.vipPlayer') || 'Лояльный игрок (VIP)'}
@@ -132,7 +132,7 @@ export const SessionModal = ({
             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">{t('cyberCafe.tariff') || 'Тарифный план'}</label>
             {loading ? (
               <div className="flex justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-pink-600" />
+                <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
               </div>
             ) : tariffs.length === 0 ? (
               <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 text-xs font-bold text-amber-700 flex items-center gap-2">
@@ -146,7 +146,7 @@ export const SessionModal = ({
                     key={tOption.id}
                     className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
                       selectedTariffId === tOption.id 
-                        ? 'bg-pink-50 border-pink-500/30 ring-2 ring-pink-500/10' 
+                        ? 'bg-purple-50 border-purple-500/30 ring-2 ring-purple-500/10' 
                         : 'bg-gray-50 border-gray-100 hover:border-gray-200'
                     }`}
                   >
@@ -157,12 +157,12 @@ export const SessionModal = ({
                         value={tOption.id} 
                         checked={selectedTariffId === tOption.id}
                         onChange={() => setSelectedTariffId(tOption.id)}
-                        className="text-pink-600 focus:ring-pink-500 w-4 h-4"
+                        className="text-purple-600 focus:ring-purple-500 w-4 h-4"
                       />
                       <div>
                         <span className="text-sm font-black text-gray-900 block">{tOption.name}</span>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3 text-pink-600" />
+                          <Clock className="w-3 h-3 text-purple-600" />
                           {tOption.duration_minutes} {t('common.minutesShort' || 'мин')} {tOption.is_package && '• Пакет'}
                         </span>
                       </div>
@@ -177,7 +177,7 @@ export const SessionModal = ({
           </div>
 
           {selectedTariff && (
-            <div className="p-5 bg-pink-500/5 rounded-3xl border border-pink-500/10 space-y-2">
+            <div className="p-5 bg-purple-500/5 rounded-3xl border border-purple-500/10 space-y-2">
               <div className="flex justify-between items-center text-xs font-bold text-gray-500">
                 <span className="uppercase tracking-widest">{t('cyberCafe.toPay') || 'К оплате'}</span>
                 <span className="uppercase tracking-widest">{t('cyberCafe.duration') || 'Длительность'}</span>
@@ -187,7 +187,7 @@ export const SessionModal = ({
                   <span>{selectedTariff.price}</span>
                   <span className="text-xs font-bold uppercase">AZN</span>
                 </div>
-                <div className="text-sm font-black text-pink-600 flex items-center gap-1">
+                <div className="text-sm font-black text-purple-600 flex items-center gap-1">
                   <Coins className="w-4 h-4" />
                   {selectedTariff.duration_minutes} {t('cyberCafe.minutes') || 'минут игрового времени'}
                 </div>
@@ -198,7 +198,7 @@ export const SessionModal = ({
           <button 
             type="submit" 
             disabled={submitting || tariffs.length === 0}
-            className="w-full py-4 bg-pink-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-4 bg-purple-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-purple-500 shadow-xl shadow-purple-600/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>

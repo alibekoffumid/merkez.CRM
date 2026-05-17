@@ -121,7 +121,7 @@ export const CafeDashboard = () => {
   if (loading) {
     return (
       <div className="flex h-[400px] items-center justify-center bg-transparent">
-        <Loader2 className="w-10 h-10 animate-spin text-pink-600" />
+        <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ export const CafeDashboard = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6 bg-white/50 p-6 rounded-3xl border border-gray-50/50">
         <div>
           <div className="flex items-center gap-3">
-            <MonitorPlay className="w-8 h-8 text-pink-600" />
+            <MonitorPlay className="w-8 h-8 text-purple-600" />
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">{t('cyberCafe.dashboardTitle') || 'Интернет-Кафе'}</h1>
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -145,7 +145,7 @@ export const CafeDashboard = () => {
         
         <button 
           onClick={fetchData}
-          className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-pink-600 bg-pink-50 hover:bg-pink-100 px-5 py-3 rounded-2xl transition-all self-start sm:self-auto"
+          className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-600 bg-purple-50 hover:bg-purple-100 px-5 py-3 rounded-2xl transition-all self-start sm:self-auto"
         >
           <Sparkles className="w-4 h-4" />
           {t('common.refresh') || 'Обновить'}
