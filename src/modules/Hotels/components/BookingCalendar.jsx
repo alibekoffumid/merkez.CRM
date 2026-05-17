@@ -33,6 +33,25 @@ const BookingCalendar = () => {
   }, [isCalendarOpen]);
   
   const [rooms, setRooms] = useState([]);
+  const monthNames = useMemo(() => [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december'
+  ], []);
+
+  const formatMonthYear = (date) => {
+    const monthKey = monthNames[date.getMonth()];
+    const monthStr = t(`common.months.${monthKey}`);
+    const year = date.getFullYear();
+    return `${monthStr} ${year}`;
+  };
+
+  const formatDayMonthYear = (date) => {
+    const day = date.getDate();
+    const monthKey = monthNames[date.getMonth()];
+    const monthStr = t(`common.months.${monthKey}`);
+    const year = date.getFullYear();
+    return `${day} ${monthStr} ${year}`;
+  };
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   
@@ -179,11 +198,11 @@ const BookingCalendar = () => {
               </button>
               <button 
                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                className="px-4 font-black text-gray-900 text-sm tracking-tight w-40 text-center hover:text-pink-600 transition-colors cursor-pointer"
+                className="px-4 font-black text-gray-900 text-sm tracking-tight w-48 text-center hover:text-pink-600 transition-colors cursor-pointer"
               >
                 {viewMode === 'week' 
-                  ? format(startDate, 'MMM yyyy')
-                  : format(startDate, 'dd MMM yyyy')
+                  ? formatMonthYear(startDate)
+                  : formatDayMonthYear(startDate)
                 }
               </button>
               <button onClick={navigateForward} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900">
@@ -231,15 +250,17 @@ const BookingCalendar = () => {
                             <ChevronLeft className="w-5 h-5" />
                           </button>
                           <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                            {format(startDate, 'MMMM yyyy')}
+                            {formatMonthYear(startDate)}
                           </span>
                           <button type="button" onClick={() => setStartDate(addDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
                             <ChevronRight className="w-5 h-5" />
                           </button>
                         </div>
                         <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                          {['Mo','Tu','We','Th','Fr','Sa','Su'].map(d => (
-                            <span key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{d}</span>
+                          {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(d => (
+                            <span key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                              {t(`common.weekdays.${d}`)}
+                            </span>
                           ))}
                         </div>
                         <div className="grid grid-cols-7 gap-1">{calDays}</div>
