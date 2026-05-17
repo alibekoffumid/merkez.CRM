@@ -20,6 +20,7 @@ import RetailModule from './modules/Retail';
 import FleetModule from './modules/Fleet';
 import ScannerModule from './modules/Scanner';
 import HotelsModule from './modules/Hotels';
+import CyberCafeModule from './modules/CyberCafe';
 import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
@@ -225,6 +226,9 @@ function App() {
           } />
           <Route path="hotels/*" element={
             <ModuleGuard moduleId="hotels"><HotelsModule /></ModuleGuard>
+          } />
+          <Route path="cyber-cafe/*" element={
+            <ModuleGuard moduleId="cyberCafe"><CyberCafeModule /></ModuleGuard>
           } />
           <Route path="settings" element={<Profile />} />
           <Route path="profile" element={<Profile />} />

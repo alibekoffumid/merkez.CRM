@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare, ShoppingCart, Car, Bed } from 'lucide-react';
+import { LayoutDashboard, Users, Package, DollarSign, Receipt, ChefHat, Activity, GraduationCap, Phone, MessageSquare, ShoppingCart, Car, Bed, Laptop } from 'lucide-react';
 
 // Master registry of all available modules in the platform
 // This is the single source of truth for module metadata
@@ -177,9 +177,19 @@ export const MODULE_REGISTRY = {
     color: 'hover:text-pink-600 hover:bg-pink-50',
     accentColor: 'pink',
     activeBg: 'bg-pink-600',
-    activeShadow: 'shadow-pink-500/30',
-    activeText: 'text-pink-600',
-    price: 49,
+  },
+  cyberCafe: {
+    id: 'cyberCafe',
+    nameKey: 'sidebar.cyberCafe',
+    descriptionKey: 'modules.cyberCafeDesc',
+    icon: Laptop,
+    path: '/cyber-cafe',
+    color: 'hover:text-purple-600 hover:bg-purple-50',
+    accentColor: 'purple',
+    activeBg: 'bg-purple-600',
+    activeShadow: 'shadow-purple-500/30',
+    activeText: 'text-purple-600',
+    price: 39,
     isFree: false,
     isCore: false,
   },
