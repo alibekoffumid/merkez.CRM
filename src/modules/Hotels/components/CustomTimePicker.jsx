@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour = true }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, isTop: false });
   const containerRef = useRef(null);
@@ -57,7 +59,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
   const timeMenu = isOpen && createPortal(
     <div 
       ref={menuRef}
-      className={`fixed z-[9999] bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 flex gap-4 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+      className={`fixed z-[99999] bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 flex gap-4 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
       style={{
         top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
         bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
@@ -66,7 +68,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
       }}
     >
       <div className="flex-1 max-h-48 overflow-y-auto no-scrollbar scroll-smooth">
-        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-2">Hour</div>
+        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-2">{t('hotels.hour', 'Часы')}</div>
         <div className="space-y-1">
           {hoursList.map(h => (
             <button
@@ -86,7 +88,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
       </div>
       <div className="w-px bg-gray-100 my-2" />
       <div className="flex-1 max-h-48 overflow-y-auto no-scrollbar scroll-smooth">
-        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-2">Min</div>
+        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-2">{t('hotels.minute', 'Минуты')}</div>
         <div className="space-y-1">
           {minutesList.map(m => (
             <button
