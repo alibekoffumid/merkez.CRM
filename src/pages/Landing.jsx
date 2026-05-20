@@ -5,7 +5,7 @@ import {
   Building2, Utensils, ShoppingCart, Package, Stethoscope, 
   GraduationCap, Truck, Wallet, PhoneCall, Globe, 
   MessageSquare, Users, CheckCircle2, ChevronRight, Menu, X, 
-  ArrowRight, ShieldCheck, Zap, Layers, Smartphone
+  ArrowRight, ShieldCheck, Zap, Layers, Smartphone, UserPlus, LayoutDashboard
 } from 'lucide-react';
 import { useUser } from '../core/UserContext';
 import HeroDashboardMockup from '../components/landing/HeroDashboardMockup';
@@ -253,15 +253,22 @@ const Landing = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[1, 2, 3].map((num) => (
-              <div key={num} className="relative group">
-                <div className="text-[120px] font-black text-white/5 absolute -top-16 -left-4 group-hover:text-blue-500/10 transition-colors">
-                  0{num}
+            {[
+              { num: 1, icon: <UserPlus className="w-8 h-8 text-blue-500" />, bg: "bg-blue-500/10", border: "border-blue-500/20" },
+              { num: 2, icon: <Layers className="w-8 h-8 text-emerald-500" />, bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+              { num: 3, icon: <LayoutDashboard className="w-8 h-8 text-purple-500" />, bg: "bg-purple-500/10", border: "border-purple-500/20" }
+            ].map((step) => (
+              <div key={step.num} className="relative group">
+                <div className="text-[120px] font-black text-white/5 absolute -top-16 -left-4 group-hover:text-blue-500/10 transition-colors pointer-events-none">
+                  0{step.num}
                 </div>
                 <div className="relative z-10 pt-10">
-                  <h3 className="text-2xl font-black mb-4">{t(`landing.how.step${num}.title`)}</h3>
+                  <div className={`mb-6 w-16 h-16 rounded-2xl ${step.bg} ${step.border} border flex items-center justify-center shadow-lg transition-transform group-hover:-translate-y-2 group-hover:scale-110 duration-300`}>
+                    {step.icon}
+                  </div>
+                  <h3 className="text-2xl font-black mb-4">{t(`landing.how.step${step.num}.title`)}</h3>
                   <p className="text-gray-400 font-medium">
-                    {t(`landing.how.step${num}.desc`)}
+                    {t(`landing.how.step${step.num}.desc`)}
                   </p>
                 </div>
               </div>
