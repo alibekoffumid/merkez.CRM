@@ -16,6 +16,12 @@ const Landing = () => {
   const { profile, loading, modulesLoading, needsOnboarding } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeWidget, setActiveWidget] = useState({
+    icon: Zap,
+    value: '12+',
+    label: 'Active Modules',
+    color: 'bg-green-500'
+  });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -143,17 +149,22 @@ const Landing = () => {
 
             <div className="flex-1 relative">
               <div className="relative z-10 transform transition-transform duration-700 hover:scale-[1.02]">
-                <HeroDashboardMockup />
+                <HeroDashboardMockup onHoverItem={(data) => setActiveWidget(data || {
+                  icon: Zap,
+                  value: '12+',
+                  label: 'Active Modules',
+                  color: 'bg-green-500'
+                })} />
               </div>
               {/* Floating stats card */}
-              <div className="absolute -bottom-10 -left-10 z-20 bg-white p-6 rounded-3xl shadow-2xl border border-gray-50 hidden sm:block animate-float">
+              <div className="absolute -bottom-10 -left-10 z-20 bg-white p-6 rounded-3xl shadow-2xl border border-gray-50 hidden sm:block animate-float hover:scale-105 transition-transform cursor-pointer shadow-blue-900/5">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-green-500 flex items-center justify-center text-white">
-                    <Zap className="w-6 h-6 fill-white" />
+                  <div className={`w-12 h-12 rounded-2xl ${activeWidget.color} flex items-center justify-center text-white transition-colors duration-300`}>
+                    <activeWidget.icon className={`w-6 h-6 ${activeWidget.icon === Zap ? 'fill-white' : ''}`} />
                   </div>
                   <div>
-                    <div className="text-2xl font-black text-gray-900">12+</div>
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Modules</div>
+                    <div className="text-2xl font-black text-gray-900 transition-all">{activeWidget.value}</div>
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{activeWidget.label}</div>
                   </div>
                 </div>
               </div>

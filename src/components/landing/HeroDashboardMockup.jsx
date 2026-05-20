@@ -13,7 +13,7 @@ import {
   Stethoscope
 } from 'lucide-react';
 
-const HeroDashboardMockup = () => {
+const HeroDashboardMockup = ({ onHoverItem }) => {
   return (
     <div className="relative w-full h-[500px] md:h-[550px] lg:h-[650px] rounded-[2.5rem] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden flex font-sans group">
       
@@ -36,16 +36,23 @@ const HeroDashboardMockup = () => {
         
         <div className="flex flex-col gap-2">
           {[
-            { icon: LayoutDashboard, label: 'Dashboard', active: true },
-            { icon: Utensils, label: 'Restaurant' },
-            { icon: ShoppingCart, label: 'Retail' },
-            { icon: Stethoscope, label: 'Healthcare' },
-            { icon: Users, label: 'Customers' },
-            { icon: Settings, label: 'Settings' }
+            { icon: LayoutDashboard, label: 'Dashboard', active: true, color: 'bg-blue-600' },
+            { icon: Utensils, label: 'Restaurant', color: 'bg-orange-500' },
+            { icon: ShoppingCart, label: 'Retail', color: 'bg-emerald-500' },
+            { icon: Stethoscope, label: 'Healthcare', color: 'bg-rose-500' },
+            { icon: Users, label: 'Customers', color: 'bg-indigo-500' },
+            { icon: Settings, label: 'Settings', color: 'bg-slate-600' }
           ].map((item, i) => (
             <div 
               key={i}
-              className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all ${
+              onMouseEnter={() => onHoverItem && onHoverItem({
+                icon: item.icon,
+                value: item.label === 'Dashboard' ? '12+' : 'Active',
+                label: `${item.label} Module`,
+                color: item.color
+              })}
+              onMouseLeave={() => onHoverItem && onHoverItem(null)}
+              className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
                 item.active 
                   ? 'bg-blue-50 text-blue-600 font-bold' 
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
@@ -98,11 +105,21 @@ const HeroDashboardMockup = () => {
           {/* Stats Row */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6 shrink-0">
             {[
-              { label: 'Total Revenue', value: '$124,500', trend: '+14%', icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-100' },
-              { label: 'Active Users', value: '8,432', trend: '+22%', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100' },
-              { label: 'Transactions', value: '1,240', trend: '+5%', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100', hideOnMobile: true }
+              { label: 'Total Revenue', value: '$124,500', trend: '+14%', icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-100', hoverColor: 'bg-blue-600' },
+              { label: 'Active Users', value: '8,432', trend: '+22%', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
+              { label: 'Transactions', value: '1,240', trend: '+5%', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100', hideOnMobile: true, hoverColor: 'bg-purple-600' }
             ].map((stat, i) => (
-              <div key={i} className={`bg-white border border-slate-100 shadow-sm p-4 lg:p-5 rounded-2xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}>
+              <div 
+                key={i} 
+                onMouseEnter={() => onHoverItem && onHoverItem({
+                  icon: stat.icon,
+                  value: stat.value,
+                  label: stat.label,
+                  color: stat.hoverColor
+                })}
+                onMouseLeave={() => onHoverItem && onHoverItem(null)}
+                className={`bg-white border border-slate-100 shadow-sm p-4 lg:p-5 rounded-2xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div className={`p-2 lg:p-3 rounded-xl ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform`}>
                     <stat.icon className="w-5 h-5 lg:w-6 lg:h-6" />
