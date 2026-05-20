@@ -15,7 +15,7 @@ import {
 
 const HeroDashboardMockup = () => {
   return (
-    <div className="relative w-full min-h-[450px] md:min-h-[550px] max-h-[700px] rounded-[2.5rem] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden flex font-sans group">
+    <div className="relative w-full h-[500px] md:h-[550px] lg:h-[650px] rounded-[2.5rem] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden flex font-sans group">
       
       {/* Custom Styles for Chart Animation */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -119,7 +119,7 @@ const HeroDashboardMockup = () => {
           </div>
 
           {/* Chart Area */}
-          <div className="flex-1 min-h-0 bg-white border border-slate-100 shadow-sm p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden shrink-0">
+          <div className="flex-1 min-h-[160px] lg:min-h-[200px] bg-white border border-slate-100 shadow-sm p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden shrink-0">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-slate-900 font-bold text-sm lg:text-base">Revenue Growth</h3>
               <div className="flex gap-2">
@@ -131,7 +131,7 @@ const HeroDashboardMockup = () => {
               </div>
             </div>
             
-            <div className="flex-1 relative w-full h-full flex items-end pb-2">
+            <div className="flex-1 relative w-full h-full flex items-end pb-2 pt-4">
               {/* Background Grid Lines */}
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                 {[1, 2, 3, 4].map(i => (
