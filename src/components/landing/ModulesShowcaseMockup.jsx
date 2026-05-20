@@ -46,7 +46,7 @@ const ModulesShowcaseMockup = () => {
   ];
 
   return (
-    <div className="relative w-full aspect-square md:aspect-[4/3] lg:aspect-[1/1] rounded-[3rem] bg-[#0b1121] shadow-2xl overflow-hidden flex items-center justify-center p-6 md:p-12 group border-[12px] border-white">
+    <div className="relative w-full min-h-[400px] md:min-h-[500px] rounded-[3rem] bg-[#0b1121] shadow-2xl overflow-hidden flex items-center justify-center p-6 md:p-12 group border-[8px] md:border-[12px] border-white">
       
       {/* Background Grid & Glows */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgc3Ryb2tlPSIjMWUyOTNiIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPjxwYXRoIGQ9Ik0wIDQwbDQwIDBNNDAgMGwwIDQwIi8+PC9nPjwvc3ZnPg==')] opacity-20"></div>

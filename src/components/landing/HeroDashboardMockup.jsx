@@ -16,7 +16,7 @@ import {
 
 const HeroDashboardMockup = () => {
   return (
-    <div className="relative w-full aspect-[4/3] lg:aspect-[16/10] max-h-[600px] rounded-[2.5rem] bg-[#0f172a] border-8 border-white shadow-2xl overflow-hidden flex font-sans group">
+    <div className="relative w-full min-h-[450px] md:min-h-[550px] max-h-[700px] rounded-[2.5rem] bg-[#0f172a] border-8 border-white shadow-2xl overflow-hidden flex font-sans group">
       
       {/* Custom Styles for Chart Animation */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -27,8 +27,8 @@ const HeroDashboardMockup = () => {
       `}} />
 
       {/* Sidebar */}
-      <div className="w-20 lg:w-64 border-r border-slate-800 bg-[#0f172a] flex flex-col p-4 z-10 transition-all duration-300">
-        <div className="flex items-center gap-3 mb-10 px-2 mt-2">
+      <div className="w-16 md:w-20 lg:w-64 shrink-0 border-r border-slate-800 bg-[#0f172a] flex flex-col p-2 lg:p-4 z-10 transition-all duration-300">
+        <div className="flex items-center justify-center lg:justify-start gap-3 mb-6 lg:mb-10 px-2 mt-2">
           <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/50 shrink-0">
             <LayoutDashboard className="w-4 h-4 text-white" />
           </div>
@@ -46,7 +46,7 @@ const HeroDashboardMockup = () => {
           ].map((item, i) => (
             <div 
               key={i}
-              className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+              className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all ${
                 item.active 
                   ? 'bg-blue-600/10 text-blue-500' 
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white'
@@ -66,8 +66,8 @@ const HeroDashboardMockup = () => {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
         {/* Topbar */}
-        <div className="h-20 border-b border-slate-800/50 flex items-center justify-between px-8 z-10">
-          <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 px-4 py-2 rounded-lg w-40 lg:w-64 border border-slate-700/50 backdrop-blur-sm">
+        <div className="h-16 lg:h-20 shrink-0 border-b border-slate-800/50 flex items-center justify-between px-4 lg:px-8 z-10">
+          <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg w-32 md:w-40 lg:w-64 border border-slate-700/50 backdrop-blur-sm">
             <Search className="w-4 h-4 shrink-0" />
             <div className="text-sm truncate">Search modules...</div>
           </div>
@@ -84,8 +84,8 @@ const HeroDashboardMockup = () => {
         </div>
 
         {/* Dashboard Content */}
-        <div className="flex-1 p-4 lg:p-8 z-10 flex flex-col gap-6">
-          <div className="flex justify-between items-end">
+        <div className="flex-1 p-4 lg:p-6 z-10 flex flex-col gap-4 lg:gap-6 overflow-y-auto">
+          <div className="flex justify-between items-end shrink-0">
             <div>
               <h2 className="text-2xl font-black text-white mb-1">Overview</h2>
               <p className="text-slate-400 text-xs lg:text-sm">Real-time platform metrics</p>
@@ -97,7 +97,7 @@ const HeroDashboardMockup = () => {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6 shrink-0">
             {[
               { label: 'Total Revenue', value: '$124,500', trend: '+14%', icon: Wallet, color: 'text-blue-500', bg: 'bg-blue-500/10' },
               { label: 'Active Users', value: '8,432', trend: '+22%', icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
@@ -120,7 +120,7 @@ const HeroDashboardMockup = () => {
           </div>
 
           {/* Chart Area */}
-          <div className="flex-1 bg-slate-800/40 border border-slate-700/50 backdrop-blur-md p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden">
+          <div className="flex-1 min-h-[150px] bg-slate-800/40 border border-slate-700/50 backdrop-blur-md p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden shrink-0">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-white font-bold text-sm lg:text-base">Revenue Growth</h3>
               <div className="flex gap-2">
