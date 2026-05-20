@@ -3,14 +3,15 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   Code2, Cloud, Briefcase, Smartphone, Cpu, Target, ArrowRight,
-  Database, Network, Bot, Zap
+  Database, Network, Bot, Zap, Menu, X
 } from 'lucide-react';
 import { useUser } from '../core/UserContext';
 
 const Services = () => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, needsOnboarding } = useUser();
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
