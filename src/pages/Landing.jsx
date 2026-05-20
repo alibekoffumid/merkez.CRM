@@ -8,7 +8,8 @@ import {
   ArrowRight, ShieldCheck, Zap, Layers, Smartphone
 } from 'lucide-react';
 import { useUser } from '../core/UserContext';
-
+import HeroDashboardMockup from '../components/landing/HeroDashboardMockup';
+import ModulesShowcaseMockup from '../components/landing/ModulesShowcaseMockup';
 const Landing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -141,13 +142,8 @@ const Landing = () => {
             </div>
 
             <div className="flex-1 relative">
-              <div className="relative z-10 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-100 border-8 border-white group">
-                <img 
-                  src="/merkez_crm_hero_1778408038686.png" 
-                  alt="Merkez CRM Hero" 
-                  className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              <div className="relative z-10 transform transition-transform duration-700 hover:scale-[1.02]">
+                <HeroDashboardMockup />
               </div>
               {/* Floating stats card */}
               <div className="absolute -bottom-10 -left-10 z-20 bg-white p-6 rounded-3xl shadow-2xl border border-gray-50 hidden sm:block animate-float">
@@ -212,11 +208,9 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row items-center gap-20">
             <div className="flex-1">
-              <img 
-                src="/merkez_crm_modules_showcase_1778408401280.png" 
-                alt="Why Merkez" 
-                className="w-full h-auto rounded-[3rem] shadow-2xl"
-              />
+              <div className="relative z-10 transform transition-transform duration-700 hover:scale-[1.02]">
+                <ModulesShowcaseMockup />
+              </div>
             </div>
             <div className="flex-1">
               <span className="text-blue-500 font-black text-xs uppercase tracking-[0.3em] mb-4 block">
