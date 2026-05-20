@@ -215,7 +215,7 @@ const Auth = () => {
           {/* Left Side: Brand & Social */}
           <div className="flex-1 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-100 pb-8 md:pb-0 md:pr-10">
             <div className="mb-6">
-              <img src="/logo.svg" alt="Merkez Logo" className="h-20 w-auto object-contain mb-6" />
+              <img src="/merkez-new-logo.svg" alt="Merkez Logo" className="h-20 w-auto object-contain mb-6" />
               <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
                 {isLogin ? (t('auth.welcomeBack') || 'Welcome Back.') : (t('auth.join') || 'Join Merkez.')}
               </h1>

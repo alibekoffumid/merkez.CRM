@@ -224,7 +224,7 @@ const ScannerApp: React.FC = () => {
       <div className="flex items-center justify-between px-4 py-3 bg-gray-900/80 backdrop-blur-xl z-20 safe-area-top">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <img src="/logo.svg" alt="Logo" className="h-9 w-auto brightness-0 invert" />
+            <img src="/merkez-new-logo.svg" alt="Logo" className="h-9 w-auto brightness-0 invert" />
             <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-gray-900 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`} />
           </div>
           <div className="h-6 w-px bg-white/10 mx-1"></div>

@@ -58,7 +58,7 @@ const QRMenu = () => {
                 level="H"
                 includeMargin={false}
                 imageSettings={{
-                  src: "/logo.svg",
+                  src: "/merkez-new-logo.svg",
                   x: undefined,
                   y: undefined,
                   height: 40,
