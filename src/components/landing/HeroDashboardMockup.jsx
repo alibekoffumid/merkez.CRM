@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Users, 
@@ -10,11 +10,37 @@ import {
   Search,
   ShoppingCart,
   Utensils,
-  Stethoscope
+  Stethoscope,
+  Zap
 } from 'lucide-react';
 
 const HeroDashboardMockup = ({ onHoverItem }) => {
   const [activeTab, setActiveTab] = useState('Dashboard');
+
+  const sidebarItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', color: 'bg-blue-600' },
+    { icon: Utensils, label: 'Restaurant', color: 'bg-orange-500' },
+    { icon: ShoppingCart, label: 'Retail', color: 'bg-emerald-500' },
+    { icon: Stethoscope, label: 'Healthcare', color: 'bg-rose-500' },
+    { icon: Users, label: 'Customers', color: 'bg-indigo-500' },
+    { icon: Settings, label: 'Settings', color: 'bg-slate-600' }
+  ];
+
+  const restoreActiveTabWidget = () => {
+    const currentItem = sidebarItems.find(i => i.label === activeTab);
+    if (currentItem && onHoverItem) {
+      onHoverItem({
+        icon: currentItem.label === 'Dashboard' ? Zap : currentItem.icon,
+        value: currentItem.label === 'Dashboard' ? '12+' : currentItem.label,
+        label: currentItem.label === 'Dashboard' ? 'Active Modules' : 'Active Module',
+        color: currentItem.label === 'Dashboard' ? 'bg-green-500' : currentItem.color
+      });
+    }
+  };
+
+  useEffect(() => {
+    restoreActiveTabWidget();
+  }, [activeTab]);
 
   const tabData = {
     'Dashboard': {
@@ -96,26 +122,19 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
         </div>
         
         <div className="flex flex-col gap-2">
-          {[
-            { icon: LayoutDashboard, label: 'Dashboard', color: 'bg-blue-600' },
-            { icon: Utensils, label: 'Restaurant', color: 'bg-orange-500' },
-            { icon: ShoppingCart, label: 'Retail', color: 'bg-emerald-500' },
-            { icon: Stethoscope, label: 'Healthcare', color: 'bg-rose-500' },
-            { icon: Users, label: 'Customers', color: 'bg-indigo-500' },
-            { icon: Settings, label: 'Settings', color: 'bg-slate-600' }
-          ].map((item, i) => {
+          {sidebarItems.map((item, i) => {
             const isActive = activeTab === item.label;
             return (
               <div 
                 key={i}
                 onClick={() => setActiveTab(item.label)}
                 onMouseEnter={() => onHoverItem && onHoverItem({
-                  icon: item.icon,
-                  value: item.label === 'Dashboard' ? '12+' : 'Active',
-                  label: `${item.label} Module`,
-                  color: item.color
+                  icon: item.label === 'Dashboard' ? Zap : item.icon,
+                  value: item.label === 'Dashboard' ? '12+' : item.label,
+                  label: item.label === 'Dashboard' ? 'Active Modules' : 'Active Module',
+                  color: item.label === 'Dashboard' ? 'bg-green-500' : item.color
                 })}
-                onMouseLeave={() => onHoverItem && onHoverItem(null)}
+                onMouseLeave={restoreActiveTabWidget}
                 className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
                   isActive 
                     ? 'bg-blue-50 text-blue-600 font-bold' 
@@ -178,7 +197,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                   label: stat.label,
                   color: stat.hoverColor
                 })}
-                onMouseLeave={() => onHoverItem && onHoverItem(null)}
+                onMouseLeave={restoreActiveTabWidget}
                 className={`bg-white border border-slate-100 shadow-sm p-4 lg:p-5 rounded-2xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
               >
                 <div className="flex justify-between items-start mb-4">
