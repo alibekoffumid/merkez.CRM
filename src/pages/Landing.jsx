@@ -57,16 +57,16 @@ const Landing = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
+            <a href="#features" key={`modules-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip">
               {t('landing.nav.modules')}
             </a>
-            <Link to="/services" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
+            <Link to="/services" key={`services-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.05s' }}>
               {t('services.title') || 'Услуги'}
             </Link>
-            <a href="#how" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
+            <a href="#how" key={`how-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.1s' }}>
               {t('landing.nav.howItWorks')}
             </a>
-            <a href="#pricing" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
+            <a href="#pricing" key={`pricing-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.15s' }}>
               {t('landing.nav.pricing')}
             </a>
             <div className="h-4 w-px bg-gray-200"></div>

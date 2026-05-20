@@ -48,7 +48,7 @@ const Services = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
+            <Link key={`home-${i18n.language}`} to="/" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip">
               {t('landing.nav.home', 'Главная')}
             </Link>
             <div className="h-4 w-px bg-gray-200"></div>
