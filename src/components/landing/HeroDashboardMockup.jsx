@@ -112,6 +112,10 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
           0% { stroke-dashoffset: 200; }
           100% { stroke-dashoffset: 0; }
         }
+        @keyframes flipCard {
+          0% { transform: perspective(400px) rotateX(90deg); opacity: 0; }
+          100% { transform: perspective(400px) rotateX(0deg); opacity: 1; }
+        }
       `}} />
 
       {/* Sidebar */}
@@ -192,16 +196,20 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3 shrink-0">
             {currentData.stats.map((stat, i) => (
               <div 
-                key={i} 
-                onMouseEnter={() => onHoverItem && onHoverItem({
-                  icon: stat.icon,
-                  value: stat.value,
-                  label: stat.label,
-                  color: stat.hoverColor
-                })}
-                onMouseLeave={restoreActiveTabWidget}
-                className={`bg-white border border-slate-100 shadow-sm p-3 lg:p-4 rounded-xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
+                key={`${activeTab}-${i}`}
+                className={`opacity-0 ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
+                style={{ animation: `flipCard 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards ${i * 0.1}s` }}
               >
+                <div 
+                  onMouseEnter={() => onHoverItem && onHoverItem({
+                    icon: stat.icon,
+                    value: stat.value,
+                    label: stat.label,
+                    color: stat.hoverColor
+                  })}
+                  onMouseLeave={restoreActiveTabWidget}
+                  className="bg-white border border-slate-100 shadow-sm p-3 lg:p-4 rounded-xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card h-full"
+                >
                 <div className="flex justify-between items-start mb-2 lg:mb-3">
                   <div className={`p-1.5 lg:p-2 rounded-lg ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform`}>
                     <stat.icon className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -213,6 +221,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                 </div>
                 <div className="text-slate-500 text-[10px] lg:text-xs font-medium mb-0.5">{stat.label}</div>
                 <div className="text-base lg:text-xl font-black text-slate-900">{stat.value}</div>
+                </div>
               </div>
             ))}
           </div>
