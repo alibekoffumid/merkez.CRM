@@ -198,19 +198,21 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                   color: stat.hoverColor
                 })}
                 onMouseLeave={restoreActiveTabWidget}
-                className={`bg-white border border-slate-100 shadow-sm p-4 lg:p-5 rounded-2xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
+                className={`bg-white border border-slate-100 shadow-sm p-3 lg:p-4 xl:p-5 rounded-2xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card flex flex-col justify-between ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-2 lg:p-3 rounded-xl ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform`}>
-                    <stat.icon className="w-5 h-5 lg:w-6 lg:h-6" />
+                <div className="flex justify-between items-start mb-3 xl:mb-4 gap-2">
+                  <div className={`p-2 lg:p-2.5 xl:p-3 rounded-xl ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform shrink-0`}>
+                    <stat.icon className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6" />
                   </div>
-                  <div className="flex items-center gap-1 text-emerald-600 text-[10px] lg:text-xs font-bold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
-                    <ArrowUpRight className="w-3 h-3" />
+                  <div className="flex items-center gap-0.5 text-emerald-600 text-[9px] lg:text-[10px] xl:text-xs font-bold bg-emerald-50 px-1.5 py-1 rounded-md border border-emerald-100 shrink-0">
+                    <ArrowUpRight className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
                     {stat.trend}
                   </div>
                 </div>
-                <div className="text-slate-500 text-xs lg:text-sm font-medium mb-1">{stat.label}</div>
-                <div className="text-lg lg:text-2xl font-black text-slate-900">{stat.value}</div>
+                <div>
+                  <div className="text-slate-500 text-[11px] lg:text-xs xl:text-sm font-medium mb-0.5 truncate" title={stat.label}>{stat.label}</div>
+                  <div className="text-base lg:text-lg xl:text-2xl font-black text-slate-900 truncate" title={stat.value}>{stat.value}</div>
+                </div>
               </div>
             ))}
           </div>
