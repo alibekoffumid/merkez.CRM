@@ -276,11 +276,11 @@ const Landing = () => {
                 <ModulesShowcaseMockup />
               </div>
             </div>
-            <div className="flex-1">
-              <span className="text-blue-500 font-black text-xs uppercase tracking-[0.3em] mb-4 block">
+            <div className="flex-1" key={i18n.language}>
+              <span className="text-blue-500 font-black text-xs uppercase tracking-[0.3em] mb-4 block animate-text-flip">
                 {t('landing.why.title')}
               </span>
-              <h2 className="text-4xl font-black tracking-tight text-gray-900 mb-10 leading-tight">
+              <h2 className="text-4xl font-black tracking-tight text-gray-900 mb-10 leading-tight animate-text-flip" style={{ animationDelay: '0.1s' }}>
                 {t('landing.why.subtitle')}
               </h2>
 
@@ -294,7 +294,7 @@ const Landing = () => {
                     <div className="w-14 h-14 shrink-0 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-900">
                       <item.icon className="w-6 h-6" />
                     </div>
-                    <div>
+                    <div className="animate-text-flip" style={{ animationDelay: `${0.2 + (['modular', 'multilingual', 'mobile'].indexOf(item.id) * 0.1)}s` }}>
                       <h4 className="text-xl font-black text-gray-900 mb-2">{t(`landing.why.${item.id}.title`)}</h4>
                       <p className="text-gray-500 font-medium text-sm leading-relaxed">
                         {t(`landing.why.${item.id}.desc`)}
@@ -311,8 +311,8 @@ const Landing = () => {
       {/* Steps Section */}
       <section id="how" className="py-24 bg-gray-900 text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-black tracking-tight mb-4">{t('landing.how.title')}</h2>
+          <div className="text-center mb-20" key={i18n.language}>
+            <h2 className="text-4xl font-black tracking-tight mb-4 animate-text-flip">{t('landing.how.title')}</h2>
             <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
           </div>
 
@@ -326,14 +326,16 @@ const Landing = () => {
                 <div className="text-[120px] font-black text-white/5 absolute -top-16 -left-4 group-hover:text-blue-500/10 transition-colors pointer-events-none">
                   0{step.num}
                 </div>
-                <div className="relative z-10 pt-10">
+                <div className="relative z-10 pt-10" key={i18n.language}>
                   <div className={`mb-6 w-16 h-16 rounded-2xl ${step.bg} ${step.border} border flex items-center justify-center shadow-lg transition-transform group-hover:-translate-y-2 group-hover:scale-110 duration-300`}>
                     {step.icon}
                   </div>
-                  <h3 className="text-2xl font-black mb-4">{t(`landing.how.step${step.num}.title`)}</h3>
-                  <p className="text-gray-400 font-medium">
-                    {t(`landing.how.step${step.num}.desc`)}
-                  </p>
+                  <div className="animate-text-flip" style={{ animationDelay: `${0.1 * step.num}s` }}>
+                    <h3 className="text-2xl font-black mb-4">{t(`landing.how.step${step.num}.title`)}</h3>
+                    <p className="text-gray-400 font-medium">
+                      {t(`landing.how.step${step.num}.desc`)}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -350,20 +352,22 @@ const Landing = () => {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl"></div>
           
-          <div className="relative z-10">
-            <h2 className="text-4xl font-black text-white mb-6">
+          <div className="relative z-10" key={i18n.language}>
+            <h2 className="text-4xl font-black text-white mb-6 animate-text-flip">
               {t('landing.cta.title')}
             </h2>
-            <p className="text-blue-100 text-lg font-medium mb-10">
+            <p className="text-blue-100 text-lg font-medium mb-10 animate-text-flip" style={{ animationDelay: '0.1s' }}>
               {t('landing.cta.subtitle')}
             </p>
-            <Link 
-              to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
-              className="inline-flex items-center gap-3 bg-white text-blue-600 px-12 py-5 rounded-[2rem] font-black text-xl hover:bg-gray-50 active:scale-95 transition-all shadow-xl"
-            >
-              {profile ? (t('landing.nav.dashboard') || 'Dashboard') : t('landing.hero.cta.start')}
-              <ChevronRight className="w-6 h-6" />
-            </Link>
+            <div className="animate-text-flip" style={{ animationDelay: '0.2s' }}>
+              <Link 
+                to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
+                className="inline-flex items-center gap-3 bg-white text-blue-600 px-12 py-5 rounded-[2rem] font-black text-xl hover:bg-gray-50 active:scale-95 transition-all shadow-xl"
+              >
+                {profile ? (t('landing.nav.dashboard') || 'Dashboard') : t('landing.hero.cta.start')}
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>

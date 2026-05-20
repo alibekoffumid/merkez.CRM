@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CheckCircle2 } from 'lucide-react';
 
 const PricingSection = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const plans = [
     {
@@ -58,11 +58,11 @@ const PricingSection = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-50 rounded-full blur-[100px] pointer-events-none opacity-50"></div>
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">
+        <div className="text-center mb-20" key={i18n.language}>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4 animate-text-flip">
             {t('landing.pricing.title', 'Простые и прозрачные цены')}
           </h2>
-          <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+          <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto animate-text-flip" style={{ animationDelay: '0.1s' }}>
             {t('landing.pricing.subtitle', 'Выберите план, который идеально подходит для вашего бизнеса. Все планы включают 14 дней бесплатного периода.')}
           </p>
         </div>
@@ -70,12 +70,13 @@ const PricingSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <div 
-              key={i}
-              className={`relative bg-white rounded-[2rem] p-8 transition-transform duration-300 hover:-translate-y-2 ${
+              key={`${i}-${i18n.language}`}
+              className={`relative bg-white rounded-[2rem] p-8 transition-transform duration-300 hover:-translate-y-2 animate-text-flip ${
                 plan.popular 
                   ? 'border-2 border-blue-500 shadow-2xl shadow-blue-500/20' 
                   : 'border border-slate-100 shadow-xl shadow-slate-200/50'
               }`}
+              style={{ animationDelay: `${0.2 + (i * 0.1)}s` }}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-md">
