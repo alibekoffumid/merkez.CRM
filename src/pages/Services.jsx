@@ -122,13 +122,24 @@ const Services = () => {
                 {/* Services Items */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {category.items && category.items.map((item, i) => (
-                    <div key={i} className="bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 group flex flex-col">
-                      <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    <div key={i} className="relative bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-500 group flex flex-col overflow-hidden cursor-pointer">
+                      {/* Decorative background blob */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-50 to-transparent rounded-full -mr-12 -mt-12 opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out"></div>
+                      
+                      {/* Accent line */}
+                      <div className="w-10 h-1 bg-blue-500 rounded-full mb-5 group-hover:w-16 group-hover:bg-blue-600 transition-all duration-500 relative z-10"></div>
+
+                      <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors duration-300 relative z-10">
                         {item.title}
                       </h3>
-                      <p className="text-slate-500 leading-relaxed font-medium">
+                      <p className="text-slate-500 leading-relaxed font-medium mb-6 flex-1 relative z-10">
                         {item.desc}
                       </p>
+
+                      {/* Hover action link */}
+                      <div className="flex items-center text-sm font-bold text-blue-500 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 relative z-10 mt-auto">
+                        Подробнее <ArrowRight className="w-4 h-4 ml-1" />
+                      </div>
                     </div>
                   ))}
                 </div>
