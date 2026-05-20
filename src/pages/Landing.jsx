@@ -125,15 +125,17 @@ const Landing = () => {
                 <Zap className="w-3 h-3 fill-blue-600" />
                 {t('landing.hero.badge')}
               </div>
-              <h1 className="text-5xl lg:text-7xl font-black tracking-tighter text-gray-900 leading-[1.05] mb-8">
-                {t('landing.hero.title')} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-red-500">
-                  {t('landing.hero.highlight')}
-                </span>
-              </h1>
-              <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-10">
-                {t('landing.hero.subtitle')}
-              </p>
+              <div key={i18n.language}>
+                <h1 className="text-5xl lg:text-7xl font-black tracking-tighter text-gray-900 leading-[1.05] mb-8 animate-text-flip">
+                  {t('landing.hero.title')} <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-red-500">
+                    {t('landing.hero.highlight')}
+                  </span>
+                </h1>
+                <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-10 animate-text-flip" style={{ animationDelay: '0.1s' }}>
+                  {t('landing.hero.subtitle')}
+                </p>
+              </div>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link 
                   to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
@@ -180,14 +182,14 @@ const Landing = () => {
       {/* Modules Section */}
       <section id="features" className="py-24 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <span className="text-blue-500 font-black text-xs uppercase tracking-[0.3em] mb-4 block">
+          <div key={i18n.language} className="text-center max-w-3xl mx-auto mb-20">
+            <span className="text-blue-500 font-black text-xs uppercase tracking-[0.3em] mb-4 block animate-text-flip">
               {t('landing.nav.modules')}
             </span>
-            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-black tracking-tight text-gray-900 mb-6 animate-text-flip" style={{ animationDelay: '0.1s' }}>
               {t('landing.features.title')}
             </h2>
-            <p className="text-gray-500 font-medium">
+            <p className="text-gray-500 font-medium animate-text-flip" style={{ animationDelay: '0.2s' }}>
               {t('landing.features.subtitle')}
             </p>
           </div>
@@ -244,10 +246,12 @@ const Landing = () => {
                   {/* Icon */}
                   <module.icon className="relative w-8 h-8 z-10 transition-transform duration-500" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-lg font-black text-gray-900 mb-2">{t(`${module.id}.title`)}</h3>
-                <p className="text-sm text-gray-400 font-medium leading-relaxed">
-                  {t(`${module.id}.subtitle`)}
-                </p>
+                <div key={i18n.language} className="animate-text-flip">
+                  <h3 className="text-lg font-black text-gray-900 mb-2">{t(`${module.id}.title`)}</h3>
+                  <p className="text-sm text-gray-400 font-medium leading-relaxed">
+                    {t(`${module.id}.subtitle`)}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

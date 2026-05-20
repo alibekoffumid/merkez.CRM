@@ -35,19 +35,6 @@ const Services = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
-      {/* Custom Styles for Animations */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes flipCard {
-          0% { transform: perspective(1000px) rotateX(-90deg); opacity: 0; }
-          100% { transform: perspective(1000px) rotateX(0deg); opacity: 1; }
-        }
-        .animate-flip {
-          animation: flipCard 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-          opacity: 0;
-          transform-origin: top;
-        }
-      `}} />
-
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-gray-100 py-3 shadow-sm' : 'bg-transparent py-5'
@@ -128,7 +115,7 @@ const Services = () => {
                     {getIconForCategory(category.id)}
                   </div>
                   <h2 
-                    className="text-2xl lg:text-3xl font-black text-slate-900 leading-tight tracking-tight animate-flip"
+                    className="text-2xl lg:text-3xl font-black text-slate-900 leading-tight tracking-tight animate-text-flip"
                     style={{ animationDelay: `${index * 0.15}s` }}
                   >
                     {category.title}
