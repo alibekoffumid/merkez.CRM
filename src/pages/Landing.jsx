@@ -189,6 +189,10 @@ const Landing = () => {
                   module.color === 'yellow' ? 'text-amber-500' :
                   module.color === 'red' ? 'text-red-500' :
                   module.color === 'purple' ? 'text-purple-500' :
+                  module.color === 'teal' ? 'text-teal-500' :
+                  module.color === 'orange' ? 'text-orange-500' :
+                  module.color === 'pink' ? 'text-pink-500' :
+                  module.color === 'cyan' ? 'text-cyan-500' :
                   'text-gray-500'
                 }`}>
                   {/* Glowing background blur */}
@@ -198,6 +202,10 @@ const Landing = () => {
                     module.color === 'yellow' ? 'bg-amber-500' :
                     module.color === 'red' ? 'bg-red-500' :
                     module.color === 'purple' ? 'bg-purple-500' :
+                    module.color === 'teal' ? 'bg-teal-500' :
+                    module.color === 'orange' ? 'bg-orange-500' :
+                    module.color === 'pink' ? 'bg-pink-500' :
+                    module.color === 'cyan' ? 'bg-cyan-500' :
                     'bg-gray-500'
                   }`}></div>
                   
@@ -208,6 +216,10 @@ const Landing = () => {
                     module.color === 'yellow' ? 'border-amber-500/20 group-hover:border-amber-500/50 shadow-[0_8px_30px_rgba(245,158,11,0.12)] group-hover:shadow-[0_8px_30px_rgba(245,158,11,0.25)]' :
                     module.color === 'red' ? 'border-red-500/20 group-hover:border-red-500/50 shadow-[0_8px_30px_rgba(239,68,68,0.12)] group-hover:shadow-[0_8px_30px_rgba(239,68,68,0.25)]' :
                     module.color === 'purple' ? 'border-purple-500/20 group-hover:border-purple-500/50 shadow-[0_8px_30px_rgba(168,85,247,0.12)] group-hover:shadow-[0_8px_30px_rgba(168,85,247,0.25)]' :
+                    module.color === 'teal' ? 'border-teal-500/20 group-hover:border-teal-500/50 shadow-[0_8px_30px_rgba(20,184,166,0.12)] group-hover:shadow-[0_8px_30px_rgba(20,184,166,0.25)]' :
+                    module.color === 'orange' ? 'border-orange-500/20 group-hover:border-orange-500/50 shadow-[0_8px_30px_rgba(249,115,22,0.12)] group-hover:shadow-[0_8px_30px_rgba(249,115,22,0.25)]' :
+                    module.color === 'pink' ? 'border-pink-500/20 group-hover:border-pink-500/50 shadow-[0_8px_30px_rgba(236,72,153,0.12)] group-hover:shadow-[0_8px_30px_rgba(236,72,153,0.25)]' :
+                    module.color === 'cyan' ? 'border-cyan-500/20 group-hover:border-cyan-500/50 shadow-[0_8px_30px_rgba(6,182,212,0.12)] group-hover:shadow-[0_8px_30px_rgba(6,182,212,0.25)]' :
                     'border-gray-500/20 group-hover:border-gray-500/50 shadow-[0_8px_30px_rgba(107,114,128,0.12)] group-hover:shadow-[0_8px_30px_rgba(107,114,128,0.25)]'
                   }`}>
                     {/* Top glass shine */}
