@@ -387,7 +387,7 @@ const Landing = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
               <div key={`platform-${i18n.language}`}>
-                <h5 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-6 animate-text-flip">Platform</h5>
+                <h5 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-6 animate-text-flip">{t('landing.footer.platform', 'Platforma')}</h5>
                 <ul className="space-y-4 animate-text-flip" style={{ animationDelay: '0.1s' }}>
                   <li><a href="#features" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">{t('landing.nav.modules')}</a></li>
                   <li><a href="#how" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">{t('landing.nav.howItWorks')}</a></li>

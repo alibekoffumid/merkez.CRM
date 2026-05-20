@@ -1255,7 +1255,12 @@
       "subtitle": "14 gün pulsuz sınayın. Kart tələb olunmur."
     },
     "footer": {
-      "desc": "Hər bir biznes üçün hazırlanmış modular CRM platforması."
+      "desc": "Hər bir biznes üçün hazırlanmış modular CRM platforması.",
+      "platform": "Platforma",
+      "contact": "Əlaqə",
+      "rights": "Bütün hüquqlar qorunur.",
+      "privacy": "Məxfilik Siyasəti",
+      "terms": "İstifadə Şərtləri"
     },
     "why": {
       "title": "Niyə Mərkəz?",

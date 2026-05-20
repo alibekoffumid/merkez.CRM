@@ -1328,7 +1328,12 @@
       "subtitle": "Try for 14 days free. No credit card required."
     },
     "footer": {
-      "desc": "A modular CRM platform built for every business."
+      "desc": "A modular CRM platform built for every business.",
+      "platform": "Platform",
+      "contact": "Contact",
+      "rights": "All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
     },
     "why": {
       "title": "Why Merkez?",
