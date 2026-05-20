@@ -10,6 +10,7 @@ import {
 import { useUser } from '../core/UserContext';
 import HeroDashboardMockup from '../components/landing/HeroDashboardMockup';
 import ModulesShowcaseMockup from '../components/landing/ModulesShowcaseMockup';
+import PricingSection from '../components/landing/PricingSection';
 const Landing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -323,6 +324,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* CTA Section */}
       <section className="py-24 px-6 text-center">
