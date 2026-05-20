@@ -1301,7 +1301,8 @@
       "howItWorks": "How It Works",
       "pricing": "Pricing",
       "login": "Login",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "home": "Home"
     },
     "features": {
       "title": "Specialized Modules for Every Industry",
@@ -1417,113 +1418,119 @@
     "sessionStoppedSuccess": "Session stopped, PC is now free!"
   },
   "services": {
-    "title": "Наши Услуги",
-    "subtitle": "Комплексные ИТ-решения: от веб-разработки до Интернета вещей",
+    "title": "Our Services",
+    "subtitle": "Comprehensive IT solutions: from web development to IoT",
     "categories": [
       {
         "id": "web",
-        "title": "1. Разработка программного обеспечения и веб-технологии",
+        "title": "1. Software Development & Web Technologies",
         "items": [
           {
-            "title": "Разработка Full-Stack веб-приложений",
-            "desc": "Проектирование и создание быстрых, масштабируемых и отзывчивых веб-приложений с использованием современных фреймворков (React, Next.js)."
+            "title": "Full-Stack Web App Development",
+            "desc": "Designing and building fast, scalable, and responsive web applications using modern frameworks (React, Next.js)."
           },
           {
-            "title": "Создание корпоративных сайтов и целевых страниц",
-            "desc": "Разработка оптимизированных сайтов для бизнеса «под ключ», включая настройку доменов, аналитики и поисковой оптимизации (как проект oscorp.az)."
+            "title": "Corporate Websites & Landing Pages",
+            "desc": "Developing turnkey optimized business websites, including domain setup, analytics, and SEO (like the oscorp.az project)."
           },
           {
-            "title": "Многоязычные контент-платформы и блоги",
-            "desc": "Разработка производительных архитектур для блогов и контент-проектов с поддержкой международной локализации (i18n) на базе современных статических генераторов (например, Astro)."
+            "title": "Multilingual Content Platforms & Blogs",
+            "desc": "Building performant architectures for blogs and content projects with international localization (i18n) support using modern static generators (e.g., Astro)."
           }
         ]
       },
       {
         "id": "cloud",
-        "title": "2. Облачные решения, базы данных и Backend-инфраструктура",
+        "title": "2. Cloud Solutions, Databases & Backend Infrastructure",
         "items": [
           {
-            "title": "Проектирование и интеграция BaaS",
-            "desc": "Настройка реляционных баз данных, систем аутентификации, хранения файлов и real-time функций на базе Supabase и PostgreSQL."
+            "title": "BaaS Design & Integration",
+            "desc": "Setting up relational databases, authentication systems, file storage, and real-time features powered by Supabase and PostgreSQL."
           },
           {
-            "title": "Разработка серверной логики и API",
-            "desc": "Написание надежного бэкенда на Kotlin и других серверных технологиях, разработка и интеграция RESTful API."
+            "title": "Server Logic & API Development",
+            "desc": "Writing reliable backends in Kotlin and other server technologies, designing and integrating RESTful APIs."
           },
           {
-            "title": "Развертывание и DevOps",
-            "desc": "Хостинг и автоматизация деплоя проектов с использованием современных облачных платформ (сервисы вроде Vercel, GitHub)."
+            "title": "Deployment & DevOps",
+            "desc": "Hosting and automating project deployments using modern cloud platforms (services like Vercel, GitHub)."
           }
         ]
       },
       {
         "id": "saas",
-        "title": "3. Бизнес-автоматизация и SaaS-решения",
+        "title": "3. Business Automation & SaaS Solutions",
         "items": [
           {
-            "title": "Разработка кастомных CRM и ERP систем",
-            "desc": "Создание модульных программных комплексов для управления бизнес-процессами (B2B SaaS). Специализированные модули для стоматологий, ресторанов, ритейла и образования."
+            "title": "Custom CRM & ERP Systems",
+            "desc": "Building modular software suites for business process management (B2B SaaS). Specialized modules for dental clinics, restaurants, retail, and education."
           },
           {
-            "title": "Интеграция платежных систем",
-            "desc": "Подключение локальных и международных платежных шлюзов для автоматизации приема оплат на сайтах и в приложениях для юридических лиц (VÖEN)."
+            "title": "Payment System Integration",
+            "desc": "Connecting local and international payment gateways for automated payment processing on websites and apps for legal entities (VÖEN)."
           },
           {
-            "title": "Системы автоматических уведомлений",
-            "desc": "Интеграция SMS-шлюзов, мессенджеров и Email-рассылок для информирования клиентов и оптимизации работы с ними."
+            "title": "Automated Notification Systems",
+            "desc": "Integrating SMS gateways, messengers, and email campaigns for customer communication and workflow optimization."
           }
         ]
       },
       {
         "id": "mobile",
-        "title": "4. Разработка мобильных приложений и инновационных сервисов",
+        "title": "4. Mobile App Development & Innovative Services",
         "items": [
           {
-            "title": "Мобильная разработка (Android/Cross-platform)",
-            "desc": "Создание нативных приложений на Kotlin или кроссплатформенных решений."
+            "title": "Mobile Development (Android/Cross-platform)",
+            "desc": "Building native apps in Kotlin or cross-platform solutions."
           },
           {
-            "title": "Разработка геолокационных и AR-сервисов",
-            "desc": "Интеграция интерактивных карт, геолокационных меток и элементов дополненной реальности (геймифицированные социальные платформы)."
+            "title": "Geolocation & AR Services",
+            "desc": "Integrating interactive maps, geolocation markers, and augmented reality elements (gamified social platforms)."
           }
         ]
       },
       {
         "id": "iot",
-        "title": "5. IoT, робототехника и аппаратное прототипирование",
+        "title": "5. IoT, Robotics & Hardware Prototyping",
         "items": [
           {
-            "title": "Разработка систем автоматизации и Smart Home",
-            "desc": "Проектирование архитектуры умных устройств и их интеграция в домашние или офисные экосистемы."
+            "title": "Automation & Smart Home Systems",
+            "desc": "Designing smart device architectures and integrating them into home or office ecosystems."
           },
           {
-            "title": "Программирование микроконтроллеров",
-            "desc": "Написание ПО для платформ ESP32, Arduino и других чипов, организация беспроводной связи (Wi-Fi, Bluetooth)."
+            "title": "Microcontroller Programming",
+            "desc": "Writing firmware for ESP32, Arduino, and other chips, setting up wireless communication (Wi-Fi, Bluetooth)."
           },
           {
-            "title": "Прототипирование беспилотных систем (UAV)",
-            "desc": "Проектирование, сборка, настройка аэродинамических компонентов и программирование полетных контроллеров для БПЛА."
+            "title": "UAV/Drone Prototyping",
+            "desc": "Designing, assembling, tuning aerodynamic components, and programming flight controllers for UAVs."
           },
           {
-            "title": "3D-моделирование и FDM-печать",
-            "desc": "Инженерное проектирование корпусов, крепежей и механических деталей из различных видов пластика для аппаратных проектов."
+            "title": "3D Modeling & FDM Printing",
+            "desc": "Engineering enclosures, mounts, and mechanical parts from various plastics for hardware projects."
           }
         ]
       },
       {
         "id": "seo",
-        "title": "6. Цифровой маркетинг и SEO",
+        "title": "6. Digital Marketing & SEO",
         "items": [
           {
-            "title": "Поисковая оптимизация (SEO)",
-            "desc": "Технический аудит сайтов, внутренняя оптимизация кода, ускорение загрузки страниц, настройка Google Search Console и вывод веб-ресурсов в топ поисковой выдачи."
+            "title": "Search Engine Optimization (SEO)",
+            "desc": "Technical site audits, on-page code optimization, page speed improvements, Google Search Console setup, and ranking web resources at the top of search results."
           },
           {
-            "title": "Оптимизация бизнес-профилей в соцсетях",
-            "desc": "Аудит, продвижение и SEO-оптимизация коммерческих аккаунтов (например, в Instagram) для привлечения органического трафика."
+            "title": "Social Media Business Profile Optimization",
+            "desc": "Auditing, promoting, and SEO-optimizing commercial accounts (e.g., Instagram) to drive organic traffic."
           }
         ]
       }
-    ]
+    ],
+    "learnMore": "Learn More",
+    "cta": {
+      "title": "Ready to start a project?",
+      "desc": "Contact us and we will discuss how our solutions can help your business grow faster.",
+      "button": "Contact Us"
+    }
   }
 }

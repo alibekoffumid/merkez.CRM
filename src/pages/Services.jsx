@@ -49,7 +49,7 @@ const Services = () => {
 
           <div className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
-              Главная
+              {t('landing.nav.home', 'Главная')}
             </Link>
             <div className="h-4 w-px bg-gray-200"></div>
             <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ const Services = () => {
 
                       {/* Hover action link */}
                       <div className="flex items-center text-sm font-bold text-blue-500 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 relative z-10 mt-auto">
-                        Подробнее <ArrowRight className="w-4 h-4 ml-1" />
+                        {t('services.learnMore', 'Подробнее')} <ArrowRight className="w-4 h-4 ml-1" />
                       </div>
                     </div>
                   ))}
@@ -154,13 +154,13 @@ const Services = () => {
         <div className="absolute inset-0 bg-blue-500 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-400 to-transparent"></div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-6">
-            Готовы начать проект?
+            {t('services.cta.title', 'Готовы начать проект?')}
           </h2>
           <p className="text-lg md:text-xl text-slate-300 font-medium mb-10 max-w-2xl mx-auto">
-            Свяжитесь с нами, и мы обсудим, как наши решения могут помочь вашему бизнесу расти быстрее.
+            {t('services.cta.desc', 'Свяжитесь с нами, и мы обсудим, как наши решения могут помочь вашему бизнесу расти быстрее.')}
           </p>
           <a href="mailto:contact@digitall.llc" className="inline-flex items-center gap-3 bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-lg hover:-translate-y-1 transition-transform shadow-2xl shadow-blue-900/50">
-            Связаться с нами
+            {t('services.cta.button', 'Связаться с нами')}
             <ArrowRight className="w-5 h-5" />
           </a>
         </div>

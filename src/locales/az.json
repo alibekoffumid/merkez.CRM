@@ -1228,7 +1228,8 @@
       "howItWorks": "Necə İşləyir",
       "pricing": "Qiymətlər",
       "login": "Daxil ol",
-      "dashboard": "Platforma"
+      "dashboard": "Platforma",
+      "home": "Əsas Səhifə"
     },
     "features": {
       "title": "Hər Bir Sahə Üçün Xüsusi Modul",
@@ -1413,113 +1414,119 @@
     "sessionStoppedSuccess": "Sessiya dayandırıldı, kompüter boşaldı!"
   },
   "services": {
-    "title": "Наши Услуги",
-    "subtitle": "Комплексные ИТ-решения: от веб-разработки до Интернета вещей",
+    "title": "Xidmətlərimiz",
+    "subtitle": "Hərtərəfli İT həlləri: veb inkişafdan IoT-a qədər",
     "categories": [
       {
         "id": "web",
-        "title": "1. Разработка программного обеспечения и веб-технологии",
+        "title": "1. Proqram Təminatı İnkişafı və Veb Texnologiyalar",
         "items": [
           {
-            "title": "Разработка Full-Stack веб-приложений",
-            "desc": "Проектирование и создание быстрых, масштабируемых и отзывчивых веб-приложений с использованием современных фреймворков (React, Next.js)."
+            "title": "Full-Stack Veb Tətbiq İnkişafı",
+            "desc": "Müasir freymvorklar (React, Next.js) istifadə edərək sürətli, miqyaslana bilən və responsive veb tətbiqlərin layihələndirilməsi və yaradılması."
           },
           {
-            "title": "Создание корпоративных сайтов и целевых страниц",
-            "desc": "Разработка оптимизированных сайтов для бизнеса «под ключ», включая настройку доменов, аналитики и поисковой оптимизации (как проект oscorp.az)."
+            "title": "Korporativ Saytlar və Landing Səhifələr",
+            "desc": "Biznes üçün \"açar təhvil\" optimallaşdırılmış saytların hazırlanması, o cümlədən domen, analitika və SEO quraşdırılması (oscorp.az layihəsi kimi)."
           },
           {
-            "title": "Многоязычные контент-платформы и блоги",
-            "desc": "Разработка производительных архитектур для блогов и контент-проектов с поддержкой международной локализации (i18n) на базе современных статических генераторов (например, Astro)."
+            "title": "Çoxdilli Kontent Platformaları və Bloqlar",
+            "desc": "Müasir statik generatorlar (məsələn, Astro) əsasında beynəlxalq lokallaşdırma (i18n) dəstəyi ilə bloq və kontent layihələri üçün performanslı arxitekturaların hazırlanması."
           }
         ]
       },
       {
         "id": "cloud",
-        "title": "2. Облачные решения, базы данных и Backend-инфраструктура",
+        "title": "2. Bulud Həlləri, Verilənlər Bazası və Backend İnfrastrukturu",
         "items": [
           {
-            "title": "Проектирование и интеграция BaaS",
-            "desc": "Настройка реляционных баз данных, систем аутентификации, хранения файлов и real-time функций на базе Supabase и PostgreSQL."
+            "title": "BaaS Layihələndirmə və İnteqrasiya",
+            "desc": "Supabase və PostgreSQL əsasında relational verilənlər bazaları, autentifikasiya sistemləri, fayl saxlama və real-time funksiyaların quraşdırılması."
           },
           {
-            "title": "Разработка серверной логики и API",
-            "desc": "Написание надежного бэкенда на Kotlin и других серверных технологиях, разработка и интеграция RESTful API."
+            "title": "Server Məntiqi və API İnkişafı",
+            "desc": "Kotlin və digər server texnologiyalarında etibarlı backend yazılması, RESTful API-ların hazırlanması və inteqrasiyası."
           },
           {
-            "title": "Развертывание и DevOps",
-            "desc": "Хостинг и автоматизация деплоя проектов с использованием современных облачных платформ (сервисы вроде Vercel, GitHub)."
+            "title": "Yerləşdirmə və DevOps",
+            "desc": "Müasir bulud platformaları (Vercel, GitHub kimi xidmətlər) istifadə edərək layihələrin hostinqi və deploy avtomatlaşdırılması."
           }
         ]
       },
       {
         "id": "saas",
-        "title": "3. Бизнес-автоматизация и SaaS-решения",
+        "title": "3. Biznes Avtomatlaşdırma və SaaS Həlləri",
         "items": [
           {
-            "title": "Разработка кастомных CRM и ERP систем",
-            "desc": "Создание модульных программных комплексов для управления бизнес-процессами (B2B SaaS). Специализированные модули для стоматологий, ресторанов, ритейла и образования."
+            "title": "Xüsusi CRM və ERP Sistemləri",
+            "desc": "Biznes prosesləri idarəetməsi üçün modul proqram komplekslərinin yaradılması (B2B SaaS). Stomatologiya, restoran, pərakəndə satış və təhsil üçün ixtisaslaşdırılmış modullar."
           },
           {
-            "title": "Интеграция платежных систем",
-            "desc": "Подключение локальных и международных платежных шлюзов для автоматизации приема оплат на сайтах и в приложениях для юридических лиц (VÖEN)."
+            "title": "Ödəniş Sistemləri İnteqrasiyası",
+            "desc": "Hüquqi şəxslər (VÖEN) üçün sayt və tətbiqlərdə ödəniş qəbulunun avtomatlaşdırılması məqsədilə yerli və beynəlxalq ödəniş şlüzlərinin qoşulması."
           },
           {
-            "title": "Системы автоматических уведомлений",
-            "desc": "Интеграция SMS-шлюзов, мессенджеров и Email-рассылок для информирования клиентов и оптимизации работы с ними."
+            "title": "Avtomatik Bildiriş Sistemləri",
+            "desc": "Müştərilərlə əlaqənin optimallaşdırılması üçün SMS şlüzləri, messencerlər və Email göndərişlərinin inteqrasiyası."
           }
         ]
       },
       {
         "id": "mobile",
-        "title": "4. Разработка мобильных приложений и инновационных сервисов",
+        "title": "4. Mobil Tətbiq İnkişafı və İnnovativ Xidmətlər",
         "items": [
           {
-            "title": "Мобильная разработка (Android/Cross-platform)",
-            "desc": "Создание нативных приложений на Kotlin или кроссплатформенных решений."
+            "title": "Mobil İnkişaf (Android/Cross-platform)",
+            "desc": "Kotlin-də nativ tətbiqlərin və ya krossplatform həllərin yaradılması."
           },
           {
-            "title": "Разработка геолокационных и AR-сервисов",
-            "desc": "Интеграция интерактивных карт, геолокационных меток и элементов дополненной реальности (геймифицированные социальные платформы)."
+            "title": "Geolokasiya və AR Xidmətləri",
+            "desc": "İnteraktiv xəritələr, geolokasiya nişanları və əlavə reallıq elementlərinin (oyunlaşdırılmış sosial platformalar) inteqrasiyası."
           }
         ]
       },
       {
         "id": "iot",
-        "title": "5. IoT, робототехника и аппаратное прототипирование",
+        "title": "5. IoT, Robototexnika və Aparat Prototipləşdirmə",
         "items": [
           {
-            "title": "Разработка систем автоматизации и Smart Home",
-            "desc": "Проектирование архитектуры умных устройств и их интеграция в домашние или офисные экосистемы."
+            "title": "Avtomatlaşdırma və Smart Home Sistemləri",
+            "desc": "Ağıllı cihaz arxitekturasının layihələndirilməsi və onların ev və ya ofis ekosistemlərinə inteqrasiyası."
           },
           {
-            "title": "Программирование микроконтроллеров",
-            "desc": "Написание ПО для платформ ESP32, Arduino и других чипов, организация беспроводной связи (Wi-Fi, Bluetooth)."
+            "title": "Mikrokontroller Proqramlaşdırma",
+            "desc": "ESP32, Arduino və digər çiplər üçün proqram təminatının yazılması, simsiz əlaqənin (Wi-Fi, Bluetooth) qurulması."
           },
           {
-            "title": "Прототипирование беспилотных систем (UAV)",
-            "desc": "Проектирование, сборка, настройка аэродинамических компонентов и программирование полетных контроллеров для БПЛА."
+            "title": "PUA/Dron Prototipləşdirmə",
+            "desc": "PUA-lar üçün aerodinamik komponentlərin layihələndirilməsi, yığılması, tənzimlənməsi və uçuş kontrollerlərinin proqramlaşdırılması."
           },
           {
-            "title": "3D-моделирование и FDM-печать",
-            "desc": "Инженерное проектирование корпусов, крепежей и механических деталей из различных видов пластика для аппаратных проектов."
+            "title": "3D Modelləşdirmə və FDM Çap",
+            "desc": "Aparat layihələri üçün müxtəlif plastiklərdən korpusların, bərkidicilərin və mexaniki detalların mühəndis layihələndirilməsi."
           }
         ]
       },
       {
         "id": "seo",
-        "title": "6. Цифровой маркетинг и SEO",
+        "title": "6. Rəqəmsal Marketinq və SEO",
         "items": [
           {
-            "title": "Поисковая оптимизация (SEO)",
-            "desc": "Технический аудит сайтов, внутренняя оптимизация кода, ускорение загрузки страниц, настройка Google Search Console и вывод веб-ресурсов в топ поисковой выдачи."
+            "title": "Axtarış Motoru Optimallaşdırması (SEO)",
+            "desc": "Saytların texniki auditi, kodun daxili optimallaşdırılması, səhifə yüklənmə sürətinin artırılması, Google Search Console quraşdırılması və veb resursların axtarış nəticələrinin zirvəsinə çıxarılması."
           },
           {
-            "title": "Оптимизация бизнес-профилей в соцсетях",
-            "desc": "Аудит, продвижение и SEO-оптимизация коммерческих аккаунтов (например, в Instagram) для привлечения органического трафика."
+            "title": "Sosial Media Biznes Profillərinin Optimallaşdırılması",
+            "desc": "Üzvi trafikin cəlb edilməsi üçün kommersiya hesablarının (məsələn, İnstagram) auditi, təbliği və SEO optimallaşdırılması."
           }
         ]
       }
-    ]
+    ],
+    "learnMore": "Ətraflı",
+    "cta": {
+      "title": "Layihəyə başlamağa hazırsınız?",
+      "desc": "Bizimlə əlaqə saxlayın və həllərimizin biznesinizin daha sürətli böyüməsinə necə kömək edə biləcəyini müzakirə edək.",
+      "button": "Bizimlə Əlaqə"
+    }
   }
 }
