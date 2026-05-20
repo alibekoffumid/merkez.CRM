@@ -23,6 +23,7 @@ import HotelsModule from './modules/Hotels';
 import CyberCafeModule from './modules/CyberCafe';
 import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
+import Services from './pages/Services';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
 import { Toaster } from 'react-hot-toast';
 
@@ -140,6 +141,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
+        <Route path="/services" element={<Services />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/m/:businessId" element={<PublicMenu />} />
         

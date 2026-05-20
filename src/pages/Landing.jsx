@@ -60,6 +60,9 @@ const Landing = () => {
             <a href="#features" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
               {t('landing.nav.modules')}
             </a>
+            <Link to="/services" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
+              {t('services.title') || 'Услуги'}
+            </Link>
             <a href="#how" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">
               {t('landing.nav.howItWorks')}
             </a>
