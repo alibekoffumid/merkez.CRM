@@ -58,7 +58,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
     >
       <div className="h-16 flex items-center justify-between px-6 border-b border-gray-50 shrink-0">
         <div className="lg:hidden">
-           <img src="/merkez-new-logo.svg" alt="Logo" className="h-8 w-auto" />
+           <div className="text-xl font-black tracking-tighter"><span className="text-blue-600">digitall</span><span className="text-slate-900">.llc</span></div>
         </div>
         <button 
           onClick={onCloseMobile}

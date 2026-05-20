@@ -53,7 +53,7 @@ const Landing = () => {
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src="/merkez-new-logo.svg" alt="Merkez Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
+            <div className="text-2xl font-black tracking-tighter transition-transform group-hover:scale-105"><span className="text-blue-600">digitall</span><span className="text-slate-900">.llc</span></div>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
@@ -358,7 +358,7 @@ const Landing = () => {
           <div className="flex flex-col md:flex-row justify-between items-start gap-12">
             <div className="max-w-sm">
               <Link to="/" className="flex items-center gap-3 mb-6 group">
-                <img src="/merkez-new-logo.svg" alt="Merkez Logo" className="h-8 w-auto object-contain" />
+                <div className="text-2xl font-black tracking-tighter"><span className="text-blue-600">digitall</span><span className="text-slate-900">.llc</span></div>
               </Link>
               <p className="text-gray-400 font-medium text-sm leading-relaxed">
                 {t('landing.footer.desc')}
