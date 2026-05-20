@@ -66,7 +66,7 @@ const HeroDashboardMockup = () => {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
         {/* Topbar */}
-        <div className="h-16 lg:h-20 shrink-0 border-b border-slate-800/50 flex items-center justify-between px-4 lg:px-8 z-10">
+        <div className="h-16 lg:h-20 shrink-0 border-b border-slate-800/50 flex items-center justify-between gap-4 lg:gap-8 px-4 lg:px-8 z-10">
           <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg w-32 md:w-40 lg:w-64 border border-slate-700/50 backdrop-blur-sm">
             <Search className="w-4 h-4 shrink-0" />
             <div className="text-sm truncate">Search modules...</div>
