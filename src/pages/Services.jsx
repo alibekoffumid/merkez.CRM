@@ -87,9 +87,14 @@ const Services = () => {
                   to={needsOnboarding ? "/modules" : "/dashboard"} 
                   className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
                 >
-                Dashboard
-              </Link>
-            )}
+                  Dashboard
+                </Link>
+              )}
+            </div>
+
+            <button className="md:hidden text-gray-900" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <X /> : <Menu />}
+            </button>
           </div>
         </div>
       </nav>
