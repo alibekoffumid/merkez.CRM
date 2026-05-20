@@ -18,13 +18,15 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
   const [activeTab, setActiveTab] = useState('Dashboard');
 
   const sidebarItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', color: 'bg-blue-600' },
-    { icon: Utensils, label: 'Restaurant', color: 'bg-orange-500' },
-    { icon: ShoppingCart, label: 'Retail', color: 'bg-emerald-500' },
-    { icon: Stethoscope, label: 'Healthcare', color: 'bg-rose-500' },
-    { icon: Users, label: 'Customers', color: 'bg-indigo-500' },
-    { icon: Settings, label: 'Settings', color: 'bg-slate-600' }
+    { icon: LayoutDashboard, label: 'Dashboard', color: 'bg-blue-600', activeBg: 'bg-blue-50', activeText: 'text-blue-600', hex: '#2563eb' },
+    { icon: Utensils, label: 'Restaurant', color: 'bg-orange-500', activeBg: 'bg-orange-50', activeText: 'text-orange-600', hex: '#ea580c' },
+    { icon: ShoppingCart, label: 'Retail', color: 'bg-emerald-500', activeBg: 'bg-emerald-50', activeText: 'text-emerald-600', hex: '#059669' },
+    { icon: Stethoscope, label: 'Healthcare', color: 'bg-rose-500', activeBg: 'bg-rose-50', activeText: 'text-rose-600', hex: '#e11d48' },
+    { icon: Users, label: 'Customers', color: 'bg-indigo-500', activeBg: 'bg-indigo-50', activeText: 'text-indigo-600', hex: '#4f46e5' },
+    { icon: Settings, label: 'Settings', color: 'bg-slate-600', activeBg: 'bg-slate-50', activeText: 'text-slate-700', hex: '#334155' }
   ];
+
+  const activeColorHex = sidebarItems.find(i => i.label === activeTab)?.hex || '#2563eb';
 
   const restoreActiveTabWidget = () => {
     const currentItem = sidebarItems.find(i => i.label === activeTab);
@@ -137,7 +139,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                 onMouseLeave={restoreActiveTabWidget}
                 className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
                   isActive 
-                    ? 'bg-blue-50 text-blue-600 font-bold' 
+                    ? `${item.activeBg} ${item.activeText} font-bold` 
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
                 }`}
               >
@@ -237,34 +239,38 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
               </div>
 
               {/* SVG Animated Chart */}
-              <svg className="w-full h-full absolute inset-0 z-10 overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
+              <svg key={activeTab} className="w-full h-full absolute inset-0 z-10 overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
                 <defs>
-                  <linearGradient id="gradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                  <linearGradient id={`gradientArea-${activeTab}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor={activeColorHex} stopOpacity="0.2" />
+                    <stop offset="100%" stopColor={activeColorHex} stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <path 
                   d="M0 40 L0 30 C10 30, 10 15, 20 15 C30 15, 30 25, 40 25 C50 25, 50 10, 60 10 C70 10, 70 28, 80 28 C90 28, 90 5, 100 5 L100 40 Z" 
-                  fill="url(#gradientArea)" 
+                  fill={`url(#gradientArea-${activeTab})`} 
                 />
                 <path 
                   d="M0 30 C10 30, 10 15, 20 15 C30 15, 30 25, 40 25 C50 25, 50 10, 60 10 C70 10, 70 28, 80 28 C90 28, 90 5, 100 5" 
                   fill="none" 
-                  stroke="#3b82f6" 
+                  stroke={activeColorHex} 
                   strokeWidth="0.8" 
                   strokeLinecap="round" 
                   strokeLinejoin="round" 
                   style={{
                     strokeDasharray: '200',
                     strokeDashoffset: '200',
-                    animation: 'drawChart 2s ease-out forwards 0.5s'
+                    animation: 'drawChart 1.5s ease-out forwards 0.1s'
                   }}
                 />
               </svg>
               
               {/* Floating Data Points */}
-              <div className="absolute top-[12.5%] right-0 w-3 h-3 bg-white rounded-full border-2 border-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] animate-pulse z-20"></div>
+              <div 
+                key={`point-${activeTab}`}
+                className="absolute top-[12.5%] right-0 w-3 h-3 bg-white rounded-full border-2 animate-pulse z-20"
+                style={{ borderColor: activeColorHex, boxShadow: `0 0 10px ${activeColorHex}80` }}
+              ></div>
             </div>
           </div>
         </div>
