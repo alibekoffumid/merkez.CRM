@@ -1203,7 +1203,9 @@
   "landing": {
     "title": "Mərkəz CRM — Biznesinizi Bir Platformada İdarə Edin",
     "hero": {
-      "title": "Biznesinizi Bir Platformada İdarə Edin",
+      "title": "Biznesinizi İdarə Edin",
+      "highlight": "Bir Platformada",
+      "badge": "14 gün pulsuz sınaq",
       "subtitle": "Restoran, mağaza, klinika, təhsil, avtomobil parkı — hansı sahədə olursunuz olun, Merkez CRM sizin üçün hazırlanıb.",
       "cta": {
         "start": "Pulsuz Başla",

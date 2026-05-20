@@ -113,12 +113,12 @@ const Landing = () => {
             <div className="flex-1 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-black uppercase tracking-widest mb-6 animate-bounce">
                 <Zap className="w-3 h-3 fill-blue-600" />
-                14 gün pulsuz sınaq
+                {t('landing.hero.badge')}
               </div>
               <h1 className="text-5xl lg:text-7xl font-black tracking-tighter text-gray-900 leading-[1.05] mb-8">
                 {t('landing.hero.title')} <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-red-500">
-                  Bir Platformada
+                  {t('landing.hero.highlight')}
                 </span>
               </h1>
               <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-10">

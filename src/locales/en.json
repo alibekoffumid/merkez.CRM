@@ -1209,7 +1209,9 @@
   "landing": {
     "title": "Merkez CRM — Manage Your Business on One Platform",
     "hero": {
-      "title": "Manage Your Business on One Platform",
+      "title": "Manage Your Business",
+      "highlight": "On One Platform",
+      "badge": "14 days free trial",
       "subtitle": "Restaurant, shop, clinic, education, fleet — whatever your business, Merkez CRM is built for you.",
       "cta": {
         "start": "Get Started Free",
