@@ -11,6 +11,7 @@ import { useUser } from '../core/UserContext';
 import HeroDashboardMockup from '../components/landing/HeroDashboardMockup';
 import ModulesShowcaseMockup from '../components/landing/ModulesShowcaseMockup';
 import PricingSection from '../components/landing/PricingSection';
+import ServicesSection from '../components/landing/ServicesSection';
 const Landing = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -59,13 +60,13 @@ const Landing = () => {
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" key={`modules-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip">
+              <a href="#features" key={`modules-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.05s' }}>
                 {t('landing.nav.modules')}
               </a>
-              <Link to="/services" key={`services-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.05s' }}>
+              <a href="#services" key={`services-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.1s' }}>
                 {t('services.title') || 'Услуги'}
-              </Link>
-              <a href="#how" key={`how-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.1s' }}>
+              </a>
+              <a href="#how" key={`how-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.15s' }}>
                 {t('landing.nav.howItWorks')}
               </a>
               <a href="#pricing" key={`pricing-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.15s' }}>
@@ -307,6 +308,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* Services Section */}
+      <ServicesSection />
 
       {/* Steps Section */}
       <section id="how" className="py-24 bg-gray-900 text-white overflow-hidden">
