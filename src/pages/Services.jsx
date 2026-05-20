@@ -40,43 +40,53 @@ const Services = () => {
         scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-gray-100 py-3 shadow-sm' : 'bg-transparent py-5'
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="text-2xl font-black tracking-tighter transition-transform group-hover:scale-105">
-              <span className="text-blue-600">digitall</span>
-              <span className="text-slate-900">.llc</span>
-            </div>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-8">
-            <Link key={`home-${i18n.language}`} to="/" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip">
-              {t('landing.nav.home', 'Главная')}
+          {/* Left Side: Logo & Links */}
+          <div className="flex items-center gap-12">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="text-2xl font-black tracking-tighter transition-transform group-hover:scale-105"><span className="text-blue-600">digitall</span><span className="text-slate-900">.llc</span></div>
             </Link>
-            <div className="h-4 w-px bg-gray-200"></div>
-            <div className="flex items-center gap-2">
-              {['az', 'ru', 'en'].map(lang => (
-                <button
-                  key={lang}
-                  onClick={() => i18n.changeLanguage(lang)}
-                  className={`text-xs font-black uppercase w-8 h-8 rounded-lg transition-all ${
-                    i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:bg-gray-100'
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-            {!profile ? (
-              <Link 
-                to="/auth" 
-                className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
-              >
-                {t('landing.hero.cta.start') || 'Start Free'}
+
+            <div className="hidden md:flex items-center gap-8">
+              <Link key={`home-${i18n.language}`} to="/" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip">
+                {t('landing.nav.home', 'Главная')}
               </Link>
-            ) : (
-              <Link 
-                to="/dashboard" 
-                className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
-              >
+            </div>
+          </div>
+
+          {/* Right Side: Lang & Actions */}
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                {['az', 'ru', 'en'].map(lang => (
+                  <button
+                    key={lang}
+                    onClick={() => i18n.changeLanguage(lang)}
+                    className={`text-xs font-black uppercase w-8 h-8 rounded-lg transition-all ${
+                      i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:bg-gray-100'
+                    }`}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+              <div className="h-4 w-px bg-gray-200"></div>
+              {!profile ? (
+                <div className="flex items-center gap-4">
+                  <Link to="/auth" className="text-sm font-bold text-gray-900 hover:text-blue-500 transition-colors">
+                    {t('landing.nav.login', 'Вход')}
+                  </Link>
+                  <Link 
+                    to="/auth" 
+                    className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
+                  >
+                    {t('landing.hero.cta.start', 'Начать')}
+                  </Link>
+                </div>
+              ) : (
+                <Link 
+                  to={needsOnboarding ? "/modules" : "/dashboard"} 
+                  className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
+                >
                 Dashboard
               </Link>
             )}
