@@ -1214,7 +1214,8 @@
       "modules": "Modullar",
       "howItWorks": "Necə İşləyir",
       "pricing": "Qiymətlər",
-      "login": "Daxil ol"
+      "login": "Daxil ol",
+      "dashboard": "Platforma"
     },
     "features": {
       "title": "Hər Bir Sahə Üçün Xüsusi Modul",

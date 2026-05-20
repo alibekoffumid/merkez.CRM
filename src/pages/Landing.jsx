@@ -22,16 +22,7 @@ const Landing = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!loading && profile && !modulesLoading) {
-      if (needsOnboarding) {
-        navigate('/modules');
-      } else {
-        navigate('/dashboard');
-      }
-    }
-  }, [profile, loading, modulesLoading, needsOnboarding, navigate]);
+  // No auto-redirect so logged in users can view the landing page
 
   const modules = [
     { id: 'restaurant', icon: Utensils, color: 'blue', emoji: '🍽️' },
@@ -81,15 +72,26 @@ const Landing = () => {
                 </button>
               ))}
             </div>
-            <Link to="/auth" className="text-sm font-bold text-gray-900 hover:text-blue-500 transition-colors">
-              {t('landing.nav.login')}
-            </Link>
-            <Link 
-              to="/auth" 
-              className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
-            >
-              {t('landing.hero.cta.start')}
-            </Link>
+            {!profile ? (
+              <>
+                <Link to="/auth" className="text-sm font-bold text-gray-900 hover:text-blue-500 transition-colors">
+                  {t('landing.nav.login')}
+                </Link>
+                <Link 
+                  to="/auth" 
+                  className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
+                >
+                  {t('landing.hero.cta.start')}
+                </Link>
+              </>
+            ) : (
+              <Link 
+                to={needsOnboarding ? "/modules" : "/dashboard"} 
+                className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
+              >
+                {t('landing.nav.dashboard') || 'Dashboard'}
+              </Link>
+            )}
           </div>
 
           <button className="md:hidden text-gray-900" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -123,10 +125,10 @@ const Landing = () => {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link 
-                  to="/auth" 
+                  to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
                   className="w-full sm:w-auto bg-blue-500 text-white px-10 py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 hover:bg-blue-600 hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-3 group"
                 >
-                  {t('landing.hero.cta.start')}
+                  {profile ? (t('landing.nav.dashboard') || 'Dashboard') : t('landing.hero.cta.start')}
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-2" />
                 </Link>
                 <a 
@@ -288,10 +290,10 @@ const Landing = () => {
               {t('landing.cta.subtitle')}
             </p>
             <Link 
-              to="/auth" 
+              to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
               className="inline-flex items-center gap-3 bg-white text-blue-600 px-12 py-5 rounded-[2rem] font-black text-xl hover:bg-gray-50 active:scale-95 transition-all shadow-xl"
             >
-              {t('landing.hero.cta.start')}
+              {profile ? (t('landing.nav.dashboard') || 'Dashboard') : t('landing.hero.cta.start')}
               <ChevronRight className="w-6 h-6" />
             </Link>
           </div>

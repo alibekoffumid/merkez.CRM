@@ -1220,7 +1220,8 @@
       "modules": "Modules",
       "howItWorks": "How It Works",
       "pricing": "Pricing",
-      "login": "Login"
+      "login": "Login",
+      "dashboard": "Dashboard"
     },
     "features": {
       "title": "Specialized Modules for Every Industry",
