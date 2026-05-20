@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   BarChart3, 
   Users, 
@@ -14,6 +14,67 @@ import {
 } from 'lucide-react';
 
 const HeroDashboardMockup = ({ onHoverItem }) => {
+  const [activeTab, setActiveTab] = useState('Dashboard');
+
+  const tabData = {
+    'Dashboard': {
+      title: 'Overview',
+      subtitle: 'Real-time platform metrics',
+      stats: [
+        { label: 'Total Revenue', value: '$124,500', trend: '+14%', icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-100', hoverColor: 'bg-blue-600' },
+        { label: 'Active Users', value: '8,432', trend: '+22%', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
+        { label: 'Transactions', value: '1,240', trend: '+5%', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100', hideOnMobile: true, hoverColor: 'bg-purple-600' }
+      ]
+    },
+    'Restaurant': {
+      title: 'Restaurant',
+      subtitle: 'Today\'s performance',
+      stats: [
+        { label: 'Orders', value: '342', trend: '+12%', icon: Utensils, color: 'text-orange-600', bg: 'bg-orange-100', hoverColor: 'bg-orange-600' },
+        { label: 'Avg Ticket', value: '$45.20', trend: '+3%', icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
+        { label: 'Tables', value: '24/30', trend: '80%', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100', hideOnMobile: true, hoverColor: 'bg-blue-600' }
+      ]
+    },
+    'Retail': {
+      title: 'Retail Store',
+      subtitle: 'Sales & Inventory',
+      stats: [
+        { label: 'Sales', value: '$8,240', trend: '+18%', icon: ShoppingCart, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
+        { label: 'Visitors', value: '1,420', trend: '+5%', icon: Users, color: 'text-blue-600', bg: 'bg-blue-100', hoverColor: 'bg-blue-600' },
+        { label: 'Alerts', value: '12', trend: '-2', icon: Bell, color: 'text-rose-600', bg: 'bg-rose-100', hideOnMobile: true, hoverColor: 'bg-rose-600' }
+      ]
+    },
+    'Healthcare': {
+      title: 'Clinic Hub',
+      subtitle: 'Patient flow & appointments',
+      stats: [
+        { label: 'Patients', value: '84', trend: '+10%', icon: Users, color: 'text-rose-600', bg: 'bg-rose-100', hoverColor: 'bg-rose-600' },
+        { label: 'Appts', value: '12', trend: 'Next 10:30', icon: Stethoscope, color: 'text-blue-600', bg: 'bg-blue-100', hoverColor: 'bg-blue-600' },
+        { label: 'Revenue', value: '$4,200', trend: '+8%', icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-100', hideOnMobile: true, hoverColor: 'bg-emerald-600' }
+      ]
+    },
+    'Customers': {
+      title: 'CRM',
+      subtitle: 'Customer relationships',
+      stats: [
+        { label: 'New Leads', value: '45', trend: '+20%', icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-100', hoverColor: 'bg-indigo-600' },
+        { label: 'Conversion', value: '12.4%', trend: '+2.1%', icon: BarChart3, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
+        { label: 'Messages', value: '128', trend: '5 unread', icon: Bell, color: 'text-blue-600', bg: 'bg-blue-100', hideOnMobile: true, hoverColor: 'bg-blue-600' }
+      ]
+    },
+    'Settings': {
+      title: 'Settings',
+      subtitle: 'System configuration',
+      stats: [
+        { label: 'Health', value: '100%', trend: 'All good', icon: Settings, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
+        { label: 'Integrations', value: '8/10', trend: 'Active', icon: LayoutDashboard, color: 'text-blue-600', bg: 'bg-blue-100', hoverColor: 'bg-blue-600' },
+        { label: 'Users', value: '12', trend: '2 pending', icon: Users, color: 'text-purple-600', bg: 'bg-purple-100', hideOnMobile: true, hoverColor: 'bg-purple-600' }
+      ]
+    }
+  };
+
+  const currentData = tabData[activeTab] || tabData['Dashboard'];
+
   return (
     <div className="relative w-full h-[500px] md:h-[550px] lg:h-[650px] rounded-[2.5rem] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden flex font-sans group">
       
@@ -36,32 +97,36 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
         
         <div className="flex flex-col gap-2">
           {[
-            { icon: LayoutDashboard, label: 'Dashboard', active: true, color: 'bg-blue-600' },
+            { icon: LayoutDashboard, label: 'Dashboard', color: 'bg-blue-600' },
             { icon: Utensils, label: 'Restaurant', color: 'bg-orange-500' },
             { icon: ShoppingCart, label: 'Retail', color: 'bg-emerald-500' },
             { icon: Stethoscope, label: 'Healthcare', color: 'bg-rose-500' },
             { icon: Users, label: 'Customers', color: 'bg-indigo-500' },
             { icon: Settings, label: 'Settings', color: 'bg-slate-600' }
-          ].map((item, i) => (
-            <div 
-              key={i}
-              onMouseEnter={() => onHoverItem && onHoverItem({
-                icon: item.icon,
-                value: item.label === 'Dashboard' ? '12+' : 'Active',
-                label: `${item.label} Module`,
-                color: item.color
-              })}
-              onMouseLeave={() => onHoverItem && onHoverItem(null)}
-              className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
-                item.active 
-                  ? 'bg-blue-50 text-blue-600 font-bold' 
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
-              }`}
-            >
-              <item.icon className="w-5 h-5 shrink-0" />
-              <span className="hidden lg:block text-sm">{item.label}</span>
-            </div>
-          ))}
+          ].map((item, i) => {
+            const isActive = activeTab === item.label;
+            return (
+              <div 
+                key={i}
+                onClick={() => setActiveTab(item.label)}
+                onMouseEnter={() => onHoverItem && onHoverItem({
+                  icon: item.icon,
+                  value: item.label === 'Dashboard' ? '12+' : 'Active',
+                  label: `${item.label} Module`,
+                  color: item.color
+                })}
+                onMouseLeave={() => onHoverItem && onHoverItem(null)}
+                className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-blue-50 text-blue-600 font-bold' 
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                }`}
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className="hidden lg:block text-sm">{item.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -93,8 +158,8 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
         <div className="flex-1 p-4 lg:p-6 z-10 flex flex-col gap-4 lg:gap-6 overflow-hidden">
           <div className="flex justify-between items-end shrink-0">
             <div>
-              <h2 className="text-2xl font-black text-slate-900 mb-1">Overview</h2>
-              <p className="text-slate-500 text-xs lg:text-sm">Real-time platform metrics</p>
+              <h2 className="text-2xl font-black text-slate-900 mb-1">{currentData.title}</h2>
+              <p className="text-slate-500 text-xs lg:text-sm">{currentData.subtitle}</p>
             </div>
             <div className="hidden lg:flex px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold rounded-lg items-center gap-2 shadow-sm">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -104,11 +169,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
 
           {/* Stats Row */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6 shrink-0">
-            {[
-              { label: 'Total Revenue', value: '$124,500', trend: '+14%', icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-100', hoverColor: 'bg-blue-600' },
-              { label: 'Active Users', value: '8,432', trend: '+22%', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100', hoverColor: 'bg-emerald-600' },
-              { label: 'Transactions', value: '1,240', trend: '+5%', icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100', hideOnMobile: true, hoverColor: 'bg-purple-600' }
-            ].map((stat, i) => (
+            {currentData.stats.map((stat, i) => (
               <div 
                 key={i} 
                 onMouseEnter={() => onHoverItem && onHoverItem({
