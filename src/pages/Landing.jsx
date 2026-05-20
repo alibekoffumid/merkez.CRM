@@ -394,9 +394,9 @@ const Landing = () => {
                   <li><a href="#pricing" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">{t('landing.nav.pricing')}</a></li>
                 </ul>
               </div>
-              <div>
-                <h5 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-6">Əlaqə</h5>
-                <ul className="space-y-4">
+              <div key={i18n.language}>
+                <h5 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-6 animate-text-flip">{t('landing.footer.contact', 'Əlaqə')}</h5>
+                <ul className="space-y-4 animate-text-flip" style={{ animationDelay: '0.1s' }}>
                   <li><a href="mailto:info@merkez-crm.com" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">info@merkez-crm.com</a></li>
                   <li><a href="#" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">WhatsApp</a></li>
                 </ul>
