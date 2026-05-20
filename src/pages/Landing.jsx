@@ -29,7 +29,7 @@ const Landing = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return path;
     }
-    return `https://app.digitall.llc${path}`;
+    return `https://saas.digitall.llc${path}`;
   };
 
   useEffect(() => {

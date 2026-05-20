@@ -26,7 +26,7 @@ import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
 import { Toaster } from 'react-hot-toast';
 
-const isAppDomain = window.location.hostname.startsWith('app.');
+const isAppDomain = window.location.hostname.startsWith('saas.');
 
 // Guard component that checks if a specific module is active
 const ModuleGuard = ({ moduleId, children }) => {
