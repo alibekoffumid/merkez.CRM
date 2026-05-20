@@ -83,7 +83,7 @@ const HeroDashboardMockup = () => {
         </div>
 
         {/* Dashboard Content */}
-        <div className="flex-1 p-4 lg:p-6 z-10 flex flex-col gap-4 lg:gap-6 overflow-y-auto">
+        <div className="flex-1 p-4 lg:p-6 z-10 flex flex-col gap-4 lg:gap-6 overflow-hidden">
           <div className="flex justify-between items-end shrink-0">
             <div>
               <h2 className="text-2xl font-black text-slate-900 mb-1">Overview</h2>
@@ -119,7 +119,7 @@ const HeroDashboardMockup = () => {
           </div>
 
           {/* Chart Area */}
-          <div className="flex-1 min-h-[150px] bg-white border border-slate-100 shadow-sm p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden shrink-0">
+          <div className="flex-1 min-h-0 bg-white border border-slate-100 shadow-sm p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden shrink-0">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-slate-900 font-bold text-sm lg:text-base">Revenue Growth</h3>
               <div className="flex gap-2">
