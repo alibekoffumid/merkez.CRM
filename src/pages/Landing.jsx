@@ -376,22 +376,22 @@ const Landing = () => {
       <footer className="py-20 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-start gap-12">
-            <div className="max-w-sm">
+            <div className="max-w-sm" key={i18n.language}>
               <Link to="/" className="flex items-center gap-3 mb-6 group">
                 <div className="text-2xl font-black tracking-tighter"><span className="text-blue-600">digitall</span><span className="text-slate-900">.llc</span></div>
               </Link>
-              <p className="text-gray-400 font-medium text-sm leading-relaxed">
+              <p className="text-gray-400 font-medium text-sm leading-relaxed animate-text-flip">
                 {t('landing.footer.desc')}
               </p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
-              <div>
-                <h5 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-6">Platform</h5>
-                <ul className="space-y-4">
-                  <li><a href="#features" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">Modullar</a></li>
-                  <li><a href="#how" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">Necə İşləyir</a></li>
-                  <li><a href="#pricing" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">Qiymətlər</a></li>
+              <div key={i18n.language}>
+                <h5 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-6 animate-text-flip">Platform</h5>
+                <ul className="space-y-4 animate-text-flip" style={{ animationDelay: '0.1s' }}>
+                  <li><a href="#features" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">{t('landing.nav.modules')}</a></li>
+                  <li><a href="#how" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">{t('landing.nav.howItWorks')}</a></li>
+                  <li><a href="#pricing" className="text-sm font-bold text-gray-600 hover:text-blue-500 transition-colors">{t('landing.nav.pricing')}</a></li>
                 </ul>
               </div>
               <div>
@@ -404,11 +404,13 @@ const Landing = () => {
             </div>
           </div>
 
-          <div className="mt-20 pt-8 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-gray-400 text-xs font-bold">© 2026 Merkez CRM. Bütün hüquqlar qorunur.</p>
-            <div className="flex gap-6">
-              <a href="#" className="text-xs font-bold text-gray-400 hover:text-blue-500">Privacy Policy</a>
-              <a href="#" className="text-xs font-bold text-gray-400 hover:text-blue-500">Terms of Service</a>
+          <div className="mt-20 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4" key={i18n.language}>
+            <div className="text-gray-400 text-sm font-medium animate-text-flip">
+              © {new Date().getFullYear()} Merkez CRM. {t('landing.footer.rights', 'Все права защищены.')}
+            </div>
+            <div className="flex gap-6 animate-text-flip" style={{ animationDelay: '0.1s' }}>
+              <a href="#" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">{t('landing.footer.privacy', 'Privacy Policy')}</a>
+              <a href="#" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors">{t('landing.footer.terms', 'Terms of Service')}</a>
             </div>
           </div>
         </div>

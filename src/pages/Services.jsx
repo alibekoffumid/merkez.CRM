@@ -204,11 +204,11 @@ const Services = () => {
 
       {/* Simple Footer */}
       <footer className="bg-white border-t border-slate-100 py-12 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-2xl font-black tracking-tighter">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6" key={i18n.language}>
+          <div className="text-2xl font-black tracking-tighter animate-text-flip">
             <span className="text-blue-600">digitall</span><span className="text-slate-900">.llc</span>
           </div>
-          <p className="text-slate-400 font-medium text-sm">
+          <p className="text-slate-400 font-medium text-sm animate-text-flip" style={{ animationDelay: '0.1s' }}>
             © {new Date().getFullYear()} digitall.llc. All rights reserved.
           </p>
         </div>
