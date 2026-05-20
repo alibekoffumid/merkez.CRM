@@ -140,7 +140,7 @@ const HeroDashboardMockup = () => {
               </div>
 
               {/* SVG Animated Chart */}
-              <svg className="w-full h-full absolute inset-0 z-10" viewBox="0 0 100 40" preserveAspectRatio="none">
+              <svg className="w-full h-full absolute inset-0 z-10 overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="gradientArea" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
@@ -148,11 +148,11 @@ const HeroDashboardMockup = () => {
                   </linearGradient>
                 </defs>
                 <path 
-                  d="M0 40 L0 25 Q10 20 20 30 T40 15 T60 25 T80 10 T100 5 L100 40 Z" 
+                  d="M0 40 L0 30 C10 30, 10 15, 20 15 C30 15, 30 25, 40 25 C50 25, 50 10, 60 10 C70 10, 70 28, 80 28 C90 28, 90 5, 100 5 L100 40 Z" 
                   fill="url(#gradientArea)" 
                 />
                 <path 
-                  d="M0 25 Q10 20 20 30 T40 15 T60 25 T80 10 T100 5" 
+                  d="M0 30 C10 30, 10 15, 20 15 C30 15, 30 25, 40 25 C50 25, 50 10, 60 10 C70 10, 70 28, 80 28 C90 28, 90 5, 100 5" 
                   fill="none" 
                   stroke="#3b82f6" 
                   strokeWidth="0.8" 
