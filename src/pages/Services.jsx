@@ -105,24 +105,24 @@ const Services = () => {
 
       {/* Services List */}
       <section className="py-16 lg:py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="space-y-12 lg:space-y-20">
+        <div className="max-w-7xl mx-auto">
+          <div className="space-y-16 lg:space-y-24">
             {Array.isArray(categories) && categories.map((category, index) => (
-              <div key={index} className="flex flex-col md:flex-row gap-8 lg:gap-16 items-start">
+              <div key={index} className="flex flex-col gap-6 lg:gap-10">
                 {/* Category Header */}
-                <div className="md:w-1/3 shrink-0 sticky top-28">
-                  <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center mb-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center shrink-0">
                     {getIconForCategory(category.id)}
                   </div>
-                  <h2 className="text-2xl lg:text-3xl font-black text-slate-900 leading-tight mb-4 tracking-tight">
+                  <h2 className="text-2xl lg:text-3xl font-black text-slate-900 leading-tight tracking-tight">
                     {category.title}
                   </h2>
                 </div>
 
                 {/* Services Items */}
-                <div className="md:w-2/3 grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {category.items && category.items.map((item, i) => (
-                    <div key={i} className="bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 group">
+                    <div key={i} className="bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 group flex flex-col">
                       <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
                         {item.title}
                       </h3>
