@@ -35,6 +35,19 @@ const Services = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden">
+      {/* Custom Styles for Animations */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes flipCard {
+          0% { transform: perspective(1000px) rotateX(-90deg); opacity: 0; }
+          100% { transform: perspective(1000px) rotateX(0deg); opacity: 1; }
+        }
+        .animate-flip {
+          animation: flipCard 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          opacity: 0;
+          transform-origin: top;
+        }
+      `}} />
+
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-gray-100 py-3 shadow-sm' : 'bg-transparent py-5'
@@ -106,7 +119,7 @@ const Services = () => {
       {/* Services List */}
       <section className="py-16 lg:py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="space-y-16 lg:space-y-24">
+          <div key={i18n.language} className="space-y-16 lg:space-y-24">
             {Array.isArray(categories) && categories.map((category, index) => (
               <div key={index} className="flex flex-col gap-6 lg:gap-10">
                 {/* Category Header */}
@@ -122,7 +135,11 @@ const Services = () => {
                 {/* Services Items */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {category.items && category.items.map((item, i) => (
-                    <div key={i} className="relative bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-500 group flex flex-col overflow-hidden cursor-pointer">
+                    <div 
+                      key={i} 
+                      className="animate-flip relative bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-500 group flex flex-col overflow-hidden cursor-pointer"
+                      style={{ animationDelay: `${(index * 3 + i) * 0.08}s` }}
+                    >
                       {/* Decorative background blob */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-50 to-transparent rounded-full -mr-12 -mt-12 opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out"></div>
                       
