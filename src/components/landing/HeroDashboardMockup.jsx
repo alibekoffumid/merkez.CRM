@@ -174,11 +174,11 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
         </div>
 
         {/* Dashboard Content */}
-        <div className="flex-1 p-4 lg:p-6 z-10 flex flex-col gap-4 lg:gap-6 overflow-hidden">
+        <div className="flex-1 p-3 lg:p-5 z-10 flex flex-col gap-3 lg:gap-4 overflow-hidden">
           <div className="flex justify-between items-end shrink-0">
             <div>
-              <h2 className="text-2xl font-black text-slate-900 mb-1">{currentData.title}</h2>
-              <p className="text-slate-500 text-xs lg:text-sm">{currentData.subtitle}</p>
+              <h2 className="text-lg lg:text-xl font-black text-slate-900 mb-0.5">{currentData.title}</h2>
+              <p className="text-slate-500 text-[10px] lg:text-xs">{currentData.subtitle}</p>
             </div>
             <div className="hidden lg:flex px-4 py-2 bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold rounded-lg items-center gap-2 shadow-sm">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -187,7 +187,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6 shrink-0">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3 shrink-0">
             {currentData.stats.map((stat, i) => (
               <div 
                 key={i} 
@@ -198,29 +198,27 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                   color: stat.hoverColor
                 })}
                 onMouseLeave={restoreActiveTabWidget}
-                className={`bg-white border border-slate-100 shadow-sm p-3 lg:p-4 xl:p-5 rounded-2xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card flex flex-col justify-between ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
+                className={`bg-white border border-slate-100 shadow-sm p-3 lg:p-4 rounded-xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card ${stat.hideOnMobile ? 'hidden lg:block' : ''}`}
               >
-                <div className="flex justify-between items-start mb-3 xl:mb-4 gap-2">
-                  <div className={`p-2 lg:p-2.5 xl:p-3 rounded-xl ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform shrink-0`}>
-                    <stat.icon className="w-4 h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6" />
+                <div className="flex justify-between items-start mb-2 lg:mb-3">
+                  <div className={`p-1.5 lg:p-2 rounded-lg ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform`}>
+                    <stat.icon className="w-4 h-4 lg:w-5 lg:h-5" />
                   </div>
-                  <div className="flex items-center gap-0.5 text-emerald-600 text-[9px] lg:text-[10px] xl:text-xs font-bold bg-emerald-50 px-1.5 py-1 rounded-md border border-emerald-100 shrink-0">
-                    <ArrowUpRight className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
+                  <div className="flex items-center gap-0.5 text-emerald-600 text-[9px] lg:text-[10px] font-bold bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">
+                    <ArrowUpRight className="w-2.5 h-2.5" />
                     {stat.trend}
                   </div>
                 </div>
-                <div>
-                  <div className="text-slate-500 text-[11px] lg:text-xs xl:text-sm font-medium mb-0.5 truncate" title={stat.label}>{stat.label}</div>
-                  <div className="text-base lg:text-lg xl:text-2xl font-black text-slate-900 truncate" title={stat.value}>{stat.value}</div>
-                </div>
+                <div className="text-slate-500 text-[10px] lg:text-xs font-medium mb-0.5">{stat.label}</div>
+                <div className="text-base lg:text-xl font-black text-slate-900">{stat.value}</div>
               </div>
             ))}
           </div>
 
           {/* Chart Area */}
-          <div className="flex-1 min-h-[160px] lg:min-h-[200px] bg-white border border-slate-100 shadow-sm p-4 lg:p-6 rounded-2xl flex flex-col relative overflow-hidden shrink-0">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-slate-900 font-bold text-sm lg:text-base">Revenue Growth</h3>
+          <div className="flex-1 min-h-[140px] lg:min-h-[180px] bg-white border border-slate-100 shadow-sm p-3 lg:p-5 rounded-xl flex flex-col relative overflow-hidden shrink-0">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-slate-900 font-bold text-xs lg:text-sm">Revenue Growth</h3>
               <div className="flex gap-2">
                 {['1W', '1M', '1Y'].map((t, i) => (
                   <div key={i} className={`text-[10px] lg:text-xs font-bold px-2 lg:px-3 py-1 rounded-md cursor-pointer transition-colors ${i === 1 ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>
