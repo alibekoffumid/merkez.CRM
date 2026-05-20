@@ -183,15 +183,39 @@ const Landing = () => {
                 key={module.id}
                 className="bg-white p-8 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-100/50 transition-all group cursor-default"
               >
-                <div className={`w-14 h-14 rounded-2xl mb-6 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform bg-opacity-10 ${
-                  module.color === 'blue' ? 'bg-blue-500 text-blue-500' :
-                  module.color === 'green' ? 'bg-green-500 text-green-500' :
-                  module.color === 'yellow' ? 'bg-yellow-500 text-yellow-500' :
-                  module.color === 'red' ? 'bg-red-500 text-red-500' :
-                  module.color === 'purple' ? 'bg-purple-500 text-purple-500' :
-                  'bg-gray-500 text-gray-500'
+                <div className={`relative w-16 h-16 rounded-2xl mb-8 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 ${
+                  module.color === 'blue' ? 'text-blue-500' :
+                  module.color === 'green' ? 'text-green-500' :
+                  module.color === 'yellow' ? 'text-amber-500' :
+                  module.color === 'red' ? 'text-red-500' :
+                  module.color === 'purple' ? 'text-purple-500' :
+                  'text-gray-500'
                 }`}>
-                  <module.icon className="w-8 h-8" />
+                  {/* Glowing background blur */}
+                  <div className={`absolute inset-0 rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-md ${
+                    module.color === 'blue' ? 'bg-blue-500' :
+                    module.color === 'green' ? 'bg-green-500' :
+                    module.color === 'yellow' ? 'bg-amber-500' :
+                    module.color === 'red' ? 'bg-red-500' :
+                    module.color === 'purple' ? 'bg-purple-500' :
+                    'bg-gray-500'
+                  }`}></div>
+                  
+                  {/* Glassy border and surface */}
+                  <div className={`absolute inset-0 rounded-2xl border bg-white/60 backdrop-blur-xl transition-all duration-500 overflow-hidden ${
+                    module.color === 'blue' ? 'border-blue-500/20 group-hover:border-blue-500/50 shadow-[0_8px_30px_rgba(59,130,246,0.12)] group-hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)]' :
+                    module.color === 'green' ? 'border-green-500/20 group-hover:border-green-500/50 shadow-[0_8px_30px_rgba(34,197,94,0.12)] group-hover:shadow-[0_8px_30px_rgba(34,197,94,0.25)]' :
+                    module.color === 'yellow' ? 'border-amber-500/20 group-hover:border-amber-500/50 shadow-[0_8px_30px_rgba(245,158,11,0.12)] group-hover:shadow-[0_8px_30px_rgba(245,158,11,0.25)]' :
+                    module.color === 'red' ? 'border-red-500/20 group-hover:border-red-500/50 shadow-[0_8px_30px_rgba(239,68,68,0.12)] group-hover:shadow-[0_8px_30px_rgba(239,68,68,0.25)]' :
+                    module.color === 'purple' ? 'border-purple-500/20 group-hover:border-purple-500/50 shadow-[0_8px_30px_rgba(168,85,247,0.12)] group-hover:shadow-[0_8px_30px_rgba(168,85,247,0.25)]' :
+                    'border-gray-500/20 group-hover:border-gray-500/50 shadow-[0_8px_30px_rgba(107,114,128,0.12)] group-hover:shadow-[0_8px_30px_rgba(107,114,128,0.25)]'
+                  }`}>
+                    {/* Top glass shine */}
+                    <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent opacity-80"></div>
+                  </div>
+
+                  {/* Icon */}
+                  <module.icon className="relative w-8 h-8 z-10 transition-transform duration-500" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-lg font-black text-gray-900 mb-2">{t(`${module.id}.title`)}</h3>
                 <p className="text-sm text-gray-400 font-medium leading-relaxed">
