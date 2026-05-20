@@ -51,6 +51,18 @@ const Services = () => {
               <Link key={`home-${i18n.language}`} to="/" className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip">
                 {t('landing.nav.home', 'Главная')}
               </Link>
+              <a href="/#features" key={`modules-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.05s' }}>
+                {t('landing.nav.modules')}
+              </a>
+              <Link to="/services" key={`services-${i18n.language}`} className="text-sm font-bold text-blue-600 transition-colors animate-text-flip" style={{ animationDelay: '0.1s' }}>
+                {t('services.title') || 'Услуги'}
+              </Link>
+              <a href="/#how" key={`how-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.15s' }}>
+                {t('landing.nav.howItWorks')}
+              </a>
+              <a href="/#pricing" key={`pricing-${i18n.language}`} className="text-sm font-bold text-gray-500 hover:text-blue-500 transition-colors animate-text-flip" style={{ animationDelay: '0.2s' }}>
+                {t('landing.nav.pricing')}
+              </a>
             </div>
           </div>
 
