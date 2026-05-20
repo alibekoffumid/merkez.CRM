@@ -80,12 +80,7 @@ const ModulesShowcaseMockup = () => {
           </div>
         ))}
         
-        {/* Central Hub Connector */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 md:w-16 md:h-16 bg-white rounded-full border-4 border-slate-50 flex items-center justify-center shadow-xl z-20">
-          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.3)]">
-            <Briefcase className="w-3 h-3 md:w-4 md:h-4 text-white" />
-          </div>
-        </div>
+
       </div>
     </div>
   );
