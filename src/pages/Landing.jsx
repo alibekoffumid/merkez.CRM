@@ -25,6 +25,13 @@ const Landing = () => {
     color: 'bg-green-500'
   });
 
+  const getAppUrl = (path) => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return path;
+    }
+    return `https://app.digitall.llc${path}`;
+  };
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -94,23 +101,23 @@ const Landing = () => {
               <div className="h-4 w-px bg-gray-200"></div>
               {!profile ? (
                 <div className="flex items-center gap-4">
-                  <Link to="/auth" className="text-sm font-bold text-gray-900 hover:text-blue-500 transition-colors">
-                    {t('landing.nav.login')}
-                  </Link>
-                  <Link 
-                    to="/auth" 
+                  <a href={getAppUrl('/auth')} className="text-sm font-bold text-gray-900 hover:text-blue-500 transition-colors">
+                    {t('landing.nav.login', 'Вход')}
+                  </a>
+                  <a 
+                    href={getAppUrl('/auth')} 
                     className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
                   >
-                    {t('landing.hero.cta.start')}
-                  </Link>
+                    {t('landing.hero.cta.start', 'Начать')}
+                  </a>
                 </div>
               ) : (
-                <Link 
-                  to={needsOnboarding ? "/modules" : "/dashboard"} 
+                <a 
+                  href={getAppUrl(needsOnboarding ? '/modules' : '/dashboard')} 
                   className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
                 >
-                  {t('landing.nav.dashboard') || 'Dashboard'}
-                </Link>
+                  Dashboard
+                </a>
               )}
             </div>
 
@@ -147,13 +154,13 @@ const Landing = () => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <Link 
-                  to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
+                <a 
+                  href={getAppUrl(profile ? (needsOnboarding ? '/modules' : '/dashboard') : '/auth')} 
                   className="w-full sm:w-auto bg-blue-500 text-white px-10 py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-200 hover:bg-blue-600 hover:-translate-y-1 active:scale-95 transition-all flex items-center justify-center gap-3 group"
                 >
                   {profile ? (t('landing.nav.dashboard') || 'Dashboard') : t('landing.hero.cta.start')}
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-2" />
-                </Link>
+                </a>
                 <a 
                   href="#features" 
                   className="w-full sm:w-auto bg-white text-gray-900 border-2 border-gray-100 px-10 py-5 rounded-[2rem] font-black text-lg hover:border-blue-500 hover:text-blue-500 transition-all text-center"
@@ -364,13 +371,13 @@ const Landing = () => {
               {t('landing.cta.subtitle')}
             </p>
             <div className="animate-text-flip" style={{ animationDelay: '0.2s' }}>
-              <Link 
-                to={profile ? (needsOnboarding ? "/modules" : "/dashboard") : "/auth"} 
+              <a 
+                href={getAppUrl(profile ? (needsOnboarding ? '/modules' : '/dashboard') : '/auth')} 
                 className="inline-flex items-center gap-3 bg-white text-blue-600 px-12 py-5 rounded-[2rem] font-black text-xl hover:bg-gray-50 active:scale-95 transition-all shadow-xl"
               >
                 {profile ? (t('landing.nav.dashboard') || 'Dashboard') : t('landing.hero.cta.start')}
                 <ChevronRight className="w-6 h-6" />
-              </Link>
+              </a>
             </div>
           </div>
         </div>

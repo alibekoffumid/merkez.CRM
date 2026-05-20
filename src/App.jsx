@@ -26,6 +26,8 @@ import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
 import { Toaster } from 'react-hot-toast';
 
+const isAppDomain = window.location.hostname.startsWith('app.');
+
 // Guard component that checks if a specific module is active
 const ModuleGuard = ({ moduleId, children }) => {
   const { activeModules, modulesLoading } = useUser();
@@ -139,7 +141,7 @@ function App() {
       <BrowserRouter>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={isAppDomain ? <Navigate to="/dashboard" replace /> : <Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/m/:businessId" element={<PublicMenu />} />
         
