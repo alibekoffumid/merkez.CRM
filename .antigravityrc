@@ -1,0 +1,5 @@
+{
+  "maxSubAgents": 1,
+  "continuousAutoTest": false,
+  "defaultModel": "gemini-3.5-flash"
+}
