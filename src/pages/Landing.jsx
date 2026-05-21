@@ -133,32 +133,32 @@ const Landing = () => {
         }`}>
           <div className="flex flex-col gap-6">
             {/* Links */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col items-end gap-1">
               <a 
                 href="#features" 
                 onClick={() => setIsMenuOpen(false)}
-                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+                className="text-right text-lg font-black text-gray-700 hover:text-blue-500 transition-colors py-3 px-4 w-full block"
               >
                 {t('landing.nav.modules')}
               </a>
               <a 
                 href="#services" 
                 onClick={() => setIsMenuOpen(false)}
-                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+                className="text-right text-lg font-black text-gray-700 hover:text-blue-500 transition-colors py-3 px-4 w-full block"
               >
                 {t('services.title') || 'Услуги'}
               </a>
               <a 
                 href="#how" 
                 onClick={() => setIsMenuOpen(false)}
-                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+                className="text-right text-lg font-black text-gray-700 hover:text-blue-500 transition-colors py-3 px-4 w-full block"
               >
                 {t('landing.nav.howItWorks')}
               </a>
               <a 
                 href="#pricing" 
                 onClick={() => setIsMenuOpen(false)}
-                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+                className="text-right text-lg font-black text-gray-700 hover:text-blue-500 transition-colors py-3 px-4 w-full block"
               >
                 {t('landing.nav.pricing')}
               </a>
@@ -167,13 +167,13 @@ const Landing = () => {
             <hr className="border-gray-100" />
 
             {/* Language Switcher */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">Язык:</span>
+            <div className="flex items-center justify-end gap-3 w-full px-4">
+              <span className="text-xs font-black text-gray-400 uppercase tracking-wider mr-2">Язык:</span>
               {['az', 'ru', 'en'].map(lang => (
                 <button
                   key={lang}
                   onClick={() => i18n.changeLanguage(lang)}
-                  className={`text-xs font-black uppercase w-9 h-9 rounded-xl transition-all ${
+                  className={`text-xs font-black uppercase w-10 h-10 rounded-xl transition-all ${
                     i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-100 bg-gray-50'
                   }`}
                 >
@@ -186,30 +186,32 @@ const Landing = () => {
 
             {/* Actions */}
             {!profile ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 px-4">
                 <a 
                   href={getAppUrl('/auth')} 
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-center text-base font-bold text-gray-900 hover:text-blue-500 transition-colors py-2"
+                  className="text-right text-lg font-black text-gray-950 hover:text-blue-500 transition-colors py-3 block"
                 >
                   {t('landing.nav.login', 'Вход')}
                 </a>
                 <a 
                   href={getAppUrl('/auth')} 
                   onClick={() => setIsMenuOpen(false)}
-                  className="bg-blue-500 text-white text-center py-3.5 rounded-2xl font-black text-base shadow-xl shadow-blue-100 hover:bg-blue-600 active:scale-95 transition-all"
+                  className="bg-blue-500 text-white text-center py-4 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-100 hover:bg-blue-600 active:scale-95 transition-all block w-full"
                 >
                   {t('landing.hero.cta.start', 'Начать')}
                 </a>
               </div>
             ) : (
-              <a 
-                href={getAppUrl(needsOnboarding ? '/modules' : '/dashboard')} 
-                onClick={() => setIsMenuOpen(false)}
-                className="bg-blue-500 text-white text-center py-3.5 rounded-2xl font-black text-base shadow-xl shadow-blue-100 hover:bg-blue-600 active:scale-95 transition-all"
-              >
-                Dashboard
-              </a>
+              <div className="px-4">
+                <a 
+                  href={getAppUrl(needsOnboarding ? '/modules' : '/dashboard')} 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="bg-blue-500 text-white text-center py-4 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-100 hover:bg-blue-600 active:scale-95 transition-all block w-full"
+                >
+                  Dashboard
+                </a>
+              </div>
             )}
           </div>
         </div>
