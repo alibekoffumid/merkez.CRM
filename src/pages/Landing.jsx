@@ -83,22 +83,24 @@ const Landing = () => {
           </div>
 
           {/* Right Side: Lang & Actions */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-2">
+              {['az', 'ru', 'en'].map(lang => (
+                <button
+                  key={lang}
+                  onClick={() => i18n.changeLanguage(lang)}
+                  className={`text-xs font-black uppercase w-8 h-8 rounded-lg transition-all ${
+                    i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:bg-gray-100'
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+
+            <div className="hidden md:block h-4 w-px bg-gray-200"></div>
+
             <div className="hidden md:flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                {['az', 'ru', 'en'].map(lang => (
-                  <button
-                    key={lang}
-                    onClick={() => i18n.changeLanguage(lang)}
-                    className={`text-xs font-black uppercase w-8 h-8 rounded-lg transition-all ${
-                      i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:bg-gray-100'
-                    }`}
-                  >
-                    {lang}
-                  </button>
-                ))}
-              </div>
-              <div className="h-4 w-px bg-gray-200"></div>
               {!profile ? (
                 <div className="flex items-center gap-4">
                   <a href={getAppUrl('/auth')} className="text-sm font-bold text-gray-900 hover:text-blue-500 transition-colors">
@@ -121,7 +123,7 @@ const Landing = () => {
               )}
             </div>
 
-            <button className="md:hidden text-gray-900" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <button className="md:hidden text-gray-900 ml-1" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <X /> : <Menu />}
             </button>
           </div>
@@ -162,24 +164,6 @@ const Landing = () => {
               >
                 {t('landing.nav.pricing')}
               </a>
-            </div>
-
-            <hr className="border-gray-100" />
-
-            {/* Language Switcher */}
-            <div className="flex items-center justify-end gap-3 w-full px-4">
-              <span className="text-xs font-black text-gray-400 uppercase tracking-wider mr-2">Язык:</span>
-              {['az', 'ru', 'en'].map(lang => (
-                <button
-                  key={lang}
-                  onClick={() => i18n.changeLanguage(lang)}
-                  className={`text-xs font-black uppercase w-10 h-10 rounded-xl transition-all ${
-                    i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-100 bg-gray-50'
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
             </div>
 
             <hr className="border-gray-100" />
