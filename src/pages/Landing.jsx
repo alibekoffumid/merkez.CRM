@@ -57,7 +57,7 @@ const Landing = () => {
     <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-gray-100 py-3 shadow-sm' : 'bg-transparent py-5'
+        scrolled || isMenuOpen ? 'bg-white/95 backdrop-blur-xl border-b border-gray-100 py-3 shadow-sm' : 'bg-transparent py-5'
       }`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           {/* Left Side: Logo & Links */}
@@ -124,6 +124,93 @@ const Landing = () => {
             <button className="md:hidden text-gray-900" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <X /> : <Menu />}
             </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Panel */}
+        <div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+          isMenuOpen ? 'max-h-[100vh] opacity-100 border-t border-gray-100 mt-3 py-6 px-6' : 'max-h-0 opacity-0 pointer-events-none'
+        }`}>
+          <div className="flex flex-col gap-6">
+            {/* Links */}
+            <div className="flex flex-col gap-4">
+              <a 
+                href="#features" 
+                onClick={() => setIsMenuOpen(false)}
+                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+              >
+                {t('landing.nav.modules')}
+              </a>
+              <a 
+                href="#services" 
+                onClick={() => setIsMenuOpen(false)}
+                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+              >
+                {t('services.title') || 'Услуги'}
+              </a>
+              <a 
+                href="#how" 
+                onClick={() => setIsMenuOpen(false)}
+                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+              >
+                {t('landing.nav.howItWorks')}
+              </a>
+              <a 
+                href="#pricing" 
+                onClick={() => setIsMenuOpen(false)}
+                className="text-base font-bold text-gray-600 hover:text-blue-500 transition-colors"
+              >
+                {t('landing.nav.pricing')}
+              </a>
+            </div>
+
+            <hr className="border-gray-100" />
+
+            {/* Language Switcher */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">Язык:</span>
+              {['az', 'ru', 'en'].map(lang => (
+                <button
+                  key={lang}
+                  onClick={() => i18n.changeLanguage(lang)}
+                  className={`text-xs font-black uppercase w-9 h-9 rounded-xl transition-all ${
+                    i18n.language === lang ? 'bg-blue-500 text-white shadow-lg shadow-blue-200' : 'text-gray-500 hover:bg-gray-100 bg-gray-50'
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+
+            <hr className="border-gray-100" />
+
+            {/* Actions */}
+            {!profile ? (
+              <div className="flex flex-col gap-4">
+                <a 
+                  href={getAppUrl('/auth')} 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-center text-base font-bold text-gray-900 hover:text-blue-500 transition-colors py-2"
+                >
+                  {t('landing.nav.login', 'Вход')}
+                </a>
+                <a 
+                  href={getAppUrl('/auth')} 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="bg-blue-500 text-white text-center py-3.5 rounded-2xl font-black text-base shadow-xl shadow-blue-100 hover:bg-blue-600 active:scale-95 transition-all"
+                >
+                  {t('landing.hero.cta.start', 'Начать')}
+                </a>
+              </div>
+            ) : (
+              <a 
+                href={getAppUrl(needsOnboarding ? '/modules' : '/dashboard')} 
+                onClick={() => setIsMenuOpen(false)}
+                className="bg-blue-500 text-white text-center py-3.5 rounded-2xl font-black text-base shadow-xl shadow-blue-100 hover:bg-blue-600 active:scale-95 transition-all"
+              >
+                Dashboard
+              </a>
+            )}
           </div>
         </div>
       </nav>
@@ -211,13 +298,13 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-6">
             {modules.map((module) => (
               <div 
                 key={module.id}
-                className="bg-white p-8 rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-100/50 transition-all group cursor-default"
+                className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-100/50 transition-all group cursor-default"
               >
-                <div className={`relative w-16 h-16 rounded-2xl mb-8 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 ${
+                <div className={`relative w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl mb-4 md:mb-8 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 ${
                   module.color === 'blue' ? 'text-blue-500' :
                   module.color === 'green' ? 'text-green-500' :
                   module.color === 'yellow' ? 'text-amber-500' :
@@ -230,7 +317,7 @@ const Landing = () => {
                   'text-gray-500'
                 }`}>
                   {/* Glowing background blur */}
-                  <div className={`absolute inset-0 rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-md ${
+                  <div className={`absolute inset-0 rounded-xl md:rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-md ${
                     module.color === 'blue' ? 'bg-blue-500' :
                     module.color === 'green' ? 'bg-green-500' :
                     module.color === 'yellow' ? 'bg-amber-500' :
@@ -244,7 +331,7 @@ const Landing = () => {
                   }`}></div>
                   
                   {/* Glassy border and surface */}
-                  <div className={`absolute inset-0 rounded-2xl border bg-white/60 backdrop-blur-xl transition-all duration-500 overflow-hidden ${
+                  <div className={`absolute inset-0 rounded-xl md:rounded-2xl border bg-white/60 backdrop-blur-xl transition-all duration-500 overflow-hidden ${
                     module.color === 'blue' ? 'border-blue-500/20 group-hover:border-blue-500/50 shadow-[0_8px_30px_rgba(59,130,246,0.12)] group-hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)]' :
                     module.color === 'green' ? 'border-green-500/20 group-hover:border-green-500/50 shadow-[0_8px_30px_rgba(34,197,94,0.12)] group-hover:shadow-[0_8px_30px_rgba(34,197,94,0.25)]' :
                     module.color === 'yellow' ? 'border-amber-500/20 group-hover:border-amber-500/50 shadow-[0_8px_30px_rgba(245,158,11,0.12)] group-hover:shadow-[0_8px_30px_rgba(245,158,11,0.25)]' :
@@ -261,11 +348,11 @@ const Landing = () => {
                   </div>
 
                   {/* Icon */}
-                  <module.icon className="relative w-8 h-8 z-10 transition-transform duration-500" strokeWidth={1.5} />
+                  <module.icon className="relative w-6 h-6 md:w-8 md:h-8 z-10 transition-transform duration-500" strokeWidth={1.5} />
                 </div>
                 <div key={i18n.language} className="animate-text-flip">
-                  <h3 className="text-lg font-black text-gray-900 mb-2">{t(`${module.id}.title`)}</h3>
-                  <p className="text-sm text-gray-400 font-medium leading-relaxed">
+                  <h3 className="text-xs md:text-lg font-black text-gray-900 mb-1 md:mb-2">{t(`${module.id}.title`)}</h3>
+                  <p className="text-[10px] md:text-sm text-gray-400 font-medium leading-snug md:leading-relaxed line-clamp-3 md:line-clamp-none">
                     {t(`${module.id}.subtitle`)}
                   </p>
                 </div>
