@@ -67,7 +67,7 @@ const ModulesShowcaseMockup = () => {
             {/* Top Shine */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-50"></div>
             
-            <div className={`p-5 md:p-6 rounded-2xl bg-white shadow-sm ${mod.color}`}>
+            <div className={`p-5 md:p-6 rounded-2xl ${mod.color}`}>
               <mod.icon className="w-10 h-10 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
             
