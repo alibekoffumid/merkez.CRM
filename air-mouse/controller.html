@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Air Mouse — Контроллер</title>
+
+  <!-- ═══════════════════════════════════════════════════════
+       СТИЛИ — тёмный UI с неоновыми акцентами
+       ═══════════════════════════════════════════════════════ -->
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0f;
+      color: #fff;
+      overflow: hidden;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Панель статуса ─────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(15, 15, 25, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index: 10;
+    }
+
+    .status-bar h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .status-bar h1 span { color: #6366f1; }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.connected {
+      background: #22c55e;
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+    }
+    .status-dot.tracking {
+      background: #6366f1;
+      box-shadow: 0 0 12px rgba(99, 102, 241, 0.6);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.3); }
+    }
+
+    /* ── Контейнер видео ────────────────────────────── */
+    .video-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    video, canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Canvas с отрисовкой руки поверх видео */
+    canvas {
+      z-index: 2;
+    }
+
+    /* ── Оверлей с координатами ──────────────────────── */
+    .debug-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 5;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .debug-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 80px;
+    }
+    .debug-card .label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 4px;
+    }
+    .debug-card .value {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .debug-card .value.pinch { color: #f59e0b; }
+    .debug-card .value.active { color: #22c55e; }
+
+    /* ── Кнопка подключения ──────────────────────────── */
+    .connect-panel {
+      padding: 16px;
+      background: rgba(15, 15, 25, 0.95);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      z-index: 10;
+    }
+
+    .server-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.08);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      margin-bottom: 10px;
+      transition: border-color 0.3s;
+    }
+    .server-input:focus { border-color: #6366f1; }
+
+    .connect-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4);
+    }
+    .connect-btn:active { transform: scale(0.97); }
+    .connect-btn.connected {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      box-shadow: 0 4px 24px rgba(34, 197, 94, 0.4);
+    }
+
+    /* ── «Нет руки» подсказка ─────────────────────────── */
+    .no-hand-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+    }
+    .no-hand-hint.visible { opacity: 1; }
+    .no-hand-hint .emoji { font-size: 64px; margin-bottom: 12px; }
+    .no-hand-hint p {
+      font-size: 14px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════ СТАТУС-БАР ═══════ -->
+  <div class="status-bar">
+    <h1>Air<span>Mouse</span></h1>
+    <div class="status-indicator">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Отключено</span>
+    </div>
+  </div>
+
+  <!-- ═══════ ВИДЕО + CANVAS ═══════ -->
+  <div class="video-container">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+
+    <div class="no-hand-hint visible" id="noHandHint">
+      <div class="emoji">🖐️</div>
+      <p>Покажите руку в камеру</p>
+    </div>
+
+    <!-- Отладочная информация -->
+    <div class="debug-overlay">
+      <div class="debug-card">
+        <div class="label">X</div>
+        <div class="value" id="dbgX">—</div>
+      </div>
+      <div class="debug-card">
+        <div class="label">Y</div>
+        <div class="value" id="dbgY">—</div>
+      </div>
+      <div class="debug-card">
+        <div class="label">Pinch</div>
+        <div class="value" id="dbgPinch">—</div>
+      </div>
+      <div class="debug-card">
+        <div class="label">Статус</div>
+        <div class="value" id="dbgGesture">IDLE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ ПАНЕЛЬ ПОДКЛЮЧЕНИЯ ═══════ -->
+  <div class="connect-panel">
+    <input 
+      type="text" 
+      class="server-input" 
+      id="serverUrl" 
+      placeholder="ws://192.168.x.x:8765"
+    />
+    <button class="connect-btn" id="connectBtn" onclick="toggleConnection()">
+      Подключиться
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       MEDIAPIPE HANDS — CDN
+       ═══════════════════════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    //  КОНФИГУРАЦИЯ
+    // ═══════════════════════════════════════════════════════
+
+    const CONFIG = {
+      // Порог расстояния между пальцами для pinch-жеста
+      PINCH_THRESHOLD: 0.06,
+
+      // Гистерезис — чтобы не дёргался на границе порога
+      PINCH_RELEASE_THRESHOLD: 0.09,
+
+      // Сглаживание координат (0 = нет, 1 = максимум)
+      SMOOTHING: 0.65,
+
+      // Минимальный интервал отправки MOVE (мс) — 60fps ≈ 16мс
+      SEND_INTERVAL_MS: 16,
+    };
+
+    // ═══════════════════════════════════════════════════════
+    //  СОСТОЯНИЕ
+    // ═══════════════════════════════════════════════════════
+
+    let ws = null;
+    let isConnected = false;
+    let isPinching = false;
+
+    // Сглаженные координаты
+    let smoothX = 0.5;
+    let smoothY = 0.5;
+
+    // Throttle для отправки
+    let lastSendTime = 0;
+
+    // DOM-элементы
+    const videoEl     = document.getElementById('webcam');
+    const canvasEl    = document.getElementById('overlay');
+    const canvasCtx   = canvasEl.getContext('2d');
+    const statusDot   = document.getElementById('statusDot');
+    const statusText  = document.getElementById('statusText');
+    const connectBtn  = document.getElementById('connectBtn');
+    const serverInput = document.getElementById('serverUrl');
+    const noHandHint  = document.getElementById('noHandHint');
+    const dbgX        = document.getElementById('dbgX');
+    const dbgY        = document.getElementById('dbgY');
+    const dbgPinch    = document.getElementById('dbgPinch');
+    const dbgGesture  = document.getElementById('dbgGesture');
+
+    // Автоопределение IP сервера — берём текущий хост если открыто по IP
+    const currentHost = location.hostname;
+    if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+      serverInput.value = `ws://${currentHost}:8765`;
+    } else {
+      serverInput.value = 'ws://localhost:8765';
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  WEBSOCKET — подключение / отключение
+    // ═══════════════════════════════════════════════════════
+
+    function toggleConnection() {
+      if (isConnected) {
+        disconnect();
+      } else {
+        connect();
+      }
+    }
+
+    function connect() {
+      const url = serverInput.value.trim();
+      if (!url) return;
+
+      try {
+        ws = new WebSocket(url);
+      } catch (e) {
+        alert('Неверный URL: ' + e.message);
+        return;
+      }
+
+      ws.onopen = () => {
+        isConnected = true;
+        statusDot.className = 'status-dot connected';
+        statusText.textContent = 'Подключено';
+        connectBtn.textContent = 'Отключиться';
+        connectBtn.classList.add('connected');
+        console.log('✅ WebSocket подключён к', url);
+      };
+
+      ws.onclose = () => {
+        handleDisconnect();
+      };
+
+      ws.onerror = (err) => {
+        console.error('🔴 WebSocket ошибка:', err);
+        handleDisconnect();
+      };
+    }
+
+    function disconnect() {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+      handleDisconnect();
+    }
+
+    function handleDisconnect() {
+      isConnected = false;
+      statusDot.className = 'status-dot';
+      statusText.textContent = 'Отключено';
+      connectBtn.textContent = 'Подключиться';
+      connectBtn.classList.remove('connected');
+    }
+
+    /** Отправка данных на сервер */
+    function send(data) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  MEDIAPIPE HANDS — инициализация
+    // ═══════════════════════════════════════════════════════
+
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,          // Трекаем только одну руку
+      modelComplexity: 1,      // 0 = быстро, 1 = точнее
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.6,
+    });
+
+    hands.onResults(onHandResults);
+
+    // ═══════════════════════════════════════════════════════
+    //  КАМЕРА — запуск
+    // ═══════════════════════════════════════════════════════
+
+    const camera = new Camera(videoEl, {
+      onFrame: async () => {
+        await hands.send({ image: videoEl });
+      },
+      width: 640,
+      height: 480,
+      facingMode: 'user',  // Фронтальная камера
+    });
+
+    camera.start().then(() => {
+      console.log('📷 Камера запущена');
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  ОБРАБОТКА РЕЗУЛЬТАТОВ ТРЕКИНГА
+    // ═══════════════════════════════════════════════════════
+
+    /**
+     * Вычисляет расстояние между двумя точками (2D).
+     */
+    function distance(a, b) {
+      return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+    }
+
+    /**
+     * Callback от MediaPipe — вызывается на каждом кадре.
+     */
+    function onHandResults(results) {
+      // ── Подготовка canvas ────────────────────────────────
+      canvasEl.width  = results.image.width;
+      canvasEl.height = results.image.height;
+      canvasCtx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+      // ── Проверяем, есть ли рука ──────────────────────────
+      if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+        noHandHint.classList.add('visible');
+        statusDot.className = isConnected ? 'status-dot connected' : 'status-dot';
+        dbgGesture.textContent = 'NO HAND';
+        return;
+      }
+
+      noHandHint.classList.remove('visible');
+
+      const landmarks = results.multiHandLandmarks[0];
+
+      // ── Рисуем скелет руки на canvas ─────────────────────
+      drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+        color: 'rgba(99, 102, 241, 0.5)',
+        lineWidth: 2,
+      });
+      drawLandmarks(canvasCtx, landmarks, {
+        color: 'rgba(99, 102, 241, 0.8)',
+        fillColor: 'rgba(139, 92, 246, 0.4)',
+        lineWidth: 1,
+        radius: 3,
+      });
+
+      // ── Ключевые точки ───────────────────────────────────
+      //  Точка 9  = MCP среднего пальца (центр ладони)
+      //  Точка 4  = кончик большого пальца
+      //  Точка 8  = кончик указательного пальца
+      const palmCenter = landmarks[9];
+      const thumbTip   = landmarks[4];
+      const indexTip   = landmarks[8];
+
+      // ── Координаты курсора (нормализованные 0..1) ────────
+      // Зеркалим X, т.к. фронтальная камера отзеркалена
+      const rawX = 1.0 - palmCenter.x;
+      const rawY = palmCenter.y;
+
+      // Экспоненциальное сглаживание
+      smoothX = smoothX * CONFIG.SMOOTHING + rawX * (1 - CONFIG.SMOOTHING);
+      smoothY = smoothY * CONFIG.SMOOTHING + rawY * (1 - CONFIG.SMOOTHING);
+
+      // Ограничиваем в [0, 1]
+      const x = Math.max(0, Math.min(1, smoothX));
+      const y = Math.max(0, Math.min(1, smoothY));
+
+      // ── Pinch-жест ───────────────────────────────────────
+      const pinchDist = distance(thumbTip, indexTip);
+
+      // Гистерезис: разные пороги для начала и конца жеста
+      if (!isPinching && pinchDist < CONFIG.PINCH_THRESHOLD) {
+        isPinching = true;
+        send({ type: 'PINCH_START', x, y });
+        console.log('🤏 PINCH START');
+
+        // Вибрация (если поддерживается)
+        if (navigator.vibrate) navigator.vibrate(30);
+      } else if (isPinching && pinchDist > CONFIG.PINCH_RELEASE_THRESHOLD) {
+        isPinching = false;
+        send({ type: 'PINCH_END', x, y });
+        console.log('✋ PINCH END');
+      }
+
+      // ── Отправка координат (с throttle) ──────────────────
+      const now = performance.now();
+      if (now - lastSendTime >= CONFIG.SEND_INTERVAL_MS) {
+        send({ type: 'MOVE', x, y });
+        lastSendTime = now;
+      }
+
+      // ── Обновляем отладочный UI ──────────────────────────
+      dbgX.textContent = x.toFixed(3);
+      dbgY.textContent = y.toFixed(3);
+      dbgPinch.textContent = pinchDist.toFixed(3);
+      dbgPinch.className = `value ${isPinching ? 'active' : 'pinch'}`;
+      dbgGesture.textContent = isPinching ? '🤏 PINCH' : '✋ MOVE';
+      dbgGesture.className = `value ${isPinching ? 'active' : ''}`;
+
+      // Статус — трекинг активен
+      if (isConnected) {
+        statusDot.className = 'status-dot tracking';
+        statusText.textContent = 'Трекинг';
+      }
+
+      // ── Визуальная подсказка pinch на canvas ──────────────
+      if (isPinching) {
+        // Рисуем линию между большим и указательным пальцами
+        const cx = canvasEl.width;
+        const cy = canvasEl.height;
+        canvasCtx.beginPath();
+        canvasCtx.arc(thumbTip.x * cx, thumbTip.y * cy, 12, 0, Math.PI * 2);
+        canvasCtx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+        canvasCtx.fill();
+
+        canvasCtx.beginPath();
+        canvasCtx.arc(indexTip.x * cx, indexTip.y * cy, 12, 0, Math.PI * 2);
+        canvasCtx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+        canvasCtx.fill();
+      }
+    }
+  </script>
+</body>
+</html>
