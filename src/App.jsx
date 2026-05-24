@@ -25,6 +25,7 @@ import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
 import { Toaster } from 'react-hot-toast';
+import AirMouseReceiver from './components/AirMouse/AirMouseReceiver';
 
 const isAppDomain = window.location.hostname.startsWith('saas.');
 
@@ -242,6 +243,7 @@ function App() {
         </Route>
       </Routes>
       <Toaster position="top-right" />
+      <AirMouseReceiver wsUrl="ws://192.168.100.9:8765" />
     </BrowserRouter>
     </UserProvider>
   );
