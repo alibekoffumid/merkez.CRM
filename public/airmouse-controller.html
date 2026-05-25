@@ -133,7 +133,31 @@
     .debug-card .value.pinch { color: #f59e0b; }
     .debug-card .value.active { color: #22c55e; }
 
-    /* ── Кнопка подключения ──────────────────────────── */
+    .hint-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 14px 16px;
+      grid-column: span 2;
+      min-width: 220px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+    }
+    .hint-label {
+      display: block;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 6px;
+    }
+    .hint-text {
+      line-height: 1.5;
+      color: #dbeafe;
+    }
+
+    /* ── Кнопка подключения ─────────────────────────── */
     .connect-panel {
       padding: 16px;
       background: rgba(15, 15, 25, 0.95);
@@ -178,7 +202,7 @@
       box-shadow: 0 4px 24px rgba(34, 197, 94, 0.4);
     }
 
-    /* ── «Нет руки» подсказка ─────────────────────────── */
+    /* ── «Нет руки» подсказка ───────────────────────── */
     .no-hand-hint {
       position: absolute;
       top: 50%;
@@ -239,6 +263,10 @@
         <div class="value" id="dbgGesture">IDLE</div>
       </div>
     </div>
+    <div class="hint-card">
+      <div class="hint-label">Скролл</div>
+      <div class="hint-text">Два пальца вверх/вниз. Удерживайте указательный и средний, не сводите большой.</div>
+    </div>
   </div>
 
   <!-- ═══════ ПАНЕЛЬ ПОДКЛЮЧЕНИЯ ═══════ -->
@@ -267,37 +295,24 @@
     // ═══════════════════════════════════════════════════════
 
     const CONFIG = {
-      // Порог расстояния между пальцами для pinch-жеста
       PINCH_THRESHOLD: 0.06,
-
-      // Гистерезис — чтобы не дёргался на границе порога
-      PINCH_RELEASE_THRESHOLD: 0.09,
-
-      // Сглаживание координат (0 = нет, 1 = максимум)
+      PINCH_RELEASE_THRESHOLD: 0.10,
+      SCROLL_THRESHOLD: 0.008,
+      SCROLL_SPEED: 30,
       SMOOTHING: 0.65,
-
-      // Минимальный интервал отправки MOVE (мс) — 60fps ≈ 16мс
       SEND_INTERVAL_MS: 16,
     };
-
-    // ═══════════════════════════════════════════════════════
-    //  СОСТОЯНИЕ
-    // ═══════════════════════════════════════════════════════
 
     let ws = null;
     let isConnected = false;
     let isPinching = false;
     let isScrolling = false;
-    let lastScrollY = 0;
-
-    // Сглаженные координаты
-    let smoothX = 0.5;
-    let smoothY = 0.5;
-
-    // Throttle для отправки
     let lastSendTime = 0;
 
-    // DOM-элементы
+    let smoothX = 0.5;
+    let smoothY = 0.5;
+    let lastRawY = null;
+
     const videoEl     = document.getElementById('webcam');
     const canvasEl    = document.getElementById('overlay');
     const canvasCtx   = canvasEl.getContext('2d');
@@ -311,30 +326,12 @@
     const dbgPinch    = document.getElementById('dbgPinch');
     const dbgGesture  = document.getElementById('dbgGesture');
 
-    // Автоопределение IP сервера — если страница открыта по локальному IP, используем его.
-    // Если страница открыта через ngrok / туннель, то локальный WebSocket-сервер всё равно доступен
-    // по IP вашей машины в сети Wi-Fi.
     const currentHost = location.hostname;
-    const privateIp = /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(currentHost);
-    const isTunnelHost = /ngrok-free\.dev$|ngrok\.io$|loca\.lt$/.test(currentHost);
-    const localWsHost = '192.168.100.9';
-
-    if (currentHost === 'localhost' || currentHost === '127.0.0.1' || privateIp) {
+    if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
       serverInput.value = `ws://${currentHost}:8765`;
-    } else if (isTunnelHost) {
-      serverInput.value = `ws://${localWsHost}:8765`;
-      serverInput.placeholder = `ws://${localWsHost}:8765`;
-      const hint = document.createElement('div');
-      hint.style.cssText = 'font-size:12px;color:#cbd5e1;margin-top:8px;line-height:1.4;';
-      hint.textContent = `Подключайтесь к локальному WebSocket-серверу по адресу ws://${localWsHost}:8765`; 
-      serverInput.parentNode.insertBefore(hint, serverInput.nextSibling);
     } else {
-      serverInput.value = `ws://${currentHost}:8765`;
+      serverInput.value = 'ws://localhost:8765';
     }
-
-    // ═══════════════════════════════════════════════════════
-    //  WEBSOCKET — подключение / отключение
-    // ═══════════════════════════════════════════════════════
 
     function toggleConnection() {
       if (isConnected) {
@@ -361,15 +358,13 @@
         statusText.textContent = 'Подключено';
         connectBtn.textContent = 'Отключиться';
         connectBtn.classList.add('connected');
-        console.log('✅ WebSocket подключён к', url);
       };
 
       ws.onclose = () => {
         handleDisconnect();
       };
 
-      ws.onerror = (err) => {
-        console.error('🔴 WebSocket ошибка:', err);
+      ws.onerror = () => {
         handleDisconnect();
       };
     }
@@ -390,33 +385,24 @@
       connectBtn.classList.remove('connected');
     }
 
-    /** Отправка данных на сервер */
     function send(data) {
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify(data));
       }
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  MEDIAPIPE HANDS — инициализация
-    // ═══════════════════════════════════════════════════════
-
     const hands = new Hands({
       locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
     });
 
     hands.setOptions({
-      maxNumHands: 1,          // Трекаем только одну руку
-      modelComplexity: 1,      // 0 = быстро, 1 = точнее
+      maxNumHands: 1,
+      modelComplexity: 1,
       minDetectionConfidence: 0.7,
       minTrackingConfidence: 0.6,
     });
 
     hands.onResults(onHandResults);
-
-    // ═══════════════════════════════════════════════════════
-    //  КАМЕРА — запуск
-    // ═══════════════════════════════════════════════════════
 
     const camera = new Camera(videoEl, {
       onFrame: async () => {
@@ -424,38 +410,40 @@
       },
       width: 640,
       height: 480,
-      facingMode: 'user',  // Фронтальная камера
+      facingMode: 'user',
     });
 
-    camera.start().then(() => {
-      console.log('📷 Камера запущена');
-    });
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error('Камера недоступна: требуется HTTPS/secure context.');
+      statusText.textContent = 'HTTPS required';
+      noHandHint.classList.remove('visible');
+      const errorOverlay = document.createElement('div');
+      errorOverlay.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);padding:20px 18px;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.12);border-radius:18px;color:#fff;text-align:center;max-width:280px;font-size:14px;line-height:1.5;';
+      errorOverlay.innerHTML = '<strong>Для камеры нужен HTTPS</strong><br>Откройте страницу через HTTPS, например <code>https://192.168.100.9:5173/airmouse-controller.html</code> и примите предупреждение.';
+      document.body.appendChild(errorOverlay);
+    } else {
+      camera.start().then(() => {
+        console.log('📷 Камера запущена');
+      }).catch((err) => {
+        console.error('Ошибка запуска камеры:', err);
+        statusText.textContent = 'Камера не доступна';
+      });
+    }
 
-    // ═══════════════════════════════════════════════════════
-    //  ОБРАБОТКА РЕЗУЛЬТАТОВ ТРЕКИНГА
-    // ═══════════════════════════════════════════════════════
-
-    /**
-     * Вычисляет расстояние между двумя точками (2D).
-     */
     function distance(a, b) {
       return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
     }
 
-    /**
-     * Callback от MediaPipe — вызывается на каждом кадре.
-     */
     function onHandResults(results) {
-      // ── Подготовка canvas ────────────────────────────────
       canvasEl.width  = results.image.width;
       canvasEl.height = results.image.height;
       canvasCtx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
-      // ── Проверяем, есть ли рука ──────────────────────────
       if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
         noHandHint.classList.add('visible');
         statusDot.className = isConnected ? 'status-dot connected' : 'status-dot';
         dbgGesture.textContent = 'NO HAND';
+        lastRawY = null;
         return;
       }
 
@@ -463,7 +451,6 @@
 
       const landmarks = results.multiHandLandmarks[0];
 
-      // ── Рисуем скелет руки на canvas ─────────────────────
       drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
         color: 'rgba(99, 102, 241, 0.5)',
         lineWidth: 2,
@@ -475,14 +462,6 @@
         radius: 3,
       });
 
-      // ── Ключевые точки ───────────────────────────────────
-      //  Точка 4  = кончик большого пальца
-      //  Точка 8  = кончик указательного пальца
-      //  Точка 12 = кончик среднего пальца
-      //  Точка 16 = кончик безымянного пальца
-      //  Точка 6  = PIP указательного пальца
-      //  Точка 10 = PIP среднего пальца
-      //  Точка 14 = PIP безымянного пальца
       const thumbTip   = landmarks[4];
       const indexTip   = landmarks[8];
       const middleTip  = landmarks[12];
@@ -491,70 +470,57 @@
       const middlePip  = landmarks[10];
       const ringPip    = landmarks[14];
 
-      // ── Координаты курсора по указательному пальцу (нормализованные 0..1) ────────
       const rawX = 1.0 - indexTip.x;
       const rawY = indexTip.y;
 
-      // Экспоненциальное сглаживание
       smoothX = smoothX * CONFIG.SMOOTHING + rawX * (1 - CONFIG.SMOOTHING);
       smoothY = smoothY * CONFIG.SMOOTHING + rawY * (1 - CONFIG.SMOOTHING);
 
-      // Ограничиваем в [0, 1]
       const x = Math.max(0, Math.min(1, smoothX));
       const y = Math.max(0, Math.min(1, smoothY));
 
-      // ── Pinch-жест ───────────────────────────────────────
       const pinchDist = distance(thumbTip, indexTip);
 
-      // ── Жест трёх пальцев для скролла ─────────────────────
       const indexExtended = indexTip.y < indexPip.y;
       const middleExtended = middleTip.y < middlePip.y;
-      const ringExtended = ringTip.y < ringPip.y;
-      const threeFingerScroll = indexExtended && middleExtended && ringExtended && !isPinching;
+      const twoFingerScroll = indexExtended && middleExtended && !isPinching;
 
-      // Гистерезис для pinch
       if (!isPinching && pinchDist < CONFIG.PINCH_THRESHOLD) {
         isPinching = true;
         isScrolling = false;
         send({ type: 'PINCH_START', x, y });
-        console.log('🤏 PINCH START');
-
         if (navigator.vibrate) navigator.vibrate(30);
       } else if (isPinching && pinchDist > CONFIG.PINCH_RELEASE_THRESHOLD) {
         isPinching = false;
         send({ type: 'PINCH_END', x, y });
-        console.log('✋ PINCH END');
       }
 
-      // ── Обработчик скролла трёх пальцев ───────────────────
-      if (threeFingerScroll) {
-        const indexDirection = indexPip.y - indexTip.y;
-        const scrollThreshold = 0.03;
-        const scrollAmount = Math.sign(indexDirection) * Math.min(1, Math.abs(indexDirection) * 4);
+      let scrollAmount = 0;
+      if (lastRawY !== null) {
+        scrollAmount = (rawY - lastRawY) * CONFIG.SCROLL_SPEED;
+      }
+      lastRawY = rawY;
 
+      if (twoFingerScroll) {
         if (!isScrolling) {
           isScrolling = true;
           send({ type: 'SCROLL_START', x, y });
-          console.log('🖐️ SCROLL START');
         }
 
-        if (Math.abs(indexDirection) > scrollThreshold) {
-          send({ type: 'SCROLL', x, y, deltaY: -scrollAmount });
+        if (Math.abs(scrollAmount) > CONFIG.SCROLL_THRESHOLD) {
+          send({ type: 'SCROLL', x, y, deltaY: scrollAmount });
         }
       } else if (isScrolling) {
         isScrolling = false;
         send({ type: 'SCROLL_END', x, y });
-        console.log('🛑 SCROLL END');
       }
 
-      // ── Отправка координат (с throttle) ──────────────────
       const now = performance.now();
       if (now - lastSendTime >= CONFIG.SEND_INTERVAL_MS) {
         send({ type: 'MOVE', x, y });
         lastSendTime = now;
       }
 
-      // ── Обновляем отладочный UI ──────────────────────────
       dbgX.textContent = x.toFixed(3);
       dbgY.textContent = y.toFixed(3);
       dbgPinch.textContent = pinchDist.toFixed(3);
@@ -562,15 +528,12 @@
       dbgGesture.textContent = isPinching ? '🤏 PINCH' : (isScrolling ? '🖐️ SCROLL' : '✋ MOVE');
       dbgGesture.className = `value ${isPinching || isScrolling ? 'active' : ''}`;
 
-      // Статус — трекинг активен
       if (isConnected) {
         statusDot.className = 'status-dot tracking';
         statusText.textContent = 'Трекинг';
       }
 
-      // ── Визуальная подсказка pinch на canvas ──────────────
       if (isPinching) {
-        // Рисуем линию между большим и указательным пальцами
         const cx = canvasEl.width;
         const cy = canvasEl.height;
         canvasCtx.beginPath();

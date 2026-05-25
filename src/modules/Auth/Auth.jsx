@@ -239,6 +239,7 @@ const Auth = () => {
               <span>{t('auth.continueGoogle') || 'Continue with Google'}</span>
             </button>
             
+            {/* Telegram login temporarily hidden — domain propagation pending
             <div className="mb-4">
                <TelegramLoginButton 
                  botName="merkezcrmbot" 
@@ -247,6 +248,7 @@ const Auth = () => {
                  cornerRadius={16}
                />
             </div>
+            */}
             
             <div className="mt-auto pt-6 text-[11px] text-gray-400 font-bold uppercase tracking-widest flex items-center justify-between">
               <span>© 2024 Merkez</span>
