@@ -243,7 +243,11 @@ function App() {
         </Route>
       </Routes>
       <Toaster position="top-right" />
-      <AirMouseReceiver serverUrl="ws://localhost:8765" />
+      <AirMouseReceiver 
+        serverUrl="ws://localhost:8765" 
+        enabled={localStorage.getItem('merkez_airmouse') === 'true'}
+        showStatusBadge={false}
+      />
     </BrowserRouter>
     </UserProvider>
   );

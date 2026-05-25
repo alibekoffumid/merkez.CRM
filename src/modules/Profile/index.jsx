@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2, Languages, Monitor, Moon, Sun, Check } from 'lucide-react';
+import { User, Mail, Bell, Shield, Globe, Camera, Save, LogOut, MapPin, Phone, Clock, FileText, Building2, CheckCircle2, Languages, Monitor, Moon, Sun, Check, Hand } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '../../core/UserContext';
@@ -33,6 +33,21 @@ const Profile = () => {
   const [themePreference, setThemePreference] = useState(() => {
     return localStorage.getItem('merkez_theme') || 'light';
   });
+
+  const [airMouseEnabled, setAirMouseEnabled] = useState(() => {
+    return localStorage.getItem('merkez_airmouse') === 'true';
+  });
+
+  const [airMouseUrl, setAirMouseUrl] = useState(() => {
+    return localStorage.getItem('merkez_airmouse_url') || 'ws://localhost:8765';
+  });
+
+  const toggleAirMouse = (val) => {
+    setAirMouseEnabled(val);
+    localStorage.setItem('merkez_airmouse', val ? 'true' : 'false');
+    // Reload the page so App.jsx picks up the new localStorage value
+    setTimeout(() => window.location.reload(), 300);
+  };
 
   const [notificationPrefs, setNotificationPrefs] = useState(() => {
     const saved = localStorage.getItem('merkez_notifications');
@@ -596,6 +611,61 @@ const Profile = () => {
                        )})}
                      </div>
                    </div>
+
+                    {/* Air Mouse Section */}
+                    <div className="pt-10 border-t border-gray-50">
+                      <div className="flex items-center space-x-3 mb-8">
+                         <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-500">
+                           <Hand className="w-5 h-5" />
+                         </div>
+                         <div>
+                           <h3 className="text-xl font-black text-gray-900 tracking-tight">Air Mouse</h3>
+                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-0.5">Управление жестами руки</p>
+                         </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Main toggle */}
+                        <div
+                          onClick={() => toggleAirMouse(!airMouseEnabled)}
+                          className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all cursor-pointer ${
+                            airMouseEnabled
+                              ? 'border-indigo-200 bg-indigo-50/50 shadow-lg shadow-indigo-100'
+                              : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-2xl transition-all ${
+                              airMouseEnabled ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'bg-gray-100 text-gray-400'
+                            }`}>
+                              <Hand className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <p className="font-black text-gray-900">Air Mouse</p>
+                              <p className="text-xs text-gray-400 font-bold mt-0.5">
+                                {airMouseEnabled ? '🟢 Включено — перезагрузка применит настройку' : '⚫ Выключено'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`w-14 h-7 rounded-full relative transition-all duration-300 ${
+                            airMouseEnabled ? 'bg-indigo-500 shadow-lg shadow-indigo-200' : 'bg-gray-200'
+                          }`}>
+                            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
+                              airMouseEnabled ? 'left-8' : 'left-1'
+                            }`} />
+                          </div>
+                        </div>
+
+                        {/* Info card */}
+                        <div className="p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                          <p className="text-xs font-bold text-indigo-700/70 leading-relaxed">
+                            🖐️ <strong>Air Mouse</strong> позволяет управлять CRM движениями руки через камеру смартфона.<br />
+                            Для работы нужен запущенный сервер: <code className="bg-indigo-100 px-1.5 py-0.5 rounded text-[11px]">node air-mouse/server.js</code><br />
+                            Откройте <code className="bg-indigo-100 px-1.5 py-0.5 rounded text-[11px]">air-mouse/controller.html</code> на телефоне в одной WiFi-сети.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                 </div>
               )}
             </div>
