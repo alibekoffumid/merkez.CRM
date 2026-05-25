@@ -141,9 +141,14 @@ function App() {
     return localStorage.getItem('merkez_airmouse') === 'true';
   });
 
+  const [airMouseDevice, setAirMouseDevice] = React.useState(() => {
+    return localStorage.getItem('merkez_airmouse_device') || 'phone';
+  });
+
   React.useEffect(() => {
     const handleToggle = () => {
       setAirMouseEnabled(localStorage.getItem('merkez_airmouse') === 'true');
+      setAirMouseDevice(localStorage.getItem('merkez_airmouse_device') || 'phone');
     };
     window.addEventListener('merkez_airmouse_toggled', handleToggle);
     return () => window.removeEventListener('merkez_airmouse_toggled', handleToggle);
@@ -258,6 +263,7 @@ function App() {
       <AirMouseReceiver 
         sessionCode={localStorage.getItem('merkez_airmouse_session')}
         enabled={airMouseEnabled}
+        device={airMouseDevice}
       />
     </BrowserRouter>
     </UserProvider>

@@ -112,6 +112,30 @@ const AirMouseReceiver = ({ sessionCode, enabled = true }) => {
           </div>
         </div>
       )}
+      
+      {/* Если выбрана камера ПК, встраиваем контроллер как iframe, чтобы браузер не морозил вкладку */}
+      {device === 'pc' && (
+        <iframe
+          src={`/air-mouse.html?session=${sessionCode}&mode=iframe`}
+          allow="camera; microphone"
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            width: '280px',
+            height: '210px',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+            zIndex: 99998,
+            background: '#000',
+            opacity: 0.8,
+            transition: 'opacity 0.2s'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = 1}
+          onMouseLeave={(e) => e.target.style.opacity = 0.8}
+        />
+      )}
     </>
   );
 };
