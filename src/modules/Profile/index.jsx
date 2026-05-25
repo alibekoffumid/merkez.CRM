@@ -38,9 +38,18 @@ const Profile = () => {
     return localStorage.getItem('merkez_airmouse') === 'true';
   });
 
-  const [airMouseUrl, setAirMouseUrl] = useState(() => {
-    return localStorage.getItem('merkez_airmouse_url') || 'ws://localhost:8765';
+  // Генерируем или читаем код сессии — 6 случайных символов
+  const [airMouseSession] = useState(() => {
+    let code = localStorage.getItem('merkez_airmouse_session');
+    if (!code) {
+      code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      localStorage.setItem('merkez_airmouse_session', code);
+    }
+    return code;
   });
+
+  // URL для QR-кода
+  const airMouseControllerUrl = `https://saas.digitall.llc/air-mouse.html?session=${airMouseSession}`;
 
   const toggleAirMouse = (val) => {
     setAirMouseEnabled(val);
@@ -656,14 +665,57 @@ const Profile = () => {
                           </div>
                         </div>
 
-                        {/* Info card */}
-                        <div className="p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
-                          <p className="text-xs font-bold text-indigo-700/70 leading-relaxed">
-                            🖐️ <strong>Air Mouse</strong> позволяет управлять CRM движениями руки через камеру смартфона.<br />
-                            Для работы нужен запущенный сервер: <code className="bg-indigo-100 px-1.5 py-0.5 rounded text-[11px]">node air-mouse/server.js</code><br />
-                            Откройте <code className="bg-indigo-100 px-1.5 py-0.5 rounded text-[11px]">air-mouse/controller.html</code> на телефоне в одной WiFi-сети.
-                          </p>
-                        </div>
+                         {/* QR + инструкция — показываем только когда включено */}
+                         {airMouseEnabled && (
+                           <div className="bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-3xl p-6 md:p-8">
+                             <div className="flex flex-col md:flex-row items-center gap-8">
+
+                               {/* QR-код */}
+                               <div className="shrink-0 flex flex-col items-center gap-3">
+                                 <div className="bg-white rounded-2xl p-3 shadow-xl shadow-indigo-100">
+                                   <img
+                                     src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(airMouseControllerUrl)}&color=6366f1&bgcolor=ffffff&qzone=1`}
+                                     alt="Air Mouse QR"
+                                     width={160} height={160}
+                                     className="rounded-xl"
+                                   />
+                                 </div>
+                                 <div className="text-center">
+                                   <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Код сессии</p>
+                                   <p className="text-2xl font-black text-indigo-600 tracking-[0.2em]">{airMouseSession}</p>
+                                 </div>
+                               </div>
+
+                               {/* Шаги */}
+                               <div className="flex-1 space-y-4">
+                                 <h4 className="text-lg font-black text-gray-900">Как подключить телефон</h4>
+                                 {[
+                                   { step: '1', icon: '📱', text: 'Наведи камеру телефона на QR-код' },
+                                   { step: '2', icon: '📸', text: 'Разреши доступ к камере' },
+                                   { step: '3', icon: '✋', text: 'Подними руку — курсор на экране компьютера начнёт двигаться' },
+                                   { step: '4', icon: '🤏', text: 'Сожми большой и указательный — клик' },
+                                 ].map(({ step, icon, text }) => (
+                                   <div key={step} className="flex items-center gap-4">
+                                     <div className="w-8 h-8 shrink-0 rounded-xl bg-indigo-500 text-white flex items-center justify-center text-xs font-black shadow-md shadow-indigo-200">
+                                       {step}
+                                     </div>
+                                     <span className="text-xl">{icon}</span>
+                                     <span className="text-sm font-bold text-gray-700">{text}</span>
+                                   </div>
+                                 ))}
+                                 <a
+                                   href={airMouseControllerUrl}
+                                   target="_blank"
+                                   rel="noreferrer"
+                                   className="inline-flex items-center gap-2 mt-2 px-5 py-3 bg-indigo-500 text-white rounded-2xl text-sm font-black hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+                                 >
+                                   <Hand className="w-4 h-4" />
+                                   Открыть контроллер
+                                 </a>
+                               </div>
+                             </div>
+                           </div>
+                         )}
                       </div>
                     </div>
                 </div>

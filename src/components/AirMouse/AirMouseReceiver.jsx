@@ -1,238 +1,115 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+/**
+ * AirMouseReceiver — неоновый курсор + симуляция кликов
+ * Использует Supabase Realtime. Никакого локального сервера.
+ */
+
+import React, { useEffect, useRef } from 'react';
 import { useAirMouse } from './useAirMouse';
 
-const CURSOR_SIZE = 34;
+const AirMouseReceiver = ({ sessionCode, enabled = true }) => {
+  const { screenX, screenY, isPinching, isConnected } = useAirMouse(
+    enabled ? sessionCode : null
+  );
 
-const AirMouseReceiver = ({ serverUrl = 'ws://localhost:8765', showStatusBadge = true, enabled = true }) => {
-  const { x, y, isPinching, isConnected, scrollDelta, scrollTick, connect, disconnect } = useAirMouse(serverUrl);
-  const cursorRef = useRef(null);
-  const scrollContainerRef = useRef(null);
-  const currentTargetRef = useRef(null);
-  const lastPointerPositionRef = useRef({ x: 0.5, y: 0.5 });
-  const [currentTargetInfo, setCurrentTargetInfo] = useState('none');
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const lastClickTimeRef = useRef(0);
+  const cursorRef  = useRef(null);
+  const rippleRef  = useRef(null);
+  const wasPinch   = useRef(false);
 
-  const getScrollContainer = useCallback(() => {
-    if (scrollContainerRef.current) return scrollContainerRef.current;
-
-    const candidates = [
-      document.querySelector('.h-full.overflow-y-auto'),
-      document.querySelector('.overflow-y-auto'),
-      document.querySelector('main .overflow-y-auto'),
-      document.scrollingElement,
-      document.documentElement,
-      document.body,
-    ];
-
-    const found = candidates.find((el) => {
-      if (!el || !(el instanceof HTMLElement)) return false;
-      const style = window.getComputedStyle(el);
-      return el.scrollHeight > el.clientHeight && /auto|scroll/.test(style.overflowY);
-    });
-
-    scrollContainerRef.current = found || document.scrollingElement || document.documentElement;
-    return scrollContainerRef.current;
-  }, []);
-
-  const dispatchEventToTarget = useCallback((target, type, clientX, clientY, button = 0) => {
-    if (!target) return;
-
-    const eventInit = {
-      view: window,
-      bubbles: true,
-      cancelable: true,
-      clientX,
-      clientY,
-      button,
-      pointerId: 1,
-      pointerType: 'mouse',
-      isPrimary: true,
-    };
-
-    if (typeof PointerEvent === 'function' && /^(mousedown|mousemove|mouseup|click|pointerover|pointerout|pointerenter|pointerleave)$/.test(type)) {
-      const pointerEvent = new PointerEvent(type.replace(/^mouse/, 'pointer'), eventInit);
-      target.dispatchEvent(pointerEvent);
-    }
-
-    const mouseEvent = new MouseEvent(type, eventInit);
-    target.dispatchEvent(mouseEvent);
-
-    if (/^(mouseover|mouseout|mouseenter|mouseleave)$/.test(type)) {
-      const domEvent = new Event(type, { bubbles: true, cancelable: true });
-      target.dispatchEvent(domEvent);
-    }
-  }, []);
-
-  const updatePointerTarget = useCallback((clientX, clientY) => {
-    const target = document.elementFromPoint(clientX, clientY);
-    const prevTarget = currentTargetRef.current;
-
-    if (prevTarget !== target) {
-      if (prevTarget) {
-        dispatchEventToTarget(prevTarget, 'mouseout', clientX, clientY);
-        dispatchEventToTarget(prevTarget, 'pointerout', clientX, clientY);
-        dispatchEventToTarget(prevTarget, 'mouseleave', clientX, clientY);
-      }
-      if (target) {
-        dispatchEventToTarget(target, 'mouseover', clientX, clientY);
-        dispatchEventToTarget(target, 'pointerover', clientX, clientY);
-        dispatchEventToTarget(target, 'mouseenter', clientX, clientY);
-      }
-      currentTargetRef.current = target;
-      setCurrentTargetInfo(target ? `${target.tagName.toLowerCase()}${target.id ? `#${target.id}` : ''}${target.className ? `.${String(target.className).replace(/\s+/g, '.')}` : ''}` : 'none');
-    }
-
-    return target;
-  }, [dispatchEventToTarget]);
-
-  const emulateMouseEvent = useCallback((type, clientX, clientY, button = 0) => {
-    const target = updatePointerTarget(clientX, clientY);
-    dispatchEventToTarget(target, type, clientX, clientY, button);
-  }, [dispatchEventToTarget, updatePointerTarget]);
-
-  const triggerClick = useCallback((clientX, clientY) => {
-    const target = updatePointerTarget(clientX, clientY);
-    if (!target) return;
-    if (typeof target.focus === 'function') target.focus();
-    if (typeof target.click === 'function') {
-      target.click();
-    } else {
-      dispatchEventToTarget(target, 'click', clientX, clientY, 0);
-    }
-  }, [dispatchEventToTarget, updatePointerTarget]);
-
-  const handlePinch = useCallback(() => {
-    const now = Date.now();
-    if (now - lastClickTimeRef.current < 200) { // Debounce clicks
-      return;
-    }
-
-    const clientX = x * window.innerWidth;
-    const clientY = y * window.innerHeight;
-
-    if (!isMouseDown) {
-      emulateMouseEvent('mousedown', clientX, clientY, 0);
-      setIsMouseDown(true);
-    }
-    lastClickTimeRef.current = now;
-  }, [x, y, isMouseDown, emulateMouseEvent]);
-
-  const handlePinchRelease = useCallback(() => {
-    if (isMouseDown) {
-      const clientX = x * window.innerWidth;
-      const clientY = y * window.innerHeight;
-
-      emulateMouseEvent('mouseup', clientX, clientY, 0);
-      triggerClick(clientX, clientY);
-      setIsMouseDown(false);
-    }
-  }, [x, y, isMouseDown, emulateMouseEvent, triggerClick]);
-
+  // Позиция курсора через прямой DOM (быстрее, без ре-рендера)
   useEffect(() => {
-    if (!enabled) {
-      disconnect();
-      return;
-    }
-    connect();
-    return () => disconnect();
-  }, [enabled, connect, disconnect]);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    const clientX = x * window.innerWidth;
-    const clientY = y * window.innerHeight;
-    const prev = lastPointerPositionRef.current;
-    const deltaX = clientX - prev.x;
-    const deltaY = clientY - prev.y;
-
     if (cursorRef.current) {
-      cursorRef.current.style.transform = `translate3d(${clientX - CURSOR_SIZE / 2}px, ${clientY - CURSOR_SIZE / 2}px, 0)`;
+      cursorRef.current.style.left = `${screenX}px`;
+      cursorRef.current.style.top  = `${screenY}px`;
     }
+  }, [screenX, screenY]);
 
-    if (deltaX !== 0 || deltaY !== 0) {
-      emulateMouseEvent('mousemove', clientX, clientY, 0);
-    }
-
-    lastPointerPositionRef.current = { x: clientX, y: clientY };
-
-    if (isPinching) {
-      handlePinch();
-    } else {
-      handlePinchRelease();
-    }
-  }, [x, y, isPinching, enabled, handlePinch, handlePinchRelease, emulateMouseEvent]);
-
+  // Симуляция кликов при pinch
   useEffect(() => {
-    if (!enabled || scrollTick === 0) return;
-    if (!scrollDelta) return;
+    if (isPinching && !wasPinch.current) {
+      wasPinch.current = true;
 
-    const scrollTarget = getScrollContainer();
-    const amount = scrollDelta * 700;
+      const el = document.elementFromPoint(screenX, screenY);
+      if (el) {
+        const init = { bubbles: true, cancelable: true, clientX: screenX, clientY: screenY, view: window };
+        el.dispatchEvent(new MouseEvent('mousedown', init));
+        el.dispatchEvent(new MouseEvent('mouseup',   init));
+        el.dispatchEvent(new MouseEvent('click',     init));
 
-    if (scrollTarget === document.scrollingElement || scrollTarget === document.documentElement || scrollTarget === document.body) {
-      window.scrollBy({ top: amount, left: 0, behavior: 'auto' });
-      return;
+        if (['INPUT','BUTTON','A','TEXTAREA','SELECT'].includes(el.tagName) || el.getAttribute('tabindex')) {
+          el.focus?.();
+        }
+      }
+
+      // Ripple
+      if (rippleRef.current) {
+        const r = rippleRef.current;
+        r.style.animation = 'none';
+        r.offsetHeight; // reflow
+        r.style.animation = 'airMouseRipple 0.5s ease-out forwards';
+      }
+    } else if (!isPinching && wasPinch.current) {
+      wasPinch.current = false;
     }
+  }, [isPinching, screenX, screenY]);
 
-    if (typeof scrollTarget.scrollBy === 'function') {
-      scrollTarget.scrollBy({ top: amount, left: 0, behavior: 'auto' });
-    } else if ('scrollTop' in scrollTarget) {
-      scrollTarget.scrollTop += amount;
-    }
-  }, [scrollDelta, scrollTick, enabled, getScrollContainer]);
-
-  if (!enabled) return null;
+  if (!enabled || !sessionCode) return null;
 
   return (
     <>
-      <div
-        ref={cursorRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: CURSOR_SIZE,
-          height: CURSOR_SIZE,
-          borderRadius: '50%',
-          backgroundColor: isPinching ? 'rgba(239, 68, 68, 0.75)' : 'rgba(59, 130, 246, 0.75)',
-          border: '2px solid rgba(255,255,255,0.95)',
-          boxShadow: isPinching ? '0 0 0 14px rgba(239, 68, 68, 0.25)' : '0 0 0 16px rgba(59, 130, 246, 0.30)',
-          zIndex: 999999,
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes airMouseRipple {
+          0%   { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+          100% { transform: translate(-50%,-50%) scale(3); opacity: 0; }
+        }
+      `}} />
+
+      {/* Курсор — показываем только когда подключено */}
+      {isConnected && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          zIndex: 99999,
           pointerEvents: 'none',
-          willChange: 'transform',
-          opacity: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div
-          style={{
-            width: CURSOR_SIZE * 0.4,
-            height: CURSOR_SIZE * 0.4,
-            borderRadius: '50%',
-            backgroundColor: 'rgba(255,255,255,0.95)',
-            boxShadow: '0 0 0 4px rgba(255,255,255,0.2)',
-          }}
-        />
-      </div>
-      {showStatusBadge && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 10,
-            left: 10,
-            padding: '5px 10px',
-            borderRadius: '5px',
-            backgroundColor: isConnected ? 'green' : 'red',
-            color: 'white',
-            fontSize: '12px',
-            zIndex: 100000,
-          }}
-        >
-          {isConnected ? 'AirMouse: Connected' : 'AirMouse: Disconnected'}
+          overflow: 'hidden',
+        }}>
+          <div
+            ref={cursorRef}
+            style={{
+              position: 'absolute',
+              width:  isPinching ? 20 : 32,
+              height: isPinching ? 20 : 32,
+              borderRadius: '50%',
+              transform: 'translate(-50%, -50%)',
+              border: `2px solid ${isPinching ? 'rgba(34,197,94,0.9)' : 'rgba(99,102,241,0.8)'}`,
+              background: isPinching
+                ? 'radial-gradient(circle, rgba(34,197,94,0.4) 0%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 70%)',
+              boxShadow: isPinching
+                ? '0 0 30px rgba(34,197,94,0.7), 0 0 80px rgba(34,197,94,0.3)'
+                : '0 0 20px rgba(99,102,241,0.5), 0 0 60px rgba(99,102,241,0.2)',
+              transition: 'width 0.12s, height 0.12s, border-color 0.12s, box-shadow 0.12s',
+              willChange: 'left, top',
+            }}
+          >
+            {/* Центральная точка */}
+            <div style={{
+              position: 'absolute', top: '50%', left: '50%',
+              width: isPinching ? 8 : 5, height: isPinching ? 8 : 5,
+              borderRadius: '50%',
+              background: isPinching ? 'rgba(34,197,94,1)' : 'rgba(99,102,241,0.9)',
+              transform: 'translate(-50%, -50%)',
+              transition: 'all 0.12s',
+            }} />
+
+            {/* Ripple */}
+            <div ref={rippleRef} style={{
+              position: 'absolute', top: '50%', left: '50%',
+              width: 40, height: 40,
+              borderRadius: '50%',
+              border: '2px solid rgba(34,197,94,0.6)',
+              transform: 'translate(-50%,-50%) scale(0)',
+              opacity: 0,
+            }} />
+          </div>
         </div>
       )}
     </>

@@ -1,85 +1,109 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+/**
+ * useAirMouse — Supabase Realtime version
+ * ============================================================
+ * Подписывается на Supabase Realtime broadcast-канал
+ * `air-mouse-{sessionCode}` и транслирует жесты на CRM-курсор.
+ *
+ * Никакого локального сервера не нужно — всё через Supabase.
+ * ============================================================
+ */
 
-export const useAirMouse = (serverUrl) => {
-  const [x, setX] = useState(0.5);
-  const [y, setY] = useState(0.5);
-  const [isPinching, setIsPinching] = useState(false);
-  const [scrollDelta, setScrollDelta] = useState(0);
-  const [scrollTick, setScrollTick] = useState(0);
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { supabase } from '../../supabaseClient';
+
+export function useAirMouse(sessionCode) {
+  // ── Состояние ─────────────────────────────────────────────
+  const [isPinching, setIsPinching]   = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const wsRef = useRef(null);
-  const lastPositionRef = useRef({ x: 0.5, y: 0.5 });
-  const isConnectingRef = useRef(false);
 
-  const connect = useCallback(() => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      return;
-    }
-    if (isConnectingRef.current) {
-      return;
-    }
+  // Интерполированные координаты (через RAF)
+  const targetPos  = useRef({ x: 0.5, y: 0.5 });
+  const currentPos = useRef({ x: 0.5, y: 0.5 });
+  const [position, setPosition] = useState({ x: 0.5, y: 0.5 });
+  const rafId = useRef(null);
 
-    isConnectingRef.current = true;
-    console.log(`Connecting to WebSocket at ${serverUrl}`);
-    const ws = new WebSocket(serverUrl);
+  const channelRef = useRef(null);
+  const wasPinching = useRef(false);
 
-    ws.onopen = () => {
-      console.log("AirMouse WebSocket connected");
-      setIsConnected(true);
-      isConnectingRef.current = false;
-    };
+  // ── Анимационный цикл (lerp) ──────────────────────────────
+  const animate = useCallback(() => {
+    const LERP = 0.18;
+    currentPos.current.x += (targetPos.current.x - currentPos.current.x) * LERP;
+    currentPos.current.y += (targetPos.current.y - currentPos.current.y) * LERP;
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const messageType = String(data.type || '').toUpperCase();
-
-      if (messageType === 'MOVE') {
-        setX(data.x);
-        setY(data.y);
-        lastPositionRef.current = { x: data.x, y: data.y };
-      } else if (messageType === 'SCROLL') {
-        if (typeof data.deltaY === 'number') {
-          setScrollDelta(data.deltaY);
-          setScrollTick((tick) => tick + 1);
-        }
-      } else if (messageType === 'PINCH' || messageType === 'PINCH_START') {
-        setIsPinching(true);
-      } else if (messageType === 'PINCH_END') {
-        setIsPinching(false);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error("AirMouse WebSocket error:", error);
-      isConnectingRef.current = false;
-    };
-
-    ws.onclose = () => {
-      console.log("AirMouse WebSocket disconnected");
-      setIsConnected(false);
-      isConnectingRef.current = false;
-      // Attempt to reconnect after a delay
-      setTimeout(connect, 3000);
-    };
-
-    wsRef.current = ws;
-  }, [serverUrl]);
-
-  const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
+    setPosition({ x: currentPos.current.x, y: currentPos.current.y });
+    rafId.current = requestAnimationFrame(animate);
   }, []);
 
+  // ── Подключение к Supabase Realtime ──────────────────────
   useEffect(() => {
-    // Initial connection attempt
-    connect();
+    if (!sessionCode) return;
+
+    const channelName = `air-mouse-${sessionCode}`;
+
+    // Запускаем RAF
+    rafId.current = requestAnimationFrame(animate);
+
+    // Подписываемся на broadcast канал
+    const ch = supabase.channel(channelName, {
+      config: { broadcast: { self: false } }
+    });
+
+    ch.on('broadcast', { event: 'gesture' }, ({ payload }) => {
+      if (!payload) return;
+
+      switch (payload.type) {
+        case 'MOVE':
+          targetPos.current.x = payload.x;
+          targetPos.current.y = payload.y;
+          break;
+
+        case 'PINCH_START':
+          if (payload.x !== undefined) {
+            targetPos.current.x = payload.x;
+            targetPos.current.y = payload.y;
+          }
+          if (!wasPinching.current) {
+            wasPinching.current = true;
+            setIsPinching(true);
+          }
+          break;
+
+        case 'PINCH_END':
+          if (payload.x !== undefined) {
+            targetPos.current.x = payload.x;
+            targetPos.current.y = payload.y;
+          }
+          if (wasPinching.current) {
+            wasPinching.current = false;
+            setIsPinching(false);
+          }
+          break;
+
+        default:
+          break;
+      }
+    }).subscribe((status) => {
+      setIsConnected(status === 'SUBSCRIBED');
+    });
+
+    channelRef.current = ch;
 
     return () => {
-      disconnect();
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+      supabase.removeChannel(ch);
     };
-  }, [connect, disconnect]);
+  }, [sessionCode, animate]);
 
-  return { x, y, isPinching, isConnected, scrollDelta, scrollTick, connect, disconnect };
-};
+  // ── Публичный API ─────────────────────────────────────────
+  return {
+    x: position.x,
+    y: position.y,
+    screenX: position.x * (typeof window !== 'undefined' ? window.innerWidth  : 1920),
+    screenY: position.y * (typeof window !== 'undefined' ? window.innerHeight : 1080),
+    isPinching,
+    isConnected,
+  };
+}
+
+export default useAirMouse;

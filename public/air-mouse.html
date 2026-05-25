@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Air Mouse — Merkez CRM</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --blue: #6366f1;
+      --green: #22c55e;
+      --red: #ef4444;
+      --bg: #07071a;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+      background: var(--bg);
+      color: #fff;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: rgba(7,7,26,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .logo { font-size: 17px; font-weight: 900; letter-spacing: -0.02em; }
+    .logo span { color: var(--blue); }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--card);
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--red);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .dot.on  { background: var(--green); box-shadow: 0 0 10px rgba(34,197,94,0.7); }
+    .dot.tracking { background: var(--blue); box-shadow: 0 0 10px rgba(99,102,241,0.7); animation: blink 1.4s infinite; }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+    /* ── Camera area ────────────────────────── */
+    .camera-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    video, canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    canvas { z-index: 2; }
+
+    /* ── Pinch indicator ────────────────────── */
+    .pinch-indicator {
+      position: absolute;
+      top: 20px; left: 50%;
+      transform: translateX(-50%) scale(0);
+      z-index: 5;
+      background: rgba(34,197,94,0.85);
+      backdrop-filter: blur(12px);
+      padding: 8px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+    }
+    .pinch-indicator.show { transform: translateX(-50%) scale(1); }
+
+    /* ── No-hand overlay ────────────────────── */
+    .no-hand {
+      position: absolute;
+      inset: 0; z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(7,7,26,0.65);
+      backdrop-filter: blur(6px);
+      transition: opacity 0.4s;
+    }
+    .no-hand.hidden { opacity: 0; pointer-events: none; }
+    .no-hand .emoji { font-size: 72px; }
+    .no-hand p { font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.6); }
+
+    /* ── Stats strip ─────────────────────────── */
+    .stats {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      z-index: 4;
+      display: flex;
+      gap: 10px;
+      padding: 16px;
+      background: linear-gradient(transparent, rgba(7,7,26,0.9));
+    }
+
+    .stat-card {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .stat-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.3); margin-bottom: 4px; }
+    .stat-value { font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
+
+    /* ── Footer ─────────────────────────────── */
+    footer {
+      padding: 16px 20px;
+      background: rgba(7,7,26,0.95);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .session-badge {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .session-badge strong {
+      color: var(--blue);
+      font-size: 15px;
+      letter-spacing: 0.2em;
+    }
+
+    .gesture-hint {
+      display: flex;
+      gap: 10px;
+    }
+    .hint-card {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.5;
+    }
+    .hint-card .icon { font-size: 24px; display: block; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo"><span>digit</span>all.llc — Air Mouse</div>
+    <div class="status-pill">
+      <div class="dot" id="dot"></div>
+      <span id="statusLabel">Подключение...</span>
+    </div>
+  </header>
+
+  <div class="camera-wrap">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+
+    <div class="pinch-indicator" id="pinchIndicator">🤏 Клик!</div>
+
+    <div class="no-hand" id="noHand">
+      <span class="emoji">🖐️</span>
+      <p>Поднесите руку к камере</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Позиция X</div>
+        <div class="stat-value" id="sX">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Позиция Y</div>
+        <div class="stat-value" id="sY">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pinch</div>
+        <div class="stat-value" id="sPinch">—</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="session-badge">Сессия: <strong id="sessionCode">—</strong></div>
+    <div class="gesture-hint">
+      <div class="hint-card"><span class="icon">✋</span>Ладонь<br>= Курсор</div>
+      <div class="hint-card"><span class="icon">🤏</span>Сжать пальцы<br>= Клик</div>
+    </div>
+  </footer>
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    //  КОНФИГУРАЦИЯ
+    // ═══════════════════════════════════════════════════════
+
+    // Production Supabase (anon key — публичный, OK)
+    const SUPABASE_URL  = 'https://rvywrxnmgwwudihgrxdp.supabase.co';
+    const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ2eXdyeG5tZ3d3dWRpaGdyeGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjIzNjYsImV4cCI6MjA5MDgzODM2Nn0.iD3osORy7nR5wlhjuyiXKiGt-6s7VGpmbeim_GHw2wI';
+
+    const PINCH_START_THRESH   = 0.065;
+    const PINCH_RELEASE_THRESH = 0.095;
+    const SMOOTHING            = 0.60;
+    const SEND_INTERVAL_MS     = 20;   // ~50fps
+
+    // ─── Получить код сессии из URL (?session=ABCDEF) ───────
+    const params      = new URLSearchParams(location.search);
+    const sessionCode = params.get('session') || 'DEMO';
+    const channelName = `air-mouse-${sessionCode}`;
+
+    document.getElementById('sessionCode').textContent = sessionCode;
+
+    // ═══════════════════════════════════════════════════════
+    //  SUPABASE REALTIME BROADCAST
+    // ═══════════════════════════════════════════════════════
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let channel = null;
+    let isConnected = false;
+
+    const dot         = document.getElementById('dot');
+    const statusLabel = document.getElementById('statusLabel');
+
+    function setStatus(state, label) {
+      dot.className = 'dot ' + state;
+      statusLabel.textContent = label;
+    }
+
+    async function connectSupabase() {
+      channel = sb.channel(channelName, { config: { broadcast: { self: false } } });
+
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          isConnected = true;
+          setStatus('on', 'Подключено');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          isConnected = false;
+          setStatus('', 'Ошибка соединения');
+          setTimeout(connectSupabase, 3000);
+        }
+      });
+    }
+
+    connectSupabase();
+
+    // Отправка жеста в канал
+    function sendGesture(payload) {
+      if (!isConnected || !channel) return;
+      channel.send({ type: 'broadcast', event: 'gesture', payload });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  СОСТОЯНИЕ ТРЕКИНГА
+    // ═══════════════════════════════════════════════════════
+
+    let smoothX = 0.5, smoothY = 0.5;
+    let isPinching = false;
+    let lastSendTime = 0;
+
+    const videoEl  = document.getElementById('webcam');
+    const canvasEl = document.getElementById('overlay');
+    const ctx      = canvasEl.getContext('2d');
+    const noHand   = document.getElementById('noHand');
+    const pinchInd = document.getElementById('pinchIndicator');
+
+    function dist(a, b) {
+      return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    //  MEDIAPIPE HANDS
+    // ═══════════════════════════════════════════════════════
+
+    const hands = new Hands({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.6,
+    });
+
+    hands.onResults((results) => {
+      canvasEl.width  = results.image.width;
+      canvasEl.height = results.image.height;
+      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+      if (!results.multiHandLandmarks?.length) {
+        noHand.classList.remove('hidden');
+        if (isConnected) setStatus('on', 'Подключено');
+        document.getElementById('sX').textContent = '—';
+        document.getElementById('sY').textContent = '—';
+        document.getElementById('sPinch').textContent = '—';
+        return;
+      }
+
+      noHand.classList.add('hidden');
+
+      const lm = results.multiHandLandmarks[0];
+
+      // Рисуем скелет
+      drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(99,102,241,0.4)', lineWidth: 2 });
+      drawLandmarks(ctx, lm, { color: 'rgba(139,92,246,0.8)', fillColor: 'rgba(99,102,241,0.3)', lineWidth: 1, radius: 3 });
+
+      // Точки: 9=ладонь, 4=большой, 8=указательный
+      const palm  = lm[9];
+      const thumb = lm[4];
+      const index = lm[8];
+
+      // Зеркалим X (фронтальная камера)
+      const rawX = 1 - palm.x;
+      const rawY = palm.y;
+
+      smoothX = smoothX * SMOOTHING + rawX * (1 - SMOOTHING);
+      smoothY = smoothY * SMOOTHING + rawY * (1 - SMOOTHING);
+
+      const x = Math.max(0, Math.min(1, smoothX));
+      const y = Math.max(0, Math.min(1, smoothY));
+
+      // Pinch-жест
+      const pinchDist = dist(thumb, index);
+
+      if (!isPinching && pinchDist < PINCH_START_THRESH) {
+        isPinching = true;
+        pinchInd.classList.add('show');
+        sendGesture({ type: 'PINCH_START', x, y });
+        if (navigator.vibrate) navigator.vibrate(40);
+      } else if (isPinching && pinchDist > PINCH_RELEASE_THRESH) {
+        isPinching = false;
+        pinchInd.classList.remove('show');
+        sendGesture({ type: 'PINCH_END', x, y });
+      }
+
+      // Отправка MOVE с throttle
+      const now = performance.now();
+      if (now - lastSendTime >= SEND_INTERVAL_MS) {
+        sendGesture({ type: 'MOVE', x, y });
+        lastSendTime = now;
+      }
+
+      // Статус
+      setStatus('tracking', isPinching ? '🤏 Клик!' : 'Трекинг');
+
+      // Отладочные значения
+      document.getElementById('sX').textContent = x.toFixed(2);
+      document.getElementById('sY').textContent = y.toFixed(2);
+      document.getElementById('sPinch').textContent = pinchDist.toFixed(3);
+
+      // Подсветка pinch пальцев
+      if (isPinching) {
+        const W = canvasEl.width, H = canvasEl.height;
+        [thumb, index].forEach(pt => {
+          ctx.beginPath();
+          ctx.arc(pt.x * W, pt.y * H, 14, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(34,197,94,0.5)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(34,197,94,0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        });
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════
+    //  ЗАПУСК КАМЕРЫ
+    // ═══════════════════════════════════════════════════════
+
+    const camera = new Camera(videoEl, {
+      onFrame: async () => { await hands.send({ image: videoEl }); },
+      width: 640,
+      height: 480,
+      facingMode: 'user',
+    });
+
+    camera.start().catch(err => {
+      alert('Нет доступа к камере: ' + err.message);
+    });
+  </script>
+</body>
+</html>
