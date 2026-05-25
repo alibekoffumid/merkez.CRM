@@ -6,7 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useAirMouse } from './useAirMouse';
 
-const AirMouseReceiver = ({ sessionCode, enabled = true }) => {
+const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => {
   const { screenX, screenY, isPinching, isConnected } = useAirMouse(
     enabled ? sessionCode : null
   );
