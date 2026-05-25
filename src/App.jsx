@@ -137,6 +137,18 @@ function App() {
     setupListener();
   }, []);
 
+  const [airMouseEnabled, setAirMouseEnabled] = React.useState(() => {
+    return localStorage.getItem('merkez_airmouse') === 'true';
+  });
+
+  React.useEffect(() => {
+    const handleToggle = () => {
+      setAirMouseEnabled(localStorage.getItem('merkez_airmouse') === 'true');
+    };
+    window.addEventListener('merkez_airmouse_toggled', handleToggle);
+    return () => window.removeEventListener('merkez_airmouse_toggled', handleToggle);
+  }, []);
+
   return (
     <UserProvider>
       <BrowserRouter>
@@ -245,7 +257,7 @@ function App() {
       <Toaster position="top-right" />
       <AirMouseReceiver 
         sessionCode={localStorage.getItem('merkez_airmouse_session')}
-        enabled={localStorage.getItem('merkez_airmouse') === 'true'}
+        enabled={airMouseEnabled}
       />
     </BrowserRouter>
     </UserProvider>

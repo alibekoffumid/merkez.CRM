@@ -54,8 +54,7 @@ const Profile = () => {
   const toggleAirMouse = (val) => {
     setAirMouseEnabled(val);
     localStorage.setItem('merkez_airmouse', val ? 'true' : 'false');
-    // Reload the page so App.jsx picks up the new localStorage value
-    setTimeout(() => window.location.reload(), 300);
+    window.dispatchEvent(new Event('merkez_airmouse_toggled'));
   };
 
   const [notificationPrefs, setNotificationPrefs] = useState(() => {
