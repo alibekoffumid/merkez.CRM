@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/air-mouse.html",
+      "destination": "/air-mouse.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
