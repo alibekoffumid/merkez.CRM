@@ -774,6 +774,12 @@
     camera.start().catch(err => {
       alert('Нет доступа к камере: ' + err.message);
     });
+    // Periodic state diagnostics log to calLog
+    setInterval(() => {
+      if (calibrationState !== 'NONE') {
+        logDebug(`[DIAG] Global State: ${calibrationState}, X: ${calibrationData.xRaw.length}, Y: ${calibrationData.yRaw.length}`);
+      }
+    }, 1500);
   </script>
 </body>
 </html>
