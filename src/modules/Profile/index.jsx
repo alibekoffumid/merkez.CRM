@@ -49,7 +49,7 @@ const Profile = () => {
   });
 
   // URL для QR-кода
-  const airMouseControllerUrl = `https://saas.digitall.llc/air-mouse.html?session=${airMouseSession}`;
+  const airMouseControllerUrl = `https://saas.digitall.llc/air-mouse.html?session=${airMouseSession}&v=4`;
 
   const toggleAirMouse = (val) => {
     setAirMouseEnabled(val);
