@@ -24,7 +24,8 @@ import CyberCafeModule from './modules/CyberCafe';
 import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
+import { useClapDetector } from './components/AirMouse/useClapDetector';
 import AirMouseReceiver from './components/AirMouse/AirMouseReceiver';
 
 const isAppDomain = window.location.hostname.startsWith('saas.');
@@ -145,14 +146,49 @@ function App() {
     return localStorage.getItem('merkez_airmouse_device') || 'phone';
   });
 
+  const [clapActivationEnabled, setClapActivationEnabled] = React.useState(() => {
+    return localStorage.getItem('merkez_airmouse_clap_toggle') === 'true';
+  });
+
   React.useEffect(() => {
     const handleToggle = () => {
       setAirMouseEnabled(localStorage.getItem('merkez_airmouse') === 'true');
       setAirMouseDevice(localStorage.getItem('merkez_airmouse_device') || 'phone');
+      setClapActivationEnabled(localStorage.getItem('merkez_airmouse_clap_toggle') === 'true');
     };
     window.addEventListener('merkez_airmouse_toggled', handleToggle);
     return () => window.removeEventListener('merkez_airmouse_toggled', handleToggle);
   }, []);
+
+  useClapDetector(clapActivationEnabled, React.useCallback(() => {
+    const newVal = localStorage.getItem('merkez_airmouse') !== 'true';
+    localStorage.setItem('merkez_airmouse', newVal ? 'true' : 'false');
+    window.dispatchEvent(new Event('merkez_airmouse_toggled'));
+    
+    if (newVal) {
+      toast.success('Air Mouse включен хлопком! 🖐️✨', {
+        icon: '👏',
+        style: {
+          borderRadius: '16px',
+          background: '#07071a',
+          color: '#fff',
+          border: '1px solid rgba(99,102,241,0.5)',
+          fontWeight: 'bold',
+        }
+      });
+    } else {
+      toast.success('Air Mouse выключен хлопком! 🤫', {
+        icon: '👏',
+        style: {
+          borderRadius: '16px',
+          background: '#07071a',
+          color: '#fff',
+          border: '1px solid rgba(239,68,68,0.5)',
+          fontWeight: 'bold',
+        }
+      });
+    }
+  }, []));
 
   return (
     <UserProvider>

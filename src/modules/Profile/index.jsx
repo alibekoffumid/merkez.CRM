@@ -38,6 +38,10 @@ const Profile = () => {
     return localStorage.getItem('merkez_airmouse') === 'true';
   });
 
+  const [clapActivationEnabled, setClapActivationEnabled] = useState(() => {
+    return localStorage.getItem('merkez_airmouse_clap_toggle') === 'true';
+  });
+
   // Генерируем или читаем код сессии — 6 случайных символов
   const [airMouseSession] = useState(() => {
     let code = localStorage.getItem('merkez_airmouse_session');
@@ -67,6 +71,26 @@ const Profile = () => {
     window.dispatchEvent(new Event('merkez_airmouse_toggled'));
   };
 
+  const toggleClapActivation = (val) => {
+    setClapActivationEnabled(val);
+    localStorage.setItem('merkez_airmouse_clap_toggle', val ? 'true' : 'false');
+    window.dispatchEvent(new Event('merkez_airmouse_toggled'));
+    
+    if (val) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          stream.getTracks().forEach(t => t.stop());
+        })
+        .catch(err => {
+          console.warn('Microphone permission denied', err);
+          showToast('error', t('profile.clapMicrophoneError', 'Для включения хлопком нужен доступ к микрофону!'));
+          setClapActivationEnabled(false);
+          localStorage.setItem('merkez_airmouse_clap_toggle', 'false');
+          window.dispatchEvent(new Event('merkez_airmouse_toggled'));
+        });
+    }
+  };
+
   const [notificationPrefs, setNotificationPrefs] = useState(() => {
     const saved = localStorage.getItem('merkez_notifications');
     return saved ? JSON.parse(saved) : {
@@ -79,6 +103,14 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+    
+    const handleToggle = () => {
+      setAirMouseEnabled(localStorage.getItem('merkez_airmouse') === 'true');
+      setAirMouseDevice(localStorage.getItem('merkez_airmouse_device') || 'phone');
+      setClapActivationEnabled(localStorage.getItem('merkez_airmouse_clap_toggle') === 'true');
+    };
+    window.addEventListener('merkez_airmouse_toggled', handleToggle);
+    return () => window.removeEventListener('merkez_airmouse_toggled', handleToggle);
   }, []);
 
   const fetchProfile = async () => {
@@ -670,6 +702,37 @@ const Profile = () => {
                           }`}>
                             <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
                               airMouseEnabled ? 'left-8' : 'left-1'
+                            }`} />
+                          </div>
+                        </div>
+
+                        {/* Clap toggle */}
+                        <div
+                          onClick={() => toggleClapActivation(!clapActivationEnabled)}
+                          className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all cursor-pointer mt-4 ${
+                            clapActivationEnabled
+                              ? 'border-indigo-200 bg-indigo-50/50 shadow-lg shadow-indigo-100'
+                              : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                          }`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-2xl transition-all ${
+                              clapActivationEnabled ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'bg-gray-100 text-gray-400'
+                            }`}>
+                              <span className="text-xl">👏</span>
+                            </div>
+                            <div>
+                              <p className="font-black text-gray-900">Включение хлопком</p>
+                              <p className="text-xs text-gray-400 font-bold mt-0.5">
+                                {clapActivationEnabled ? '🟢 Активно — хлопните в ладоши для переключения' : '⚫ Выключено'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`w-14 h-7 rounded-full relative transition-all duration-300 ${
+                            clapActivationEnabled ? 'bg-indigo-500 shadow-lg shadow-indigo-200' : 'bg-gray-200'
+                          }`}>
+                            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
+                              clapActivationEnabled ? 'left-8' : 'left-1'
                             }`} />
                           </div>
                         </div>
