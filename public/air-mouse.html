@@ -804,6 +804,17 @@
         logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, IFrames: ${iframeCount}, Video: ${vStatus}`);
       }
     }, 1500);
+
+    // Освобождение ресурсов при закрытии/перезагрузке iframe (предотвращает утечки WebGL и камеры)
+    window.addEventListener('beforeunload', () => {
+      try {
+        if (channel) channel.unsubscribe();
+        if (camera) camera.stop();
+        if (hands) hands.close();
+      } catch (e) {
+        console.error('Ошибка очистки ресурсов:', e);
+      }
+    });
   </script>
 </body>
 </html>
