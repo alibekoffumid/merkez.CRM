@@ -395,6 +395,7 @@
     // Состояние калибровки
     window.calibrationState = 'NONE'; // 'NONE', 'START', 'CALIBRATING_X', 'CALIBRATING_Y', 'DONE'
     window.calibrationData = { xRaw: [], yRaw: [] };
+    window.frameCounter = 0;
     let calibrationProgressTimer = null;
     let calibrationStepDuration = 5000; // 5 секунд на каждый шаг
 
@@ -405,6 +406,10 @@
     let cursorY = 0.5;
     let lastFrameTime = performance.now();
     let handDetectedLastFrame = false;
+    let lastSendTime = 0;
+    let smoothX = 0.5;
+    let smoothY = 0.5;
+    let isPinching = false;
 
     // Логирование диагностики
     function logDebug(msg) {
@@ -572,199 +577,205 @@
     });
 
     hands.onResults((results) => {
-      canvasEl.width  = results.image.width;
-      canvasEl.height = results.image.height;
-      ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+      try {
+        window.frameCounter = (window.frameCounter || 0) + 1;
+        canvasEl.width  = results.image.width;
+        canvasEl.height = results.image.height;
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
-      // Рисуем рамку рабочей зоны (Bounding Box) на Canvas с полупрозрачным затемнением краев
-      const canvasW = canvasEl.width;
-      const canvasH = canvasEl.height;
-      
-      // 1. Dotted / Dashed Neon Indigo Box
-      ctx.strokeStyle = 'rgba(99, 102, 241, 0.45)'; // Indigo
-      ctx.lineWidth = 3;
-      ctx.setLineDash([8, 6]);
-      ctx.strokeRect(
-        limits.xMin * canvasW,
-        limits.yMin * canvasH,
-        (limits.xMax - limits.xMin) * canvasW,
-        (limits.yMax - limits.yMin) * canvasH
-      );
-      ctx.setLineDash([]); // Reset dash style
+        // Рисуем рамку рабочей зоны (Bounding Box) на Canvas с полупрозрачным затемнением краев
+        const canvasW = canvasEl.width;
+        const canvasH = canvasEl.height;
+        
+        // 1. Dotted / Dashed Neon Indigo Box
+        ctx.strokeStyle = 'rgba(99, 102, 241, 0.45)'; // Indigo
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 6]);
+        ctx.strokeRect(
+          limits.xMin * canvasW,
+          limits.yMin * canvasH,
+          (limits.xMax - limits.xMin) * canvasW,
+          (limits.yMax - limits.yMin) * canvasH
+        );
+        ctx.setLineDash([]); // Reset dash style
 
-      // 2. Semi-transparent dark overlay outside of Bounding Box
-      ctx.fillStyle = 'rgba(7, 7, 26, 0.35)';
-      ctx.fillRect(0, 0, canvasW, limits.yMin * canvasH); // Top
-      ctx.fillRect(0, limits.yMax * canvasH, canvasW, canvasH - limits.yMax * canvasH); // Bottom
-      ctx.fillRect(0, limits.yMin * canvasH, limits.xMin * canvasW, (limits.yMax - limits.yMin) * canvasH); // Left
-      ctx.fillRect(limits.xMax * canvasW, limits.yMin * canvasH, canvasW - limits.xMax * canvasW, (limits.yMax - limits.yMin) * canvasH); // Right
+        // 2. Semi-transparent dark overlay outside of Bounding Box
+        ctx.fillStyle = 'rgba(7, 7, 26, 0.35)';
+        ctx.fillRect(0, 0, canvasW, limits.yMin * canvasH); // Top
+        ctx.fillRect(0, limits.yMax * canvasH, canvasW, canvasH - limits.yMax * canvasH); // Bottom
+        ctx.fillRect(0, limits.yMin * canvasH, limits.xMin * canvasW, (limits.yMax - limits.yMin) * canvasH); // Left
+        ctx.fillRect(limits.xMax * canvasW, limits.yMin * canvasH, canvasW - limits.xMax * canvasW, (limits.yMax - limits.yMin) * canvasH); // Right
 
-      // 3. Label text "РАБОЧАЯ ЗОНА"
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(
-        'РАБОЧАЯ ЗОНА', 
-        (limits.xMin + limits.xMax) * 0.5 * canvasW, 
-        (limits.yMin * canvasH) - 8
-      );
+        // 3. Label text "РАБОЧАЯ ЗОНА"
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(
+          'РАБОЧАЯ ЗОНА', 
+          (limits.xMin + limits.xMax) * 0.5 * canvasW, 
+          (limits.yMin * canvasH) - 8
+        );
 
-      if (!results.multiHandLandmarks?.length) {
-        noHand.classList.remove('hidden');
-        if (isConnected) setStatus('on', 'Подключено');
-        document.getElementById('sX').textContent = '—';
-        document.getElementById('sY').textContent = '—';
-        document.getElementById('sPinch').textContent = '—';
-        handDetectedLastFrame = false;
+        if (!results.multiHandLandmarks?.length) {
+          noHand.classList.remove('hidden');
+          if (isConnected) setStatus('on', 'Подключено');
+          document.getElementById('sX').textContent = '—';
+          document.getElementById('sY').textContent = '—';
+          document.getElementById('sPinch').textContent = '—';
+          handDetectedLastFrame = false;
+
+          const debugEl = document.getElementById('calDebug');
+          if (debugEl) {
+            debugEl.textContent = `Статус: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Рука: НЕТ`;
+          }
+
+          return;
+        }
+
+        noHand.classList.add('hidden');
+
+        const lm = results.multiHandLandmarks[0];
 
         const debugEl = document.getElementById('calDebug');
         if (debugEl) {
-          debugEl.textContent = `Статус: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Рука: НЕТ`;
+          debugEl.textContent = `Статус: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Рука: OK`;
         }
 
-        return;
-      }
+        // Рисуем скелет руки
+        drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(99,102,241,0.4)', lineWidth: 2 });
+        drawLandmarks(ctx, lm, { color: 'rgba(139,92,246,0.8)', fillColor: 'rgba(99,102,241,0.3)', lineWidth: 1, radius: 3 });
 
-      noHand.classList.add('hidden');
+        // Точки: 9=ладонь, 4=большой, 8=указательный
+        const palm  = lm[9];
+        const thumb = lm[4];
+        const index = lm[8];
 
-      const lm = results.multiHandLandmarks[0];
+        // Зеркалим X (фронтальная камера)
+        const rawX = 1 - palm.x;
+        const rawY = palm.y;
 
-      const debugEl = document.getElementById('calDebug');
-      if (debugEl) {
-        debugEl.textContent = `Статус: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Рука: OK`;
-      }
-
-      // Рисуем скелет руки
-      drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(99,102,241,0.4)', lineWidth: 2 });
-      drawLandmarks(ctx, lm, { color: 'rgba(139,92,246,0.8)', fillColor: 'rgba(99,102,241,0.3)', lineWidth: 1, radius: 3 });
-
-      // Точки: 9=ладонь, 4=большой, 8=указательный
-      const palm  = lm[9];
-      const thumb = lm[4];
-      const index = lm[8];
-
-      // Зеркалим X (фронтальная камера)
-      const rawX = 1 - palm.x;
-      const rawY = palm.y;
-
-      // Если мы калибруемся, собираем сырые координаты
-      if (window.calibrationState === 'CALIBRATING_X') {
-        window.calibrationData.xRaw.push(rawX);
-        const count = window.calibrationData.xRaw.length;
-        const pct = Math.min(100, (count / 80) * 100);
-        document.getElementById('calibrationProgress').style.width = pct + '%';
-        document.getElementById('calibrationPrompt').innerHTML = `👉 <strong>ШАГ 1:</strong><br>Плавно взмахните рукой влево и вправо.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${count} / 80 точек</span>`;
-        if (count >= 80) {
-          window.calibrationState = 'CALIBRATING_Y';
-          document.getElementById('calibrationProgress').style.width = '0%';
-          logDebug('Шаг 1 завершен. Переход к Шагу 2...');
+        // Если мы калибруемся, собираем сырые координаты
+        if (window.calibrationState === 'CALIBRATING_X') {
+          window.calibrationData.xRaw.push(rawX);
+          const count = window.calibrationData.xRaw.length;
+          const pct = Math.min(100, (count / 80) * 100);
+          document.getElementById('calibrationProgress').style.width = pct + '%';
+          document.getElementById('calibrationPrompt').innerHTML = `👉 <strong>ШАГ 1:</strong><br>Плавно взмахните рукой влево и вправо.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${count} / 80 точек</span>`;
+          if (count >= 80) {
+            window.calibrationState = 'CALIBRATING_Y';
+            document.getElementById('calibrationProgress').style.width = '0%';
+            logDebug('Шаг 1 завершен. Переход к Шагу 2...');
+          }
+        } else if (window.calibrationState === 'CALIBRATING_Y') {
+          window.calibrationData.yRaw.push(rawY);
+          const count = window.calibrationData.yRaw.length;
+          const pct = Math.min(100, (count / 80) * 100);
+          document.getElementById('calibrationProgress').style.width = pct + '%';
+          document.getElementById('calibrationPrompt').innerHTML = `👇 <strong>ШАГ 2:</strong><br>Плавно взмахните рукой вверх и вниз.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${count} / 80 точек</span>`;
+          if (count >= 80) {
+            logDebug('Шаг 2 завершен. Завершаем калибровку...');
+            finishCalibration();
+          }
         }
-      } else if (window.calibrationState === 'CALIBRATING_Y') {
-        window.calibrationData.yRaw.push(rawY);
-        const count = window.calibrationData.yRaw.length;
-        const pct = Math.min(100, (count / 80) * 100);
-        document.getElementById('calibrationProgress').style.width = pct + '%';
-        document.getElementById('calibrationPrompt').innerHTML = `👇 <strong>ШАГ 2:</strong><br>Плавно взмахните рукой вверх и вниз.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${count} / 80 точек</span>`;
-        if (count >= 80) {
-          logDebug('Шаг 2 завершен. Завершаем калибровку...');
-          finishCalibration();
+
+        // 1. Применяем границы Bounding Box
+        const limitW = limits.xMax - limits.xMin;
+        const limitH = limits.yMax - limits.yMin;
+
+        let mappedX = (rawX - limits.xMin) / (limitW || 1);
+        let mappedY = (rawY - limits.yMin) / (limitH || 1);
+
+        mappedX = Math.max(0, Math.min(1, mappedX));
+        mappedY = Math.max(0, Math.min(1, mappedY));
+
+        // Если рука только появилась, сбрасываем фильтры на текущую позицию руки
+        if (!handDetectedLastFrame) {
+          lastMappedX = mappedX;
+          lastMappedY = mappedY;
+          cursorX = mappedX;
+          cursorY = mappedY;
+          smoothX = mappedX;
+          smoothY = mappedY;
+          lastFrameTime = performance.now();
+          handDetectedLastFrame = true;
         }
-      }
 
-      // 1. Применяем границы Bounding Box
-      const limitW = limits.xMax - limits.xMin;
-      const limitH = limits.yMax - limits.yMin;
+        // 2. Вычисляем динамическое ускорение (Pointer Acceleration)
+        const now = performance.now();
+        const dt = now - lastFrameTime;
+        lastFrameTime = now;
 
-      let mappedX = (rawX - limits.xMin) / (limitW || 1);
-      let mappedY = (rawY - limits.yMin) / (limitH || 1);
+        const dx = mappedX - lastMappedX;
+        const dy = mappedY - lastMappedY;
+        const dDist = Math.sqrt(dx * dx + dy * dy);
 
-      mappedX = Math.max(0, Math.min(1, mappedX));
-      mappedY = Math.max(0, Math.min(1, mappedY));
+        // Скорость (нормализованная по времени к 20ms)
+        const speed = dDist / (dt || 20) * 20;
 
-      // Если рука только появилась, сбрасываем фильтры на текущую позицию руки
-      if (!handDetectedLastFrame) {
+        // Коэффициент чувствительности: BASE_GAIN + speed * ACCEL_COEFF
+        const currentGain = BASE_GAIN + speed * ACCEL_COEFF;
+
+        cursorX += dx * currentGain;
+        cursorY += dy * currentGain;
+
+        // Clamp курсора
+        cursorX = Math.max(0, Math.min(1, cursorX));
+        cursorY = Math.max(0, Math.min(1, cursorY));
+
         lastMappedX = mappedX;
         lastMappedY = mappedY;
-        cursorX = mappedX;
-        cursorY = mappedY;
-        smoothX = mappedX;
-        smoothY = mappedY;
-        lastFrameTime = performance.now();
-        handDetectedLastFrame = true;
-      }
 
-      // 2. Вычисляем динамическое ускорение (Pointer Acceleration)
-      const now = performance.now();
-      const dt = now - lastFrameTime;
-      lastFrameTime = now;
+        // 3. Сглаживание курсора (LERP)
+        smoothX = smoothX * SMOOTHING + cursorX * (1 - SMOOTHING);
+        smoothY = smoothY * SMOOTHING + cursorY * (1 - SMOOTHING);
 
-      const dx = mappedX - lastMappedX;
-      const dy = mappedY - lastMappedY;
-      const dDist = Math.sqrt(dx * dx + dy * dy);
+        const x = Math.max(0, Math.min(1, smoothX));
+        const y = Math.max(0, Math.min(1, smoothY));
 
-      // Скорость (нормализованная по времени к 20ms)
-      const speed = dDist / (dt || 20) * 20;
+        // Pinch-жест
+        const pinchDist = dist(thumb, index);
 
-      // Коэффициент чувствительности: BASE_GAIN + speed * ACCEL_COEFF
-      const currentGain = BASE_GAIN + speed * ACCEL_COEFF;
+        if (!isPinching && pinchDist < PINCH_START_THRESH) {
+          isPinching = true;
+          pinchInd.classList.add('show');
+          sendGesture({ type: 'PINCH_START', x, y });
+          if (navigator.vibrate) navigator.vibrate(40);
+        } else if (isPinching && pinchDist > PINCH_RELEASE_THRESH) {
+          isPinching = false;
+          pinchInd.classList.remove('show');
+          sendGesture({ type: 'PINCH_END', x, y });
+        }
 
-      cursorX += dx * currentGain;
-      cursorY += dy * currentGain;
+        // Отправка MOVE с throttle
+        if (now - lastSendTime >= SEND_INTERVAL_MS) {
+          sendGesture({ type: 'MOVE', x, y });
+          lastSendTime = now;
+        }
 
-      // Clamp курсора
-      cursorX = Math.max(0, Math.min(1, cursorX));
-      cursorY = Math.max(0, Math.min(1, cursorY));
+        // Статус
+        setStatus('tracking', isPinching ? '🤏 Клик!' : 'Трекинг');
 
-      lastMappedX = mappedX;
-      lastMappedY = mappedY;
+        // Отладочные значения
+        document.getElementById('sX').textContent = x.toFixed(2);
+        document.getElementById('sY').textContent = y.toFixed(2);
+        document.getElementById('sPinch').textContent = pinchDist.toFixed(3);
 
-      // 3. Сглаживание курсора (LERP)
-      smoothX = smoothX * SMOOTHING + cursorX * (1 - SMOOTHING);
-      smoothY = smoothY * SMOOTHING + cursorY * (1 - SMOOTHING);
-
-      const x = Math.max(0, Math.min(1, smoothX));
-      const y = Math.max(0, Math.min(1, smoothY));
-
-      // Pinch-жест
-      const pinchDist = dist(thumb, index);
-
-      if (!isPinching && pinchDist < PINCH_START_THRESH) {
-        isPinching = true;
-        pinchInd.classList.add('show');
-        sendGesture({ type: 'PINCH_START', x, y });
-        if (navigator.vibrate) navigator.vibrate(40);
-      } else if (isPinching && pinchDist > PINCH_RELEASE_THRESH) {
-        isPinching = false;
-        pinchInd.classList.remove('show');
-        sendGesture({ type: 'PINCH_END', x, y });
-      }
-
-      // Отправка MOVE с throttle
-      if (now - lastSendTime >= SEND_INTERVAL_MS) {
-        sendGesture({ type: 'MOVE', x, y });
-        lastSendTime = now;
-      }
-
-      // Статус
-      setStatus('tracking', isPinching ? '🤏 Клик!' : 'Трекинг');
-
-      // Отладочные значения
-      document.getElementById('sX').textContent = x.toFixed(2);
-      document.getElementById('sY').textContent = y.toFixed(2);
-      document.getElementById('sPinch').textContent = pinchDist.toFixed(3);
-
-      // Подсветка pinch пальцев
-      if (isPinching) {
-        const W = canvasEl.width, H = canvasEl.height;
-        [thumb, index].forEach(pt => {
-          ctx.beginPath();
-          ctx.arc(pt.x * W, pt.y * H, 14, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(34,197,94,0.5)';
-          ctx.fill();
-          ctx.strokeStyle = 'rgba(34,197,94,0.9)';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        });
+        // Подсветка pinch пальцев
+        if (isPinching) {
+          const W = canvasEl.width, H = canvasEl.height;
+          [thumb, index].forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(pt.x * W, pt.y * H, 14, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(34,197,94,0.5)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(34,197,94,0.9)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          });
+        }
+      } catch (err) {
+        logDebug(`[ОШИБКА callback] ${err.message}`);
+        console.error(err);
       }
     });
 
@@ -773,7 +784,14 @@
     // ═══════════════════════════════════════════════════════
 
     const camera = new Camera(videoEl, {
-      onFrame: async () => { await hands.send({ image: videoEl }); },
+      onFrame: async () => {
+        try {
+          await hands.send({ image: videoEl });
+        } catch (err) {
+          logDebug(`[ОШИБКА send] ${err.message || err}`);
+          console.error('Ошибка hands.send:', err);
+        }
+      },
       width: 640,
       height: 480,
       facingMode: 'user',
@@ -798,10 +816,10 @@
         }
       } catch (e) {}
 
-      const vStatus = videoEl ? `paused=${videoEl.paused}, ready=${videoEl.readyState}` : 'no-video';
+      const vStatus = videoEl ? `paused=${videoEl.paused}, ready=${videoEl.readyState}, time=${videoEl.currentTime.toFixed(2)}` : 'no-video';
 
       if (window.calibrationState !== 'NONE') {
-        logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, IFrames: ${iframeCount}, Video: ${vStatus}`);
+        logDebug(`[DIAG] State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Frames: ${window.frameCounter}, Video: ${vStatus}`);
       }
     }, 1500);
 
