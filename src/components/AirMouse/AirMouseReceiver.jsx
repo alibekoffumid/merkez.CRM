@@ -153,7 +153,7 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
           }}
         >
           <iframe
-            src={`/air-mouse.html?session=${sessionCode}&mode=iframe&v=6`}
+            src={`/air-mouse.html?session=${sessionCode}&mode=iframe&v=7`}
             allow="camera; microphone"
             style={{
               width: '100%',

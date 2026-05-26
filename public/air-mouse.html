@@ -251,6 +251,7 @@
         <div id="calibrationProgress" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.05s linear;"></div>
       </div>
       <button id="calibrationBtn" onclick="startCalibrationSequence()" style="margin-top: 4px; padding: 6px 16px; border-radius: 99px; background: var(--blue); border: none; color: #fff; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: transform 0.2s, background 0.2s;">Начать</button>
+      <div id="calDebug" style="font-size: 8px; color: rgba(255,255,255,0.3); margin-top: 2px;">Статус: NONE</div>
     </div>
 
     <div class="stats">
@@ -590,12 +591,23 @@
         document.getElementById('sY').textContent = '—';
         document.getElementById('sPinch').textContent = '—';
         handDetectedLastFrame = false;
+
+        const debugEl = document.getElementById('calDebug');
+        if (debugEl) {
+          debugEl.textContent = `Статус: ${calibrationState}, X: ${calibrationData.xRaw.length}, Y: ${calibrationData.yRaw.length}, Рука: НЕТ`;
+        }
+
         return;
       }
 
       noHand.classList.add('hidden');
 
       const lm = results.multiHandLandmarks[0];
+
+      const debugEl = document.getElementById('calDebug');
+      if (debugEl) {
+        debugEl.textContent = `Статус: ${calibrationState}, X: ${calibrationData.xRaw.length}, Y: ${calibrationData.yRaw.length}, Рука: OK`;
+      }
 
       // Рисуем скелет руки
       drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(99,102,241,0.4)', lineWidth: 2 });
