@@ -189,19 +189,53 @@
     body.mode-iframe .no-hand .emoji { font-size: 32px; }
     body.mode-iframe .no-hand p { font-size: 10px; text-align: center; padding: 0 8px; }
     body.mode-iframe .pinch-indicator { font-size: 10px; padding: 3px 10px; top: 10px; }
+
+    /* ── Calibration & Custom buttons ── */
+    .cal-btn {
+      position: absolute;
+      top: 12px; left: 12px;
+      z-index: 5;
+      background: rgba(7,7,26,0.6);
+      border: 1px solid var(--border);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #fff;
+      font-size: 14px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .cal-btn:hover { background: var(--blue); }
+    .cal-btn:active { transform: scale(0.9); }
+
+    body.mode-iframe .cal-btn {
+      top: 6px; left: 6px;
+      width: 22px; height: 22px;
+      font-size: 10px;
+    }
+
+    body.mode-iframe #calibrationOverlay h3 { font-size: 12px !important; }
+    body.mode-iframe #calibrationOverlay p { font-size: 10px !important; max-width: 180px !important; }
+    body.mode-iframe #calibrationOverlay button { font-size: 9px !important; padding: 4px 10px !important; }
   </style>
 </head>
 <body>
 
   <header>
     <div class="logo"><span>digit</span>all.llc — Air Mouse</div>
-    <div class="status-pill">
-      <div class="dot" id="dot"></div>
-      <span id="statusLabel">Подключение...</span>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button onclick="openCalibration()" style="padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; background: var(--card); border: 1px solid var(--border); color: #fff; cursor: pointer; transition: all 0.3s;" onmouseenter="this.style.background='rgba(99,102,241,0.2)'" onmouseleave="this.style.background='var(--card)'">🎯 Калибровка</button>
+      <div class="status-pill">
+        <div class="dot" id="dot"></div>
+        <span id="statusLabel">Подключение...</span>
+      </div>
     </div>
   </header>
 
   <div class="camera-wrap">
+    <button class="cal-btn" onclick="openCalibration()" title="Калибровать рабочую область">🎯</button>
     <video id="webcam" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
 
@@ -210,6 +244,16 @@
     <div class="no-hand" id="noHand">
       <span class="emoji">🖐️</span>
       <p>Поднесите руку к камере</p>
+    </div>
+
+    <!-- Оверлей калибровки -->
+    <div id="calibrationOverlay" style="display: none; position: absolute; inset: 0; background: rgba(7,7,26,0.92); backdrop-filter: blur(10px); z-index: 6; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center;">
+      <h3 style="font-size: 15px; font-weight: 850; color: var(--blue); text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Калибровка 🎯</h3>
+      <p id="calibrationPrompt" style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); max-width: 220px; line-height: 1.4; margin: 0 auto;">Настроим чувствительность под размах ваших движений.</p>
+      <div id="progressContainer" style="width: 140px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; display: none; margin: 6px auto 0;">
+        <div id="calibrationProgress" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.05s linear;"></div>
+      </div>
+      <button id="calibrationBtn" onclick="startCalibrationSequence()" style="margin-top: 8px; padding: 10px 22px; border-radius: 99px; background: var(--blue); border: none; color: #fff; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: transform 0.2s, background 0.2s;">Начать</button>
     </div>
 
     <div class="stats">
@@ -310,42 +354,174 @@
     }
 
     // ═══════════════════════════════════════════════════════
-    //  СОСТОЯНИЕ ТРЕКИНГА
+    //  СОСТОЯНИЕ ТРЕКИНГА & КАЛИБРОВКА & УСКОРЕНИЕ
     // ═══════════════════════════════════════════════════════
 
-    let smoothX = 0.5, smoothY = 0.5;
-    let isPinching = false;
-    let lastSendTime = 0;
+    // Коэффициенты по умолчанию
+    const BASE_GAIN = 1.0;
+    const ACCEL_COEFF = 3.5; // Коэффициент pointer acceleration (динамического ускорения)
+    
+    // Границы рабочей зоны (Bounding Box)
+    // По умолчанию: 65% ширины кадра и 60% высоты кадра от центра
+    let limits = {
+      xMin: 0.175, // 0.5 - 0.65/2
+      xMax: 0.825, // 0.5 + 0.65/2
+      yMin: 0.200, // 0.5 - 0.60/2
+      yMax: 0.800  // 0.5 + 0.60/2
+    };
 
-    const videoEl  = document.getElementById('webcam');
-    const canvasEl = document.getElementById('overlay');
-    const ctx      = canvasEl.getContext('2d');
-    const noHand   = document.getElementById('noHand');
-    const pinchInd = document.getElementById('pinchIndicator');
-
-    function dist(a, b) {
-      return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+    // Загрузка калиброванных значений, если они есть
+    try {
+      const savedLimits = localStorage.getItem('merkez_airmouse_limits');
+      if (savedLimits) {
+        limits = JSON.parse(savedLimits);
+      }
+    } catch (e) {
+      console.error('Ошибка загрузки калибровки', e);
     }
 
-    // ═══════════════════════════════════════════════════════
-    //  MEDIAPIPE HANDS
-    // ═══════════════════════════════════════════════════════
+    // Состояние калибровки
+    let calibrationState = 'NONE'; // 'NONE', 'START', 'CALIBRATING_X', 'CALIBRATING_Y', 'DONE'
+    let calibrationData = { xRaw: [], yRaw: [] };
+    let calibrationProgressTimer = null;
+    let calibrationStepDuration = 3500; // 3.5 секунды на каждый шаг
 
-    const hands = new Hands({
-      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
-    });
+    // Переменные для вычисления ускорения
+    let lastMappedX = 0.5;
+    let lastMappedY = 0.5;
+    let cursorX = 0.5;
+    let cursorY = 0.5;
+    let lastFrameTime = performance.now();
+    let handDetectedLastFrame = false;
 
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.6,
-    });
+    // Функции калибровки
+    function openCalibration() {
+      const overlay = document.getElementById('calibrationOverlay');
+      overlay.style.display = 'flex';
+      
+      const prompt = document.getElementById('calibrationPrompt');
+      prompt.textContent = 'Держите руку перед камерой по центру и приготовьтесь делать взмахи.';
+      
+      const btn = document.getElementById('calibrationBtn');
+      btn.style.display = 'block';
+      btn.textContent = 'Начать';
+      
+      const progressContainer = document.getElementById('progressContainer');
+      progressContainer.style.display = 'none';
+      
+      calibrationState = 'START';
+    }
 
-    hands.onResults((results) => {
+    function startCalibrationSequence() {
+      const btn = document.getElementById('calibrationBtn');
+      btn.style.display = 'none';
+      
+      const progressContainer = document.getElementById('progressContainer');
+      progressContainer.style.display = 'block';
+      
+      const prompt = document.getElementById('calibrationPrompt');
+      prompt.innerHTML = '👉 <strong>ШАГ 1:</strong><br>Плавно взмахните рукой влево и вправо несколько раз в комфортных границах.';
+      
+      calibrationState = 'CALIBRATING_X';
+      calibrationData = { xRaw: [], yRaw: [] };
+      
+      startStepTimer(() => {
+        // Переход ко второму шагу
+        prompt.innerHTML = '👇 <strong>ШАГ 2:</strong><br>Плавно взмахните рукой вверх и вниз в комфортных границах.';
+        calibrationState = 'CALIBRATING_Y';
+        
+        startStepTimer(() => {
+          // Завершение калибровки
+          finishCalibration();
+        });
+      });
+    }
+
+    function startStepTimer(onComplete) {
+      const bar = document.getElementById('calibrationProgress');
+      bar.style.width = '0%';
+      
+      const start = performance.now();
+      
+      if (calibrationProgressTimer) clearInterval(calibrationProgressTimer);
+      
+      calibrationProgressTimer = setInterval(() => {
+        const elapsed = performance.now() - start;
+        let pct = (elapsed / calibrationStepDuration) * 100;
+        if (pct >= 100) {
+          pct = 100;
+          clearInterval(calibrationProgressTimer);
+          onComplete();
+        }
+        bar.style.width = pct + '%';
+      }, 50);
+    }
+
+    function finishCalibration() {
+      calibrationState = 'DONE';
+      clearInterval(calibrationProgressTimer);
+      
+      const prompt = document.getElementById('calibrationPrompt');
+      const progressContainer = document.getElementById('progressContainer');
+      
+      // Фильтруем данные от шумов
+      if (calibrationData.xRaw.length > 10 && calibrationData.yRaw.length > 10) {
+        // Сортируем, чтобы откинуть 5% крайних выбросов с обоих концов
+        calibrationData.xRaw.sort((a,b) => a - b);
+        calibrationData.yRaw.sort((a,b) => a - b);
+        
+        const trimX = Math.floor(calibrationData.xRaw.length * 0.05);
+        const trimY = Math.floor(calibrationData.yRaw.length * 0.05);
+        
+        const cleanX = calibrationData.xRaw.slice(trimX, calibrationData.xRaw.length - trimX);
+        const cleanY = calibrationData.yRaw.slice(trimY, calibrationData.yRaw.length - trimY);
+        
+        const xMin = cleanX[0];
+        const xMax = cleanX[cleanX.length - 1];
+        const yMin = cleanY[0];
+        const yMax = cleanY[cleanY.length - 1];
+        
+        // Проверяем валидность размаха (чтобы не было деления на 0 при слишком малом движении)
+        const dx = xMax - xMin;
+        const dy = yMax - yMin;
+        
+          hands.onResults((results) => {
       canvasEl.width  = results.image.width;
       canvasEl.height = results.image.height;
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+      // Рисуем рамку рабочей зоны (Bounding Box) на Canvas с полупрозрачным затемнением краев
+      const canvasW = canvasEl.width;
+      const canvasH = canvasEl.height;
+      
+      // 1. Dotted / Dashed Neon Indigo Box
+      ctx.strokeStyle = 'rgba(99, 102, 241, 0.45)'; // Indigo
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 6]);
+      ctx.strokeRect(
+        limits.xMin * canvasW,
+        limits.yMin * canvasH,
+        (limits.xMax - limits.xMin) * canvasW,
+        (limits.yMax - limits.yMin) * canvasH
+      );
+      ctx.setLineDash([]); // Reset dash style
+
+      // 2. Semi-transparent dark overlay outside of Bounding Box
+      ctx.fillStyle = 'rgba(7, 7, 26, 0.35)';
+      ctx.fillRect(0, 0, canvasW, limits.yMin * canvasH); // Top
+      ctx.fillRect(0, limits.yMax * canvasH, canvasW, canvasH - limits.yMax * canvasH); // Bottom
+      ctx.fillRect(0, limits.yMin * canvasH, limits.xMin * canvasW, (limits.yMax - limits.yMin) * canvasH); // Left
+      ctx.fillRect(limits.xMax * canvasW, limits.yMin * canvasH, canvasW - limits.xMax * canvasW, (limits.yMax - limits.yMin) * canvasH); // Right
+
+      // 3. Label text "РАБОЧАЯ ЗОНА"
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        'РАБОЧАЯ ЗОНА', 
+        (limits.xMin + limits.xMax) * 0.5 * canvasW, 
+        (limits.yMin * canvasH) - 8
+      );
 
       if (!results.multiHandLandmarks?.length) {
         noHand.classList.remove('hidden');
@@ -353,6 +529,7 @@
         document.getElementById('sX').textContent = '—';
         document.getElementById('sY').textContent = '—';
         document.getElementById('sPinch').textContent = '—';
+        handDetectedLastFrame = false;
         return;
       }
 
@@ -360,7 +537,7 @@
 
       const lm = results.multiHandLandmarks[0];
 
-      // Рисуем скелет
+      // Рисуем скелет руки
       drawConnectors(ctx, lm, HAND_CONNECTIONS, { color: 'rgba(99,102,241,0.4)', lineWidth: 2 });
       drawLandmarks(ctx, lm, { color: 'rgba(139,92,246,0.8)', fillColor: 'rgba(99,102,241,0.3)', lineWidth: 1, radius: 3 });
 
@@ -373,8 +550,63 @@
       const rawX = 1 - palm.x;
       const rawY = palm.y;
 
-      smoothX = smoothX * SMOOTHING + rawX * (1 - SMOOTHING);
-      smoothY = smoothY * SMOOTHING + rawY * (1 - SMOOTHING);
+      // Если мы калибруемся, собираем сырые координаты
+      if (calibrationState === 'CALIBRATING_X') {
+        calibrationData.xRaw.push(rawX);
+      } else if (calibrationState === 'CALIBRATING_Y') {
+        calibrationData.yRaw.push(rawY);
+      }
+
+      // 1. Применяем границы Bounding Box
+      const limitW = limits.xMax - limits.xMin;
+      const limitH = limits.yMax - limits.yMin;
+
+      let mappedX = (rawX - limits.xMin) / (limitW || 1);
+      let mappedY = (rawY - limits.yMin) / (limitH || 1);
+
+      mappedX = Math.max(0, Math.min(1, mappedX));
+      mappedY = Math.max(0, Math.min(1, mappedY));
+
+      // Если рука только появилась, сбрасываем фильтры на текущую позицию руки
+      if (!handDetectedLastFrame) {
+        lastMappedX = mappedX;
+        lastMappedY = mappedY;
+        cursorX = mappedX;
+        cursorY = mappedY;
+        smoothX = mappedX;
+        smoothY = mappedY;
+        lastFrameTime = performance.now();
+        handDetectedLastFrame = true;
+      }
+
+      // 2. Вычисляем динамическое ускорение (Pointer Acceleration)
+      const now = performance.now();
+      const dt = now - lastFrameTime;
+      lastFrameTime = now;
+
+      const dx = mappedX - lastMappedX;
+      const dy = mappedY - lastMappedY;
+      const dDist = Math.sqrt(dx * dx + dy * dy);
+
+      // Скорость (нормализованная по времени к 20ms)
+      const speed = dDist / (dt || 20) * 20;
+
+      // Коэффициент чувствительности: BASE_GAIN + speed * ACCEL_COEFF
+      const currentGain = BASE_GAIN + speed * ACCEL_COEFF;
+
+      cursorX += dx * currentGain;
+      cursorY += dy * currentGain;
+
+      // Clamp курсора
+      cursorX = Math.max(0, Math.min(1, cursorX));
+      cursorY = Math.max(0, Math.min(1, cursorY));
+
+      lastMappedX = mappedX;
+      lastMappedY = mappedY;
+
+      // 3. Сглаживание курсора (LERP)
+      smoothX = smoothX * SMOOTHING + cursorX * (1 - SMOOTHING);
+      smoothY = smoothY * SMOOTHING + cursorY * (1 - SMOOTHING);
 
       const x = Math.max(0, Math.min(1, smoothX));
       const y = Math.max(0, Math.min(1, smoothY));
@@ -394,7 +626,6 @@
       }
 
       // Отправка MOVE с throttle
-      const now = performance.now();
       if (now - lastSendTime >= SEND_INTERVAL_MS) {
         sendGesture({ type: 'MOVE', x, y });
         lastSendTime = now;
