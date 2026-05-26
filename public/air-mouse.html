@@ -776,8 +776,15 @@
     });
     // Periodic state diagnostics log to calLog
     setInterval(() => {
+      let iframeCount = 1;
+      try {
+        if (window.parent && window.parent !== window) {
+          iframeCount = window.parent.document.querySelectorAll('iframe').length;
+        }
+      } catch (e) {}
+
       if (window.calibrationState !== 'NONE') {
-        logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}`);
+        logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, IFrames: ${iframeCount}`);
       }
     }, 1500);
   </script>

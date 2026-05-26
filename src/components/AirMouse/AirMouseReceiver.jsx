@@ -24,6 +24,17 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
   const cursorRef  = useRef(null);
   const rippleRef  = useRef(null);
   const wasPinch   = useRef(false);
+  const containerRef = useRef(null);
+
+  // Самоочистка: удаляем любые дублирующиеся виджеты из DOM при монтировании
+  useEffect(() => {
+    const duplicates = document.querySelectorAll('.air-mouse-container');
+    duplicates.forEach(el => {
+      if (el !== containerRef.current) {
+        el.remove();
+      }
+    });
+  }, []);
 
   // Позиция курсора через прямой DOM (быстрее, без ре-рендера)
   useEffect(() => {
@@ -145,6 +156,8 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
       {/* Если выбрана камера ПК, встраиваем контроллер как iframe, чтобы браузер не морозил вкладку */}
       {device === 'pc' && (
         <div
+          ref={containerRef}
+          className="air-mouse-container"
           style={{
             position: 'fixed',
             bottom: '20px',
