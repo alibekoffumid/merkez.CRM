@@ -396,6 +396,11 @@
 
     // Функции калибровки
     function openCalibration() {
+      // Отправляем сигнал родителю, чтобы развернуть виджет на весь экран
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'airmouse_expand' }, '*');
+      }
+
       const overlay = document.getElementById('calibrationOverlay');
       overlay.style.display = 'flex';
       
@@ -539,8 +544,8 @@
     hands.setOptions({
       maxNumHands: 1,
       modelComplexity: 1,
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.6,
+      minDetectionConfidence: 0.55,
+      minTrackingConfidence: 0.5,
     });
 
     hands.onResults((results) => {
@@ -611,8 +616,10 @@
       // Если мы калибруемся, собираем сырые координаты
       if (calibrationState === 'CALIBRATING_X') {
         calibrationData.xRaw.push(rawX);
+        document.getElementById('calibrationPrompt').innerHTML = `👉 <strong>ШАГ 1:</strong><br>Плавно взмахните рукой влево и вправо.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${calibrationData.xRaw.length} точек</span>`;
       } else if (calibrationState === 'CALIBRATING_Y') {
         calibrationData.yRaw.push(rawY);
+        document.getElementById('calibrationPrompt').innerHTML = `👇 <strong>ШАГ 2:</strong><br>Плавно взмахните рукой вверх и вниз.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${calibrationData.yRaw.length} точек</span>`;
       }
 
       // 1. Применяем границы Bounding Box

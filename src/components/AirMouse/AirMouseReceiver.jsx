@@ -27,6 +27,18 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
     }
   }, [screenX, screenY]);
 
+  // Разворачиваем виджет по сигналу из iframe (например, при калибровке)
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data && e.data.type === 'airmouse_expand') {
+        setIsMinimized(false);
+        localStorage.setItem('merkez_airmouse_minimized', 'false');
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   // Симуляция кликов при pinch
   useEffect(() => {
     if (isPinching && !wasPinch.current) {
