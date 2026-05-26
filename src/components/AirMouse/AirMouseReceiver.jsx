@@ -17,6 +17,10 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
 
   const [isCalibrating, setIsCalibrating] = useState(false);
 
+  const [iframeSrc] = useState(() => {
+    return `/air-mouse.html?session=${sessionCode}&mode=iframe&v=${Date.now()}`;
+  });
+
   const cursorRef  = useRef(null);
   const rippleRef  = useRef(null);
   const wasPinch   = useRef(false);
@@ -162,7 +166,7 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
           }}
         >
           <iframe
-            src={`/air-mouse.html?session=${sessionCode}&mode=iframe&v=8`}
+            src={iframeSrc}
             allow="camera; microphone"
             style={{
               width: '100%',
