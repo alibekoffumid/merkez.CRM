@@ -3,13 +3,17 @@
  * Использует Supabase Realtime. Никакого локального сервера.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAirMouse } from './useAirMouse';
 
 const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => {
   const { screenX, screenY, isPinching, isConnected } = useAirMouse(
     enabled ? sessionCode : null
   );
+
+  const [isMinimized, setIsMinimized] = useState(() => {
+    return localStorage.getItem('merkez_airmouse_minimized') === 'true';
+  });
 
   const cursorRef  = useRef(null);
   const rippleRef  = useRef(null);
@@ -115,26 +119,104 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
       
       {/* Если выбрана камера ПК, встраиваем контроллер как iframe, чтобы браузер не морозил вкладку */}
       {device === 'pc' && (
-        <iframe
-          src={`/air-mouse.html?session=${sessionCode}&mode=iframe`}
-          allow="camera; microphone"
+        <div
           style={{
             position: 'fixed',
             bottom: '20px',
             right: '20px',
-            width: '280px',
-            height: '210px',
-            borderRadius: '16px',
-            border: '1px solid rgba(255,255,255,0.1)',
+            width: isMinimized ? '56px' : '220px',
+            height: isMinimized ? '56px' : '165px',
+            borderRadius: isMinimized ? '50%' : '16px',
+            border: '2px solid rgba(99,102,241,0.5)',
             boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
             zIndex: 99998,
             background: '#000',
-            opacity: 0.8,
-            transition: 'opacity 0.2s'
+            overflow: 'hidden',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            isolation: 'isolate',
+            transform: 'translate3d(0,0,0)',
           }}
-          onMouseEnter={(e) => e.target.style.opacity = 1}
-          onMouseLeave={(e) => e.target.style.opacity = 0.8}
-        />
+        >
+          <iframe
+            src={`/air-mouse.html?session=${sessionCode}&mode=iframe`}
+            allow="camera; microphone"
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              pointerEvents: isMinimized ? 'none' : 'auto',
+            }}
+          />
+
+          {isMinimized ? (
+            <div
+              onClick={() => {
+                setIsMinimized(false);
+                localStorage.setItem('merkez_airmouse_minimized', 'false');
+              }}
+              title="Развернуть камеру Air Mouse"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                cursor: 'pointer',
+                background: 'rgba(99,102,241,0)',
+                transition: 'background 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 10,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0)'}
+            >
+              <div style={{
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+              }}>
+                📷
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setIsMinimized(true);
+                localStorage.setItem('merkez_airmouse_minimized', 'true');
+              }}
+              title="Свернуть"
+              style={{
+                position: 'absolute',
+                top: '6px',
+                right: '6px',
+                width: '22px',
+                height: '22px',
+                borderRadius: '50%',
+                background: 'rgba(0,0,0,0.6)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                transition: 'background 0.2s, transform 0.1s',
+                zIndex: 10,
+                outline: 'none',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(99,102,241,0.8)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
+              onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.9)'}
+              onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              −
+            </button>
+          )}
+        </div>
       )}
     </>
   );

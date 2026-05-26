@@ -180,6 +180,15 @@
       line-height: 1.5;
     }
     .hint-card .icon { font-size: 24px; display: block; margin-bottom: 6px; }
+
+    /* ── Iframe Mode overrides ── */
+    body.mode-iframe header { display: none !important; }
+    body.mode-iframe footer { display: none !important; }
+    body.mode-iframe .stats { display: none !important; }
+    body.mode-iframe .camera-wrap { height: 100vh; flex: 1; }
+    body.mode-iframe .no-hand .emoji { font-size: 32px; }
+    body.mode-iframe .no-hand p { font-size: 10px; text-align: center; padding: 0 8px; }
+    body.mode-iframe .pinch-indicator { font-size: 10px; padding: 3px 10px; top: 10px; }
   </style>
 </head>
 <body>
@@ -252,6 +261,10 @@
     const params      = new URLSearchParams(location.search);
     const sessionCode = params.get('session') || 'DEMO';
     const channelName = `air-mouse-${sessionCode}`;
+
+    if (params.get('mode') === 'iframe') {
+      document.body.classList.add('mode-iframe');
+    }
 
     document.getElementById('sessionCode').textContent = sessionCode;
 
