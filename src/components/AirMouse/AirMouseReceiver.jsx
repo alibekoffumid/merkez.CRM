@@ -15,6 +15,8 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
     return localStorage.getItem('merkez_airmouse_minimized') === 'true';
   });
 
+  const [isCalibrating, setIsCalibrating] = useState(false);
+
   const cursorRef  = useRef(null);
   const rippleRef  = useRef(null);
   const wasPinch   = useRef(false);
@@ -30,9 +32,16 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
   // Разворачиваем виджет по сигналу из iframe (например, при калибровке)
   useEffect(() => {
     const handleMessage = (e) => {
-      if (e.data && e.data.type === 'airmouse_expand') {
-        setIsMinimized(false);
-        localStorage.setItem('merkez_airmouse_minimized', 'false');
+      if (e.data) {
+        if (e.data.type === 'airmouse_expand') {
+          setIsMinimized(false);
+          localStorage.setItem('merkez_airmouse_minimized', 'false');
+        } else if (e.data.type === 'airmouse_calibrating_start') {
+          setIsCalibrating(true);
+          setIsMinimized(false);
+        } else if (e.data.type === 'airmouse_calibrating_end') {
+          setIsCalibrating(false);
+        }
       }
     };
     window.addEventListener('message', handleMessage);
@@ -136,8 +145,8 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
             position: 'fixed',
             bottom: '20px',
             right: '20px',
-            width: isMinimized ? '56px' : '220px',
-            height: isMinimized ? '56px' : '165px',
+            width: isMinimized ? '56px' : (isCalibrating ? '350px' : '240px'),
+            height: isMinimized ? '56px' : (isCalibrating ? '290px' : '180px'),
             borderRadius: isMinimized ? '50%' : '16px',
             border: '2px solid rgba(99,102,241,0.5)',
             boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
@@ -153,7 +162,7 @@ const AirMouseReceiver = ({ sessionCode, enabled = true, device = 'phone' }) => 
           }}
         >
           <iframe
-            src={`/air-mouse.html?session=${sessionCode}&mode=iframe&v=7`}
+            src={`/air-mouse.html?session=${sessionCode}&mode=iframe&v=8`}
             allow="camera; microphone"
             style={{
               width: '100%',
