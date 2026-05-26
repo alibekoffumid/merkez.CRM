@@ -447,6 +447,14 @@
 
     function startCalibrationSequence() {
       logDebug('Начата калибровка. Шаг 1...');
+      
+      // Явно запускаем видео на случай, если оно приостановилось при изменении размеров виджета
+      const video = document.getElementById('webcam');
+      if (video && video.paused) {
+        logDebug('Видео было приостановлено, вызываем play()...');
+        video.play().catch(err => logDebug(`Ошибка play() при старте: ${err.message}`));
+      }
+
       const btn = document.getElementById('calibrationBtn');
       btn.style.display = 'none';
       
@@ -774,6 +782,13 @@
     camera.start().catch(err => {
       alert('Нет доступа к камере: ' + err.message);
     });
+
+    // Авто-возобновление воспроизведения видео при случайной приостановке браузером
+    videoEl.addEventListener('pause', () => {
+      logDebug('Предупреждение: Видео приостановлено! Автозапуск...');
+      videoEl.play().catch(e => logDebug(`Ошибка автозапуска видео: ${e.message}`));
+    });
+
     // Periodic state diagnostics log to calLog
     setInterval(() => {
       let iframeCount = 1;
@@ -783,8 +798,10 @@
         }
       } catch (e) {}
 
+      const vStatus = videoEl ? `paused=${videoEl.paused}, ready=${videoEl.readyState}` : 'no-video';
+
       if (window.calibrationState !== 'NONE') {
-        logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, IFrames: ${iframeCount}`);
+        logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, IFrames: ${iframeCount}, Video: ${vStatus}`);
       }
     }, 1500);
   </script>
