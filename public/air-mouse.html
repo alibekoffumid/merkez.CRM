@@ -384,7 +384,7 @@
     let calibrationState = 'NONE'; // 'NONE', 'START', 'CALIBRATING_X', 'CALIBRATING_Y', 'DONE'
     let calibrationData = { xRaw: [], yRaw: [] };
     let calibrationProgressTimer = null;
-    let calibrationStepDuration = 3500; // 3.5 секунды на каждый шаг
+    let calibrationStepDuration = 5000; // 5 секунд на каждый шаг
 
     // Переменные для вычисления ускорения
     let lastMappedX = 0.5;
@@ -470,7 +470,7 @@
       const progressContainer = document.getElementById('progressContainer');
       
       // Фильтруем данные от шумов
-      if (calibrationData.xRaw.length > 10 && calibrationData.yRaw.length > 10) {
+      if (calibrationData.xRaw.length >= 3 && calibrationData.yRaw.length >= 3) {
         // Сортируем, чтобы откинуть 5% крайних выбросов с обоих концов
         calibrationData.xRaw.sort((a,b) => a - b);
         calibrationData.yRaw.sort((a,b) => a - b);
