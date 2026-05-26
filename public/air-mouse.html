@@ -393,8 +393,8 @@
     }
 
     // Состояние калибровки
-    let calibrationState = 'NONE'; // 'NONE', 'START', 'CALIBRATING_X', 'CALIBRATING_Y', 'DONE'
-    let calibrationData = { xRaw: [], yRaw: [] };
+    window.calibrationState = 'NONE'; // 'NONE', 'START', 'CALIBRATING_X', 'CALIBRATING_Y', 'DONE'
+    window.calibrationData = { xRaw: [], yRaw: [] };
     let calibrationProgressTimer = null;
     let calibrationStepDuration = 5000; // 5 секунд на каждый шаг
 
@@ -442,7 +442,7 @@
       const progressContainer = document.getElementById('progressContainer');
       progressContainer.style.display = 'none';
       
-      calibrationState = 'START';
+      window.calibrationState = 'START';
     }
 
     function startCalibrationSequence() {
@@ -456,29 +456,29 @@
       const prompt = document.getElementById('calibrationPrompt');
       prompt.innerHTML = '👉 <strong>ШАГ 1:</strong><br>Плавно взмахните рукой влево и вправо несколько раз в комфортных границах.';
       
-      calibrationState = 'CALIBRATING_X';
-      calibrationData = { xRaw: [], yRaw: [] };
+      window.calibrationState = 'CALIBRATING_X';
+      window.calibrationData = { xRaw: [], yRaw: [] };
     }
 
     function finishCalibration() {
-      calibrationState = 'DONE';
+      window.calibrationState = 'DONE';
       
       const prompt = document.getElementById('calibrationPrompt');
       const progressContainer = document.getElementById('progressContainer');
       
-      logDebug(`finishCalibration: X size: ${calibrationData.xRaw.length}, Y size: ${calibrationData.yRaw.length}`);
+      logDebug(`finishCalibration: X size: ${window.calibrationData.xRaw.length}, Y size: ${window.calibrationData.yRaw.length}`);
       
       // Фильтруем данные от шумов
-      if (calibrationData.xRaw.length >= 3 && calibrationData.yRaw.length >= 3) {
+      if (window.calibrationData.xRaw.length >= 3 && window.calibrationData.yRaw.length >= 3) {
         // Сортируем, чтобы откинуть 5% крайних выбросов с обоих концов
-        calibrationData.xRaw.sort((a,b) => a - b);
-        calibrationData.yRaw.sort((a,b) => a - b);
+        window.calibrationData.xRaw.sort((a,b) => a - b);
+        window.calibrationData.yRaw.sort((a,b) => a - b);
         
-        const trimX = Math.floor(calibrationData.xRaw.length * 0.05);
-        const trimY = Math.floor(calibrationData.yRaw.length * 0.05);
+        const trimX = Math.floor(window.calibrationData.xRaw.length * 0.05);
+        const trimY = Math.floor(window.calibrationData.yRaw.length * 0.05);
         
-        const cleanX = calibrationData.xRaw.slice(trimX, calibrationData.xRaw.length - trimX);
-        const cleanY = calibrationData.yRaw.slice(trimY, calibrationData.yRaw.length - trimY);
+        const cleanX = window.calibrationData.xRaw.slice(trimX, window.calibrationData.xRaw.length - trimX);
+        const cleanY = window.calibrationData.yRaw.slice(trimY, window.calibrationData.yRaw.length - trimY);
         
         const xMin = cleanX[0];
         const xMax = cleanX[cleanX.length - 1];
@@ -517,7 +517,7 @@
         document.getElementById('calibrationOverlay').style.display = 'none';
         const logEl = document.getElementById('calLog');
         if (logEl) logEl.style.display = 'none';
-        calibrationState = 'NONE';
+        window.calibrationState = 'NONE';
 
         // Отправляем сигнал родителю о завершении калибровки
         if (window.parent && window.parent !== window) {
@@ -611,7 +611,7 @@
 
         const debugEl = document.getElementById('calDebug');
         if (debugEl) {
-          debugEl.textContent = `Статус: ${calibrationState}, X: ${calibrationData.xRaw.length}, Y: ${calibrationData.yRaw.length}, Рука: НЕТ`;
+          debugEl.textContent = `Статус: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Рука: НЕТ`;
         }
 
         return;
@@ -623,7 +623,7 @@
 
       const debugEl = document.getElementById('calDebug');
       if (debugEl) {
-        debugEl.textContent = `Статус: ${calibrationState}, X: ${calibrationData.xRaw.length}, Y: ${calibrationData.yRaw.length}, Рука: OK`;
+        debugEl.textContent = `Статус: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}, Рука: OK`;
       }
 
       // Рисуем скелет руки
@@ -640,20 +640,20 @@
       const rawY = palm.y;
 
       // Если мы калибруемся, собираем сырые координаты
-      if (calibrationState === 'CALIBRATING_X') {
-        calibrationData.xRaw.push(rawX);
-        const count = calibrationData.xRaw.length;
+      if (window.calibrationState === 'CALIBRATING_X') {
+        window.calibrationData.xRaw.push(rawX);
+        const count = window.calibrationData.xRaw.length;
         const pct = Math.min(100, (count / 80) * 100);
         document.getElementById('calibrationProgress').style.width = pct + '%';
         document.getElementById('calibrationPrompt').innerHTML = `👉 <strong>ШАГ 1:</strong><br>Плавно взмахните рукой влево и вправо.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${count} / 80 точек</span>`;
         if (count >= 80) {
-          calibrationState = 'CALIBRATING_Y';
+          window.calibrationState = 'CALIBRATING_Y';
           document.getElementById('calibrationProgress').style.width = '0%';
           logDebug('Шаг 1 завершен. Переход к Шагу 2...');
         }
-      } else if (calibrationState === 'CALIBRATING_Y') {
-        calibrationData.yRaw.push(rawY);
-        const count = calibrationData.yRaw.length;
+      } else if (window.calibrationState === 'CALIBRATING_Y') {
+        window.calibrationData.yRaw.push(rawY);
+        const count = window.calibrationData.yRaw.length;
         const pct = Math.min(100, (count / 80) * 100);
         document.getElementById('calibrationProgress').style.width = pct + '%';
         document.getElementById('calibrationPrompt').innerHTML = `👇 <strong>ШАГ 2:</strong><br>Плавно взмахните рукой вверх и вниз.<br><span style="color: var(--green); font-weight: 700; font-size: 11px;">Собрано: ${count} / 80 точек</span>`;
@@ -776,8 +776,8 @@
     });
     // Periodic state diagnostics log to calLog
     setInterval(() => {
-      if (calibrationState !== 'NONE') {
-        logDebug(`[DIAG] Global State: ${calibrationState}, X: ${calibrationData.xRaw.length}, Y: ${calibrationData.yRaw.length}`);
+      if (window.calibrationState !== 'NONE') {
+        logDebug(`[DIAG] Global State: ${window.calibrationState}, X: ${window.calibrationData.xRaw.length}, Y: ${window.calibrationData.yRaw.length}`);
       }
     }, 1500);
   </script>
