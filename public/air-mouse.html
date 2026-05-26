@@ -289,6 +289,17 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
   <script>
+    // Global Error Handler for on-screen diagnostics
+    window.onerror = function(message, source, lineno, colno, error) {
+      const logEl = document.getElementById('calLog');
+      if (logEl) {
+        logEl.style.display = 'block';
+        logEl.innerHTML += `<span style="color: #ef4444;">[ОШИБКА] ${message} (строка ${lineno})</span><br>`;
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+      return false;
+    };
+
     // ═══════════════════════════════════════════════════════
     //  КОНФИГУРАЦИЯ
     // ═══════════════════════════════════════════════════════
