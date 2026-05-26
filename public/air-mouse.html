@@ -484,8 +484,66 @@
         // Проверяем валидность размаха (чтобы не было деления на 0 при слишком малом движении)
         const dx = xMax - xMin;
         const dy = yMax - yMin;
-        
-          hands.onResults((results) => {
+
+        if (dx > 0.15 && dy > 0.15) {
+          limits.xMin = xMin;
+          limits.xMax = xMax;
+          limits.yMin = yMin;
+          limits.yMax = yMax;
+          
+          localStorage.setItem('merkez_airmouse_limits', JSON.stringify(limits));
+          prompt.innerHTML = '<strong>Готово! 🎯</strong><br>Параметры успешно сохранены в браузер.';
+        } else {
+          prompt.innerHTML = '<strong>Малая амплитуда ⚠️</strong><br>Взмахи были слишком маленькими. Восстановлены настройки по умолчанию.';
+          resetToDefaultLimits();
+        }
+      } else {
+        prompt.innerHTML = '<strong>Рука не обнаружена 🖐️❌</strong><br>Восстановлены настройки по умолчанию.';
+        resetToDefaultLimits();
+      }
+      
+      progressContainer.style.display = 'none';
+      
+      setTimeout(() => {
+        document.getElementById('calibrationOverlay').style.display = 'none';
+        calibrationState = 'NONE';
+      }, 2000);
+    }
+
+    function resetToDefaultLimits() {
+      limits = {
+        xMin: 0.175,
+        xMax: 0.825,
+        yMin: 0.200,
+        yMax: 0.800
+      };
+      localStorage.removeItem('merkez_airmouse_limits');
+    }
+
+    // Инициализация элементов DOM и переменных камеры
+    const videoEl  = document.getElementById('webcam');
+    const canvasEl = document.getElementById('overlay');
+    const ctx      = canvasEl.getContext('2d');
+    const noHand   = document.getElementById('noHand');
+    const pinchInd = document.getElementById('pinchIndicator');
+
+    function dist(a, b) {
+      return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2);
+    }
+
+    // Инициализация MediaPipe Hands
+    const hands = new Hands({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.6,
+    });
+
+    hands.onResults((results) => {
       canvasEl.width  = results.image.width;
       canvasEl.height = results.image.height;
       ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
