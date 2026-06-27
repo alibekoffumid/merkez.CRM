@@ -10,7 +10,8 @@
     "build": "node node_modules/vite/bin/vite.js build",
     "dist": "npm run build && electron-builder",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "sync-agent": "node warehouse-sync/sync-agent.js"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",
@@ -33,6 +34,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.303.0",
     "papaparse": "^5.5.3",
+    "pg": "^8.22.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
