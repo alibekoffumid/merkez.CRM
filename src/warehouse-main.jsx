@@ -46,10 +46,10 @@ const WarehouseAppContent = () => {
         password: password
       });
       if (error) throw error;
-      toast.success('Успешный вход в систему!');
+      toast.success('Sistemə uğurlu giriş!');
     } catch (err) {
       console.error('Login error:', err);
-      toast.error(err.message || 'Ошибка аутентификации');
+      toast.error(err.message || 'Giriş xətası');
     } finally {
       setAuthLoading(false);
     }
@@ -58,7 +58,7 @@ const WarehouseAppContent = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      toast.success('Вы вышли из системы');
+      toast.success('Sistemdən çıxış etdiniz');
     } catch (err) {
       console.error('Logout error:', err);
     }
@@ -68,7 +68,7 @@ const WarehouseAppContent = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-[#07071a] text-white">
         <RefreshCw className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Загрузка модуля Anbar...</p>
+        <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Anbar modulu yüklənir...</p>
       </div>
     );
   }
@@ -78,15 +78,15 @@ const WarehouseAppContent = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-[#07071a] text-white p-6 text-center">
         <Database className="w-16 h-16 text-red-500 mb-6 animate-pulse" />
-        <h2 className="text-2xl font-black mb-2 tracking-tight">Локальный сервер не найден</h2>
+        <h2 className="text-2xl font-black mb-2 tracking-tight">Lokal server tapılmadı</h2>
         <p className="text-gray-400 text-sm max-w-md mb-8 leading-relaxed">
-          Не удалось подключиться к базе данных. Пожалуйста, проверьте настройки подключения к локальному серверу.
+          Məlumat bazasına qoşulmaq mümkün olmadı. Zəhmət olmasa lokal serverin qoşulma parametrlərini yoxlayın.
         </p>
         <button
           onClick={() => setIsConfigOpen(true)}
           className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-blue-900 active:scale-95 flex items-center gap-2"
         >
-          <Server className="w-4 h-4" /> Настроить подключение
+          <Server className="w-4 h-4" /> Qoşulmanı tənzimlə
         </button>
 
         <LocalConnectionModal 
@@ -106,7 +106,7 @@ const WarehouseAppContent = () => {
           <button
             onClick={() => setIsConfigOpen(true)}
             className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
-            title="Настройки подключения"
+            title="Qoşulma tənzimləmələri"
           >
             <Server className="w-5 h-5" />
           </button>
@@ -115,13 +115,13 @@ const WarehouseAppContent = () => {
             <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-[1.5rem] flex items-center justify-center text-blue-400 mb-4 shadow-lg shadow-blue-500/10">
               <Package className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">МӘРКӘЗ • ANBAR</h2>
-            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Автономный складской терминал</p>
+            <h2 className="text-2xl font-black text-white tracking-tight">MƏRKƏZ • ANBAR</h2>
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Avtonom anbar terminalı</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email пользователя</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">İstifadəçi emaili</label>
               <div className="relative">
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -136,7 +136,7 @@ const WarehouseAppContent = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Пароль</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Şifrə</label>
               <div className="relative">
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -155,7 +155,7 @@ const WarehouseAppContent = () => {
               disabled={authLoading}
               className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 flex items-center justify-center"
             >
-              {authLoading ? 'Вход...' : 'Войти в терминал'}
+              {authLoading ? 'Daxil olunur...' : 'Terminala daxil ol'}
             </button>
           </form>
         </div>
@@ -179,20 +179,20 @@ const WarehouseAppContent = () => {
           </div>
           <div>
             <h1 className="text-base font-black tracking-tight leading-tight">MƏRKƏZ • ANBAR</h1>
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">Складской терминал</p>
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">Anbar terminalı</p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full py-1.5 px-4">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">Сервер: Локальный</span>
+            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">Server: Lokal</span>
           </div>
 
           <button
             onClick={() => setIsConfigOpen(true)}
             className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
-            title="Настройки подключения"
+            title="Qoşulma tənzimləmələri"
           >
             <Server className="w-4 h-4" />
           </button>
@@ -200,7 +200,7 @@ const WarehouseAppContent = () => {
           <button
             onClick={handleLogout}
             className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
-            title="Выйти из системы"
+            title="Sistemdən çıx"
           >
             <LogOut className="w-4 h-4" />
           </button>
