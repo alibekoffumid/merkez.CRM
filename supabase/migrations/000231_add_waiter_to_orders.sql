@@ -1,0 +1,1 @@
+-- Placeholder for adding waiter to orders migration

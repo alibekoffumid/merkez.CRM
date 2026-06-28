@@ -32,17 +32,22 @@ DROP POLICY IF EXISTS "Allow public read ingredients" ON ingredients;
 DROP POLICY IF EXISTS "Allow public read warehouse_transactions" ON warehouse_transactions;
 
 -- New Secure Policies
+DROP POLICY IF EXISTS "Users can manage their own categories" ON categories;
 CREATE POLICY "Users can manage their own categories" ON categories 
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage their own products" ON products;
 CREATE POLICY "Users can manage their own products" ON products 
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage their own ingredients" ON ingredients;
 CREATE POLICY "Users can manage their own ingredients" ON ingredients 
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage their own transactions" ON warehouse_transactions;
 CREATE POLICY "Users can manage their own transactions" ON warehouse_transactions 
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
 
 -- 6. Update process_retail_sale to use products instead of retail_products
 CREATE OR REPLACE FUNCTION process_retail_sale(

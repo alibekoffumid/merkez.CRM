@@ -1,3 +1,16 @@
+-- Create hotel_rooms table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.hotel_rooms (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID,
+    name TEXT,
+    type TEXT,
+    capacity INTEGER DEFAULT 2,
+    price_per_night NUMERIC(10, 2) DEFAULT 0,
+    has_minibar BOOLEAN DEFAULT false,
+    housekeeping_note TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
 -- Add warehouse_id to hotel_rooms table if it doesn't exist (multi-warehouse support for minibars)
 DO $$ 
 BEGIN
@@ -5,6 +18,7 @@ BEGIN
         ALTER TABLE public.hotel_rooms ADD COLUMN warehouse_id UUID REFERENCES public.warehouses(id) ON DELETE SET NULL;
     END IF;
 END $$;
+
 
 -- Create hotel_room_minibar_items table if it doesn't exist
 CREATE TABLE IF NOT EXISTS public.hotel_room_minibar_items (
