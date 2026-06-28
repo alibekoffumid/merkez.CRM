@@ -130,7 +130,7 @@ const WarehouseAppContent = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="block w-full pl-13 pr-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
+                  className="block w-full pl-14 pr-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
                 />
               </div>
             </div>
@@ -145,7 +145,7 @@ const WarehouseAppContent = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-13 pr-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
+                  className="block w-full pl-14 pr-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
                 />
               </div>
             </div>
@@ -153,7 +153,7 @@ const WarehouseAppContent = () => {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-4.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 flex items-center justify-center"
+              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 flex items-center justify-center"
             >
               {authLoading ? 'Вход...' : 'Войти в терминал'}
             </button>
