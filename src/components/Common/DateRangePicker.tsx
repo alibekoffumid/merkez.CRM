@@ -8,6 +8,7 @@ interface DateRangePickerProps {
   onChange: (start: string, end: string) => void;
   label?: string;
   placeholder?: string;
+  position?: 'top' | 'bottom';
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({ 
@@ -15,7 +16,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   endDate, 
   onChange, 
   label,
-  placeholder = 'Select date range'
+  placeholder = 'Select date range',
+  position = 'bottom'
 }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -138,7 +140,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-3xl shadow-2xl z-50 p-6 w-[320px] animate-in fade-in zoom-in-95 duration-200 origin-top">
+        <div className={`absolute ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'} left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-3xl shadow-2xl z-50 p-6 w-[320px] animate-in fade-in zoom-in-95 duration-200`}>
           <div className="flex justify-between items-center mb-6">
             <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
               {t(`common.months.${monthsList[monthIndex]}`)} {year}

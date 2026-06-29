@@ -787,6 +787,7 @@ const WarehouseModule = () => {
                       setEndDate(end);
                     }}
                     placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
+                    position="top"
                   />
                 </div>
               </div>
