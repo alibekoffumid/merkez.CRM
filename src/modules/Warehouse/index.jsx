@@ -691,7 +691,7 @@ const WarehouseModule = () => {
         ) : activeTab === 'settings' ? (
           <WarehouseSettings />
         ) : activeTab === 'history' ? (
-          <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden flex flex-col">
+          <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col">
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <div>
