@@ -93,7 +93,9 @@ const Dropdown: React.FC<DropdownProps> = ({
         top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
         bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
         left: `${coords.left}px`,
-        width: `${coords.width}px`,
+        minWidth: `${coords.width}px`,
+        width: 'max-content',
+        maxWidth: '480px',
       }}
     >
       <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
