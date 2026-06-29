@@ -6,10 +6,12 @@ import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
 import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
 
 const WarehouseAppContent = () => {
+  const { t, i18n } = useTranslation();
   const { profile, loading } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,6 +104,23 @@ const WarehouseAppContent = () => {
     return (
       <div className="flex min-h-screen bg-[#07071a] items-center justify-center p-6">
         <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 max-w-md w-full backdrop-blur-md relative overflow-hidden">
+          {/* Language Switcher */}
+          <div className="absolute top-6 left-6 flex bg-white/5 rounded-xl p-0.5 border border-white/5">
+            {['en', 'ru', 'az'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => i18n.changeLanguage(lang)}
+                className={`px-2 py-1 text-[10px] font-bold rounded-lg uppercase transition-all ${
+                  i18n.language === lang
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/10'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
+
           {/* Settings button in corner */}
           <button
             onClick={() => setIsConfigOpen(true)}
@@ -110,6 +129,7 @@ const WarehouseAppContent = () => {
           >
             <Server className="w-5 h-5" />
           </button>
+
 
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-[1.5rem] flex items-center justify-center text-blue-400 mb-4 shadow-lg shadow-blue-500/10">
@@ -184,6 +204,23 @@ const WarehouseAppContent = () => {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Language Switcher */}
+          <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10">
+            {['en', 'ru', 'az'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => i18n.changeLanguage(lang)}
+                className={`px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase transition-all ${
+                  i18n.language === lang
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full py-1.5 px-4">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">Server: Lokal</span>
