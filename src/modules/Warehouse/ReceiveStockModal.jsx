@@ -69,14 +69,20 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   const fetchProducts = async () => {
     if (!profile?.id || !warehouseId) return;
     const table = type === 'product' ? 'products' : 'ingredients';
+    const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
     const { data } = await supabase
       .from(table)
-      .select('id, name, barcode, purchase_price, supplier_id, category_id')
+      .select(`id, name, barcode, purchase_price, supplier_id, category_id, ${qtyField}`)
       .eq('user_id', profile.id)
       .eq('warehouse_id', warehouseId)
       .eq('is_deleted', false)
       .order('name');
-    if (data) setProducts(data);
+    if (data) {
+      setProducts(data.map(p => ({
+        ...p,
+        stock_quantity: p[qtyField]
+      })));
+    }
   };
 
   const handleCategoryChange = (val) => {
@@ -311,7 +317,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                             onChange={handleProductChange}
                             options={[
                                 { value: '', label: t('warehouse.selectProduct') },
-                                ...filteredProducts.map(p => ({ value: p.id, label: `${p.name} (${p.barcode})` }))
+                                ...filteredProducts.map(p => ({ value: p.id, label: `${p.name} (${p.barcode}) — ${p.stock_quantity || 0} ${t('common.unit') || 'шт'}` }))
                             ]}
                         />
                     </div>
