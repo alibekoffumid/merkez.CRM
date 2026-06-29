@@ -57,6 +57,7 @@ const WarehouseModule = () => {
   const [editingSupplier, setEditingSupplier] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
+  const [supplierFilter, setSupplierFilter] = useState('all');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -456,6 +457,10 @@ const WarehouseModule = () => {
       if (statusFilter === 'low') return stock > 0 && stock < min;
       if (statusFilter === 'out') return stock === 0;
       return true;
+    })
+    .filter(p => {
+      if (supplierFilter === 'all') return true;
+      return p.supplier_id === supplierFilter;
     });
 
   const filteredIngredients = ingredients
@@ -1209,6 +1214,22 @@ const WarehouseModule = () => {
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
               />
             </div>
+
+            {activeTab === 'finished' && (
+              <div className="flex items-center gap-2 shrink-0">
+                <select
+                  value={supplierFilter}
+                  onChange={(e) => setSupplierFilter(e.target.value)}
+                  className="bg-gray-50 border border-gray-100 text-gray-700 px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm hover:bg-white cursor-pointer"
+                >
+                  <option value="all">{t('warehouse.allSuppliers') || 'Bütün tədarükçülər'}</option>
+                  {suppliers.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="relative" ref={filterRef}>
               <button 
                 id="tour-filter"
