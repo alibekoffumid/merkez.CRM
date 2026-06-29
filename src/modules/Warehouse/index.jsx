@@ -675,7 +675,7 @@ const WarehouseModule = () => {
         </div>
       </div>
 
-      <div className={`flex flex-1 overflow-hidden ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
+      <div className={`flex flex-1 ${activeTab === 'history' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
         {activeTab === 'suppliers' ? (
           <SuppliersList 
             suppliers={suppliers}
