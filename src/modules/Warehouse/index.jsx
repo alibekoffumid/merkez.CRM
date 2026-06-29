@@ -1200,7 +1200,7 @@ const WarehouseModule = () => {
 
         {/* Products/Ingredients Table Area */}
         <div className="flex-1 flex flex-col bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
-          <div className="p-4 border-b border-gray-100 flex gap-4">
+          <div className="p-4 border-b border-gray-100 flex gap-4 relative z-20">
             <div id="tour-search" className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
