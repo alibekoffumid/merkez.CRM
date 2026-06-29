@@ -578,7 +578,7 @@
   "warehouse": {
     "title": "Склад",
     "subtitle": "Учет товаров, склады и инвентарь",
-    "finishedGoods": "Готовые товары",
+    "finishedGoods": "Товары",
     "ingredients": "Ингредиенты",
     "suppliers": "Поставщики",
     "history": "История",
@@ -712,7 +712,7 @@
     "toWarehouse": "Куда (склад)",
     "itemsToTransfer": "Товары для перемещения",
     "addItem": "Добавить позицию",
-    "selectItem": "Выберите товар/ингредиент",
+    "selectItem": "Выберите товар",
     "notes": "Примечания",
     "transferNotesPlaceholder": "Причина перемещения или комментарий...",
     "confirmTransfer": "Подтвердить перемещение",

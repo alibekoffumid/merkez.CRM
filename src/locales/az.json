@@ -574,7 +574,7 @@
   "warehouse": {
     "title": "Anbar",
     "subtitle": "Məhsul izləmə, anbarlar və inventar",
-    "finishedGoods": "Hazır Məhsullar",
+    "finishedGoods": "Məhsullar",
     "ingredients": "İnqrediyentlər",
     "suppliers": "Tədarükçülər",
     "history": "Tarixçə",
@@ -707,7 +707,7 @@
     "toWarehouse": "Haraya (anbar)",
     "itemsToTransfer": "Daşınacaq mallar",
     "addItem": "Məhsul əlavə et",
-    "selectItem": "Məhsul/İnqrediyent seçin",
+    "selectItem": "Məhsul seçin",
     "notes": "Qeydlər",
     "transferNotesPlaceholder": "Yerdəyişmə səbəbi və ya qeyd...",
     "confirmTransfer": "Yerdəyişməni təsdiqlə",
