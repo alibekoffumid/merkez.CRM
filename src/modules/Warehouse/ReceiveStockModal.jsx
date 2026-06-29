@@ -290,7 +290,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                   </h4>
                   
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-6 flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.category') || 'Категория'}</label>
                         <Dropdown 
                             value={selectedCategoryId}
                             onChange={handleCategoryChange}
@@ -306,7 +307,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                             ]}
                         />
                     </div>
-                    <div className="md:col-span-4">
+                    <div className="md:col-span-6 flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.product') || 'Товар'}</label>
                         <Dropdown 
                             value={currentItem.product_id}
                             onChange={handleProductChange}
@@ -316,7 +318,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                             ]}
                         />
                     </div>
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-6 flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.quantity') || 'Количество'}</label>
                         <div className="relative">
                             <Package className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
                             <input 
@@ -328,7 +331,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                             />
                         </div>
                     </div>
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-6 flex flex-col gap-1.5">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.unitPrice') || 'Цена за единицу'}</label>
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">₼</span>
                             <input 
