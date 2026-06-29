@@ -272,13 +272,9 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
               <div className="lg:col-span-2 space-y-6">
                 {/* Add Item Form */}
                 <div className="bg-white border-2 border-dashed border-gray-200 rounded-[2rem] p-6">
-                  <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2 text-red-400">
-                    <Plus className="w-4 h-4" /> {t('warehouse.addItemsToDispatch') || 'Выбрать товары для списания'}
-                  </h4>
-                  
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-6 flex flex-col gap-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.category') || 'Категория'}</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.category') || 'Категория'}</label>
                         <Dropdown 
                             value={selectedCategoryId}
                             onChange={handleCategoryChange}
