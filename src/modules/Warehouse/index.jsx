@@ -588,8 +588,36 @@ const WarehouseModule = () => {
             </div>
           </div>
 
-          {/* Right side spacer to balance the title on the left */}
-          <div className="hidden lg:block w-[240px]"></div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowTour(true)}
+              className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100"
+              title={t('common.tutorial') || 'Обучение'}
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+            <button 
+              id="tour-receive-btn"
+              onClick={() => setShowReceiveStock(true)} 
+              className="bg-white border border-merkez-green text-merkez-green px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
+            >
+              <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
+            </button>
+            <button 
+              id="tour-dispatch-btn"
+              onClick={() => setShowDispatchStock(true)} 
+              className="bg-white border border-merkez-red text-merkez-red px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
+            >
+              <Minus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.dispatchStock') || 'Списание'}
+            </button>
+            <button 
+              id="tour-transfer-btn"
+              onClick={() => setShowTransferStock(true)} 
+              className="bg-white border border-merkez-blue text-merkez-blue px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.transferStock') || 'Перемещение'}
+            </button>
+          </div>
         </div>
 
         {/* Bottom Row: Contextual Actions */}
@@ -640,37 +668,6 @@ const WarehouseModule = () => {
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
               </button>
             )}
-          </div>
-          
-          <div className="flex gap-2 ml-auto">
-            <button 
-              onClick={() => setShowTour(true)}
-              className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100"
-              title={t('common.tutorial') || 'Обучение'}
-            >
-              <HelpCircle className="w-5 h-5" />
-            </button>
-            <button 
-              id="tour-receive-btn"
-              onClick={() => setShowReceiveStock(true)} 
-              className="bg-white border border-merkez-green text-merkez-green px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm"
-            >
-              <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
-            </button>
-            <button 
-              id="tour-dispatch-btn"
-              onClick={() => setShowDispatchStock(true)} 
-              className="bg-white border border-merkez-red text-merkez-red px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm"
-            >
-              <Minus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.dispatchStock') || 'Списание'}
-            </button>
-            <button 
-              id="tour-transfer-btn"
-              onClick={() => setShowTransferStock(true)} 
-              className="bg-white border border-merkez-blue text-merkez-blue px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center shadow-sm"
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.transferStock') || 'Перемещение'}
-            </button>
           </div>
         </div>
       </div>
