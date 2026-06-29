@@ -122,7 +122,7 @@ const WarehouseSettings = () => {
         .from('products')
         .select('name, barcode, price')
         .eq('user_id', profile.id)
-        .eq('archived', false)
+        .eq('is_deleted', false)
         .not('barcode', 'is', null)
         .neq('barcode', '');
 

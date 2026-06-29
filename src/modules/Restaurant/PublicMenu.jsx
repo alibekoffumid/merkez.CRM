@@ -69,7 +69,7 @@ const PublicMenu = () => {
           .from('products')
           .select('*, categories(name)')
           .eq('user_id', userId)
-          .eq('archived', false);
+          .eq('is_deleted', false);
         
         if (prodData) setProducts(prodData);
       }

@@ -66,7 +66,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
       .select(`id, name, barcode, ${qtyField}, category_id`)
       .eq('user_id', profile.id)
       .eq('warehouse_id', warehouseId)
-      .eq('archived', false)
+      .eq('is_deleted', false)
       .order('name');
     
     if (data) {

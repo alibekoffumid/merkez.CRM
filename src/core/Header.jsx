@@ -30,7 +30,7 @@ const Header = ({ onMenuClick }) => {
         .from('products')
         .select('id, name, stock_quantity, critical_stock')
         .eq('user_id', user.id)
-        .eq('archived', false)
+        .eq('is_deleted', false)
         .lte('stock_quantity', 5);
 
       const startOfDay = new Date();

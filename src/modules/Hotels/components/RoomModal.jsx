@@ -60,7 +60,7 @@ const RoomModal = ({ isOpen, onClose, onSaved, room }) => {
           .from('products')
           .select('id, name, price, category_id, stock_quantity, warehouse_id')
           .eq('user_id', profile?.id)
-          .eq('archived', false)
+          .eq('is_deleted', false)
           .order('name');
         
         setAllProducts(prodData || []);

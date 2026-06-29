@@ -206,7 +206,7 @@ const RetailPOS: React.FC = () => {
           .select('*')
           .eq('user_id', profile.id)
           .eq('barcode', barcode)
-          .eq('archived', false)
+          .eq('is_deleted', false)
           .single();
         if (!error && data) productData = data;
       }
@@ -280,7 +280,7 @@ const RetailPOS: React.FC = () => {
           .from('products')
           .select('*')
           .eq('user_id', profile?.id || '')
-          .eq('archived', false)
+          .eq('is_deleted', false)
           .or(`name.ilike.%${query}%,barcode.ilike.%${query}%`)
           .not('barcode', 'is', null)
           .neq('barcode', '')

@@ -74,7 +74,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
       .select('id, name, barcode, purchase_price, supplier_id, category_id')
       .eq('user_id', profile.id)
       .eq('warehouse_id', warehouseId)
-      .eq('archived', false)
+      .eq('is_deleted', false)
       .order('name');
     if (data) setProducts(data);
   };

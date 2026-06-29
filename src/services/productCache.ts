@@ -11,7 +11,7 @@ export const syncProductsToLocal = async (userId: string) => {
       .from('products')
       .select('*')
       .eq('user_id', userId)
-      .eq('archived', false)
+      .eq('is_deleted', false)
       .not('barcode', 'is', null)
       .neq('barcode', '');
 

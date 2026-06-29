@@ -315,7 +315,7 @@ const WarehouseModule = () => {
     const { data } = await supabase
       .from('products')
       .select('*, categories(name)')
-      .eq('archived', false)
+      .eq('is_deleted', false)
       .eq('user_id', profile.id)
       .eq('warehouse_id', currentWarehouseId)
       .order('name', { ascending: true });
@@ -354,7 +354,7 @@ const WarehouseModule = () => {
     if (confirmDelete.type === 'product') {
       const { error } = await supabase
         .from('products')
-        .update({ archived: true })
+        .update({ is_deleted: true })
         .eq('id', confirmDelete.id);
       if (!error) setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
     } else if (confirmDelete.type === 'ingredient') {
@@ -373,7 +373,7 @@ const WarehouseModule = () => {
     setLoading(true);
     const { error } = await supabase
       .from('products')
-      .update({ archived: true })
+      .update({ is_deleted: true })
       .in('id', selectedItems);
 
     if (!error) {

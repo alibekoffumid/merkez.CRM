@@ -78,7 +78,7 @@ const RetailInventory: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*, categories(name)')
-        .eq('archived', false)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -160,7 +160,7 @@ const RetailInventory: React.FC = () => {
     try {
       const { error } = await supabase
         .from('products')
-        .update({ archived: true })
+        .update({ is_deleted: true })
         .eq('id', confirmDeleteId);
       if (error) throw error;
       toast.success(t('common.archived'));
