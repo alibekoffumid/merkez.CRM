@@ -1220,7 +1220,7 @@ const WarehouseModule = () => {
                 <select
                   value={supplierFilter}
                   onChange={(e) => setSupplierFilter(e.target.value)}
-                  className="bg-gray-50 border border-gray-100 text-gray-700 px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm hover:bg-white cursor-pointer"
+                  className="bg-gray-50 border border-gray-100 text-gray-700 pl-3.5 pr-8 py-2.5 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm hover:bg-white cursor-pointer"
                 >
                   <option value="all">{t('warehouse.allSuppliers') || 'Bütün tədarükçülər'}</option>
                   {suppliers.map(s => (

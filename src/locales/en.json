@@ -596,6 +596,7 @@
     "noReceiptsFound": "Receipt history is empty",
     "categories": "Categories",
     "allCategories": "All Categories",
+    "allSuppliers": "All Suppliers",
     "searchPlaceholder": "Search products...",
     "searchIngredients": "Search ingredients...",
     "loadingInventory": "Loading inventory...",
