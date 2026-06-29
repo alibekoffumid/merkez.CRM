@@ -138,8 +138,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
           </button>
         )}
         {isOpen && (
-          <div className={`absolute ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'} left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-5 w-[300px] animate-in fade-in zoom-in-95 duration-200`}>
-            <div className="flex justify-between items-center mb-3">
+          <div className={`absolute ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'} left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-4 w-[290px] animate-in fade-in zoom-in-95 duration-200`}>
+            <div className="flex justify-between items-center mb-2.5">
               <span className="text-xs font-black text-gray-900 uppercase tracking-tight">
                 {t(`common.months.${monthsList[monthIndex]}`)} {year}
               </span>
@@ -177,7 +177,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 const isEnd = endD && endD.getTime() === cellTime;
                 const isInRange = startD && endD && cellTime > startD.getTime() && cellTime < endD.getTime();
                 
-                let classes = 'h-8 w-full flex items-center justify-center text-xs font-bold rounded-lg transition-all cursor-pointer ';
+                let classes = 'h-[30px] w-full flex items-center justify-center text-xs font-bold rounded-lg transition-all cursor-pointer ';
                 if (isStart || isEnd) {
                   classes += 'bg-merkez-blue text-white shadow-lg shadow-merkez-blue/20';
                 } else if (isInRange) {
@@ -198,7 +198,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
               })}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+            <div className="mt-3.5 pt-2.5 border-t border-gray-100 flex items-center justify-between">
               <button 
                 onClick={() => {
                   setTempStart('');
