@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
  import { useTranslation } from 'react-i18next';
- import { X, Plus, Save, FolderTree } from 'lucide-react'; 
+ import { X, Plus, Save, FolderTree, Loader2 } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
@@ -104,12 +104,21 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
               ]}
             />
           </div>
-          <div className="pt-4 border-t border-gray-100 mt-6 flex justify-end gap-3">
-            <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <div className="flex gap-3 pt-4 border-t border-gray-100 mt-6">
+            <button 
+              type="button" 
+              onClick={onClose} 
+              className="flex-1 py-3 text-sm font-bold text-gray-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all text-center"
+            >
               {t('common.cancel')}
             </button>
-            <button type="submit" disabled={loading} className="px-5 py-2.5 text-sm font-bold text-white bg-merkez-green rounded-lg hover:bg-green-600 transition-colors shadow-md flex items-center">
-              {loading ? t('common.saving') : <><Save className="w-4 h-4 mr-2" /> {t('warehouse.addCategory')}</>}
+            <button 
+              type="submit" 
+              disabled={loading} 
+              className="flex-[2] py-3 bg-merkez-green text-white rounded-xl font-bold shadow-lg shadow-green-500/10 hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {t('warehouse.addCategory')}
             </button>
           </div>
         </form>
