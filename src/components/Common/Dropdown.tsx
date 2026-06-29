@@ -22,6 +22,7 @@ interface DropdownProps {
   options?: DropdownOption[];
   label?: string;
   className?: string;
+  buttonClassName?: string;
   position?: 'top' | 'bottom' | 'auto';
   trigger?: React.ReactNode;
   items?: DropdownItem[];
@@ -33,6 +34,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   options, 
   label, 
   className = '', 
+  buttonClassName = '',
   position = 'auto',
   trigger,
   items
@@ -165,13 +167,13 @@ const Dropdown: React.FC<DropdownProps> = ({
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className="w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-blue-500 hover:bg-white rounded-2xl px-4 py-2.5 transition-all group shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10"
+            className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-2xl px-4 py-2.5'}`}
           >
             <div className="flex items-center gap-3 overflow-hidden">
-              {selectedOption?.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-blue-500 transition-colors" />}
+              {selectedOption?.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" />}
               <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">{selectedOption?.label}</span>
             </div>
-            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-blue-500' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-merkez-blue' : ''}`} />
           </button>
         </>
       )}

@@ -1216,18 +1216,16 @@ const WarehouseModule = () => {
             </div>
 
             {activeTab === 'finished' && (
-              <div className="relative flex items-center shrink-0">
-                <select
+              <div className="w-56 shrink-0">
+                <Dropdown
                   value={supplierFilter}
-                  onChange={(e) => setSupplierFilter(e.target.value)}
-                  className="bg-gray-50 border border-gray-100 text-gray-700 pl-3.5 pr-10 py-2 rounded-lg text-sm font-bold focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors shadow-sm hover:bg-white cursor-pointer appearance-none"
-                >
-                  <option value="all">{t('warehouse.allSuppliers') || 'Bütün tədarükçülər'}</option>
-                  {suppliers.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 pointer-events-none" />
+                  onChange={setSupplierFilter}
+                  options={[
+                    { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
+                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                  ]}
+                  buttonClassName="rounded-lg px-4 py-2 text-sm"
+                />
               </div>
             )}
 
