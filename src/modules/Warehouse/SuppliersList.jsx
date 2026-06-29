@@ -38,7 +38,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white rounded-xl overflow-hidden">
       <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
