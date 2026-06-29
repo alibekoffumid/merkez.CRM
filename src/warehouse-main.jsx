@@ -190,7 +190,7 @@ const WarehouseAppContent = () => {
 
   // 3. Authenticated State: Main Warehouse Module View
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header bar for standalone terminal */}
       <header className="bg-[#07071a] text-white px-6 py-4 flex items-center justify-between border-b border-white/5 shrink-0">
         <div className="flex items-center gap-3">
@@ -245,7 +245,7 @@ const WarehouseAppContent = () => {
       </header>
 
       {/* Main content container */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-hidden p-6 flex flex-col">
         <WarehouseModule />
       </main>
 
