@@ -137,91 +137,90 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <X className="w-4 h-4" />
           </button>
         )}
-      </div>
+        {isOpen && (
+          <div className={`absolute ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'} left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-5 w-[300px] animate-in fade-in zoom-in-95 duration-200`}>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-xs font-black text-gray-900 uppercase tracking-tight">
+                {t(`common.months.${monthsList[monthIndex]}`)} {year}
+              </span>
+              <div className="flex gap-0.5">
+                <button onClick={() => changeMonth(-1)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => changeMonth(1)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
 
-      {isOpen && (
-        <div className={`absolute ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'} left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-5 w-[300px] animate-in fade-in zoom-in-95 duration-200`}>
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-xs font-black text-gray-900 uppercase tracking-tight">
-              {t(`common.months.${monthsList[monthIndex]}`)} {year}
-            </span>
-            <div className="flex gap-0.5">
-              <button onClick={() => changeMonth(-1)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
-                <ChevronLeft className="w-3.5 h-3.5" />
+            <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-black text-gray-400 mb-2 uppercase tracking-widest">
+              {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(d => (
+                <div key={d}>{t(`common.weekdays.${d}`)}</div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+              {Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1).map(day => {
+                const cellDate = new Date(year, monthIndex, day);
+                cellDate.setHours(0, 0, 0, 0);
+                const cellTime = cellDate.getTime();
+                
+                const startD = tempStart ? new Date(tempStart) : null;
+                if (startD) startD.setHours(0, 0, 0, 0);
+                const endD = tempEnd ? new Date(tempEnd) : null;
+                if (endD) endD.setHours(0, 0, 0, 0);
+
+                const isStart = startD && startD.getTime() === cellTime;
+                const isEnd = endD && endD.getTime() === cellTime;
+                const isInRange = startD && endD && cellTime > startD.getTime() && cellTime < endD.getTime();
+                
+                let classes = 'h-8 w-full flex items-center justify-center text-xs font-bold rounded-lg transition-all cursor-pointer ';
+                if (isStart || isEnd) {
+                  classes += 'bg-merkez-blue text-white shadow-lg shadow-merkez-blue/20';
+                } else if (isInRange) {
+                  classes += 'bg-blue-50 text-merkez-blue';
+                } else {
+                  classes += 'text-gray-700 hover:bg-gray-100';
+                }
+
+                return (
+                  <div 
+                    key={day}
+                    onClick={() => handleDateClick(day)}
+                    className={classes}
+                  >
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+              <button 
+                onClick={() => {
+                  setTempStart('');
+                  setTempEnd('');
+                }}
+                className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
+              >
+                {t('restaurant.clear') || 'Clear'}
               </button>
-              <button onClick={() => changeMonth(1)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
-                <ChevronRight className="w-3.5 h-3.5" />
+              <button 
+                onClick={() => {
+                  onChange(tempStart, tempEnd);
+                  setIsOpen(false);
+                }}
+                className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-merkez-blue/20 hover:bg-blue-600 transition-all active:scale-95"
+              >
+                {t('restaurant.applyRange') || 'Apply'}
               </button>
             </div>
           </div>
-
-          <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-black text-gray-400 mb-2 uppercase tracking-widest">
-            {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(d => (
-              <div key={d}>{t(`common.weekdays.${d}`)}</div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1).map(day => {
-              const cellDate = new Date(year, monthIndex, day);
-              cellDate.setHours(0, 0, 0, 0);
-              const cellTime = cellDate.getTime();
-              
-              const startD = tempStart ? new Date(tempStart) : null;
-              if (startD) startD.setHours(0, 0, 0, 0);
-              const endD = tempEnd ? new Date(tempEnd) : null;
-              if (endD) endD.setHours(0, 0, 0, 0);
-
-              const isStart = startD && startD.getTime() === cellTime;
-              const isEnd = endD && endD.getTime() === cellTime;
-              const isInRange = startD && endD && cellTime > startD.getTime() && cellTime < endD.getTime();
-              
-              let classes = 'h-8 w-full flex items-center justify-center text-xs font-bold rounded-lg transition-all cursor-pointer ';
-              if (isStart || isEnd) {
-                classes += 'bg-merkez-blue text-white shadow-lg shadow-merkez-blue/20';
-              } else if (isInRange) {
-                classes += 'bg-blue-50 text-merkez-blue';
-              } else {
-                classes += 'text-gray-700 hover:bg-gray-100';
-              }
-
-              return (
-                <div 
-                  key={day}
-                  onClick={() => handleDateClick(day)}
-                  className={classes}
-                >
-                  {day}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-            <button 
-              onClick={() => {
-                setTempStart('');
-                setTempEnd('');
-              }}
-              className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors"
-            >
-              {t('restaurant.clear') || 'Clear'}
-            </button>
-            <button 
-              onClick={() => {
-                onChange(tempStart, tempEnd);
-                setIsOpen(false);
-              }}
-              className="bg-merkez-blue text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-merkez-blue/20 hover:bg-blue-600 transition-all active:scale-95"
-            >
-              {t('restaurant.applyRange') || 'Apply'}
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
