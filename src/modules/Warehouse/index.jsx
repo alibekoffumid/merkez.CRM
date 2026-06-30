@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, History, Settings2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -45,6 +45,52 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const getHeaderIconAndColor = () => {
+    if (activeTab === 'raw') {
+      return {
+        icon: <FolderTree className="w-5 h-5 text-merkez-green" />,
+        bg: 'bg-merkez-green/10'
+      };
+    }
+    if (activeTab === 'suppliers') {
+      return {
+        icon: <Truck className="w-5 h-5 text-merkez-blue" />,
+        bg: 'bg-merkez-blue/10'
+      };
+    }
+    if (activeTab === 'history') {
+      return {
+        icon: <History className="w-5 h-5 text-merkez-blue" />,
+        bg: 'bg-merkez-blue/10'
+      };
+    }
+    if (activeTab === 'settings') {
+      return {
+        icon: <Settings2 className="w-5 h-5 text-merkez-blue" />,
+        bg: 'bg-merkez-blue/10'
+      };
+    }
+    return {
+      icon: <Package className="w-5 h-5 text-merkez-blue" />,
+      bg: 'bg-merkez-blue/10'
+    };
+  };
+
+  const getHeaderTitle = () => {
+    if (activeTab === 'finished') return t('sidebar.warehouse');
+    if (activeTab === 'raw') return t('warehouse.ingredients');
+    if (activeTab === 'suppliers') return t('warehouse.suppliers') || 'Поставщики';
+    if (activeTab === 'settings') return t('common.settings') || 'Настройки';
+    if (activeTab === 'history') {
+      if (historyTab === 'receipts') return t('warehouse.receiptHistory') || 'История приёмок';
+      if (historyTab === 'dispatches') return t('warehouse.dispatchHistory') || 'История списаний';
+      return t('warehouse.transferHistory') || 'История перемещений';
+    }
+    return t('sidebar.warehouse');
+  };
+
+  const headerInfo = getHeaderIconAndColor();
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -503,47 +549,68 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <div className="p-4 flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-wrap flex-1">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
-                <Package className="w-5 h-5 text-merkez-blue" />
+              <div className={`w-10 h-10 rounded-xl ${headerInfo.bg} flex items-center justify-center shrink-0`}>
+                {headerInfo.icon}
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
-                <div className="flex items-center gap-2 mt-0.5" id="tour-warehouse-selector">
-                  {warehouses?.length > 0 ? (
-                    <Dropdown
-                      trigger={
+                <h1 className="text-lg font-bold text-gray-900 leading-tight">
+                  {getHeaderTitle()}
+                </h1>
+                {activeTab === 'settings' ? (
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">
+                    {t('warehouse.settingsDesc') || 'Настройка параметров складского учета'}
+                  </p>
+                ) : activeTab === 'suppliers' ? (
+                  <p className="text-xs text-gray-500 font-medium mt-0.5">
+                    {t('warehouse.suppliersDesc') || 'Управление базой поставщиков'}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-0.5">
+                    {activeTab === 'history' && (
+                      <p className="text-xs text-gray-500 font-medium mt-0.5">
+                        {historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : 
+                         historyTab === 'dispatches' ? (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров') : 
+                         (t('warehouse.transferHistoryDesc') || 'Журнал перемещения товаров между складами')}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 mt-0.5" id="tour-warehouse-selector">
+                      {warehouses?.length > 0 ? (
+                        <Dropdown
+                          trigger={
+                            <button 
+                              className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 transition-all uppercase tracking-[0.2em] group border border-transparent hover:border-blue-100"
+                            >
+                              {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
+                              <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
+                            </button>
+                          }
+                          items={[
+                            ...(warehouses || []).map(w => ({
+                              id: w.id,
+                              label: w.name,
+                              onClick: () => setCurrentWarehouseId(w.id),
+                              active: w.id === currentWarehouseId
+                            })),
+                            {
+                              id: 'add-new',
+                              label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
+                              onClick: () => setActiveTab('settings'),
+                              className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
+                            }
+                          ]}
+                        />
+                      ) : (
                         <button 
-                          className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 transition-all uppercase tracking-[0.2em] group border border-transparent hover:border-blue-100"
+                          onClick={() => setActiveTab('settings')}
+                          className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
                         >
-                          {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
-                          <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
+                          <Plus className="w-2.5 h-2.5" />
+                          {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
                         </button>
-                      }
-                      items={[
-                        ...(warehouses || []).map(w => ({
-                          id: w.id,
-                          label: w.name,
-                          onClick: () => setCurrentWarehouseId(w.id),
-                          active: w.id === currentWarehouseId
-                        })),
-                        {
-                          id: 'add-new',
-                          label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
-                          onClick: () => setActiveTab('settings'),
-                          className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
-                        }
-                      ]}
-                    />
-                  ) : (
-                    <button 
-                      onClick={() => setActiveTab('settings')}
-                      className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
-                    >
-                      <Plus className="w-2.5 h-2.5" />
-                      {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
-                    </button>
-                  )}
-                </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -652,40 +719,26 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'history' ? (
           <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col">
             <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    {historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : 
-                     historyTab === 'dispatches' ? (t('warehouse.dispatchHistory') || 'История списаний') : 
-                     (t('warehouse.transferHistory') || 'История перемещений')}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : 
-                     historyTab === 'dispatches' ? (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров') : 
-                     (t('warehouse.transferHistoryDesc') || 'Журнал перемещения товаров между складами')}
-                  </p>
-                </div>
-                <div className="flex gap-4 items-center">
-                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
-                    <button 
-                      onClick={() => setHistoryTab('receipts')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.receipts') || 'Приёмки'}
-                    </button>
-                    <button 
-                      onClick={() => setHistoryTab('dispatches')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.dispatches') || 'Списания'}
-                    </button>
-                    <button 
-                      onClick={() => setHistoryTab('transfers')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.transfers') || 'Перемещения'}
-                    </button>
-                  </div>
+              <div className="flex items-center justify-end gap-4 mb-6 flex-wrap">
+                <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+                  <button 
+                    onClick={() => setHistoryTab('receipts')}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.receipts') || 'Приёмки'}
+                  </button>
+                  <button 
+                    onClick={() => setHistoryTab('dispatches')}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.dispatches') || 'Списания'}
+                  </button>
+                  <button 
+                    onClick={() => setHistoryTab('transfers')}
+                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.transfers') || 'Перемещения'}
+                  </button>
                 </div>
                 {(historyFilter || startDate || endDate) && (
                   <button 
