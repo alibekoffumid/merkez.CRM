@@ -5,19 +5,20 @@ import WarehouseModule from './modules/Warehouse';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
 
 const WarehouseAppContent = () => {
   const { t, i18n } = useTranslation();
-  const { profile, loading } = useUser();
+  const { profile, loading, activeModules } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [connectionWorking, setConnectionWorking] = useState(null);
+  const [activeTab, setActiveTab] = useState('finished');
 
   // Check if we can reach the database on mount
   useEffect(() => {
@@ -203,6 +204,67 @@ const WarehouseAppContent = () => {
           </div>
         </div>
 
+        {/* Navigation Tabs in Standalone Header */}
+        <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10 shrink-0">
+          <button
+            onClick={() => setActiveTab('finished')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'finished'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Package className="w-3.5 h-3.5" />
+            {t('warehouse.finishedGoods')}
+          </button>
+          {activeModules?.includes('restaurant') && (
+            <button
+              onClick={() => setActiveTab('raw')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeTab === 'raw'
+                  ? 'bg-green-600 text-white shadow-md shadow-green-600/20'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <FolderTree className="w-3.5 h-3.5" />
+              {t('warehouse.ingredients')}
+            </button>
+          )}
+          <button
+            onClick={() => setActiveTab('suppliers')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'suppliers'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Truck className="w-3.5 h-3.5" />
+            {t('warehouse.suppliers') || 'Поставщики'}
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'history'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Search className="w-3.5 h-3.5" />
+            {t('warehouse.history') || 'История'}
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'settings'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Settings className="w-3.5 h-3.5" />
+            {t('common.settings') || 'Настройки'}
+          </button>
+        </div>
+
         <div className="flex items-center gap-4">
           {/* Language Switcher */}
           <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10">
@@ -246,7 +308,7 @@ const WarehouseAppContent = () => {
 
       {/* Main content container */}
       <main className="flex-1 overflow-hidden p-6 flex flex-col">
-        <WarehouseModule />
+        <WarehouseModule activeTab={activeTab} setActiveTab={setActiveTab} />
       </main>
 
       <LocalConnectionModal 

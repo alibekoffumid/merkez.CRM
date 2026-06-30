@@ -22,11 +22,13 @@ import DispatchStockModal from './DispatchStockModal';
 import TransferStockModal from './TransferStockModal';
 import WarehouseTour from './WarehouseTour';
 
-const WarehouseModule = () => {
+const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules } = useUser();
   const isRestaurantActive = activeModules.includes('restaurant');
-  const [activeTab, setActiveTab] = useState('finished'); // 'finished' | 'suppliers' | 'history'
+  const [localActiveTab, localSetActiveTab] = useState('finished');
+  const activeTab = propActiveTab || localActiveTab;
+  const setActiveTab = propSetActiveTab || localSetActiveTab;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -544,54 +546,7 @@ const WarehouseModule = () => {
             </div>
           </div>
 
-          <div className="flex-1 flex justify-center">
-            {/* Main Navigation Tabs */}
-            <div className="flex p-1.5 bg-gray-50 rounded-xl border border-gray-100">
-              <button 
-                id="tour-products-tab"
-                onClick={() => setActiveTab('finished')}
-                className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'finished' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Package className="w-4 h-4" />
-                {t('warehouse.finishedGoods')}
-              </button>
-              
-              {isRestaurantActive && (
-                <button 
-                  onClick={() => setActiveTab('raw')}
-                  className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'raw' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                >
-                  <FolderTree className="w-4 h-4" />
-                  {t('warehouse.ingredients')}
-                </button>
-              )}
 
-              <button 
-                id="tour-suppliers-tab"
-                onClick={() => setActiveTab('suppliers')}
-                className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'suppliers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Truck className="w-4 h-4" />
-                {t('warehouse.suppliers') || 'Поставщики'}
-              </button>
-              <button 
-                id="tour-history-tab"
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'history' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Search className="w-4 h-4" />
-                {t('warehouse.history') || 'История'}
-              </button>
-              <button 
-                id="tour-settings-tab"
-                onClick={() => setActiveTab('settings')}
-                className={`flex items-center gap-2.5 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${activeTab === 'settings' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <Settings className="w-4 h-4" />
-                {t('common.settings') || 'Настройки'}
-              </button>
-            </div>
-          </div>
 
           <div className="flex items-center gap-2">
             <button 
