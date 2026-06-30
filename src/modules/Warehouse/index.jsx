@@ -511,7 +511,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Dropdown
                     trigger={
                       <button 
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/50 border border-blue-100/50 rounded-xl text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 hover:border-blue-200 transition-all uppercase tracking-[0.2em] group shadow-sm"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50/50 border border-blue-100/50 rounded-lg text-xs font-bold text-gray-600 hover:text-merkez-blue hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm"
                       >
                         {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
                         <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
