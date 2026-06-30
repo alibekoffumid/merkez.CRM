@@ -1336,7 +1336,7 @@ const WarehouseModule = () => {
                         <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                         <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
                         <td className="px-2 py-4 text-sm font-bold text-gray-900">
-                          {parseFloat(item.stock_quantity || 0).toFixed(2)}
+                          {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
                         </td>
                         <td className="px-2 py-4">
                           <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
