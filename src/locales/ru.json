@@ -742,6 +742,9 @@
     "warehouseName": "Название склада",
     "createFirstWarehouse": "Создать первый склад",
     "addNewWarehouse": "Добавить склад",
+    "addCustomUnit": "Добавить меру измерения",
+    "unitName": "Название меры",
+    "unitExists": "Эта мера измерения уже существует",
     "cannotDeleteOnlyWarehouse": "Нельзя удалить единственный склад",
     "selectWarehouse": "Выберите склад",
     "tour": {
