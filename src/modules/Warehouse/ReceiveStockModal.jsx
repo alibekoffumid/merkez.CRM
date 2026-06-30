@@ -105,6 +105,9 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   };
 
   const filteredProducts = (products || []).filter(p => {
+    if (headerData.supplier_id && p.supplier_id && p.supplier_id !== headerData.supplier_id) {
+      return false;
+    }
     if (!selectedCategoryId) return true;
     if (p.category_id === selectedCategoryId) return true;
     const subIds = (categories || []).filter(c => c.parent_id === selectedCategoryId).map(c => c.id);
