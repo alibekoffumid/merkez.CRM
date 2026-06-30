@@ -574,6 +574,13 @@
     "sent": "Sent"
   },
   "warehouse": {
+    "terminalTitle": "MƏRKƏZ • WAREHOUSE",
+    "terminalSubtitle": "Warehouse Terminal",
+    "autonomousTerminal": "Autonomous Warehouse Terminal",
+    "userEmail": "User Email",
+    "password": "Password",
+    "loggingIn": "Logging in...",
+    "loginToTerminal": "Log in to Terminal",
     "title": "Warehouse",
     "subtitle": "Product tracking, warehouses and inventory management",
     "finishedGoods": "Products",

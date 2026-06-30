@@ -572,6 +572,13 @@
     "sent": "Göndərildi"
   },
   "warehouse": {
+    "terminalTitle": "MƏRKƏZ • ANBAR",
+    "terminalSubtitle": "Anbar Terminalı",
+    "autonomousTerminal": "Avtonom anbar terminalı",
+    "userEmail": "İstifadəçi emaili",
+    "password": "Şifrə",
+    "loggingIn": "Daxil olunur...",
+    "loginToTerminal": "Terminala daxil ol",
     "title": "Anbar",
     "subtitle": "Məhsul izləmə, anbarlar və inventar",
     "finishedGoods": "Məhsullar",

@@ -576,6 +576,13 @@
     "sent": "Отправлено"
   },
   "warehouse": {
+    "terminalTitle": "MƏRKƏZ • СКЛАД",
+    "terminalSubtitle": "Складской терминал",
+    "autonomousTerminal": "Автономный складской терминал",
+    "userEmail": "Email пользователя",
+    "password": "Пароль",
+    "loggingIn": "Вход...",
+    "loginToTerminal": "Войти в терминал",
     "title": "Склад",
     "subtitle": "Учет товаров, склады и инвентарь",
     "finishedGoods": "Товары",

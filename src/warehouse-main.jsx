@@ -136,13 +136,13 @@ const WarehouseAppContent = () => {
             <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-[1.5rem] flex items-center justify-center text-blue-400 mb-4 shadow-lg shadow-blue-500/10">
               <Package className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">MƏRKƏZ • ANBAR</h2>
-            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">Avtonom anbar terminalı</p>
+            <h2 className="text-2xl font-black text-white tracking-tight">{t('warehouse.terminalTitle')}</h2>
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">{t('warehouse.autonomousTerminal')}</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">İstifadəçi emaili</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.userEmail')}</label>
               <div className="relative">
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -157,7 +157,7 @@ const WarehouseAppContent = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Şifrə</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.password')}</label>
               <div className="relative">
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -176,7 +176,7 @@ const WarehouseAppContent = () => {
               disabled={authLoading}
               className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 flex items-center justify-center"
             >
-              {authLoading ? 'Daxil olunur...' : 'Terminala daxil ol'}
+              {authLoading ? t('warehouse.loggingIn') : t('warehouse.loginToTerminal')}
             </button>
           </form>
         </div>
@@ -199,8 +199,8 @@ const WarehouseAppContent = () => {
             <Package className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-black tracking-tight leading-tight">MƏRKƏZ • ANBAR</h1>
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">Anbar terminalı</p>
+            <h1 className="text-base font-black tracking-tight leading-tight">{t('warehouse.terminalTitle')}</h1>
+            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">{t('warehouse.terminalSubtitle')}</p>
           </div>
         </div>
 
