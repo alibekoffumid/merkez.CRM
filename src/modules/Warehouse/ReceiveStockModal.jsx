@@ -322,6 +322,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                                 { value: '', label: t('warehouse.selectProduct') },
                                 ...filteredProducts.map(p => ({ value: p.id, label: `${p.name} (${p.barcode}) — ${p.stock_quantity || 0} ${t('common.unit') || 'шт'}` }))
                             ]}
+                            searchable={true}
                         />
                     </div>
                     <div className="md:col-span-6 flex flex-col gap-1.5">

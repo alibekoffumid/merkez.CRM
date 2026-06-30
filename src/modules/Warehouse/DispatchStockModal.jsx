@@ -302,6 +302,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
                                     label: `${p.name} (${p.barcode}) — ${p.stock_quantity} ${t('common.unit') || 'шт'}`
                                 }))
                             ]}
+                            searchable={true}
                         />
                     </div>
                     <div className="md:col-span-12 flex flex-col gap-1.5">

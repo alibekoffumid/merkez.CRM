@@ -232,6 +232,7 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
                             label: `${p.name} (${type === 'product' ? p.stock_quantity : p.quantity} ${type === 'product' ? 'шт' : p.unit})` 
                           }))
                       ]}
+                      searchable={true}
                     />
                   </div>
                   <div className="w-32">

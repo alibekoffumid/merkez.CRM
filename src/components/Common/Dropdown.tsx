@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DropdownOption {
   value: string;
@@ -26,6 +27,7 @@ interface DropdownProps {
   position?: 'top' | 'bottom' | 'auto';
   trigger?: React.ReactNode;
   items?: DropdownItem[];
+  searchable?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({ 
@@ -37,12 +39,21 @@ const Dropdown: React.FC<DropdownProps> = ({
   buttonClassName = '',
   position = 'auto',
   trigger,
-  items
+  items,
+  searchable = false
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, isTop: false });
   const containerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery('');
+    }
+  }, [isOpen]);
 
   const selectedOption = options ? (options.find(opt => opt.value === value) || options[0]) : null;
 
@@ -87,10 +98,16 @@ const Dropdown: React.FC<DropdownProps> = ({
     }
   }, [isOpen]);
 
+  const filteredOptions = options ? (
+    searchable && searchQuery ? options.filter(opt =>
+      opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+    ) : options
+  ) : null;
+
   const dropdownMenu = isOpen && createPortal(
     <div 
       ref={menuRef}
-      className={`fixed z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+      className={`fixed z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95 flex flex-col`}
       style={{
         top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
         bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
@@ -100,9 +117,22 @@ const Dropdown: React.FC<DropdownProps> = ({
         maxWidth: '480px',
       }}
     >
+      {searchable && (
+        <div className="px-3 py-1.5 border-b border-gray-100/60 sticky top-0 bg-white z-10 shrink-0">
+          <input
+            type="text"
+            placeholder={t('common.search') || 'Поиск...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors font-bold"
+            autoFocus
+            onKeyDown={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
       <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-        {options ? (
-          options.map((opt) => (
+        {filteredOptions ? (
+          filteredOptions.map((opt) => (
             <button
               key={opt.value}
               type="button"
