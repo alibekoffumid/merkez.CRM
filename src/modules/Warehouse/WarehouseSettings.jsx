@@ -210,7 +210,17 @@ const WarehouseSettings = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full flex-1 overflow-y-auto">
-      <div className="flex justify-end gap-4 mb-10 pb-6 border-b border-gray-100">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
+            <Settings2 className="w-6 h-6 text-gray-600" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">{t('common.settings') || 'Настройки'}</h2>
+            <p className="text-sm text-gray-500 font-medium">{t('warehouse.settingsDesc') || 'Настройка параметров складского учета'}</p>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3">
           <button 
             onClick={exportBarcodes}
