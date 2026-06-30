@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil } from 'lucide-react';
+import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
@@ -16,6 +16,7 @@ const WarehouseSettings = () => {
     currency: 'AZN',
     defaultUnit: 'pcs',
     availableUnits: ['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2'],
+    customUnits: [],
     lowStockThreshold: '10',
     autoGenerateBarcode: false,
     barcodePrefix: 'MRKZ-'
@@ -25,6 +26,8 @@ const WarehouseSettings = () => {
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [newWarehouse, setNewWarehouse] = useState({ name: '', address: '' });
   const [editingWarehouseId, setEditingWarehouseId] = useState(null);
+  const [showAddCustomUnit, setShowAddCustomUnit] = useState(false);
+  const [customUnitName, setCustomUnitName] = useState('');
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('merkez_warehouse_settings');
@@ -166,7 +169,7 @@ const WarehouseSettings = () => {
     { value: 'RUB', label: 'RUB (₽)' }
   ];
 
-  const units = [
+  const defaultUnits = [
     { value: 'pcs', label: t('restaurant.pcs') || 'Штуки (шт)' },
     { value: 'kg', label: t('restaurant.kg') || 'Килограммы (кг)' },
     { value: 'g', label: t('restaurant.g') || 'Граммы (г)' },
@@ -176,6 +179,33 @@ const WarehouseSettings = () => {
     { value: 'm2', label: t('restaurant.m2') || 'Кв. метры (м²)' },
     { value: 'pack', label: t('restaurant.pack') || 'Упаковка (уп)' },
     { value: 'bottle', label: t('restaurant.bottle') || 'Бутылка (бут)' }
+  ];
+
+  const handleAddCustomUnit = () => {
+    const trimmed = customUnitName.trim();
+    if (!trimmed) return;
+
+    const value = trimmed.toLowerCase();
+    const exists = [...defaultUnits, ...(settings.customUnits || [])].some(u => u.value === value);
+    if (exists) {
+      toast.error(t('warehouse.unitExists') || 'Такая единица уже существует');
+      return;
+    }
+
+    const newCustomUnit = { value, label: trimmed };
+    setSettings(prev => ({
+      ...prev,
+      customUnits: [...(prev.customUnits || []), newCustomUnit],
+      availableUnits: [...(prev.availableUnits || []), value]
+    }));
+    setCustomUnitName('');
+    setShowAddCustomUnit(false);
+    toast.success(t('common.success'));
+  };
+
+  const units = [
+    ...defaultUnits,
+    ...(settings.customUnits || [])
   ];
 
   return (
@@ -282,24 +312,84 @@ const WarehouseSettings = () => {
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.unitSettings') || 'Единицы измерения'}</h3>
             <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
               <p className="text-xs text-gray-500 font-medium">{t('warehouse.availableUnitsDesc') || 'Отметьте те единицы, которые вы используете:'}</p>
-              <div className="flex flex-wrap gap-2">
+               <div className="flex flex-wrap gap-2 items-center">
                 {units.map(unit => {
                   const isSelected = settings.availableUnits?.includes(unit.value);
+                  const isCustom = !defaultUnits.some(du => du.value === unit.value);
                   return (
-                    <button
-                      key={unit.value}
-                      onClick={() => {
-                        const newUnits = isSelected 
-                          ? settings.availableUnits.filter(u => u !== unit.value)
-                          : [...(settings.availableUnits || []), unit.value];
-                        setSettings({ ...settings, availableUnits: newUnits });
-                      }}
-                      className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue shadow-sm'}`}
-                    >
-                      {unit.label}
-                    </button>
+                    <div key={unit.value} className="relative flex items-center">
+                      <button
+                        onClick={() => {
+                          const newUnits = isSelected 
+                            ? settings.availableUnits.filter(u => u !== unit.value)
+                            : [...(settings.availableUnits || []), unit.value];
+                          setSettings({ ...settings, availableUnits: newUnits });
+                        }}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${isCustom ? 'pr-8' : ''} ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue shadow-sm'}`}
+                      >
+                        {unit.label}
+                      </button>
+                      {isCustom && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newCustom = (settings.customUnits || []).filter(cu => cu.value !== unit.value);
+                            const newAvail = (settings.availableUnits || []).filter(u => u !== unit.value);
+                            setSettings({ ...settings, customUnits: newCustom, availableUnits: newAvail });
+                          }}
+                          className={`absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-md hover:bg-black/10 transition-colors ${isSelected ? 'text-white' : 'text-gray-400 hover:text-red-500'}`}
+                          title="Delete unit"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
+
+                {/* Add Custom Unit Button */}
+                {showAddCustomUnit ? (
+                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 bg-white p-1 border border-gray-200 rounded-xl shadow-sm">
+                    <input
+                      type="text"
+                      placeholder={t('warehouse.unitName') || 'Название...'}
+                      value={customUnitName}
+                      onChange={(e) => setCustomUnitName(e.target.value)}
+                      className="px-3 py-1.5 bg-gray-50 border border-transparent rounded-lg text-xs outline-none focus:bg-white focus:border-merkez-blue font-bold w-28"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddCustomUnit();
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomUnit}
+                      className="p-1.5 bg-merkez-blue text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddCustomUnit(false); setCustomUnitName(''); }}
+                      className="p-1.5 bg-gray-100 text-gray-500 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCustomUnit(true)}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-dashed border-gray-300 text-gray-500 hover:border-merkez-blue hover:text-merkez-blue flex items-center gap-1.5 shadow-sm bg-white"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    {t('warehouse.addCustomUnit') || 'Добавить единицу'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
