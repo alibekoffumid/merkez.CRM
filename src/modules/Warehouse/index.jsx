@@ -501,55 +501,60 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
         {/* Top Row: Title & Navigation */}
         <div className="p-4 flex flex-col lg:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
-              <Package className="w-5 h-5 text-merkez-blue" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
-              <div className="flex items-center gap-2 mt-0.5" id="tour-warehouse-selector">
-                {warehouses?.length > 0 ? (
-                  <Dropdown
-                    trigger={
-                      <button 
-                        className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 transition-all uppercase tracking-[0.2em] group border border-transparent hover:border-blue-100"
-                      >
-                        {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
-                        <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
-                      </button>
-                    }
-                    items={[
-                      ...(warehouses || []).map(w => ({
-                        id: w.id,
-                        label: w.name,
-                        onClick: () => setCurrentWarehouseId(w.id),
-                        active: w.id === currentWarehouseId
-                      })),
-                      {
-                        id: 'add-new',
-                        label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
-                        onClick: () => setActiveTab('settings'),
-                        className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
+          <div className="flex items-center gap-4 flex-wrap flex-1">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
+                <Package className="w-5 h-5 text-merkez-blue" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
+                <div className="flex items-center gap-2 mt-0.5" id="tour-warehouse-selector">
+                  {warehouses?.length > 0 ? (
+                    <Dropdown
+                      trigger={
+                        <button 
+                          className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 transition-all uppercase tracking-[0.2em] group border border-transparent hover:border-blue-100"
+                        >
+                          {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
+                          <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
+                        </button>
                       }
-                    ]}
-                  />
-                ) : (
-                  <button 
-                    onClick={() => setActiveTab('settings')}
-                    className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
-                  >
-                    <Plus className="w-2.5 h-2.5" />
-                    {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
-                  </button>
-                )}
+                      items={[
+                        ...(warehouses || []).map(w => ({
+                          id: w.id,
+                          label: w.name,
+                          onClick: () => setCurrentWarehouseId(w.id),
+                          active: w.id === currentWarehouseId
+                        })),
+                        {
+                          id: 'add-new',
+                          label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
+                          onClick: () => setActiveTab('settings'),
+                          className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
+                        }
+                      ]}
+                    />
+                  ) : (
+                    <button 
+                      onClick={() => setActiveTab('settings')}
+                      className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
+                    >
+                      <Plus className="w-2.5 h-2.5" />
+                      {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Tab-specific actions */}
+            {/* Vertical separator */}
+            {(activeTab === 'finished' || (activeTab === 'raw' && isRestaurantActive) || activeTab === 'suppliers') && (
+              <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden sm:block"></div>
+            )}
+
+            {/* Tab-specific actions (Shifted to Left) */}
             {activeTab === 'finished' && (
-              <>
+              <div className="flex items-center gap-2 flex-wrap">
                 <button 
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                   className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
@@ -575,26 +580,27 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
                 </button>
-              </>
+              </div>
             )}
 
             {activeTab === 'raw' && isRestaurantActive && (
-              <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10">
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10">
+                  <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
+                </button>
+              </div>
             )}
 
             {activeTab === 'suppliers' && (
-              <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
+                  <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
+                </button>
+              </div>
             )}
+          </div>
 
-            {/* Vertical separator if there are tab-specific actions */}
-            {(activeTab === 'finished' || (activeTab === 'raw' && isRestaurantActive) || activeTab === 'suppliers') && (
-              <div className="h-6 w-[1px] bg-gray-200 mx-1 hidden sm:block"></div>
-            )}
-
+          <div className="flex items-center gap-2 flex-wrap">
             {/* Main Warehouse Actions */}
             <button 
               onClick={() => setShowTour(true)}
