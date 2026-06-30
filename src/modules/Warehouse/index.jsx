@@ -506,44 +506,41 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
                 <Package className="w-5 h-5 text-merkez-blue" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900 leading-tight">{t('sidebar.warehouse')}</h1>
-                <div className="flex items-center gap-2 mt-0.5" id="tour-warehouse-selector">
-                  {warehouses?.length > 0 ? (
-                    <Dropdown
-                      trigger={
-                        <button 
-                          className="flex items-center gap-1.5 px-2 py-1 -ml-2 rounded-lg text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 transition-all uppercase tracking-[0.2em] group border border-transparent hover:border-blue-100"
-                        >
-                          {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
-                          <ChevronDown className="w-3 h-3 group-hover:translate-y-0.5 transition-transform" />
-                        </button>
+              <div id="tour-warehouse-selector">
+                {warehouses?.length > 0 ? (
+                  <Dropdown
+                    trigger={
+                      <button 
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/50 border border-blue-100/50 rounded-xl text-[10px] font-black text-gray-500 hover:text-merkez-blue hover:bg-blue-50 hover:border-blue-200 transition-all uppercase tracking-[0.2em] group shadow-sm"
+                      >
+                        {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
+                        <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
+                      </button>
+                    }
+                    items={[
+                      ...(warehouses || []).map(w => ({
+                        id: w.id,
+                        label: w.name,
+                        onClick: () => setCurrentWarehouseId(w.id),
+                        active: w.id === currentWarehouseId
+                      })),
+                      {
+                        id: 'add-new',
+                        label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
+                        onClick: () => setActiveTab('settings'),
+                        className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
                       }
-                      items={[
-                        ...(warehouses || []).map(w => ({
-                          id: w.id,
-                          label: w.name,
-                          onClick: () => setCurrentWarehouseId(w.id),
-                          active: w.id === currentWarehouseId
-                        })),
-                        {
-                          id: 'add-new',
-                          label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
-                          onClick: () => setActiveTab('settings'),
-                          className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
-                        }
-                      ]}
-                    />
-                  ) : (
-                    <button 
-                      onClick={() => setActiveTab('settings')}
-                      className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
-                    >
-                      <Plus className="w-2.5 h-2.5" />
-                      {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
-                    </button>
-                  )}
-                </div>
+                    ]}
+                  />
+                ) : (
+                  <button 
+                    onClick={() => setActiveTab('settings')}
+                    className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
+                  >
+                    <Plus className="w-2.5 h-2.5" />
+                    {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
+                  </button>
+                )}
               </div>
             </div>
 
