@@ -513,8 +513,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <div className="p-4 flex flex-col lg:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-wrap flex-1">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
-                <Package className="w-5 h-5 text-merkez-blue" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-gray-100">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div id="tour-warehouse-selector">
                 {warehouses?.length > 0 ? (
