@@ -212,7 +212,7 @@ const WarehouseSettings = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full flex-1 overflow-y-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100">
+          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100 shrink-0">
             <Settings2 className="w-6 h-6 text-gray-600" />
           </div>
           <div>
@@ -221,16 +221,16 @@ const WarehouseSettings = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <button 
             onClick={exportBarcodes}
             disabled={exporting}
-            className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center gap-2 shadow-sm"
+            className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto"
           >
             {exporting ? (
               <div className="w-4 h-4 border-2 border-gray-300 border-t-merkez-blue rounded-full animate-spin" />
             ) : (
-              <Barcode className="w-4 h-4" />
+              <Barcode className="w-4 h-4 shrink-0" />
             )}
             {t('warehouse.exportBarcodes') || 'Export CSV'}
           </button>
@@ -240,9 +240,9 @@ const WarehouseSettings = () => {
               localStorage.setItem('merkez_warehouse_settings', JSON.stringify(settings));
               toast.success(t('common.success'));
             }}
-            className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-black transition-all flex items-center gap-2 shadow-lg shadow-black/10"
+            className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 w-full sm:w-auto"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-4 h-4 shrink-0" />
             {t('common.save') || 'Save'}
           </button>
         </div>

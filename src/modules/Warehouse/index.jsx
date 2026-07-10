@@ -698,41 +698,34 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             )}
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 lg:flex-wrap">
+          <div className="grid grid-cols-2 lg:flex lg:items-center gap-2 w-full lg:w-auto">
             {/* Main Warehouse Actions */}
             <button 
-              onClick={() => setShowTour(true)}
-              className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all border border-transparent hover:border-blue-100"
-              title={t('common.tutorial') || 'Обучение'}
-            >
-              <HelpCircle className="w-5 h-5" />
-            </button>
-            <button 
               onClick={() => setShowSellProduct(true)} 
-              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10 whitespace-nowrap"
+              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap w-full"
             >
-              <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+              <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
             </button>
             <button 
               id="tour-receive-btn"
               onClick={() => setShowReceiveStock(true)} 
-              className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
+              className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
             >
-              <Truck className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.receiveStock') || 'Приемка'}
+              <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.receiveStock') || 'Приемка'}
             </button>
             <button 
               id="tour-dispatch-btn"
               onClick={() => setShowDispatchStock(true)} 
-              className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
+              className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
             >
-              <Minus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.dispatchStock') || 'Списание'}
+              <Minus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.dispatchStock') || 'Списание'}
             </button>
             <button 
               id="tour-transfer-btn"
               onClick={() => setShowTransferStock(true)} 
-              className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
+              className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
             >
-              <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.transferStock') || 'Перемещение'}
+              <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
             </button>
           </div>
         </div>
@@ -764,7 +757,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'history' ? (
           <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col">
             <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
                     {historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : 
@@ -779,50 +772,50 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                      (t('warehouse.transferHistoryDesc') || 'Журнал перемещения товаров между складами')}
                   </p>
                 </div>
-                <div className="flex gap-4 items-center">
-                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full xl:w-auto">
+                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto">
                     <button 
                       onClick={() => setHistoryTab('receipts')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.receipts') || 'Приёмки'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('sales')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('dispatches')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.dispatches') || 'Списания'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('transfers')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.transfers') || 'Перемещения'}
                     </button>
                   </div>
+                  {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter) && (
+                    <button 
+                      onClick={() => {
+                        setHistoryFilter(null);
+                        setHistorySearchTerm('');
+                        setStartDate('');
+                        setEndDate('');
+                        setSalesChannelFilter('');
+                        setCategoryFilter('');
+                      }}
+                      className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shrink-0"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      {t('common.clearFilters') || 'Сбросить фильтры'}
+                    </button>
+                  )}
                 </div>
-                {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter) && (
-                  <button 
-                    onClick={() => {
-                      setHistoryFilter(null);
-                      setHistorySearchTerm('');
-                      setStartDate('');
-                      setEndDate('');
-                      setSalesChannelFilter('');
-                      setCategoryFilter('');
-                    }}
-                    className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
-                  >
-                    <Search className="w-3.5 h-3.5" />
-                    {t('common.clearFilters') || 'Сбросить фильтры'}
-                  </button>
-                )}
               </div>
 
               {/* Filters Bar */}
@@ -1461,21 +1454,63 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
         {/* Products/Ingredients Table Area */}
         <div className="flex-1 flex flex-col bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
-          <div className="p-4 border-b border-gray-100 flex gap-4 relative z-20">
-            <div id="tour-search" className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-              />
+          <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20">
+            <div className="flex items-center gap-2 flex-1 w-full xl:max-w-md">
+              {activeTab === 'finished' && (
+                <button
+                  className="xl:hidden p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
+                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              )}
+              <div id="tour-search" className="relative flex-1">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                  value={searchTerm} 
+                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+                />
+              </div>
+
+              <div className="relative shrink-0 xl:hidden" ref={filterRef}>
+                <button 
+                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
+                >
+                  <Filter className="w-5 h-5" />
+                </button>
+                
+                {showFilterDropdown && (
+                  <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-xl shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                    <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                    {[
+                      { id: 'all', label: t('common.all') },
+                      { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
+                      { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
+                      { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
+                    ].map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
+                          {item.label}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {activeTab === 'finished' && (
-              <>
-                <div className="w-56 shrink-0">
+              <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
+                <div className="w-full sm:w-56 shrink-0">
                   <Dropdown
                     value={selectedCategory || 'all'}
                     onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
@@ -1483,11 +1518,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
                       ...formatCategoriesHierarchically(categories).map(c => ({ value: c.id, label: c.name }))
                     ]}
-                    buttonClassName="rounded-lg px-4 py-2 text-sm"
+                    buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
                   />
                 </div>
 
-                <div className="w-56 shrink-0">
+                <div className="w-full sm:w-56 shrink-0">
                   <Dropdown
                     value={supplierFilter}
                     onChange={setSupplierFilter}
@@ -1495,13 +1530,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
                       ...suppliers.map(s => ({ value: s.id, label: s.name }))
                     ]}
-                    buttonClassName="rounded-lg px-4 py-2 text-sm"
+                    buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
                   />
                 </div>
-              </>
+              </div>
             )}
 
-            <div className="relative" ref={filterRef}>
+            <div className="relative shrink-0 hidden xl:block" ref={filterRef}>
               <button 
                 id="tour-filter"
                 onClick={() => setShowFilterDropdown(!showFilterDropdown)}

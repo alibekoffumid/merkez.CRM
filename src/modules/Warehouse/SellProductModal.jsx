@@ -549,9 +549,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto lg:overflow-hidden p-4 lg:p-8 pt-6 flex flex-col">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
-              {/* Sidebar Info */}
-              <div className="lg:col-span-5 space-y-6 overflow-y-auto pr-2 pb-6 max-h-full">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 flex-1 min-h-0">
+              {/* Sidebar Info (Sale Parameters) */}
+              <div className="lg:col-span-5 space-y-6 lg:overflow-y-auto pr-2 pb-6 lg:max-h-full shrink-0 lg:shrink">
                 <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{i18n.language === 'az' ? 'Satış Parametrləri' : i18n.language === 'ru' ? 'Параметры продажи' : 'Sale Parameters'}</h4>
                   
@@ -616,7 +616,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
 
                   {paymentMethod === 'credit' && (
                     <div className="bg-blue-50/40 border border-blue-100/50 p-4 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-2">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 items-end">
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
                             {i18n.language === 'az' ? 'Məhsulun ana dəyəri' : 'Базовая цена'}
@@ -692,7 +692,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                           <span className="text-orange-500 font-black text-sm">{commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого (Цена + Процент):'}</span>
+                          <span>{i18n.language === 'az' ? 'Cəmi:' : 'İтого (Цена + Процент):'}</span>
                           <span className="text-gray-900 font-black text-sm">₼{contractTotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -721,7 +721,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
 
                   {paymentMethod === 'birmarket' && (
                     <div className="bg-blue-50/40 border border-blue-100/50 p-4 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-2">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3 items-end">
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
                             {i18n.language === 'az' ? 'Məhsulun ana dəyəri' : 'Базовая цена'}
@@ -930,7 +930,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                 </div>
 
                 {/* Cart list table */}
-                <div className="flex-1 min-h-0 overflow-y-auto border border-gray-100 rounded-2xl">
+                <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto border border-gray-100 rounded-2xl">
                   {cart.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full py-12 text-gray-400 gap-3 bg-gray-50/20">
                       <ShoppingCart className="w-10 h-10 text-gray-200" />

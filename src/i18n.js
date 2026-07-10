@@ -16,10 +16,10 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',
+    fallbackLng: 'az',
     supportedLngs: ['en', 'ru', 'az'],
     detection: {
-      order: ['queryString', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag'],
+      order: ['queryString', 'localStorage', 'cookie', 'sessionStorage'],
       caches: ['localStorage', 'cookie']
     },
     interpolation: {

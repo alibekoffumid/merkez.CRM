@@ -5,7 +5,7 @@ import WarehouseModule from './modules/Warehouse';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
@@ -22,20 +22,25 @@ const WarehouseAppContent = () => {
   const [activeTab, setActiveTab] = useState('finished');
   const [lowStockCount, setLowStockCount] = useState(0);
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [showMobileTabs, setShowMobileTabs] = useState(false);
   const langRef = useRef(null);
+  const mobileTabsRef = useRef(null);
 
-  // Close language menu on click outside
+  // Close menus on click outside
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) {
         setShowLangMenu(false);
       }
+      if (mobileTabsRef.current && !mobileTabsRef.current.contains(e.target)) {
+        setShowMobileTabs(false);
+      }
     };
-    if (showLangMenu) {
+    if (showLangMenu || showMobileTabs) {
       document.addEventListener('mousedown', handleOutsideClick);
     }
     return () => document.removeEventListener('mousedown', handleOutsideClick);
-  }, [showLangMenu]);
+  }, [showLangMenu, showMobileTabs]);
 
   useEffect(() => {
     if (!profile) return;
@@ -233,139 +238,164 @@ const WarehouseAppContent = () => {
   }
 
   // 3. Authenticated State: Main Warehouse Module View
+  const navTabs = [
+    { id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' },
+    ...(activeModules?.includes('restaurant') ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
+    { id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' },
+    { id: 'history', icon: Search, label: t('warehouse.history') || 'История' },
+    { id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' },
+    { id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null },
+    { id: 'debts', icon: BookOpen, label: t('crm.debtBook') || 'Книга долгов' },
+    { id: 'clients', icon: User, label: i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients' },
+    { id: 'staff', icon: Users, label: i18n.language === 'az' ? 'Heyət' : i18n.language === 'ru' ? 'Персонал' : 'Staff' },
+    { id: 'settings', icon: Settings, label: t('common.settings') || 'Настройки' }
+  ];
+
+  const activeTabItem = navTabs.find(t => t.id === activeTab) || navTabs[0];
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header bar for standalone terminal */}
-      <header className="bg-[#07071a] text-white px-6 py-4 flex items-center justify-between border-b border-white/5 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+      <header className="bg-[#07071a] text-white px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 shrink-0 gap-3">
+        <div className="flex items-center justify-between w-full md:w-auto">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+            </div>
+            <div>
+              <h1 className="text-base font-black tracking-tight leading-tight">{t('warehouse.terminalTitle')}</h1>
+              <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">{t('warehouse.terminalSubtitle')}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-black tracking-tight leading-tight">{t('warehouse.terminalTitle')}</h1>
-            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">{t('warehouse.terminalSubtitle')}</p>
+
+          {/* Mobile Header Controls */}
+          <div className="flex items-center gap-1.5 md:hidden">
+            <div className="relative">
+              <button
+                onClick={() => setShowLangMenu(!showLangMenu)}
+                className="flex items-center gap-1 bg-white/5 border border-white/10 text-gray-300 rounded-lg px-2 h-8 text-[10px] font-bold transition-all"
+              >
+                {i18n.language.toUpperCase()}
+                <span className="text-[7px]">▼</span>
+              </button>
+
+              {showLangMenu && (
+                <div className="absolute right-0 top-full mt-1 z-50 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl py-1 w-20 animate-in fade-in zoom-in-95">
+                  {[
+                    { value: 'az', label: 'AZ' },
+                    { value: 'ru', label: 'RU' },
+                    { value: 'en', label: 'EN' }
+                  ].map(item => (
+                    <button
+                      key={item.value}
+                      onClick={() => {
+                        i18n.changeLanguage(item.value);
+                        setShowLangMenu(false);
+                      }}
+                      className={`w-full text-center py-1.5 text-[10px] font-bold hover:bg-white/5 transition-colors block ${i18n.language === item.value ? 'text-blue-400' : 'text-gray-400'}`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setIsConfigOpen(true)}
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg transition-all relative"
+              title="Qoşulma tənzimləmələri"
+            >
+              <Server className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10 rounded-lg transition-all"
+              title="Sistemdən çıx"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* Navigation Tabs in Standalone Header */}
-        <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10 shrink-0 overflow-x-auto no-scrollbar flex-nowrap max-w-full lg:max-w-none">
+        {/* Navigation Tabs (Desktop) */}
+        <div className="hidden md:flex bg-white/5 rounded-xl p-0.5 border border-white/10 shrink-0 overflow-x-auto lg:overflow-visible no-scrollbar flex-nowrap max-w-full lg:max-w-none">
+          {navTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+                {tab.badge && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse shadow-sm">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Mobile Tabs Dropdown */}
+        <div className="md:hidden relative w-full lg:w-auto" ref={mobileTabsRef}>
           <button
-            onClick={() => setActiveTab('finished')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'finished'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
+            onClick={() => setShowMobileTabs(!showMobileTabs)}
+            className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all"
           >
-            <Package className="w-3.5 h-3.5" />
-            {t('warehouse.finishedGoods')}
+            <div className="flex items-center gap-2">
+              {activeTabItem && <activeTabItem.icon className="w-4 h-4 text-blue-400" />}
+              <span>{activeTabItem?.label}</span>
+              {activeTabItem?.badge && (
+                <span className="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
+                  {activeTabItem.badge}
+                </span>
+              )}
+            </div>
+            <ChevronDown className={`w-4 h-4 transition-transform ${showMobileTabs ? 'rotate-180' : ''}`} />
           </button>
-          {activeModules?.includes('restaurant') && (
-            <button
-              onClick={() => setActiveTab('raw')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                activeTab === 'raw'
-                  ? 'bg-green-600 text-white shadow-md shadow-green-600/20'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <FolderTree className="w-3.5 h-3.5" />
-              {t('warehouse.ingredients')}
-            </button>
+
+          {showMobileTabs && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0c0c28] border border-white/10 rounded-xl shadow-2xl z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 max-h-[60vh] overflow-y-auto no-scrollbar">
+              {navTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      setShowMobileTabs(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-4 py-3 rounded-lg text-xs font-bold transition-all ${
+                      isActive
+                        ? 'bg-blue-600/20 text-blue-400'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4 h-4" />
+                      {tab.label}
+                    </div>
+                    {tab.badge && (
+                      <span className="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
+                        {tab.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           )}
-          <button
-            onClick={() => setActiveTab('suppliers')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'suppliers'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Truck className="w-3.5 h-3.5" />
-            {t('warehouse.suppliers') || 'Поставщики'}
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'history'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Search className="w-3.5 h-3.5" />
-            {t('warehouse.history') || 'История'}
-          </button>
-          <button
-            onClick={() => setActiveTab('stocktake')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'stocktake'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <ClipboardList className="w-3.5 h-3.5" />
-            {t('warehouse.stocktake') || 'Инвентаризация'}
-          </button>
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all relative whitespace-nowrap ${
-              activeTab === 'reports'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <TrendingUp className="w-3.5 h-3.5" />
-            {t('warehouse.reports') || 'Отчеты'}
-            {lowStockCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse border border-gray-900 shadow-sm">
-                {lowStockCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('debts')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'debts'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            {t('crm.debtBook') || 'Книга долгов'}
-          </button>
-          <button
-            onClick={() => setActiveTab('clients')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'clients'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            {i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients'}
-          </button>
-          <button
-            onClick={() => setActiveTab('staff')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'staff'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            {i18n.language === 'az' ? 'Heyət' : i18n.language === 'ru' ? 'Персонал' : 'Staff'}
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'settings'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Settings className="w-3.5 h-3.5" />
-            {t('common.settings') || 'Настройки'}
-          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -425,7 +455,7 @@ const WarehouseAppContent = () => {
       </header>
 
       {/* Main content container */}
-      <main className="flex-1 overflow-hidden p-6 flex flex-col">
+      <main className="flex-1 overflow-hidden p-3 md:p-6 flex flex-col">
         <WarehouseModule activeTab={activeTab} setActiveTab={setActiveTab} />
       </main>
 
