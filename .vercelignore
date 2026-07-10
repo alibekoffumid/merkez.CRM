@@ -24,3 +24,4 @@ build_log*.txt
 *.html
 !index.html
 !air-mouse.html
+!warehouse.html
