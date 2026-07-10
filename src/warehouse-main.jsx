@@ -176,8 +176,8 @@ const WarehouseAppContent = () => {
 
 
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 rounded-[1.5rem] overflow-hidden flex items-center justify-center mb-4 shadow-lg shadow-blue-500/10 bg-white/5 border border-white/10">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+            <div className="w-16 h-16 overflow-hidden flex items-center justify-center mb-4">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight">{t('warehouse.terminalTitle')}</h2>
             <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">{t('warehouse.autonomousTerminal')}</p>
@@ -238,8 +238,8 @@ const WarehouseAppContent = () => {
       {/* Header bar for standalone terminal */}
       <header className="bg-[#07071a] text-white px-6 py-4 flex items-center justify-between border-b border-white/5 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 bg-white/5 border border-white/10">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+          <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-base font-black tracking-tight leading-tight">{t('warehouse.terminalTitle')}</h1>
