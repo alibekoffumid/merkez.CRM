@@ -248,10 +248,10 @@ const WarehouseAppContent = () => {
         </div>
 
         {/* Navigation Tabs in Standalone Header */}
-        <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10 shrink-0">
+        <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10 shrink-0 overflow-x-auto no-scrollbar flex-nowrap max-w-full lg:max-w-none">
           <button
             onClick={() => setActiveTab('finished')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'finished'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -263,7 +263,7 @@ const WarehouseAppContent = () => {
           {activeModules?.includes('restaurant') && (
             <button
               onClick={() => setActiveTab('raw')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === 'raw'
                   ? 'bg-green-600 text-white shadow-md shadow-green-600/20'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -275,7 +275,7 @@ const WarehouseAppContent = () => {
           )}
           <button
             onClick={() => setActiveTab('suppliers')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'suppliers'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -286,7 +286,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'history'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -297,7 +297,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('stocktake')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'stocktake'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -308,7 +308,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('reports')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all relative ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all relative whitespace-nowrap ${
               activeTab === 'reports'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -324,7 +324,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('debts')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'debts'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -335,7 +335,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('clients')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'clients'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -346,7 +346,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('staff')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'staff'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -357,7 +357,7 @@ const WarehouseAppContent = () => {
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'settings'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'

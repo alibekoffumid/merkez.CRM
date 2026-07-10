@@ -268,9 +268,9 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 md:p-6" onClick={onClose}>
         <div 
-          className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-6xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col h-[90vh]"
+          className="bg-white md:rounded-[2.5rem] shadow-2xl w-full md:max-w-6xl h-full md:h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -289,7 +289,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-8 pt-6">
+          <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Sidebar Info */}
               <div className="lg:col-span-1 space-y-6">
@@ -500,7 +500,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
           </div>
 
           {/* Footer */}
-          <div className="p-8 border-t border-gray-100 flex gap-4 shrink-0 bg-gray-50/30">
+          <div className="p-4 md:p-8 border-t border-gray-100 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 shrink-0 bg-gray-50/30">
             <button 
               type="button" 
               onClick={onClose} 

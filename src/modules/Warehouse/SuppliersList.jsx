@@ -60,7 +60,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
           </div>
         ) : (
           <div className="p-6 overflow-x-auto">
-            <table className="w-full min-w-[800px] border-collapse text-left">
+            <table className="hidden md:table w-full min-w-[800px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/50">
                   <th className="px-6 py-4.5 rounded-l-2xl">{t('warehouse.supplierName') || 'Поставщик'}</th>
@@ -136,6 +136,66 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                 ))}
               </tbody>
             </table>
+
+            {/* Mobile Suppliers Cards Grid */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {filteredSuppliers.map(supplier => (
+                <div key={supplier.id} className="py-4 flex flex-col gap-2.5">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-merkez-blue/5 text-merkez-blue flex items-center justify-center font-black">
+                        {supplier.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">{supplier.name}</p>
+                        <span className="text-[10px] text-gray-400 font-bold block mt-0.5">
+                          {supplier.contact_person || '—'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={() => onViewHistory(supplier.id)}
+                        className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                        title={t('warehouse.viewHistory') || 'Смотреть историю'}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => onEdit(supplier)}
+                        className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                        title={t('common.edit') || 'Изменить'}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => onDelete(supplier.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        title={t('common.delete') || 'Удалить'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50 mt-1">
+                    <div>
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.supplierPhone') || 'Telefon'}</span>
+                      <span className="text-xs font-bold text-gray-700 block truncate">{supplier.phone || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.supplierEmail') || 'Email'}</span>
+                      <span className="text-xs font-bold text-gray-700 block truncate">{supplier.email || '—'}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.supplierAddress') || 'Адрес'}</span>
+                      <span className="text-xs font-bold text-gray-700 block truncate">{supplier.address || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

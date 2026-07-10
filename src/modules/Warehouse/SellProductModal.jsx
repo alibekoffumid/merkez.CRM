@@ -548,7 +548,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
             </button>
           </div>
 
-          <div className="flex-1 overflow-hidden p-8 pt-6 flex flex-col">
+          <div className="flex-1 overflow-y-auto lg:overflow-hidden p-4 lg:p-8 pt-6 flex flex-col">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
               {/* Sidebar Info */}
               <div className="lg:col-span-5 space-y-6 overflow-y-auto pr-2 pb-6 max-h-full">
@@ -808,7 +808,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
               </div>
 
               {/* Cart / Products Panel */}
-              <div className="lg:col-span-7 space-y-6 flex flex-col h-full overflow-hidden">
+              <div className="lg:col-span-7 space-y-6 flex flex-col lg:h-full lg:overflow-hidden mt-6 lg:mt-0">
                 {/* Add Item Form */}
                 <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-6">
                   <div className="flex justify-between items-center mb-4 border-b border-gray-50 pb-2">
@@ -937,7 +937,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                       <p className="text-sm font-medium">{i18n.language === 'az' ? 'Səbət boşdur' : i18n.language === 'ru' ? 'Корзина пуста' : 'Cart is empty'}</p>
                     </div>
                   ) : (
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[500px]">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-100">
                           <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{t('warehouse.thName')}</th>
@@ -978,7 +978,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
           </div>
 
           {/* Footer actions */}
-          <div className="p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex justify-end gap-4">
+          <div className="p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
             <button 
               type="button" 
               onClick={onClose}

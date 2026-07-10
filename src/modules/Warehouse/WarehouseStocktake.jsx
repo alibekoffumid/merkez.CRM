@@ -498,7 +498,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                   <p className="text-xs font-bold">Hələ heç bir inventarlaşdırma audit sənədi yaradılmayıb.</p>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[850px] text-left border-collapse">
                   <thead>
                     <tr className="border-b border-gray-50 bg-gray-50/40">
                       <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sənəd ID</th>
@@ -681,7 +681,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
             </div>
 
             <div className="overflow-x-auto max-h-[50vh] overflow-y-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full min-w-[750px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-50 bg-gray-50/40 sticky top-0 z-10">
                     <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/40">Məhsul</th>

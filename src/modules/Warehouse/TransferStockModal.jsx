@@ -240,8 +240,8 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 md:p-4" onClick={onClose}>
+      <div className="bg-white md:rounded-3xl shadow-2xl w-full md:max-w-2xl max-h-screen md:max-h-[90vh] overflow-y-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
         <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-merkez-blue/10 flex items-center justify-center">
@@ -443,7 +443,7 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
           </div>
         </div>
 
-        <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex gap-4">
+        <div className="px-4 md:px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
           <button 
             onClick={onClose}
             className="flex-1 py-4 bg-white border border-gray-200 text-gray-500 rounded-2xl font-black hover:bg-gray-50 transition-all shadow-sm"

@@ -556,10 +556,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {/* Navigation Tabs (Admin View) */}
             {!propActiveTab && (
-              <div className="flex bg-gray-100 rounded-xl p-0.5 border border-gray-200/50 shrink-0 ml-2">
+              <div className="flex bg-gray-100 rounded-xl p-0.5 border border-gray-200/50 shrink-0 ml-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
                 <button
                   onClick={() => setActiveTab('finished')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === 'finished'
                       ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
@@ -572,7 +572,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 {isRestaurantActive && (
                   <button
                     onClick={() => setActiveTab('raw')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                       activeTab === 'raw'
                         ? 'bg-white text-merkez-green shadow-sm'
                         : 'text-gray-500 hover:text-gray-850'
@@ -585,7 +585,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 
                 <button
                   onClick={() => setActiveTab('suppliers')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === 'suppliers'
                       ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
@@ -597,7 +597,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 
                 <button
                   onClick={() => setActiveTab('history')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === 'history'
                       ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
@@ -609,7 +609,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                 <button
                   onClick={() => setActiveTab('stocktake')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === 'stocktake'
                       ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
@@ -621,7 +621,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                 <button
                   onClick={() => setActiveTab('reports')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === 'reports'
                       ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
@@ -633,7 +633,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 
                 <button
                   onClick={() => setActiveTab('settings')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === 'settings'
                       ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
@@ -652,7 +652,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {/* Tab-specific actions (Shifted to Left) */}
             {activeTab === 'finished' && (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 lg:flex-wrap">
                 <button 
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                   className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
@@ -698,7 +698,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             )}
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 lg:flex-wrap">
             {/* Main Warehouse Actions */}
             <button 
               onClick={() => setShowTour(true)}
@@ -780,28 +780,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </p>
                 </div>
                 <div className="flex gap-4 items-center">
-                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
                     <button 
                       onClick={() => setHistoryTab('receipts')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.receipts') || 'Приёмки'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('sales')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('dispatches')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.dispatches') || 'Списания'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('transfers')}
-                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.transfers') || 'Перемещения'}
                     </button>
@@ -920,7 +920,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </div>
             </div>
             <div className="flex-1 overflow-auto">
-              <table className="w-full text-left">
+              <table className="w-full min-w-[850px] text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
@@ -1551,106 +1551,189 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                    <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
-                      <th className="pl-8 pr-2 py-4 w-10">
-                        <button 
-                          id="tour-select-all"
-                          onClick={toggleSelectAll}
-                          className="text-gray-400 hover:text-merkez-blue transition-colors"
-                        >
-                          {selectedItems.length === filteredProducts.length && filteredProducts.length > 0 ? (
-                            <CheckSquare className="w-5 h-5 text-merkez-blue" />
-                          ) : (
-                            <Square className="w-5 h-5" />
-                          )}
-                        </button>
-                      </th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
-                      <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
-                      <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filteredProducts.map((item, index) => (
-                      <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
-                        <td className="pl-8 pr-2 py-4">
+                <>
+                  <table className="hidden md:table w-full text-left border-collapse">
+                    <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
+                      <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
+                        <th className="pl-8 pr-2 py-4 w-10">
                           <button 
-                            onClick={() => toggleSelectItem(item.id)}
+                            id="tour-select-all"
+                            onClick={toggleSelectAll}
                             className="text-gray-400 hover:text-merkez-blue transition-colors"
                           >
-                            {selectedItems.includes(item.id) ? (
+                            {selectedItems.length === filteredProducts.length && filteredProducts.length > 0 ? (
                               <CheckSquare className="w-5 h-5 text-merkez-blue" />
                             ) : (
                               <Square className="w-5 h-5" />
                             )}
                           </button>
-                        </td>
-                        <td className="px-2 py-4">
-                          <p className="font-medium text-gray-900">{item.name}</p>
-                        </td>
-                        <td className="px-2 py-4">
-                          <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                            {item.barcode || '—'}
-                          </span>
-                        </td>
-                        <td className="px-2 py-4">
-                          <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                            {item.categories?.name || '—'}
-                          </span>
-                        </td>
-                        <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
-                        <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
-                        <td className="px-2 py-4 text-sm font-bold text-gray-900">
-                          {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
-                        </td>
-                        <td className="px-2 py-4">
-                          <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
-                            {getStatusIcon(item.stock_quantity, item.critical_stock)}
-                            <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
+                        </th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
+                        <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredProducts.map((item, index) => (
+                        <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
+                          <td className="pl-8 pr-2 py-4">
+                            <button 
+                              onClick={() => toggleSelectItem(item.id)}
+                              className="text-gray-400 hover:text-merkez-blue transition-colors"
+                            >
+                              {selectedItems.includes(item.id) ? (
+                                <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                              ) : (
+                                <Square className="w-5 h-5" />
+                              )}
+                            </button>
+                          </td>
+                          <td className="px-2 py-4">
+                            <p className="font-medium text-gray-900">{item.name}</p>
+                          </td>
+                          <td className="px-2 py-4">
+                            <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                              {item.barcode || '—'}
+                            </span>
+                          </td>
+                          <td className="px-2 py-4">
+                            <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
+                              {item.categories?.name || '—'}
+                            </span>
+                          </td>
+                          <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
+                          <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
+                          <td className="px-2 py-4 text-sm font-bold text-gray-900">
+                            {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
+                          </td>
+                          <td className="px-2 py-4">
+                            <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
+                              {getStatusIcon(item.stock_quantity, item.critical_stock)}
+                              <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
+                            </div>
+                          </td>
+                          <td className="px-2 py-4 pr-6 text-right">
+                            <div className="relative inline-block">
+                              <button
+                                id={index === 0 ? "tour-actions" : undefined}
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                className="text-gray-400 hover:text-merkez-blue transition-colors p-1.5 rounded-md hover:bg-blue-50"
+                              >
+                                <MoreVertical className="w-5 h-5" />
+                              </button>
+
+                              {openMenuId === item.id && (
+                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                                  <button
+                                    onClick={() => handleEdit(item)}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                  >
+                                    <Pencil className="w-4 h-4 text-merkez-blue" />
+                                    {t('warehouse.editProduct')}
+                                  </button>
+                                  <div className="mx-3 my-1 border-t border-gray-100" />
+                                  <button
+                                    onClick={() => requestDeleteProduct(item.id)}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    {t('warehouse.deleteProduct')}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Mobile Products Cards Grid */}
+                  <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
+                    {filteredProducts.map((item, index) => (
+                      <div key={item.id} className={`p-4 flex flex-col gap-2.5 ${selectedItems.includes(item.id) ? 'bg-blue-50/20' : ''}`}>
+                        <div className="flex justify-between items-start">
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => toggleSelectItem(item.id)}
+                              className="text-gray-400 hover:text-merkez-blue transition-colors mt-0.5"
+                            >
+                              {selectedItems.includes(item.id) ? (
+                                <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                              ) : (
+                                <Square className="w-5 h-5" />
+                              )}
+                            </button>
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                              <span className="text-[10px] font-mono text-gray-400 mt-1 block">
+                                {item.barcode || '—'}
+                              </span>
+                            </div>
                           </div>
-                        </td>
-                        <td className="px-2 py-4 pr-6 text-right">
-                          <div className="relative inline-block">
+
+                          <div className="relative">
                             <button
-                              id={index === 0 ? "tour-actions" : undefined}
                               onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1.5 rounded-md hover:bg-blue-50"
+                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
                             >
                               <MoreVertical className="w-5 h-5" />
                             </button>
-
                             {openMenuId === item.id && (
-                              <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
                                 <button
                                   onClick={() => handleEdit(item)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
                                 >
-                                  <Pencil className="w-4 h-4 text-merkez-blue" />
-                                  {t('warehouse.editProduct')}
+                                  <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
+                                  {t('warehouse.editProduct') || 'Düzəliş et'}
                                 </button>
                                 <div className="mx-3 my-1 border-t border-gray-100" />
                                 <button
                                   onClick={() => requestDeleteProduct(item.id)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
                                 >
-                                  <Trash2 className="w-4 h-4" />
-                                  {t('warehouse.deleteProduct')}
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  {t('warehouse.deleteProduct') || 'Sil'}
                                 </button>
                               </div>
                             )}
                           </div>
-                        </td>
-                      </tr>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
+                            {item.categories?.name || '—'}
+                          </span>
+                          <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
+                            {getStatusIcon(item.stock_quantity, item.critical_stock)}
+                            <span className="ml-1">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50 mt-1">
+                          <div>
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
+                            <span className="text-xs font-bold text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="text-center">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPrice') || 'Satış'}</span>
+                            <span className="text-xs font-black text-gray-900">${parseFloat(item.price).toFixed(2)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
+                            <span className="text-xs font-black text-gray-900">{parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )
             ) : (
               // Raw Ingredients Table
@@ -1663,66 +1746,128 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </button>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                    <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-                      <th className="font-medium p-4">{t('warehouse.thName')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thUnit')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thStock')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thCostPrice')}</th>
-                      <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
-                      <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
+                <>
+                  <table className="hidden md:table w-full text-left border-collapse">
+                    <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
+                      <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
+                        <th className="font-medium p-4">{t('warehouse.thName')}</th>
+                        <th className="font-medium p-4">{t('warehouse.thUnit')}</th>
+                        <th className="font-medium p-4">{t('warehouse.thStock')}</th>
+                        <th className="font-medium p-4">{t('warehouse.thCostPrice')}</th>
+                        <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
+                        <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredIngredients.map(item => (
+                        <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="p-4">
+                            <p className="font-medium text-gray-900">{item.name}</p>
+                          </td>
+                          <td className="p-4 text-sm text-gray-600">{item.unit}</td>
+                          <td className="p-4 text-sm font-bold text-gray-900">{parseFloat(item.quantity).toFixed(3)}</td>
+                          <td className="p-4 text-sm font-bold text-gray-900">${parseFloat(item.cost_price).toFixed(2)}</td>
+                          <td className="p-4">
+                            <div className={`flex items-center text-sm font-medium ${getStatusColor(item.quantity, item.min_quantity)}`}>
+                              {getStatusIcon(item.quantity, item.min_quantity)}
+                              <span className="ml-2">{getStatusText(item.quantity, item.min_quantity)}</span>
+                            </div>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="relative inline-block">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                className="text-gray-400 hover:text-merkez-green transition-colors p-1.5 rounded-md hover:bg-green-50"
+                              >
+                                <MoreVertical className="w-5 h-5" />
+                              </button>
+
+                              {openMenuId === item.id && (
+                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                                  <button
+                                    onClick={() => handleEditIngredient(item)}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                  >
+                                    <Pencil className="w-4 h-4 text-merkez-green" />
+                                    {t('warehouse.editIngredient')}
+                                  </button>
+                                  <div className="mx-3 my-1 border-t border-gray-100" />
+                                  <button
+                                    onClick={() => requestDeleteIngredient(item.id)}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    {t('warehouse.deleteIngredient')}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Mobile Ingredients Cards Grid */}
+                  <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
                     {filteredIngredients.map(item => (
-                      <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-4">
-                          <p className="font-medium text-gray-900">{item.name}</p>
-                        </td>
-                        <td className="p-4 text-sm text-gray-600">{item.unit}</td>
-                        <td className="p-4 text-sm font-bold text-gray-900">{parseFloat(item.quantity).toFixed(3)}</td>
-                        <td className="p-4 text-sm font-bold text-gray-900">${parseFloat(item.cost_price).toFixed(2)}</td>
-                        <td className="p-4">
-                          <div className={`flex items-center text-sm font-medium ${getStatusColor(item.quantity, item.min_quantity)}`}>
-                            {getStatusIcon(item.quantity, item.min_quantity)}
-                            <span className="ml-2">{getStatusText(item.quantity, item.min_quantity)}</span>
+                      <div key={item.id} className="p-4 flex flex-col gap-2.5">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                            <span className="text-[10px] text-gray-500 mt-1 block">
+                              Ölçü vahidi: <strong className="text-gray-700">{item.unit || '—'}</strong>
+                            </span>
                           </div>
-                        </td>
-                        <td className="p-4 text-right">
-                          <div className="relative inline-block">
+
+                          <div className="relative">
                             <button
                               onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                              className="text-gray-400 hover:text-merkez-green transition-colors p-1.5 rounded-md hover:bg-green-50"
+                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
                             >
                               <MoreVertical className="w-5 h-5" />
                             </button>
-
                             {openMenuId === item.id && (
-                              <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
                                 <button
                                   onClick={() => handleEditIngredient(item)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold animate-in fade-in zoom-in-95"
                                 >
-                                  <Pencil className="w-4 h-4 text-merkez-green" />
-                                  {t('warehouse.editIngredient')}
+                                  <Pencil className="w-3.5 h-3.5 text-merkez-green" />
+                                  {t('warehouse.editIngredient') || 'Düzəliş et'}
                                 </button>
                                 <div className="mx-3 my-1 border-t border-gray-100" />
                                 <button
                                   onClick={() => requestDeleteIngredient(item.id)}
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
                                 >
-                                  <Trash2 className="w-4 h-4" />
-                                  {t('warehouse.deleteIngredient')}
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  {t('warehouse.deleteIngredient') || 'Sil'}
                                 </button>
                               </div>
                             )}
                           </div>
-                        </td>
-                      </tr>
+                        </div>
+
+                        <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.quantity, item.min_quantity)}`}>
+                          {getStatusIcon(item.quantity, item.min_quantity)}
+                          <span className="ml-1">{getStatusText(item.quantity, item.min_quantity)}</span>
+                        </div>
+
+                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50 mt-1">
+                          <div>
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thCostPrice') || 'Mayə Dəyəri'}</span>
+                            <span className="text-xs font-bold text-gray-900">${parseFloat(item.cost_price || 0).toFixed(2)}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
+                            <span className="text-xs font-black text-gray-900">{parseFloat(item.quantity || 0).toFixed(3)} {item.unit || ''}</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )
             )}
           </div>
