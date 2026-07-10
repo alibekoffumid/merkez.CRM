@@ -555,93 +555,95 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
 
             {/* Navigation Tabs (Admin View) */}
-            <div className="flex bg-gray-100 rounded-xl p-0.5 border border-gray-200/50 shrink-0 ml-2">
-              <button
-                onClick={() => setActiveTab('finished')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'finished'
-                    ? 'bg-white text-merkez-blue shadow-sm'
-                    : 'text-gray-500 hover:text-gray-850'
-                }`}
-              >
-                <Package className="w-3.5 h-3.5" />
-                {t('warehouse.finishedGoods') || 'Məhsullar'}
-              </button>
-              
-              {isRestaurantActive && (
+            {!propActiveTab && (
+              <div className="flex bg-gray-100 rounded-xl p-0.5 border border-gray-200/50 shrink-0 ml-2">
                 <button
-                  onClick={() => setActiveTab('raw')}
+                  onClick={() => setActiveTab('finished')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    activeTab === 'raw'
-                      ? 'bg-white text-merkez-green shadow-sm'
+                    activeTab === 'finished'
+                      ? 'bg-white text-merkez-blue shadow-sm'
                       : 'text-gray-500 hover:text-gray-850'
                   }`}
                 >
-                  <FolderTree className="w-3.5 h-3.5" />
-                  {t('warehouse.ingredients') || 'İnqrediyentlər'}
+                  <Package className="w-3.5 h-3.5" />
+                  {t('warehouse.finishedGoods') || 'Məhsullar'}
                 </button>
-              )}
-              
-              <button
-                onClick={() => setActiveTab('suppliers')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'suppliers'
-                    ? 'bg-white text-merkez-blue shadow-sm'
-                    : 'text-gray-500 hover:text-gray-850'
-                }`}
-              >
-                <Truck className="w-3.5 h-3.5" />
-                {t('warehouse.suppliers') || 'Tədarükçülər'}
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'history'
-                    ? 'bg-white text-merkez-blue shadow-sm'
-                    : 'text-gray-500 hover:text-gray-850'
-                }`}
-              >
-                <Search className="w-3.5 h-3.5" />
-                {t('warehouse.history') || 'Tarixçə'}
-              </button>
+                
+                {isRestaurantActive && (
+                  <button
+                    onClick={() => setActiveTab('raw')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      activeTab === 'raw'
+                        ? 'bg-white text-merkez-green shadow-sm'
+                        : 'text-gray-500 hover:text-gray-850'
+                    }`}
+                  >
+                    <FolderTree className="w-3.5 h-3.5" />
+                    {t('warehouse.ingredients') || 'İnqrediyentlər'}
+                  </button>
+                )}
+                
+                <button
+                  onClick={() => setActiveTab('suppliers')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'suppliers'
+                      ? 'bg-white text-merkez-blue shadow-sm'
+                      : 'text-gray-500 hover:text-gray-850'
+                  }`}
+                >
+                  <Truck className="w-3.5 h-3.5" />
+                  {t('warehouse.suppliers') || 'Tədarükçülər'}
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'history'
+                      ? 'bg-white text-merkez-blue shadow-sm'
+                      : 'text-gray-500 hover:text-gray-850'
+                  }`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  {t('warehouse.history') || 'Tarixçə'}
+                </button>
 
-              <button
-                onClick={() => setActiveTab('stocktake')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'stocktake'
-                    ? 'bg-white text-merkez-blue shadow-sm'
-                    : 'text-gray-500 hover:text-gray-850'
-                }`}
-              >
-                <CheckSquare className="w-3.5 h-3.5" />
-                {t('warehouse.stocktake') || 'İnventarlaşdırma'}
-              </button>
+                <button
+                  onClick={() => setActiveTab('stocktake')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'stocktake'
+                      ? 'bg-white text-merkez-blue shadow-sm'
+                      : 'text-gray-500 hover:text-gray-850'
+                  }`}
+                >
+                  <CheckSquare className="w-3.5 h-3.5" />
+                  {t('warehouse.stocktake') || 'İnventarlaşdırma'}
+                </button>
 
-              <button
-                onClick={() => setActiveTab('reports')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'reports'
-                    ? 'bg-white text-merkez-blue shadow-sm'
-                    : 'text-gray-500 hover:text-gray-850'
-                }`}
-              >
-                <TrendingUp className="w-3.5 h-3.5" />
-                {t('warehouse.reports') || 'Hesabatlar'}
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('settings')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeTab === 'settings'
-                    ? 'bg-white text-merkez-blue shadow-sm'
-                    : 'text-gray-500 hover:text-gray-850'
-                }`}
-              >
-                <Settings className="w-3.5 h-3.5" />
-                {t('common.settings') || 'Parametrlər'}
-              </button>
-            </div>
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'reports'
+                      ? 'bg-white text-merkez-blue shadow-sm'
+                      : 'text-gray-500 hover:text-gray-850'
+                  }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  {t('warehouse.reports') || 'Hesabatlar'}
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('settings')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === 'settings'
+                      ? 'bg-white text-merkez-blue shadow-sm'
+                      : 'text-gray-500 hover:text-gray-850'
+                  }`}
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  {t('common.settings') || 'Parametrlər'}
+                </button>
+              </div>
+            )}
 
             {/* Vertical separator */}
             {(activeTab === 'finished' || (activeTab === 'raw' && isRestaurantActive) || activeTab === 'suppliers') && (
