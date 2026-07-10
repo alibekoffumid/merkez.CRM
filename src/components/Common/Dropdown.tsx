@@ -197,7 +197,7 @@ const Dropdown: React.FC<DropdownProps> = ({
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-2xl px-4 py-2.5'}`}
+            className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'}`}
           >
             <div className="flex items-center gap-3 overflow-hidden">
               {selectedOption?.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" />}

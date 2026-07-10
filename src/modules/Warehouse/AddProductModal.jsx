@@ -174,7 +174,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
     <ModalPortal>
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
@@ -189,14 +189,14 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto max-h-[75vh] custom-scrollbar">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 gap-5">
             <div>
               <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
               <input
                 type="text"
                 required
-                className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm"
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                 placeholder={t('warehouse.productNamePlaceholder')}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -209,6 +209,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <Dropdown 
                   value={formData.category_id}
                   onChange={val => setFormData({ ...formData, category_id: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
                   options={[
                     { value: '', label: t('warehouse.selectCategory') },
                     ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
@@ -220,6 +221,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <Dropdown 
                   value={formData.unit}
                   onChange={val => setFormData({ ...formData, unit: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
                   options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
                 />
               </div>
@@ -233,7 +235,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full pl-10 pr-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm"
+                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                     value={formData.purchase_price}
                     onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                   />
@@ -247,7 +249,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                     type="number"
                     step="0.01"
                     required
-                    className="w-full pl-10 pr-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold text-merkez-blue"
+                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   />
@@ -261,7 +263,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <input
                   type="number"
                   step="0.001"
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                   value={formData.stock_quantity}
                   onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
                 />
@@ -271,7 +273,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <input
                   type="number"
                   step="0.001"
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                   value={formData.critical_stock}
                   onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
                 />
@@ -283,7 +285,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thBarcode')}</label>
                 <input
                   type="text"
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-mono"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-sm"
                   placeholder={settings?.autoGenerateBarcode ? `${settings.barcodePrefix || ''}XXXXXX (Авто)` : "000000000"}
                   value={formData.barcode}
                   onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
@@ -294,6 +296,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <Dropdown 
                   value={formData.supplier_id}
                   onChange={val => setFormData({ ...formData, supplier_id: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
                   options={[
                     { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
                     ...suppliers.map(s => ({ value: s.id, label: s.name }))
@@ -306,7 +309,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-merkez-blue text-white py-4 rounded-[1.5rem] text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4"
+            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin mr-2" />

@@ -12,15 +12,96 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
   const [loading, setLoading] = useState(false);
   const [fromWarehouseId, setFromWarehouseId] = useState('');
   const [toWarehouseId, setToWarehouseId] = useState('');
-  const [items, setItems] = useState([{ id: Date.now(), item_id: '', quantity: '' }]);
+  const [items, setItems] = useState([]);
   const [notes, setNotes] = useState('');
+  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeBuffer, setBarcodeBuffer] = useState('');
+  const barcodeInputRef = React.useRef(null);
+  
+  const playBeep = (success = true) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = success ? 880 : 220;
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {}
+  };
+
+  const handleBarcodeSubmit = (e) => {
+    e.preventDefault();
+    const barcode = barcodeBuffer.trim();
+    if (!barcode) return;
+
+    const product = (products || []).find(p => p.barcode === barcode);
+    if (product) {
+      if (fromWarehouseId && product.warehouse_id !== fromWarehouseId) {
+        playBeep(false);
+        toast.error(t('warehouse.productNotInSelectedWarehouse') || 'Məhsul seçilmiş anbarda deyil');
+        setBarcodeBuffer('');
+        return;
+      }
+      
+      const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
+      const availableQty = parseFloat(product[qtyField] || 0);
+
+      const existingItemIndex = items.findIndex(item => item.item_id === product.id);
+      const currentQtyInCart = existingItemIndex > -1 ? parseFloat(items[existingItemIndex].quantity) : 0;
+
+      if (currentQtyInCart + 1 > availableQty) {
+        playBeep(false);
+        toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${availableQty}`);
+        setBarcodeBuffer('');
+        return;
+      }
+
+      if (!fromWarehouseId && product.warehouse_id) {
+        setFromWarehouseId(product.warehouse_id);
+      }
+
+      setItems(prevItems => {
+        const existingIndex = prevItems.findIndex(item => item.item_id === product.id);
+        if (existingIndex > -1) {
+          const newItems = [...prevItems];
+          newItems[existingIndex].quantity = (parseFloat(newItems[existingIndex].quantity) + 1).toString();
+          return newItems;
+        } else {
+          return [...prevItems, {
+            id: Date.now() + Math.random(),
+            item_id: product.id,
+            quantity: '1',
+            productName: product.name,
+            barcode: product.barcode,
+            availableStock: availableQty
+          }];
+        }
+      });
+      playBeep(true);
+      toast.success(`${product.name} (+1)`);
+    } else {
+      playBeep(false);
+      toast.error(t('warehouse.productNotFoundByBarcode') || 'Məhsul tapılmadı');
+    }
+    setBarcodeBuffer('');
+    setTimeout(() => {
+      barcodeInputRef.current?.focus();
+    }, 50);
+  };
 
   useEffect(() => {
     if (isOpen) {
-      setItems([{ id: Date.now(), item_id: '', quantity: '' }]);
+      setItems([]);
       setNotes('');
       setFromWarehouseId('');
       setToWarehouseId('');
+      setBarcodeMode(false);
+      setBarcodeBuffer('');
     }
   }, [isOpen]);
 
@@ -205,54 +286,150 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
 
           {/* Items List */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-3">
               <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.itemsToTransfer') || 'Товары для перемещения'}</h3>
-              <button 
-                onClick={addItem}
-                className="text-xs font-bold text-merkez-blue hover:text-blue-700 flex items-center gap-1.5 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                {t('warehouse.addItem')}
-              </button>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <span className="text-xs font-bold text-gray-500">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                  <div className="relative">
+                    <input 
+                      type="checkbox"
+                      checked={barcodeMode}
+                      onChange={(e) => {
+                        setBarcodeMode(e.target.checked);
+                        if (e.target.checked) {
+                          setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                        }
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                  </div>
+                </label>
+                
+                {!barcodeMode && (
+                  <button 
+                    onClick={addItem}
+                    className="text-xs font-bold text-merkez-blue hover:text-blue-700 flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('warehouse.addItem')}
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {items.map((item, index) => (
-                <div key={item.id} className="flex gap-3 items-end animate-in fade-in slide-in-from-top-2">
-                  <div className="flex-1">
-                    <Dropdown 
-                      value={item.item_id}
-                      onChange={(val) => updateItem(item.id, 'item_id', val)}
-                      options={[
-                        { value: '', label: t('warehouse.selectItem') },
-                        ...products
-                          .filter(p => p.warehouse_id === fromWarehouseId || !fromWarehouseId)
-                          .map(p => ({ 
-                            value: p.id, 
-                            label: `${p.name} (${type === 'product' ? p.stock_quantity : p.quantity} ${type === 'product' ? 'шт' : p.unit})` 
-                          }))
-                      ]}
-                      searchable={true}
+            {barcodeMode ? (
+              <div className="space-y-4">
+                <form onSubmit={handleBarcodeSubmit} className="space-y-4">
+                  <div className="relative">
+                    <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                    <input
+                      ref={barcodeInputRef}
+                      type="text"
+                      value={barcodeBuffer}
+                      onChange={(e) => setBarcodeBuffer(e.target.value)}
+                      placeholder={t('warehouse.scanBarcodePlaceholder') || 'Skan edin...'}
+                      className="w-full bg-gray-50 border border-2 border-merkez-blue/30 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:bg-white focus:border-merkez-blue outline-none transition-all"
+                      autoFocus
                     />
                   </div>
-                  <div className="w-32">
-                    <input 
-                      type="number"
-                      placeholder={t('warehouse.quantity')}
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-2xl focus:ring-4 focus:ring-merkez-blue/10 focus:border-merkez-blue block p-2.5 outline-none font-bold shadow-sm transition-all"
-                    />
-                  </div>
-                  <button 
-                    onClick={() => removeItem(item.id)}
-                    className="p-3 text-gray-400 hover:text-red-500 transition-colors mb-0.5"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                </form>
+
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                  {items.length === 0 ? (
+                    <p className="text-center text-xs font-bold text-gray-400 py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                      {t('warehouse.scanBarcodeHint') || 'Skaneri məhsula yönəldin və oxudun...'}
+                    </p>
+                  ) : (
+                    items.map((item, index) => (
+                      <div key={item.id || index} className="flex items-center justify-between p-4 bg-gray-50/50 border border-gray-100 rounded-2xl">
+                        <div className="flex-1">
+                          <h5 className="text-sm font-bold text-gray-900 leading-none mb-1">{item.productName || products.find(p => p.id === item.item_id)?.name}</h5>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">{item.barcode || products.find(p => p.id === item.item_id)?.barcode}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">{t('warehouse.inStock')}</p>
+                            <p className="text-xs font-bold text-gray-500">{item.availableStock || products.find(p => p.id === item.item_id)?.stock_quantity || 0}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">{t('warehouse.quantity')}</p>
+                            <input 
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const limit = item.availableStock || products.find(p => p.id === item.item_id)?.stock_quantity || 0;
+                                if (parseFloat(e.target.value || 0) > limit) {
+                                  toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${limit}`);
+                                  return;
+                                }
+                                updateItem(item.id, 'quantity', e.target.value);
+                              }}
+                              className="w-16 bg-white border border-gray-100 rounded-lg px-2 py-1 text-xs font-bold text-right outline-none focus:border-merkez-blue"
+                            />
+                          </div>
+                          <button 
+                            onClick={() => removeItem(item.id)}
+                            className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {items.map((item, index) => (
+                  <div key={item.id} className="flex gap-3 items-end animate-in fade-in slide-in-from-top-2">
+                    <div className="flex-1">
+                      <Dropdown 
+                        value={item.item_id}
+                        onChange={(val) => updateItem(item.id, 'item_id', val)}
+                        options={[
+                          { value: '', label: t('warehouse.selectItem') },
+                          ...products
+                            .filter(p => p.warehouse_id === fromWarehouseId || !fromWarehouseId)
+                            .map(p => ({ 
+                              value: p.id, 
+                              label: `${p.name} (${type === 'product' ? p.stock_quantity : p.quantity} ${type === 'product' ? 'шт' : p.unit})` 
+                            }))
+                        ]}
+                        searchable={true}
+                      />
+                    </div>
+                    <div className="w-32">
+                      <input 
+                        type="number"
+                        placeholder={t('warehouse.quantity')}
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const prod = products.find(p => p.id === item.item_id);
+                          const limit = prod ? (type === 'product' ? prod.stock_quantity : prod.quantity) : 0;
+                          if (parseFloat(e.target.value || 0) > limit) {
+                            toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${limit}`);
+                            return;
+                          }
+                          updateItem(item.id, 'quantity', e.target.value);
+                        }}
+                        className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-2xl focus:ring-4 focus:ring-merkez-blue/10 focus:border-merkez-blue block p-2.5 outline-none font-bold shadow-sm transition-all"
+                      />
+                    </div>
+                    {items.length > 1 && (
+                      <button 
+                        onClick={() => removeItem(item.id)}
+                        className="p-3 text-gray-400 hover:text-red-500 transition-colors mb-0.5"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

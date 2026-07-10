@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { UserProvider, useUser } from './core/UserContext';
 import WarehouseModule from './modules/Warehouse';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
+import { FlagAZ, FlagRU, FlagGB } from './components/Common/FlagIcons';
 
 const WarehouseAppContent = () => {
   const { t, i18n } = useTranslation();
@@ -19,6 +20,48 @@ const WarehouseAppContent = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [connectionWorking, setConnectionWorking] = useState(null);
   const [activeTab, setActiveTab] = useState('finished');
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const langRef = useRef(null);
+
+  // Close language menu on click outside
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setShowLangMenu(false);
+      }
+    };
+    if (showLangMenu) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showLangMenu]);
+
+  useEffect(() => {
+    if (!profile) return;
+    const fetchLowStockCount = async () => {
+      try {
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('id, stock_quantity, critical_stock');
+        
+        const { data: ingredientsData } = await supabase
+          .from('ingredients')
+          .select('id, quantity, min_quantity');
+
+        const lowProducts = (productsData || []).filter(p => parseFloat(p.stock_quantity || 0) < parseFloat(p.critical_stock || 15)).length;
+        const lowIngredients = (ingredientsData || []).filter(i => parseFloat(i.quantity || 0) < parseFloat(i.min_quantity || 10)).length;
+
+        setLowStockCount(lowProducts + lowIngredients);
+      } catch (err) {
+        console.error('Error fetching low stock count:', err);
+      }
+    };
+    fetchLowStockCount();
+    
+    const interval = setInterval(fetchLowStockCount, 30000);
+    return () => clearInterval(interval);
+  }, [profile]);
 
   // Check if we can reach the database on mount
   useEffect(() => {
@@ -253,6 +296,66 @@ const WarehouseAppContent = () => {
             {t('warehouse.history') || 'История'}
           </button>
           <button
+            onClick={() => setActiveTab('stocktake')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'stocktake'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <ClipboardList className="w-3.5 h-3.5" />
+            {t('warehouse.stocktake') || 'Инвентаризация'}
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all relative ${
+              activeTab === 'reports'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            {t('warehouse.reports') || 'Отчеты'}
+            {lowStockCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-pulse border border-gray-900 shadow-sm">
+                {lowStockCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('debts')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'debts'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            {t('crm.debtBook') || 'Книга долгов'}
+          </button>
+          <button
+            onClick={() => setActiveTab('clients')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'clients'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <User className="w-3.5 h-3.5" />
+            {i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients'}
+          </button>
+          <button
+            onClick={() => setActiveTab('staff')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'staff'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            {i18n.language === 'az' ? 'Heyət' : i18n.language === 'ru' ? 'Персонал' : 'Staff'}
+          </button>
+          <button
             onClick={() => setActiveTab('settings')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'settings'
@@ -265,40 +368,55 @@ const WarehouseAppContent = () => {
           </button>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Language Switcher */}
-          <div className="flex bg-white/5 rounded-xl p-0.5 border border-white/10">
-            {['en', 'ru', 'az'].map((lang) => (
-              <button
-                key={lang}
-                onClick={() => i18n.changeLanguage(lang)}
-                className={`px-2.5 py-1 text-[10px] font-bold rounded-lg uppercase transition-all ${
-                  i18n.language === lang
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                {lang}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-2">
+          {/* Language Dropdown Selector */}
+          <div className="relative" ref={langRef}>
+            <button
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className="flex items-center gap-1.5 bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg px-3 h-9 text-xs font-bold transition-all"
+            >
+              <div className="flex items-center gap-1.5">
+                {i18n.language === 'az' ? <FlagAZ /> : i18n.language === 'ru' ? <FlagRU /> : <FlagGB />}
+                <span>{i18n.language.toUpperCase()}</span>
+              </div>
+              <span className="text-[9px] opacity-75">▼</span>
+            </button>
 
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full py-1.5 px-4">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">Server: Lokal</span>
+            {showLangMenu && (
+              <div className="absolute right-0 top-full mt-1.5 z-50 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl py-1.5 w-full animate-in fade-in zoom-in-95">
+                {[
+                  { value: 'az', Flag: FlagAZ, label: 'AZ' },
+                  { value: 'ru', Flag: FlagRU, label: 'RU' },
+                  { value: 'en', Flag: FlagGB, label: 'EN' }
+                ].map(item => (
+                  <button
+                    key={item.value}
+                    onClick={() => {
+                      i18n.changeLanguage(item.value);
+                      setShowLangMenu(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-white/5 transition-colors flex items-center gap-2 ${i18n.language === item.value ? 'text-blue-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    <item.Flag />
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <button
             onClick={() => setIsConfigOpen(true)}
-            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
-            title="Qoşulma tənzimləmələri"
+            className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg transition-all relative"
+            title="Qoşulma tənzimləmələri (Server: Online)"
           >
             <Server className="w-4 h-4" />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
           </button>
 
           <button
             onClick={handleLogout}
-            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
+            className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10 rounded-lg transition-all"
             title="Sistemdən çıx"
           >
             <LogOut className="w-4 h-4" />

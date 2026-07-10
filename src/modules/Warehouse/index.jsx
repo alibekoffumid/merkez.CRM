@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
@@ -21,6 +21,13 @@ import WarehouseSettings from './WarehouseSettings';
 import DispatchStockModal from './DispatchStockModal';
 import TransferStockModal from './TransferStockModal';
 import WarehouseTour from './WarehouseTour';
+import WarehouseStocktake from './WarehouseStocktake';
+import WarehouseReports from './WarehouseReports';
+import DebtBook from '../CRM/DebtBook';
+import SellProductModal from './SellProductModal';
+import { formatCategoriesHierarchically } from './categoryUtils';
+import WarehouseStaffManager from './WarehouseStaffManager';
+import WarehouseClientManager from './WarehouseClientManager';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -41,6 +48,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [historySearchTerm, setHistorySearchTerm] = useState('');
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
+  const [salesChannelFilter, setSalesChannelFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -53,6 +62,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showReceiveStock, setShowReceiveStock] = useState(false);
   const [showDispatchStock, setShowDispatchStock] = useState(false);
   const [showTransferStock, setShowTransferStock] = useState(false);
+  const [showSellProduct, setShowSellProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
@@ -195,7 +205,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('stock_dispatches')
-      .select('*, products(name, barcode)')
+      .select('*, products(name, barcode, category_id)')
       .eq('user_id', profile.id)
       .eq('warehouse_id', currentWarehouseId)
       .order('issued_at', { ascending: false });
@@ -607,6 +617,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               <HelpCircle className="w-5 h-5" />
             </button>
             <button 
+              onClick={() => setShowSellProduct(true)} 
+              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10 whitespace-nowrap"
+            >
+              <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+            </button>
+            <button 
               id="tour-receive-btn"
               onClick={() => setShowReceiveStock(true)} 
               className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center shadow-sm whitespace-nowrap"
@@ -631,8 +647,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         </div>
       </div>
 
-      <div className={`flex flex-1 ${activeTab === 'history' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
-        {activeTab === 'suppliers' ? (
+      <div className={`flex flex-1 ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
+        {activeTab === 'debts' ? (
+          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-6 overflow-y-auto">
+            <DebtBook />
+          </div>
+        ) : activeTab === 'clients' ? (
+          <WarehouseClientManager />
+        ) : activeTab === 'staff' ? (
+          <WarehouseStaffManager />
+        ) : activeTab === 'suppliers' ? (
           <SuppliersList 
             suppliers={suppliers}
             loading={loading}
@@ -654,11 +678,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <h3 className="text-lg font-bold text-gray-900">
                     {historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : 
                      historyTab === 'dispatches' ? (t('warehouse.dispatchHistory') || 'История списаний') : 
+                     historyTab === 'sales' ? (t('warehouse.salesHistory') || 'Satış tarixçəsi') : 
                      (t('warehouse.transferHistory') || 'История перемещений')}
                   </h3>
                   <p className="text-xs text-gray-500 mt-1">
                     {historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : 
                      historyTab === 'dispatches' ? (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров') : 
+                     historyTab === 'sales' ? (t('warehouse.salesHistoryDesc') || 'Məhsul satışlarının ətraflı qeydləri') : 
                      (t('warehouse.transferHistoryDesc') || 'Журнал перемещения товаров между складами')}
                   </p>
                 </div>
@@ -669,6 +695,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {t('warehouse.receipts') || 'Приёмки'}
+                    </button>
+                    <button 
+                      onClick={() => setHistoryTab('sales')}
+                      className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                    >
+                      {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
                     </button>
                     <button 
                       onClick={() => setHistoryTab('dispatches')}
@@ -684,13 +716,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </button>
                   </div>
                 </div>
-                {(historyFilter || startDate || endDate) && (
+                {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter) && (
                   <button 
                     onClick={() => {
                       setHistoryFilter(null);
                       setHistorySearchTerm('');
                       setStartDate('');
                       setEndDate('');
+                      setSalesChannelFilter('');
+                      setCategoryFilter('');
                     }}
                     className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
                   >
@@ -720,6 +754,53 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     />
                   </div>
                 )}
+
+                {historyTab === 'sales' && (
+                  <>
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                        {i18n.language === 'az' ? 'Satış kanalı' : 'Канал продажи'}
+                      </label>
+                      <Dropdown 
+                        value={salesChannelFilter} 
+                        onChange={(val) => setSalesChannelFilter(val)}
+                        options={[
+                          { value: '', label: i18n.language === 'az' ? 'Bütün kanallar' : 'Все каналы' },
+                          { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
+                          { value: 'Sosial şəbəkə', label: i18n.language === 'az' ? 'Sosial şəbəkə' : 'Социальные сети' },
+                          { value: 'Birmarket', label: 'Birmarket' },
+                          { value: 'Kredit', label: i18n.language === 'az' ? 'Kredit (Bütün Banklar)' : 'Кредит (Все банки)' },
+                          { value: 'Kredit - ABB Kredit', label: 'Kredit - ABB Kredit' },
+                          { value: 'Kredit - Birkart (Kapital Bank)', label: 'Kredit - Birkart (Kapital Bank)' },
+                          { value: 'Kredit - Tamkart (ABB)', label: 'Kredit - Tamkart (ABB)' },
+                          { value: 'Kredit - Kapital Kredit 35', label: 'Kredit - Kapital Kredit 35' },
+                          { value: 'Kredit - Ferrum Standart', label: 'Kredit - Ferrum Standart' },
+                          { value: 'Kredit - Ferrum Fast', label: 'Kredit - Ferrum Fast' },
+                          { value: 'Kredit - Ferrum DTI', label: 'Kredit - Ferrum DTI' }
+                        ]}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-1.5">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                        {i18n.language === 'az' ? 'Məhsul Kateqoriyası' : 'Категория товара'}
+                      </label>
+                      <Dropdown 
+                        value={categoryFilter} 
+                        onChange={(val) => setCategoryFilter(val)}
+                        options={[
+                          { value: '', label: t('common.all') || 'Все' },
+                          ...categories.map(c => ({
+                            value: c.id,
+                            label: c.name
+                          }))
+                        ]}
+                        className="w-full"
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.search') || 'Поиск'}</label>
                   <div className="relative">
@@ -729,7 +810,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       placeholder={t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...'} 
                       value={historySearchTerm} 
                       onChange={(e) => setHistorySearchTerm(e.target.value)} 
-                      className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+                      className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
                     />
                   </div>
                 </div>
@@ -743,7 +824,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       setEndDate(end);
                     }}
                     placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
-                    position="top"
                   />
                 </div>
               </div>
@@ -821,7 +901,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <tr key={receipt.id} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="px-6 py-4">
                             <span className="text-sm font-bold text-gray-700">{new Date(receipt.received_at).toLocaleDateString()}</span>
-                            {receipt.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{receipt.notes}</p>}
+                            {receipt.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{receipt.notes}</p>}
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
@@ -853,6 +933,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     )
                   ) : historyTab === 'dispatches' ? (
                     dispatches.filter(dispatch => {
+                      if (dispatch.reason === 'sale') return false;
                       if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
                       if (endDate) {
                         const end = new Date(endDate);
@@ -878,6 +959,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </tr>
                     ) : (
                       dispatches.filter(dispatch => {
+                        if (dispatch.reason === 'sale') return false;
                         if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
                         if (endDate) {
                           const end = new Date(endDate);
@@ -896,14 +978,141 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="px-6 py-4">
                             <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at).toLocaleDateString()}</span>
-                            {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{dispatch.notes}</p>}
+                            {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
-                              dispatch.reason === 'sale' ? 'bg-green-50 text-merkez-green' : 
                               dispatch.reason === 'damaged' ? 'bg-red-50 text-red-500' :
                               'bg-gray-100 text-gray-500'
                             }`}>
+                              {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-gray-900">{dispatch.products?.name || '—'}</span>
+                              <span className="text-[10px] text-gray-400 font-mono">{dispatch.products?.barcode || '—'}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
+                          </td>
+                        </tr>
+                      ))
+                    )
+                  ) : historyTab === 'sales' ? (
+                    dispatches.filter(dispatch => {
+                      if (dispatch.reason !== 'sale') return false;
+                      if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                      if (endDate) {
+                        const end = new Date(endDate);
+                        end.setHours(23, 59, 59, 999);
+                        if (new Date(dispatch.issued_at) > end) return false;
+                      }
+
+                      // Channel filter
+                      if (salesChannelFilter) {
+                        const notesStr = (dispatch.notes || '').toLowerCase();
+                        const filterLower = salesChannelFilter.toLowerCase();
+                        let channelMatch = false;
+                        if (notesStr.includes(`[kanal: ${filterLower}]`) || (filterLower === 'kredit' && notesStr.includes('[kanal: kredit -'))) {
+                          channelMatch = true;
+                        } else {
+                          // Fallback checks for older/seeded rows
+                          if (filterLower === 'birmarket') {
+                            channelMatch = notesStr.includes('birmarket');
+                          } else if (filterLower === 'kredit') {
+                            channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
+                          } else if (filterLower.startsWith('kredit - ')) {
+                            const bankPart = filterLower.replace('kredit - ', '');
+                            channelMatch = notesStr.includes(bankPart);
+                          } else if (filterLower === 'mağaza') {
+                            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial'));
+                          } else if (filterLower === 'sosial şəbəkə') {
+                            channelMatch = notesStr.includes('sosial');
+                          }
+                        }
+                        if (!channelMatch) return false;
+                      }
+
+                      // Category filter
+                      if (categoryFilter && dispatch.products?.category_id !== categoryFilter) {
+                        return false;
+                      }
+
+                      if (historySearchTerm) {
+                        const search = historySearchTerm.toLowerCase();
+                        const productName = (dispatch.products?.name || '').toLowerCase();
+                        const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                        const notes = (dispatch.notes || '').toLowerCase();
+                        return productName.includes(search) || barcode.includes(search) || notes.includes(search);
+                      }
+                      return true;
+                    }).length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-20 text-center">
+                          <div className="flex flex-col items-center gap-3 text-gray-400">
+                            <Package className="w-12 h-12 text-gray-100" />
+                            <p className="font-medium">{t('warehouse.noSalesFound') || 'Satış tarixçəsi boşdur'}</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      dispatches.filter(dispatch => {
+                        if (dispatch.reason !== 'sale') return false;
+                        if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                        if (endDate) {
+                          const end = new Date(endDate);
+                          end.setHours(23, 59, 59, 999);
+                          if (new Date(dispatch.issued_at) > end) return false;
+                        }
+
+                        // Channel filter
+                        if (salesChannelFilter) {
+                          const notesStr = (dispatch.notes || '').toLowerCase();
+                          const filterLower = salesChannelFilter.toLowerCase();
+                          let channelMatch = false;
+                          if (notesStr.includes(`[kanal: ${filterLower}]`) || (filterLower === 'kredit' && notesStr.includes('[kanal: kredit -'))) {
+                            channelMatch = true;
+                          } else {
+                            // Fallback checks for older/seeded rows
+                            if (filterLower === 'birmarket') {
+                              channelMatch = notesStr.includes('birmarket');
+                            } else if (filterLower === 'kredit') {
+                              channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
+                            } else if (filterLower.startsWith('kredit - ')) {
+                              const bankPart = filterLower.replace('kredit - ', '');
+                              channelMatch = notesStr.includes(bankPart);
+                            } else if (filterLower === 'mağaza') {
+                              channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial'));
+                            } else if (filterLower === 'sosial şəbəkə') {
+                              channelMatch = notesStr.includes('sosial');
+                            }
+                          }
+                          if (!channelMatch) return false;
+                        }
+
+                        // Category filter
+                        if (categoryFilter && dispatch.products?.category_id !== categoryFilter) {
+                          return false;
+                        }
+
+                        if (historySearchTerm) {
+                          const search = historySearchTerm.toLowerCase();
+                          const productName = (dispatch.products?.name || '').toLowerCase();
+                          const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                          const notes = (dispatch.notes || '').toLowerCase();
+                          return productName.includes(search) || barcode.includes(search) || notes.includes(search);
+                        }
+                        return true;
+                      }).map(dispatch => (
+                        <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
+                          <td className="px-6 py-4">
+                            <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at).toLocaleDateString()}</span>
+                            {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-50 text-merkez-green">
                               {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
                             </span>
                           </td>
@@ -975,7 +1184,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <tr key={transfer.id} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50">
                           <td className="px-6 py-4">
                             <span className="text-sm font-bold text-gray-700">{new Date(transfer.created_at).toLocaleDateString()}</span>
-                            {transfer.notes && <p className="text-[10px] text-gray-400 font-medium truncate max-w-[150px]">{transfer.notes}</p>}
+                            {transfer.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{transfer.notes}</p>}
                           </td>
                           <td className="px-6 py-4">
                             <span className="text-sm font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
@@ -1018,6 +1227,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </table>
             </div>
           </div>
+        ) : activeTab === 'stocktake' ? (
+          <WarehouseStocktake warehouseId={currentWarehouseId} warehouses={warehouses} isRestaurantActive={isRestaurantActive} />
+        ) : activeTab === 'reports' ? (
+          <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} />
         ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
@@ -1170,17 +1383,31 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
 
             {activeTab === 'finished' && (
-              <div className="w-56 shrink-0">
-                <Dropdown
-                  value={supplierFilter}
-                  onChange={setSupplierFilter}
-                  options={[
-                    { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
-                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                  ]}
-                  buttonClassName="rounded-lg px-4 py-2 text-sm"
-                />
-              </div>
+              <>
+                <div className="w-56 shrink-0">
+                  <Dropdown
+                    value={selectedCategory || 'all'}
+                    onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
+                    options={[
+                      { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
+                      ...formatCategoriesHierarchically(categories).map(c => ({ value: c.id, label: c.name }))
+                    ]}
+                    buttonClassName="rounded-lg px-4 py-2 text-sm"
+                  />
+                </div>
+
+                <div className="w-56 shrink-0">
+                  <Dropdown
+                    value={supplierFilter}
+                    onChange={setSupplierFilter}
+                    options={[
+                      { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
+                      ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                    buttonClassName="rounded-lg px-4 py-2 text-sm"
+                  />
+                </div>
+              </>
             )}
 
             <div className="relative" ref={filterRef}>
@@ -1459,6 +1686,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           warehouses={warehouses}
           onStockTransferred={fetchAll}
           type={activeTab === 'finished' ? 'product' : 'ingredient'}
+        />
+      </ModalPortal>
+
+      <ModalPortal>
+        <SellProductModal
+          isOpen={showSellProduct}
+          onClose={() => setShowSellProduct(false)}
+          onSaleComplete={fetchAll}
+          warehouseId={currentWarehouseId}
         />
       </ModalPortal>
       {confirmDelete && (

@@ -15,7 +15,26 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeBuffer, setBarcodeBuffer] = useState('');
+  const barcodeInputRef = React.useRef(null);
   
+  const playBeep = (success = true) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = success ? 880 : 220;
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {}
+  };
+
   // Header info
   const [headerData, setHeaderData] = useState({
     issued_at: new Date().toISOString().split('T')[0],
@@ -38,6 +57,8 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
       fetchProducts();
       setItems([]);
       setSelectedCategoryId('');
+      setBarcodeMode(false);
+      setBarcodeBuffer('');
       setHeaderData({
         issued_at: new Date().toISOString().split('T')[0],
         reason: 'sale',
@@ -88,6 +109,51 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
       ...prev,
       product_id: productId
     }));
+  };
+
+  const handleBarcodeSubmit = (e) => {
+    e.preventDefault();
+    const barcode = barcodeBuffer.trim();
+    if (!barcode) return;
+
+    const product = (products || []).find(p => p.barcode === barcode);
+    if (product) {
+      const existingItem = items.find(item => item.product_id === product.id);
+      const currentQtyInCart = existingItem ? parseFloat(existingItem.quantity) : 0;
+      
+      if (currentQtyInCart + 1 > (product.stock_quantity || 0)) {
+        playBeep(false);
+        toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${product.stock_quantity || 0}`);
+        setBarcodeBuffer('');
+        return;
+      }
+
+      setItems(prevItems => {
+        const existingIndex = prevItems.findIndex(item => item.product_id === product.id);
+        if (existingIndex > -1) {
+          const newItems = [...prevItems];
+          newItems[existingIndex].quantity = (parseFloat(newItems[existingIndex].quantity) + 1).toString();
+          return newItems;
+        } else {
+          return [...prevItems, {
+            product_id: product.id,
+            quantity: '1',
+            productName: product.name,
+            barcode: product.barcode,
+            currentStock: product.stock_quantity
+          }];
+        }
+      });
+      playBeep(true);
+      toast.success(`${product.name} (+1)`);
+    } else {
+      playBeep(false);
+      toast.error(t('warehouse.productNotFoundByBarcode') || 'Məhsul tapılmadı');
+    }
+    setBarcodeBuffer('');
+    setTimeout(() => {
+      barcodeInputRef.current?.focus();
+    }, 50);
   };
 
   const filteredProducts = (products || []).filter(p => {
@@ -272,61 +338,104 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
               <div className="lg:col-span-2 space-y-6">
                 {/* Add Item Form */}
                 <div className="bg-white border-2 border-dashed border-gray-200 rounded-[2rem] p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div className="md:col-span-6 flex flex-col gap-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.category') || 'Категория'}</label>
-                        <Dropdown 
-                            value={selectedCategoryId}
-                            onChange={handleCategoryChange}
-                            options={[
-                                { value: '', label: t('warehouse.allCategories') },
-                                ...categories.filter(c => !c.parent_id).flatMap(cat => [
-                                    { value: cat.id, label: cat.name },
-                                    ...categories.filter(sub => sub.parent_id === cat.id).map(sub => ({
-                                        value: sub.id,
-                                        label: `  ↳ ${sub.name}`
-                                    }))
-                                ])
-                            ]}
+                  <div className="flex justify-between items-center mb-6 border-b border-gray-50 pb-3">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.addItem') || 'Məhsul əlavə et'}</span>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <span className="text-xs font-bold text-gray-500">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                      <div className="relative">
+                        <input 
+                          type="checkbox"
+                          checked={barcodeMode}
+                          onChange={(e) => {
+                            setBarcodeMode(e.target.checked);
+                            if (e.target.checked) {
+                              setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                            }
+                          }}
+                          className="sr-only peer"
                         />
-                    </div>
-                    <div className="md:col-span-6 flex flex-col gap-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.product') || 'Товар'}</label>
-                        <Dropdown 
-                            value={currentItem.product_id}
-                            onChange={handleProductChange}
-                            options={[
-                                { value: '', label: t('warehouse.selectProduct') },
-                                ...filteredProducts.map(p => ({ 
-                                    value: p.id, 
-                                    label: `${p.name} (${p.barcode}) — ${p.stock_quantity} ${t('common.unit') || 'шт'}`
-                                }))
-                            ]}
-                            searchable={true}
-                        />
-                    </div>
-                    <div className="md:col-span-12 flex flex-col gap-1.5">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.quantity') || 'Количество'}</label>
-                        <div className="relative">
-                            <Package className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                            <input 
-                                type="number" 
-                                value={currentItem.quantity}
-                                onChange={e => setCurrentItem({...currentItem, quantity: e.target.value})}
-                                placeholder={t('warehouse.quantity')}
-                                className="w-full bg-gray-50 border border-transparent rounded-xl pl-10 pr-4 py-3 text-sm focus:bg-white focus:border-merkez-blue outline-none transition-all font-bold"
-                            />
-                        </div>
-                    </div>
+                        <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                      </div>
+                    </label>
                   </div>
                   
-                  <button 
-                    type="button"
-                    onClick={addItem}
-                    className="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
-                  >
-                    <Plus className="w-4 h-4" /> {t('common.add')}
-                  </button>
+                  {barcodeMode ? (
+                    <form onSubmit={handleBarcodeSubmit} className="space-y-4">
+                      <div className="relative">
+                        <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input
+                          ref={barcodeInputRef}
+                          type="text"
+                          value={barcodeBuffer}
+                          onChange={(e) => setBarcodeBuffer(e.target.value)}
+                          placeholder={t('warehouse.scanBarcodePlaceholder') || 'Skan edin...'}
+                          className="w-full bg-gray-50 border border-2 border-merkez-blue/30 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:bg-white focus:border-merkez-blue outline-none transition-all"
+                          autoFocus
+                        />
+                      </div>
+                      <p className="text-[10px] text-gray-400 font-medium text-center">
+                        {t('warehouse.scanBarcodeHint') || 'Skaneri məhsula yönəldin və oxudun. O, siyahıya avtomatik əlavə olunacaq.'}
+                      </p>
+                    </form>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div className="md:col-span-6 flex flex-col gap-1.5">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.category') || 'Категория'}</label>
+                            <Dropdown 
+                                value={selectedCategoryId}
+                                onChange={handleCategoryChange}
+                                options={[
+                                    { value: '', label: t('warehouse.allCategories') },
+                                    ...categories.filter(c => !c.parent_id).flatMap(cat => [
+                                        { value: cat.id, label: cat.name },
+                                        ...categories.filter(sub => sub.parent_id === cat.id).map(sub => ({
+                                            value: sub.id,
+                                            label: `  ↳ ${sub.name}`
+                                        }))
+                                    ])
+                                ]}
+                            />
+                        </div>
+                        <div className="md:col-span-6 flex flex-col gap-1.5">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.product') || 'Товар'}</label>
+                            <Dropdown 
+                                value={currentItem.product_id}
+                                onChange={handleProductChange}
+                                options={[
+                                    { value: '', label: t('warehouse.selectProduct') },
+                                    ...filteredProducts.map(p => ({ 
+                                        value: p.id, 
+                                        label: `${p.name} (${p.barcode}) — ${p.stock_quantity} ${t('common.unit') || 'шт'}`
+                                    }))
+                                ]}
+                                searchable={true}
+                            />
+                        </div>
+                        <div className="md:col-span-12 flex flex-col gap-1.5">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.quantity') || 'Количество'}</label>
+                            <div className="relative">
+                                <Package className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                                <input 
+                                    type="number" 
+                                    value={currentItem.quantity}
+                                    onChange={e => setCurrentItem({...currentItem, quantity: e.target.value})}
+                                    placeholder={t('warehouse.quantity')}
+                                    className="w-full bg-gray-50 border border-transparent rounded-xl pl-10 pr-4 py-3 text-sm focus:bg-white focus:border-merkez-blue outline-none transition-all font-bold"
+                                />
+                            </div>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        type="button"
+                        onClick={addItem}
+                        className="w-full mt-4 bg-gray-900 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
+                      >
+                        <Plus className="w-4 h-4" /> {t('common.add')}
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 {/* Items List */}
@@ -357,7 +466,21 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
                             </div>
                             <div className="text-right">
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">{t('warehouse.quantity')}</p>
-                                <p className="text-sm font-black text-red-500">-{item.quantity}</p>
+                                <input 
+                                  type="number"
+                                  value={item.quantity}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value || 0);
+                                    if (val > (item.currentStock || 0)) {
+                                      toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${item.currentStock || 0}`);
+                                      return;
+                                    }
+                                    const newItems = [...items];
+                                    newItems[index].quantity = e.target.value;
+                                    setItems(newItems);
+                                  }}
+                                  className="w-16 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-xs font-bold text-right outline-none focus:border-merkez-blue focus:bg-white text-red-500"
+                                />
                             </div>
                           </div>
 
