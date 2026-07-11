@@ -569,7 +569,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {t('warehouse.finishedGoods') || 'Məhsullar'}
                 </button>
                 
-                {isRestaurantActive && (
+                {false && isRestaurantActive && (
                   <button
                     onClick={() => setActiveTab('raw')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${

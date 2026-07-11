@@ -490,7 +490,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
               </div>
               
               <div className="flex gap-2">
-                {isRestaurantActive && (
+                {false && isRestaurantActive && (
                   <select
                     value={auditType}
                     onChange={(e) => setAuditType(e.target.value)}
