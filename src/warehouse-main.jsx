@@ -398,7 +398,7 @@ const WarehouseAppContent = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           {/* Language Dropdown Selector */}
           <div className="relative" ref={langRef}>
             <button
