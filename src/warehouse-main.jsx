@@ -240,7 +240,7 @@ const WarehouseAppContent = () => {
   // 3. Authenticated State: Main Warehouse Module View
   const navTabs = [
     { id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' },
-    ...(activeModules?.includes('restaurant') ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
+    ...(false && activeModules?.includes('restaurant') ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
     { id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' },
     { id: 'history', icon: Search, label: t('warehouse.history') || 'История' },
     { id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' },
