@@ -324,27 +324,27 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
   const dTax = taxPercent / 100;
   const dStore = storePercent / 100;
 
-  const isFerrum = paymentMethod === 'credit' && selectedBank.toLowerCase().includes('ferrum');
+  const isFeeDeductedFromGross = paymentMethod === 'credit' && (selectedBank.toLowerCase().includes('ferrum') || selectedBank.toLowerCase().includes('abb'));
 
-  const denominator = isFerrum
+  const denominator = isFeeDeductedFromGross
     ? (1 - dBank) * (1 - dTax - dStore)
     : (1 - dBank - dTax - dStore);
 
   const rawGross = denominator > 0 ? (netAmount / denominator) : netAmount;
 
-  const contractTotal = isFerrum 
+  const contractTotal = isFeeDeductedFromGross 
     ? Math.ceil(rawGross)
     : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross);
 
-  const grossAmount = isFerrum
+  const grossAmount = isFeeDeductedFromGross
     ? contractTotal * (1 - dBank)
     : contractTotal;
 
-  const calculatedNet = isFerrum
+  const calculatedNet = isFeeDeductedFromGross
     ? grossAmount * (1 - dTax - dStore)
     : contractTotal * (1 - dBank - dTax - dStore);
 
-  const pureProfit = isFerrum
+  const pureProfit = isFeeDeductedFromGross
     ? netAmount
     : ((paymentMethod === 'credit' || paymentMethod === 'birmarket') ? Math.max(netAmount, calculatedNet) : netAmount);
 
