@@ -11,8 +11,8 @@ import QuickAddCustomerModal from './QuickAddCustomerModal';
 
 const BANK_RATES = {
   'ABB Kredit': { 1: 0.0, 2: 0.02, 3: 0.03, 6: 0.055, 9: 0.08, 12: 0.10, 18: 0.17, 24: 0.23 },
-  'Birkart (Kapital Bank)': { 2: 0.032, 3: 0.043, 6: 0.074, 9: 0.10, 12: 0.13, 18: 0.17 },
-  'Tamkart (ABB)': { 2: 0.03, 3: 0.041, 6: 0.072, 9: 0.098, 12: 0.128, 18: 0.171, 24: 0.178 },
+  'Birkart': { 2: 0.032, 3: 0.043, 6: 0.074, 9: 0.10, 12: 0.13, 18: 0.17 },
+  'Tamkart': { 2: 0.03, 3: 0.041, 6: 0.072, 9: 0.098, 12: 0.128, 18: 0.171, 24: 0.178 },
   'Kapital Kredit 35': { 2: 0.04, 3: 0.055, 6: 0.085, 12: 0.155, 18: 0.24, 24: 0.30, 35: 0.46 },
   'Ferrum Standart': { 3: 0.10, 6: 0.15, 9: 0.19, 12: 0.24 },
   'Ferrum Fast': { 3: 0.18, 6: 0.22 },
@@ -40,7 +40,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
   const [installmentMonths, setInstallmentMonths] = useState(12);
   const [basePriceInput, setBasePriceInput] = useState(0);
   const [extraMarkup, setExtraMarkup] = useState(0);
-  const [selectedBank, setSelectedBank] = useState('Birkart (Kapital Bank)');
+  const [selectedBank, setSelectedBank] = useState('Birkart');
   const [bankSettings, setBankSettings] = useState([]);
   const [activeTariff, setActiveTariff] = useState(null);
   const [birmarketCategory, setBirmarketCategory] = useState('Alətlər'); // 'Alətlər' | 'Aksesuarlar'
@@ -652,8 +652,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                           buttonClassName="w-full rounded-xl px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-100 hover:border-merkez-blue shadow-sm"
                           options={[
                             { value: 'ABB Kredit', label: 'ABB Kredit' },
-                            { value: 'Birkart (Kapital Bank)', label: 'Birkart (Kapital Bank)' },
-                            { value: 'Tamkart (ABB)', label: 'Tamkart (ABB)' },
+                            { value: 'Birkart', label: 'Birkart' },
+                            { value: 'Tamkart', label: 'Tamkart' },
                             { value: 'Kapital Kredit 35', label: 'Kapital Kredit 35' },
                             { value: 'Ferrum Standart', label: 'Ferrum Standart' },
                             { value: 'Ferrum Fast', label: 'Ferrum Fast' },

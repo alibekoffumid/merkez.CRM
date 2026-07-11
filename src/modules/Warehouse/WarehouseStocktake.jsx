@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -18,9 +18,10 @@ import {
   Copy
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Dropdown from '../../components/Common/Dropdown';
 
 const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = false }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useUser();
   
   // Views: 'list', 'create', 'edit'
@@ -38,6 +39,9 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
   const [onlyDiscrepancies, setOnlyDiscrepancies] = useState(false);
   const [activeStocktakeId, setActiveStocktakeId] = useState(null);
   const [viewModeOnly, setViewModeOnly] = useState(false);
+  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeBuffer, setBarcodeBuffer] = useState('');
+  const barcodeInputRef = useRef(null);
 
   // Personnel details
   const [staffList, setStaffList] = useState([]);
@@ -230,6 +234,25 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
       actual_quantity: item.expected_quantity.toString()
     })));
     toast.success('Bütün miqdarlar gözlənilən miqdar ilə dolduruldu');
+  };
+
+  // Handle barcode scanning in scanner mode
+  const handleBarcodeSubmit = (e) => {
+    e.preventDefault();
+    if (!barcodeBuffer.trim()) return;
+    
+    const code = barcodeBuffer.trim();
+    
+    const itemIndex = auditItems.findIndex(i => i.barcode === code);
+    if (itemIndex >= 0) {
+      const item = auditItems[itemIndex];
+      const currentVal = item.actual_quantity === '' ? 0 : parseFloat(item.actual_quantity);
+      handleQtyChange(item.item_id, currentVal + 1);
+      toast.success(`${item.name} +1 əlavə edildi`, { icon: '📦', duration: 1500 });
+    } else {
+      toast.error('Bu barkoda uyğun məhsul tapılmadı: ' + code);
+    }
+    setBarcodeBuffer('');
   };
 
   // Update single row input
@@ -439,7 +462,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
   const filteredItems = getFilteredItems();
 
   return (
-    <div className="flex-1 space-y-6">
+    <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-2 pb-10 space-y-6">
       {view === 'list' ? (
         <div className="space-y-6">
           {/* Header Controls */}
@@ -605,82 +628,174 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
       ) : (
         /* Create or Edit stocktake document */
         <div className="space-y-6 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setView('list')}
-                className="p-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400 hover:text-gray-700"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <div>
-                <h3 className="text-md font-black text-gray-900 leading-none mb-1">
-                  {viewModeOnly ? 'Auditin Detalları' : activeStocktakeId ? 'Auditi Redaktə Et' : 'Yeni Audit Sənədi'}
-                </h3>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  {warehouses.find(w => w.id === selectedWarehouseId)?.name} • {auditType === 'product' ? 'Məhsullar' : 'İnqrediyentlər'}
-                </p>
+          <div className="flex flex-col xl:flex-row gap-4">
+            {/* Header Card */}
+            <div className="flex-1 flex items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setView('list')}
+                  className="p-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400 hover:text-gray-700"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <h3 className="text-md font-black text-gray-900 leading-none mb-1">
+                    {viewModeOnly ? 'Auditin Detalları' : activeStocktakeId ? 'Auditi Redaktə Et' : 'Yeni Audit Sənədi'}
+                  </h3>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    {warehouses.find(w => w.id === selectedWarehouseId)?.name} • {auditType === 'product' ? 'Məhsullar' : 'İnqrediyentlər'}
+                  </p>
+                </div>
+              </div>
+              
+              {!viewModeOnly && (
+                <button
+                  onClick={autofillAll}
+                  className="px-3.5 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
+                >
+                  Hamısını doldur
+                </button>
+              )}
+            </div>
+
+            {/* Live stats summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 xl:w-[600px] shrink-0">
+              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Sayılan məhsul çeşidi</p>
+                <h4 className="text-lg font-black text-gray-900 leading-none">{totals.count} / {auditItems.length}</h4>
+              </div>
+              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">Artıq Qalan</p>
+                <h4 className="text-lg font-black text-green-500 leading-none">₼{totals.surplus.toFixed(2)}</h4>
+              </div>
+              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Əskik Gələn</p>
+                <h4 className="text-lg font-black text-red-500 leading-none">₼{totals.shortage.toFixed(2)}</h4>
+              </div>
+              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Xalis fərq</p>
+                <h4 className={`text-lg font-black leading-none ${totals.net > 0 ? 'text-green-500' : totals.net < 0 ? 'text-red-500' : 'text-gray-900'}`}>
+                  {totals.net > 0 ? '+' : ''}₼{totals.net.toFixed(2)}
+                </h4>
               </div>
             </div>
-            
-            {!viewModeOnly && (
-              <button
-                onClick={autofillAll}
-                className="px-3.5 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
-              >
-                Hamısını doldur
-              </button>
-            )}
           </div>
 
-          {/* Live stats summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Sayılan məhsul çeşidi</p>
-              <h4 className="text-lg font-black text-gray-900">{totals.count} / {auditItems.length}</h4>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">Artıq Qalan (Məbləğ)</p>
-              <h4 className="text-lg font-black text-green-500">₼{totals.surplus.toFixed(2)}</h4>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Əskik Gələn (Məbləğ)</p>
-              <h4 className="text-lg font-black text-red-500">₼{totals.shortage.toFixed(2)}</h4>
-            </div>
-            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-              <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Xalis fərq məbləği</p>
-              <h4 className={`text-lg font-black ${totals.net > 0 ? 'text-green-500' : totals.net < 0 ? 'text-red-500' : 'text-gray-900'}`}>
-                {totals.net > 0 ? '+' : ''}₼{totals.net.toFixed(2)}
-              </h4>
-            </div>
-          </div>
+
 
           {/* Audit Rows Form */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Məhsul adı və ya barkoda görə axtar..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 w-full border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-merkez-blue bg-gray-50/50 focus:bg-white transition-all"
-                />
+            <div className="p-6 border-b border-gray-50 flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+              {/* Personnel Selectors */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 flex-1">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
+                    {i18n?.language === 'az' ? 'Yoxlayan (Təftiş edən)' : i18n?.language === 'ru' ? 'Кто проверил (Инспектор)' : 'Checked By'}
+                  </label>
+                  <Dropdown
+                    value={checkedBy}
+                    onChange={setCheckedBy}
+                    disabled={viewModeOnly}
+                    options={[
+                      { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
+                      ...staffList.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                    buttonClassName="w-full rounded-xl px-4 py-2 text-xs font-bold min-h-[38px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
+                    {i18n?.language === 'az' ? 'Təhvil verən' : i18n?.language === 'ru' ? 'Кто сдал' : 'Handed Over By'}
+                  </label>
+                  <Dropdown
+                    value={handedOverBy}
+                    onChange={setHandedOverBy}
+                    disabled={viewModeOnly}
+                    options={[
+                      { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
+                      ...staffList.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                    buttonClassName="w-full rounded-xl px-4 py-2 text-xs font-bold min-h-[38px]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
+                    {i18n?.language === 'az' ? 'Təhvil alan (Qəbul edən)' : i18n?.language === 'ru' ? 'Кто принял' : 'Received By'}
+                  </label>
+                  <Dropdown
+                    value={receivedBy}
+                    onChange={setReceivedBy}
+                    disabled={viewModeOnly}
+                    options={[
+                      { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
+                      ...staffList.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                    buttonClassName="w-full rounded-xl px-4 py-2 text-xs font-bold min-h-[38px]"
+                  />
+                </div>
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input 
-                  type="checkbox"
-                  checked={onlyDiscrepancies}
-                  onChange={(e) => setOnlyDiscrepancies(e.target.checked)}
-                  className="rounded border-gray-300 text-merkez-blue focus:ring-merkez-blue"
-                />
-                <span className="text-xs font-bold text-gray-500">Yalnız fərqləri göstər</span>
-              </label>
+              {/* Table Toolbar */}
+              <div className="flex flex-col sm:flex-row items-center gap-4 xl:w-[500px] shrink-0">
+                <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 mb-1 sm:mb-0">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                  <div className="relative">
+                    <input 
+                      type="checkbox"
+                      checked={barcodeMode}
+                      onChange={(e) => {
+                        setBarcodeMode(e.target.checked);
+                        if (e.target.checked) {
+                          setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                        }
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none shrink-0 mb-1 sm:mb-0 border-l border-gray-100 pl-4">
+                  <input 
+                    type="checkbox"
+                    checked={onlyDiscrepancies}
+                    onChange={(e) => setOnlyDiscrepancies(e.target.checked)}
+                    className="rounded border-gray-300 text-merkez-blue focus:ring-merkez-blue"
+                  />
+                  <span className="text-xs font-bold text-gray-500">Yalnız fərqləri göstər</span>
+                </label>
+
+                {barcodeMode ? (
+                  <form onSubmit={handleBarcodeSubmit} className="relative flex-1 w-full">
+                    <Search className="w-4 h-4 text-merkez-blue absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      ref={barcodeInputRef}
+                      type="text"
+                      value={barcodeBuffer}
+                      onChange={(e) => setBarcodeBuffer(e.target.value)}
+                      placeholder="Barkod skan edin..."
+                      className="pl-9 pr-4 py-2 w-full border-2 border-merkez-blue/30 rounded-xl text-xs font-bold outline-none focus:border-merkez-blue bg-blue-50/10 focus:bg-white transition-all min-h-[38px]"
+                      autoFocus
+                    />
+                  </form>
+                ) : (
+                  <div className="relative flex-1 w-full">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Məhsul adı və ya barkoda görə axtar..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 pr-4 py-2 w-full border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-merkez-blue bg-gray-50/50 focus:bg-white transition-all min-h-[38px]"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="overflow-x-auto max-h-[50vh] overflow-y-auto custom-scrollbar">
+            <div className="overflow-x-auto w-full">
               <table className="w-full min-w-[750px] text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-50 bg-gray-50/40 sticky top-0 z-10">
@@ -750,57 +865,6 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
 
           {/* Notes and Actions */}
           <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-5">
-            {/* Personnel Selectors */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 border-b border-gray-50 pb-5">
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
-                  {i18n?.language === 'az' ? 'Yoxlayan (Təftiş edən)' : i18n?.language === 'ru' ? 'Кто проверил (Инспектор)' : 'Checked By'}
-                </label>
-                <Dropdown
-                  value={checkedBy}
-                  onChange={setCheckedBy}
-                  disabled={viewModeOnly}
-                  options={[
-                    { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
-                    ...staffList.map(s => ({ value: s.id, label: s.name }))
-                  ]}
-                  buttonClassName="rounded-xl px-4 py-2.5 text-xs font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
-                  {i18n?.language === 'az' ? 'Təhvil verən' : i18n?.language === 'ru' ? 'Кто сдал' : 'Handed Over By'}
-                </label>
-                <Dropdown
-                  value={handedOverBy}
-                  onChange={setHandedOverBy}
-                  disabled={viewModeOnly}
-                  options={[
-                    { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
-                    ...staffList.map(s => ({ value: s.id, label: s.name }))
-                  ]}
-                  buttonClassName="rounded-xl px-4 py-2.5 text-xs font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
-                  {i18n?.language === 'az' ? 'Təhvil alan (Qəbul edən)' : i18n?.language === 'ru' ? 'Кто принял' : 'Received By'}
-                </label>
-                <Dropdown
-                  value={receivedBy}
-                  onChange={setReceivedBy}
-                  disabled={viewModeOnly}
-                  options={[
-                    { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
-                    ...staffList.map(s => ({ value: s.id, label: s.name }))
-                  ]}
-                  buttonClassName="rounded-xl px-4 py-2.5 text-xs font-bold"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Audit Qeydləri</label>
               <textarea 
@@ -813,7 +877,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
             </div>
 
             {!viewModeOnly && (
-              <div className="flex gap-4 pt-2">
+              <div className="flex flex-col md:flex-row gap-4 pt-2">
                 <button
                   onClick={() => setView('list')}
                   className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
@@ -841,27 +905,11 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
               </div>
             )}
           </div>
+
+
         </div>
       )}
     </div>
-  );
-};
-
-// Simple Dropdown helper wrapper in case main UI Dropdown differs
-const Dropdown = ({ value, onChange, options, disabled }) => {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-xs rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-2.5 outline-none font-bold shadow-sm transition-all disabled:opacity-75"
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
   );
 };
 

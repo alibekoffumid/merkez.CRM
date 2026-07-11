@@ -28,6 +28,7 @@ interface DropdownProps {
   trigger?: React.ReactNode;
   items?: DropdownItem[];
   searchable?: boolean;
+  disabled?: boolean;
 }
 
 const Dropdown: React.FC<DropdownProps> = ({ 
@@ -40,7 +41,8 @@ const Dropdown: React.FC<DropdownProps> = ({
   position = 'auto',
   trigger,
   items,
-  searchable = false
+  searchable = false,
+  disabled = false
 }) => {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -175,11 +177,12 @@ const Dropdown: React.FC<DropdownProps> = ({
       {trigger ? (
         <div 
           onClick={(e) => {
+            if (disabled) return;
             e.preventDefault();
             e.stopPropagation();
             setIsOpen(!isOpen);
           }}
-          className="cursor-pointer"
+          className={`cursor-pointer ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
         >
           {trigger}
         </div>
@@ -192,12 +195,13 @@ const Dropdown: React.FC<DropdownProps> = ({
           )}
           <button
             type="button"
+            disabled={disabled}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'}`}
+            className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'} ${disabled ? 'opacity-75 cursor-not-allowed' : 'hover:border-merkez-blue hover:bg-white'}`}
           >
             <div className="flex items-center gap-3 overflow-hidden">
               {selectedOption?.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" />}
