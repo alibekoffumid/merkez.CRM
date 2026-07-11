@@ -173,7 +173,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
     <div className="flex-1 space-y-6">
       {/* Sub tabs */}
       <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100/80">
-        {isRestaurantActive ? (
+        {false && isRestaurantActive ? (
           <div className="flex gap-2">
             <button
               onClick={() => setReportType('product')}
