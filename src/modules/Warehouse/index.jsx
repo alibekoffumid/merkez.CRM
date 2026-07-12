@@ -1322,7 +1322,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-md shadow-2xl p-6 flex flex-col 
                 lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-2xl
                 transition-transform duration-300 border-r border-gray-100 lg:border-r-0
-                ${showCategorySidebar ? 'translate-x-0' : '-translate-x-full lg:hidden'}
+                ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
               `}>
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
@@ -1458,7 +1458,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <div className="flex items-center gap-2 flex-1 w-full xl:max-w-md">
               {activeTab === 'finished' && (
                 <button
-                  className="xl:hidden p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
+                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                 >
                   <Menu className="w-5 h-5" />
