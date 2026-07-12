@@ -333,8 +333,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
   const rawGross = denominator > 0 ? (netAmount / denominator) : netAmount;
 
   const contractTotal = isFeeDeductedFromGross 
-    ? Math.round(rawGross)
-    : (paymentMethod === 'credit' ? Math.round(rawGross) : rawGross);
+    ? Math.ceil(rawGross)
+    : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross);
 
   const grossAmount = isFeeDeductedFromGross
     ? contractTotal * (1 - dBank)
