@@ -364,7 +364,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     : ((paymentMethod === 'credit' || paymentMethod === 'birmarket') ? Math.max(netAmount, calculatedNet) : netAmount);
 
   const monthlyPayment = installmentMonths > 0 
-    ? (paymentMethod === 'credit' ? contractTotal / installmentMonths : grossAmount / installmentMonths) 
+    ? (paymentMethod === 'credit' ? Math.ceil(contractTotal) / installmentMonths : grossAmount / installmentMonths) 
     : grossAmount;
 
   const commissionRateDisplay = exactMarkup !== undefined
