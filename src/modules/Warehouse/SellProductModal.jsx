@@ -346,7 +346,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
   const exactMarkup = paymentMethod === 'credit' ? MARKUP_RATES[selectedBank]?.[installmentMonths] : undefined;
 
   const contractTotal = exactMarkup !== undefined 
-    ? Number((netAmount * (1 + exactMarkup)).toFixed(2))
+    ? Math.ceil(netAmount * (1 + exactMarkup))
     : (isFeeDeductedFromGross 
       ? Math.ceil(rawGross)
       : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross));
@@ -367,7 +367,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     ? (paymentMethod === 'credit' ? contractTotal / installmentMonths : grossAmount / installmentMonths) 
     : grossAmount;
 
-  const commissionRateDisplay = netAmount > 0 ? (((contractTotal - netAmount) / netAmount) * 100) : 0;
+  const commissionRateDisplay = exactMarkup !== undefined
+    ? exactMarkup * 100
+    : (netAmount > 0 ? (((contractTotal - netAmount) / netAmount) * 100) : 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
