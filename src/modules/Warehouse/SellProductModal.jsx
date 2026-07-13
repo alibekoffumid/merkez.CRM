@@ -351,15 +351,17 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
       ? Math.ceil(rawGross)
       : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross));
 
-  const grossAmount = isFeeDeductedFromGross
-    ? Math.ceil(contractTotal) * (1 - dBank)
+  const currentBankCommission = exactMarkup !== undefined ? exactMarkup : dBank;
+
+  const grossAmount = paymentMethod === 'credit'
+    ? Math.ceil(contractTotal) * (1 - currentBankCommission)
     : contractTotal;
 
-  const calculatedNet = isFeeDeductedFromGross
+  const calculatedNet = paymentMethod === 'credit'
     ? grossAmount * (1 - dTax - dStore)
-    : contractTotal * (1 - dBank - dTax - dStore);
+    : contractTotal * (1 - currentBankCommission - dTax - dStore);
 
-  const pureProfit = isFeeDeductedFromGross
+  const pureProfit = paymentMethod === 'credit'
     ? netAmount
     : ((paymentMethod === 'credit' || paymentMethod === 'birmarket') ? Math.max(netAmount, calculatedNet) : netAmount);
 
