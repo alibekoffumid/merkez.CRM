@@ -295,8 +295,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     return (BANK_RATES[selectedBank]?.[m] || 0) * 100;
   };
 
-  const activeMonths = bankSettings.length > 0
-    ? Array.from(new Set(bankSettings.filter(s => s.bank_name.toLowerCase() === selectedBank.toLowerCase()).map(s => s.months))).sort((a, b) => a - b)
+  const selectedBankSettings = bankSettings.filter(s => s.bank_name.toLowerCase() === selectedBank.toLowerCase());
+  const activeMonths = selectedBankSettings.length > 0
+    ? Array.from(new Set(selectedBankSettings.map(s => s.months))).sort((a, b) => a - b)
     : Object.keys(BANK_RATES[selectedBank] || {}).map(Number).sort((a, b) => a - b);
 
   const netAmount = (Number(basePriceInput) || 0) + (Number(extraMarkup) || 0);
