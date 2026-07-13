@@ -718,7 +718,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-100 pt-2.5">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{(contractTotal * (1 - dBank)).toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-base">₼{contractTotal.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
