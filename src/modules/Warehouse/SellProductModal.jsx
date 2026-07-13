@@ -351,7 +351,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
       ? Math.ceil(rawGross)
       : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross));
 
-  const currentBankCommission = exactMarkup !== undefined ? exactMarkup : dBank;
+  const currentBankCommission = dBank;
 
   const grossAmount = paymentMethod === 'credit'
     ? Math.ceil(contractTotal) * (1 - currentBankCommission)
