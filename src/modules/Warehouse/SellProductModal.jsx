@@ -352,7 +352,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
       : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross));
 
   const grossAmount = isFeeDeductedFromGross
-    ? contractTotal * (1 - dBank)
+    ? Math.ceil(contractTotal) * (1 - dBank)
     : contractTotal;
 
   const calculatedNet = isFeeDeductedFromGross
