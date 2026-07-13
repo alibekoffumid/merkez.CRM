@@ -346,7 +346,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
   const exactMarkup = paymentMethod === 'credit' ? MARKUP_RATES[selectedBank]?.[installmentMonths] : undefined;
 
   const contractTotal = exactMarkup !== undefined 
-    ? Math.ceil(netAmount * (1 + exactMarkup))
+    ? Number((netAmount * (1 + exactMarkup)).toFixed(2))
     : (isFeeDeductedFromGross 
       ? Math.ceil(rawGross)
       : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross));
@@ -717,12 +717,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                           <span className="text-orange-500 font-black text-sm">₼{(contractTotal - netAmount).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-100 pt-2.5">
-                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
-                          <span className="text-merkez-blue font-black text-lg">₼{monthlyPayment.toFixed(2)} / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
+                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
+                          <span className="text-gray-900 font-black text-base">₼{(contractTotal * (1 - dBank)).toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{Math.ceil(contractTotal * (1 - dBank)).toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
+                          <span className="text-merkez-blue font-black text-lg">₼{monthlyPayment.toFixed(2)} / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kassaya vurulan məbləğ:' : 'Сумма в кассу:'}</span>
