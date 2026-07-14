@@ -195,41 +195,41 @@ const DebtBook = () => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full flex-1">
           <div className="flex items-center gap-3 w-full lg:flex-1 lg:max-w-md">
             <div className="relative w-full min-w-[200px]">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 
                 placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors min-w-[200px]"
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors min-w-[200px]"
               />
             </div>
             <button
               onClick={fetchData}
-              className="p-2.5 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-lg transition-all shrink-0"
+              className="p-2 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-lg transition-all shrink-0"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className="w-4 h-4" />
             </button>
           </div>
           
           <div className="flex gap-2 items-center w-full lg:w-auto shrink-0 overflow-x-auto no-scrollbar pb-1 -mb-1 lg:pb-0 lg:mb-0">
             <button
               onClick={() => setOnlyDebtors(!onlyDebtors)}
-              className={`px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border flex items-center gap-2 whitespace-nowrap ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border flex items-center gap-2 whitespace-nowrap ${
                 onlyDebtors 
                   ? 'bg-rose-50 border-rose-100 text-rose-700'
                   : 'bg-white border-gray-100 text-gray-500 hover:text-gray-900'
               }`}
             >
-              <AlertCircle className="w-4 h-4 shrink-0" />
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
             </button>
             
             <button
               onClick={() => setShowAddCustomer(true)}
-              className="px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2 whitespace-nowrap"
+              className="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2 whitespace-nowrap"
             >
-              <UserPlus className="w-4 h-4 shrink-0" />
+              <UserPlus className="w-3.5 h-3.5 shrink-0" />
               {i18n?.language === 'az' ? 'Yeni Müştəri' : i18n?.language === 'ru' ? 'Новый клиент' : 'New Customer'}
             </button>
           </div>
