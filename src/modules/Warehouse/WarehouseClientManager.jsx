@@ -234,7 +234,7 @@ const WarehouseClientManager = () => {
           {activeSubTab === 'clients' && (
             <button
               onClick={handleOpenAdd}
-              className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center shadow-lg shadow-gray-900/10 active:scale-95 shrink-0"
+              className="bg-merkez-green text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center shadow-lg shadow-green-600/10 active:scale-95 shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
               {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
