@@ -1458,7 +1458,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
               {activeTab === 'finished' && (
                 <button
-                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0 lg:hidden"
+                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                 >
                   <Menu className="w-5 h-5" />
