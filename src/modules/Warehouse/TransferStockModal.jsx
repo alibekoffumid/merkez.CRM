@@ -260,7 +260,7 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
           </button>
         </div>
 
-        <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
           {/* Warehouse Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-blue-50/30 rounded-2xl border border-blue-100/50">
             <div className="space-y-2">
