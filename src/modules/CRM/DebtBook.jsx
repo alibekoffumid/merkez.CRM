@@ -224,14 +224,6 @@ const DebtBook = () => {
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
             </button>
-            
-            <button
-              onClick={() => setShowAddCustomer(true)}
-              className="px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2 whitespace-nowrap"
-            >
-              <UserPlus className="w-3.5 h-3.5 shrink-0" />
-              {i18n?.language === 'az' ? 'Yeni Müştəri' : i18n?.language === 'ru' ? 'Новый клиент' : 'New Customer'}
-            </button>
           </div>
         </div>,
         portalTarget
@@ -267,14 +259,6 @@ const DebtBook = () => {
             >
               <AlertCircle className="w-4 h-4" />
               {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
-            </button>
-            
-            <button
-              onClick={() => setShowAddCustomer(true)}
-              className="px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              {i18n?.language === 'az' ? 'Yeni Müştəri' : i18n?.language === 'ru' ? 'Новый клиент' : 'New Customer'}
             </button>
           </div>
         </div>
