@@ -698,7 +698,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             )}
           </div>
 
-          <div className="grid grid-cols-2 lg:flex lg:items-center gap-2 w-full lg:w-auto">
+          {/* Moved Search Bar */}
+          {(activeTab === 'finished' || activeTab === 'raw') && (
+            <div id="tour-search" className="relative w-full lg:flex-1 lg:max-w-md">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 lg:flex lg:items-center gap-2 w-full lg:w-auto ml-auto">
             {/* Main Warehouse Actions */}
             <button 
               onClick={() => setShowSellProduct(true)} 
@@ -1464,16 +1478,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Menu className="w-5 h-5" />
                 </button>
               )}
-              <div id="tour-search" className="relative flex-1">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
-                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-                />
-              </div>
 
               <div className="relative shrink-0 xl:hidden" ref={filterRef}>
                 <button 
