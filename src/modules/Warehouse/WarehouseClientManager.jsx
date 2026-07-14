@@ -167,21 +167,48 @@ const WarehouseClientManager = () => {
   return (
     <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 flex flex-col min-h-[500px]">
       {/* Tab Header Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h2 className="text-xl font-black text-gray-900 tracking-tight">
-            {activeSubTab === 'clients' 
-              ? (i18n.language === 'az' ? 'Müştərilər Siyahısı' : i18n.language === 'ru' ? 'Список клиентов' : 'Clients List')
-              : (i18n.language === 'az' ? 'Kredit Müqavilələri (Hissə-hissə Satış)' : i18n.language === 'ru' ? 'Кредитные договора (Рассрочка)' : 'Credit Contracts (Installments)')
-            }
-          </h2>
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1">
-            {activeSubTab === 'clients'
-              ? (i18n.language === 'az' ? 'Müştəri kartoteki və redaktə edilməsi' : i18n.language === 'ru' ? 'Картотека клиентов и их редактирование' : 'Customer directory and editing')
-              : (i18n.language === 'az' ? 'Müştəri kreditlərinin və aylıq ödəniş cədvəllərinin idarə edilməsi' : i18n.language === 'ru' ? 'Управление кредитами клиентов и календарем платежей' : 'Management of customer credits and payment schedules')
-            }
-          </p>
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+          <div>
+            <h2 className="text-xl font-black text-gray-900 tracking-tight">
+              {activeSubTab === 'clients' 
+                ? (i18n.language === 'az' ? 'Müştərilər Siyahısı' : i18n.language === 'ru' ? 'Список клиентов' : 'Clients List')
+                : (i18n.language === 'az' ? 'Kredit Müqavilələri (Hissə-hissə Satış)' : i18n.language === 'ru' ? 'Кредитные договора (Рассрочка)' : 'Credit Contracts (Installments)')
+              }
+            </h2>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1">
+              {activeSubTab === 'clients'
+                ? (i18n.language === 'az' ? 'Müştəri kartoteki və redaktə edilməsi' : i18n.language === 'ru' ? 'Картотека клиентов и их редактирование' : 'Customer directory and editing')
+                : (i18n.language === 'az' ? 'Müştəri kreditlərinin və aylıq ödəniş cədvəllərinin idarə edilməsi' : i18n.language === 'ru' ? 'Управление кредитами клиентов и календарем платежей' : 'Management of customer credits and payment schedules')
+              }
+            </p>
+          </div>
+
+          {/* Sub tabs */}
+          <div className="flex gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100/50 max-w-max shrink-0">
+            <button
+              onClick={() => setActiveSubTab('clients')}
+              className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeSubTab === 'clients'
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50 font-black'
+                  : 'text-gray-400 hover:text-gray-900 font-bold'
+              }`}
+            >
+              {i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients'}
+            </button>
+            <button
+              onClick={() => setActiveSubTab('credits')}
+              className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
+                activeSubTab === 'credits'
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50 font-black'
+                  : 'text-gray-400 hover:text-gray-900 font-bold'
+              }`}
+            >
+              {i18n.language === 'az' ? 'Kreditlər / Taksitlər' : i18n.language === 'ru' ? 'Кредиты / Рассрочка' : 'Credits'}
+            </button>
+          </div>
         </div>
+
         {activeSubTab === 'clients' && (
           <button
             onClick={handleOpenAdd}
@@ -191,30 +218,6 @@ const WarehouseClientManager = () => {
             {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
           </button>
         )}
-      </div>
-
-      {/* Sub tabs */}
-      <div className="flex gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100/50 max-w-max mb-6">
-        <button
-          onClick={() => setActiveSubTab('clients')}
-          className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeSubTab === 'clients'
-              ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50 font-black'
-              : 'text-gray-400 hover:text-gray-900 font-bold'
-          }`}
-        >
-          {i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients'}
-        </button>
-        <button
-          onClick={() => setActiveSubTab('credits')}
-          className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
-            activeSubTab === 'credits'
-              ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50 font-black'
-              : 'text-gray-400 hover:text-gray-900 font-bold'
-          }`}
-        >
-          {i18n.language === 'az' ? 'Kreditlər / Taksitlər' : i18n.language === 'ru' ? 'Кредиты / Рассрочка' : 'Credits'}
-        </button>
       </div>
 
       {activeSubTab === 'clients' ? (
