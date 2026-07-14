@@ -1479,14 +1479,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               )}
 
               {activeTab === 'finished' && (
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
-                  <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-blue-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                  <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
                 </button>
               )}
 
               {activeTab === 'raw' && isRestaurantActive && (
-                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
-                  <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
+                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                  <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
                 </button>
               )}
 
