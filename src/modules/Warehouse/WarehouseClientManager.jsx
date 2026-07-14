@@ -538,6 +538,7 @@ const WarehouseClientManager = () => {
         </ModalPortal>
       )}
     </div>
+    </>
   );
 };
 
