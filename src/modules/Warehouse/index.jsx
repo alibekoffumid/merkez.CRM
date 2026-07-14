@@ -508,12 +508,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       />
 
       {/* Header & Tabs */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
         {/* Top Row: Title & Navigation */}
         <div className="p-4 flex flex-col xl:flex-row items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4 flex-wrap flex-1">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-merkez-blue/10 flex items-center justify-center shrink-0">
                 <Package className="w-5 h-5 text-merkez-blue" />
               </div>
               <div id="tour-warehouse-selector">
@@ -556,7 +556,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {/* Navigation Tabs (Admin View) */}
             {!propActiveTab && (
-              <div className="flex bg-gray-100 rounded-xl p-0.5 border border-gray-200/50 shrink-0 ml-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
+              <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50 shrink-0 ml-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
                 <button
                   onClick={() => setActiveTab('finished')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
@@ -751,7 +751,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       <div className={`flex flex-1 ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
         {activeTab === 'debts' ? (
-          <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-6 overflow-y-auto">
+          <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 overflow-y-auto">
             <DebtBook />
           </div>
         ) : activeTab === 'clients' ? (
@@ -773,7 +773,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'settings' ? (
           <WarehouseSettings />
         ) : activeTab === 'history' ? (
-          <div className="flex-1 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col">
+          <div className="flex-1 bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col">
             <div className="p-6 border-b border-gray-100">
               <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
                 <div>
@@ -791,7 +791,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full xl:w-auto">
-                  <div className="flex p-1 bg-gray-50 rounded-xl border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto">
+                  <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto">
                     <button 
                       onClick={() => setHistoryTab('receipts')}
                       className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
@@ -837,7 +837,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </div>
 
               {/* Filters Bar */}
-              <div className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50/50 rounded-2xl border border-gray-100">
+              <div className="flex flex-col md:flex-row gap-4 p-5 bg-gray-50/50 rounded-lg border border-gray-100">
                 {historyTab === 'receipts' && (
                   <div className="flex-1 flex flex-col gap-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
@@ -1338,7 +1338,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           {activeTab === 'finished' && (
               <div id="tour-categories" className={`
                 fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-md shadow-2xl p-6 flex flex-col 
-                lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-2xl
+                lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-lg
                 transition-transform duration-300 border-r border-gray-100 lg:border-r-0
                 ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
               `}>
@@ -1349,14 +1349,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </div>
                     <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.categories')}</h3>
                   </div>
-                  <button onClick={() => setShowCategorySidebar(false)} className="lg:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
+                  <button onClick={() => setShowCategorySidebar(false)} className="lg:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                   <div 
-                    className={`group p-3 rounded-xl cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${selectedCategory === null ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                    className={`group p-3 rounded-lg cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${selectedCategory === null ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
                     onClick={() => setSelectedCategory(null)}
                   >
                     <div className="flex items-center gap-3">
@@ -1389,7 +1389,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return (
                         <React.Fragment key={cat.id}>
                           <div 
-                            className={`group p-3 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                            className={`group p-3 rounded-lg cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
                             style={{ marginLeft: level > 0 ? `${level * 12}px` : '0' }}
                             onClick={() => {
                               setSelectedCategory(isActive ? null : cat.id);
@@ -1451,7 +1451,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="pt-6 mt-auto border-t border-gray-100/50">
                   <button 
                     onClick={() => setShowAddCategory(true)} 
-                    className="w-full py-3 bg-white border border-gray-200 text-gray-500 rounded-2xl text-xs font-black hover:border-merkez-blue hover:text-merkez-blue hover:shadow-lg hover:shadow-blue-600/5 transition-all flex items-center justify-center gap-2 group"
+                    className="w-full py-3 bg-white border border-gray-200 text-gray-500 rounded-lg text-xs font-black hover:border-merkez-blue hover:text-merkez-blue hover:shadow-lg hover:shadow-blue-600/5 transition-all flex items-center justify-center gap-2 group"
                   >
                     <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
                       <Plus className="w-3.5 h-3.5" />
@@ -1471,7 +1471,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         )}
 
         {/* Products/Ingredients Table Area */}
-        <div className="flex-1 flex flex-col bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
+        <div className="flex-1 flex flex-col bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
           <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20">
             <div className="flex items-center gap-2 flex-1 w-full xl:max-w-md">
               {activeTab === 'finished' && (
@@ -1492,7 +1492,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </button>
                 
                 {showFilterDropdown && (
-                  <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-xl shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                  <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
                     <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
                     {[
                       { id: 'all', label: t('common.all') },
@@ -1554,7 +1554,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </button>
               
               {showFilterDropdown && (
-                <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-xl shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
                   <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
                   {[
                     { id: 'all', label: t('common.all') },
@@ -1671,7 +1671,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               </button>
 
                               {openMenuId === item.id && (
-                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
                                   <button
                                     onClick={() => handleEdit(item)}
                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
@@ -1728,7 +1728,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               <MoreVertical className="w-5 h-5" />
                             </button>
                             {openMenuId === item.id && (
-                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
                                 <button
                                   onClick={() => handleEdit(item)}
                                   className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
@@ -1759,7 +1759,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50 mt-1">
+                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
                           <div>
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
                             <span className="text-xs font-bold text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</span>
@@ -1826,7 +1826,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               </button>
 
                               {openMenuId === item.id && (
-                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
                                   <button
                                     onClick={() => handleEditIngredient(item)}
                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
@@ -1871,7 +1871,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               <MoreVertical className="w-5 h-5" />
                             </button>
                             {openMenuId === item.id && (
-                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-xl shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
                                 <button
                                   onClick={() => handleEditIngredient(item)}
                                   className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold animate-in fade-in zoom-in-95"
@@ -1897,7 +1897,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <span className="ml-1">{getStatusText(item.quantity, item.min_quantity)}</span>
                         </div>
 
-                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50 mt-1">
+                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
                           <div>
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thCostPrice') || 'Mayə Dəyəri'}</span>
                             <span className="text-xs font-bold text-gray-900">${parseFloat(item.cost_price || 0).toFixed(2)}</span>
@@ -1979,7 +1979,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       {confirmDelete && (
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
               <div className="p-8 flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mb-6">
                   <Trash2 className="w-10 h-10 text-red-500" />
@@ -1998,13 +1998,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="flex gap-4 w-full">
                   <button 
                     onClick={() => setConfirmDelete(null)}
-                    className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-2xl font-black hover:bg-gray-100 transition-all"
+                    className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-lg font-black hover:bg-gray-100 transition-all"
                   >
                     {t('common.cancel')}
                   </button>
                   <button 
                     onClick={confirmDelete.type === 'bulk' ? handleBulkDelete : executeDelete}
-                    className="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all"
+                    className="flex-1 py-4 bg-red-500 text-white rounded-lg font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all"
                   >
                     {t('common.delete')}
                   </button>

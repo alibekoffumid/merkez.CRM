@@ -121,7 +121,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
       {/* Sidebar */}
       <div className="w-16 md:w-20 lg:w-64 shrink-0 border-r border-slate-100 bg-white/50 backdrop-blur-xl flex flex-col p-2 lg:p-4 z-10 transition-all duration-300">
         <div className="flex items-center justify-center lg:justify-start gap-3 mb-6 lg:mb-10 px-2 mt-2">
-          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0">
             <LayoutDashboard className="w-4 h-4 text-white" />
           </div>
           <div className="hidden lg:block font-black text-slate-900 text-xl tracking-tight">Merkez</div>
@@ -141,7 +141,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                   color: item.label === 'Dashboard' ? 'bg-green-500' : item.color
                 })}
                 onMouseLeave={restoreActiveTabWidget}
-                className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl transition-all cursor-pointer ${
+                className={`flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg transition-all cursor-pointer ${
                   isActive 
                     ? `${item.activeBg} ${item.activeText} font-bold` 
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
@@ -208,7 +208,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
                     color: stat.hoverColor
                   })}
                   onMouseLeave={restoreActiveTabWidget}
-                  className="bg-white border border-slate-100 shadow-sm p-3 lg:p-4 rounded-xl transition-transform hover:-translate-y-1 duration-300 cursor-default group/card h-full"
+                  className="bg-white border border-slate-100 shadow-sm p-3 lg:p-4 rounded-lg transition-transform hover:-translate-y-1 duration-300 cursor-default group/card h-full"
                 >
                 <div className="flex justify-between items-start mb-2 lg:mb-3">
                   <div className={`p-1.5 lg:p-2 rounded-lg ${stat.bg} ${stat.color} group-hover/card:scale-110 transition-transform`}>
@@ -227,7 +227,7 @@ const HeroDashboardMockup = ({ onHoverItem }) => {
           </div>
 
           {/* Chart Area */}
-          <div className="flex-1 min-h-[140px] lg:min-h-[180px] bg-white border border-slate-100 shadow-sm p-3 lg:p-5 rounded-xl flex flex-col relative overflow-hidden shrink-0">
+          <div className="flex-1 min-h-[140px] lg:min-h-[180px] bg-white border border-slate-100 shadow-sm p-3 lg:p-5 rounded-lg flex flex-col relative overflow-hidden shrink-0">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-slate-900 font-bold text-xs lg:text-sm">Revenue Growth</h3>
               <div className="flex gap-2">

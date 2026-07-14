@@ -130,7 +130,7 @@ export const CafeDashboard = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300 w-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6 bg-white/50 p-6 rounded-3xl border border-gray-50/50">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6 bg-white/50 p-6 rounded-xl border border-gray-50/50">
         <div>
           <div className="flex items-center gap-3">
             <MonitorPlay className="w-8 h-8 text-purple-600" />
@@ -145,7 +145,7 @@ export const CafeDashboard = () => {
         
         <button 
           onClick={fetchData}
-          className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-600 bg-purple-50 hover:bg-purple-100 px-5 py-3 rounded-2xl transition-all self-start sm:self-auto"
+          className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-purple-600 bg-purple-50 hover:bg-purple-100 px-5 py-3 rounded-lg transition-all self-start sm:self-auto"
         >
           <Sparkles className="w-4 h-4" />
           {t('common.refresh') || 'Обновить'}

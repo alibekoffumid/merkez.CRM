@@ -63,7 +63,7 @@ const CRMModule = () => {
         {activeTab === 'clients' && (
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-gray-900 text-white px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center shadow-lg shadow-gray-900/20 active:scale-95"
+            className="bg-gray-900 text-white px-6 py-3 rounded-lg text-sm font-black uppercase tracking-widest hover:bg-gray-800 transition-all flex items-center shadow-lg shadow-gray-900/20 active:scale-95"
           >
             <Plus className="w-5 h-5 mr-2" />
             {t('crm.addClient')}
@@ -72,10 +72,10 @@ const CRMModule = () => {
       </div>
 
       {/* Sub tabs */}
-      <div className="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100/80 max-w-max">
+      <div className="flex gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-100/80 max-w-max">
         <button
           onClick={() => setActiveTab('clients')}
-          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
             activeTab === 'clients'
               ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
               : 'text-gray-400 hover:text-gray-900 hover:bg-gray-50'
@@ -85,7 +85,7 @@ const CRMModule = () => {
         </button>
         <button
           onClick={() => setActiveTab('debts')}
-          className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+          className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${
             activeTab === 'debts'
               ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
               : 'text-gray-400 hover:text-gray-900 hover:bg-gray-50'
@@ -106,11 +106,11 @@ const CRMModule = () => {
                 placeholder={t('crm.searchClients')} 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none"
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-lg text-sm font-medium focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none"
               />
             </div>
             <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-2xl border border-transparent w-full lg:w-auto">
+              <div className="flex items-center gap-2 bg-gray-50 px-4 py-3 rounded-lg border border-transparent w-full lg:w-auto">
                 <Filter className="w-4 h-4 text-gray-400" />
                 <select className="bg-transparent text-gray-900 text-sm font-bold focus:outline-none cursor-pointer w-full">
                   <option>{t('crm.allStatuses')}</option>
@@ -173,12 +173,12 @@ const CRMModule = () => {
                           {client.type || t('crm.client')}
                         </td>
                         <td className="p-6">
-                          <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest ${getStatusColor(client.status)}`}>
+                          <span className={`inline-flex items-center px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest ${getStatusColor(client.status)}`}>
                             {client.status || t('crm.active')}
                           </span>
                         </td>
                         <td className="p-6 text-right">
-                          <button className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all">
+                          <button className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
                             <MoreVertical className="w-5 h-5" />
                           </button>
                         </td>
@@ -210,7 +210,7 @@ const CRMModule = () => {
                   </div>
                   <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="w-12 h-12 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-2xl transition-all"
+                    className="w-12 h-12 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
                   >
                     <Plus className="w-6 h-6 rotate-45" />
                   </button>
@@ -244,7 +244,7 @@ const CRMModule = () => {
                       <input 
                         name="name"
                         required
-                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none" 
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-lg text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none" 
                         placeholder="Google LLC"
                       />
                     </div>
@@ -252,7 +252,7 @@ const CRMModule = () => {
                       <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">{t('crm.clientType') || 'Тип клиента'}</label>
                       <select 
                         name="type"
-                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none"
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-lg text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none"
                       >
                         <option value="Client">{t('crm.client') || 'Клиент'}</option>
                         <option value="Lead">{t('crm.lead') || 'Лид'}</option>
@@ -264,7 +264,7 @@ const CRMModule = () => {
                       <input 
                         name="email"
                         type="email"
-                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none" 
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-lg text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none" 
                         placeholder="contact@google.com"
                       />
                     </div>
@@ -272,7 +272,7 @@ const CRMModule = () => {
                       <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">{t('crm.phoneNumber') || 'Номер телефона'}</label>
                       <input 
                         name="phone"
-                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none" 
+                        className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-lg text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none" 
                         placeholder="+994 50 000 00 00"
                       />
                     </div>
@@ -281,7 +281,7 @@ const CRMModule = () => {
                     <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">{t('crm.address') || 'Адрес'}</label>
                     <textarea 
                       name="address"
-                      className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none resize-none h-24" 
+                      className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-lg text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-gray-900/5 transition-all outline-none resize-none h-24" 
                       placeholder="Mountain View, CA"
                     />
                   </div>
@@ -290,13 +290,13 @@ const CRMModule = () => {
                     <button 
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="flex-1 px-6 py-4 bg-gray-50 text-gray-500 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95"
+                      className="flex-1 px-6 py-4 bg-gray-50 text-gray-500 rounded-lg text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95"
                     >
                       {t('common.cancel')}
                     </button>
                     <button 
                       type="submit"
-                      className="flex-1 px-6 py-4 bg-gray-900 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-gray-800 shadow-xl shadow-gray-900/20 transition-all active:scale-95"
+                      className="flex-1 px-6 py-4 bg-gray-900 text-white rounded-lg text-sm font-black uppercase tracking-widest hover:bg-gray-800 shadow-xl shadow-gray-900/20 transition-all active:scale-95"
                     >
                       {t('crm.saveClient') || 'Сохранить'}
                     </button>

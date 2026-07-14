@@ -158,7 +158,7 @@ const WarehouseCreditManager = () => {
   return (
     <div className="flex-1 flex flex-col">
       {/* Filter and Search */}
-      <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex items-center gap-4 mb-6">
+      <div className="bg-gray-50/50 p-4 rounded-lg border border-gray-100 flex items-center gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -166,7 +166,7 @@ const WarehouseCreditManager = () => {
             placeholder={i18n.language === 'az' ? 'Müştəri adı və ya telefon axtar...' : 'Поиск по имени или телефону...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-medium focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-lg text-xs font-medium focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
           />
         </div>
       </div>
@@ -179,7 +179,7 @@ const WarehouseCreditManager = () => {
             <p className="text-xs font-bold uppercase tracking-widest">{t('common.loading')}</p>
           </div>
         ) : filteredCredits.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-3 border-2 border-dashed border-gray-100 rounded-2xl">
+          <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-3 border-2 border-dashed border-gray-100 rounded-lg">
             <FileText className="w-10 h-10 text-gray-200" />
             <p className="text-xs font-bold">
               {i18n.language === 'az' ? 'Aktiv kredit sənədi tapılmadı.' : i18n.language === 'ru' ? 'Активные кредиты не найдены.' : 'No active credits found.'}
@@ -248,13 +248,13 @@ const WarehouseCreditManager = () => {
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setSelectedCredit(null)}>
             <div 
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col max-h-[85vh]"
+              className="bg-white rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col max-h-[85vh]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-merkez-blue flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 text-merkez-blue flex items-center justify-center">
                     <Calendar className="w-5 h-5" />
                   </div>
                   <div>
@@ -266,7 +266,7 @@ const WarehouseCreditManager = () => {
                     </p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedCredit(null)} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
+                <button onClick={() => setSelectedCredit(null)} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -344,7 +344,7 @@ const WarehouseCreditManager = () => {
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[99999] flex items-center justify-center p-4" onClick={() => setPayingInstallment(null)}>
             <div 
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col p-6"
+              className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 text-green-500 mb-4">
@@ -362,14 +362,14 @@ const WarehouseCreditManager = () => {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setPayingInstallment(null)}
-                  className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-xs shadow-sm"
+                  className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-lg font-bold hover:bg-gray-50 transition-all text-xs shadow-sm"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   onClick={handleRecordPayment}
                   disabled={processingPayment}
-                  className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold transition-all text-xs shadow-lg shadow-green-500/10 flex items-center justify-center"
+                  className="px-6 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-all text-xs shadow-lg shadow-green-500/10 flex items-center justify-center"
                 >
                   {processingPayment ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <DollarSign className="w-4 h-4 mr-2" />}
                   {i18n.language === 'az' ? 'Təsdiqlə' : 'Подтвердить'}

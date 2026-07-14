@@ -92,7 +92,7 @@ const CallCenterModule = () => {
   return (
     <div className="h-full flex flex-col space-y-6">
       {/* Header Area */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 justify-between rounded-xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 justify-between rounded-lg shadow-sm border border-gray-100">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
             <PhoneCall className="w-6 h-6 mr-3 text-merkez-blue" />
@@ -135,7 +135,7 @@ const CallCenterModule = () => {
             );
 
             return (
-              <div key={col.status} className="flex-1 flex flex-col bg-gray-50 rounded-2xl border border-gray-200/60 overflow-hidden shadow-inner">
+              <div key={col.status} className="flex-1 flex flex-col bg-gray-50 rounded-lg border border-gray-200/60 overflow-hidden shadow-inner">
                 {/* Column Header */}
                 <div className="p-4 border-b border-gray-200 bg-white/50 backdrop-blur-sm flex justify-between items-center sticky top-0 z-10">
                   <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wide">{col.title}</h3>
@@ -150,7 +150,7 @@ const CallCenterModule = () => {
                     <div 
                       key={ticket.id} 
                       onClick={() => setSelectedTicketId(ticket.id)}
-                      className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:border-merkez-blue/50 transition-all cursor-pointer group"
+                      className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-merkez-blue/50 transition-all cursor-pointer group"
                     >
                       <div className="flex justify-between items-start mb-3">
                          <div>
@@ -183,7 +183,7 @@ const CallCenterModule = () => {
                   ))}
                   
                   {columnTickets.length === 0 && (
-                    <div className="h-24 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs font-medium text-gray-400 bg-white/40">
+                    <div className="h-24 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-xs font-medium text-gray-400 bg-white/40">
                       {t('callCenter.dragTicket')}
                     </div>
                   )}

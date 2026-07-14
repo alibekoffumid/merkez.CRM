@@ -72,7 +72,7 @@ const PriceList = () => {
       <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm relative overflow-hidden group">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <div className="w-14 h-14 rounded-lg bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
               <Tag className="w-7 h-7 text-white" />
             </div>
             <div>
@@ -80,7 +80,7 @@ const PriceList = () => {
               <p className="text-gray-500 text-sm font-medium">{t('dental.priceListSubtitle')}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-2xl border border-amber-100">
+          <div className="flex items-center gap-3 bg-amber-50 px-4 py-2 rounded-lg border border-amber-100">
             <AlertCircle className="w-4 h-4 text-amber-600" />
             <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">{t('dental.priceListWarning')}</span>
           </div>
@@ -94,7 +94,7 @@ const PriceList = () => {
             <div key={condition} className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all group">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                   <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center group-hover:scale-110 transition-transform">
                       <DollarSign className="w-5 h-5 text-gray-400" />
                    </div>
                    <h4 className="font-black text-gray-900 uppercase tracking-tight text-sm">
@@ -110,7 +110,7 @@ const PriceList = () => {
                     value={prices[condition] || ''}
                     onChange={(e) => handlePriceChange(condition, e.target.value)}
                     placeholder="0.00"
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-6 text-lg font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 pl-12 pr-6 text-lg font-black text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all"
                   />
                   <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</div>
                 </div>
@@ -119,7 +119,7 @@ const PriceList = () => {
                   onClick={() => handleSave(condition)}
                   disabled={isSaving}
                   className={`
-                    w-full py-4 rounded-2xl flex items-center justify-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest
+                    w-full py-4 rounded-lg flex items-center justify-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest
                     ${isSaving 
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                       : 'bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] shadow-lg shadow-gray-900/10'}

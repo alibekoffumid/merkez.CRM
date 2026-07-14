@@ -383,7 +383,7 @@ const Analytics = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 gap-4">
          <div>
             <h2 className="text-lg font-bold text-gray-900">{t('restaurant.performanceDashboard')}</h2>
             <p className="text-sm text-gray-500">{t('restaurant.performanceDesc')}</p>
@@ -399,7 +399,7 @@ const Analytics = () => {
               </button>
               
               {isCalendarOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-0 mt-2 w-[310px] sm:w-[320px] bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 p-4 animate-in fade-in zoom-in-95">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-0 mt-2 w-[310px] sm:w-[320px] bg-white border border-gray-100 rounded-lg shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] z-50 p-4 animate-in fade-in zoom-in-95">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-sm font-bold text-gray-900">
                       {t(`restaurant.${monthsList[monthIndex].toLowerCase()}`)} {year}
@@ -498,7 +498,7 @@ const Analytics = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+         <div className="bg-white p-5 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalRevenue')}</p>
                <h3 className="text-2xl font-bold text-gray-900">${(stats?.totalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
@@ -508,7 +508,7 @@ const Analytics = () => {
                <DollarSign className="w-6 h-6" />
             </div>
          </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+          <div className="bg-white p-5 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.totalExpenses')}</p>
                <h3 className="text-2xl font-bold text-gray-900">${(stats?.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
@@ -518,7 +518,7 @@ const Analytics = () => {
                <PieChart className="w-6 h-6" />
             </div>
          </div>
-         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+         <div className="bg-white p-5 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.netProfit')}</p>
                <h3 className={`text-2xl font-bold ${(stats?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
@@ -530,7 +530,7 @@ const Analytics = () => {
                <Activity className="w-6 h-6" />
             </div>
          </div>
-         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+         <div className="bg-white p-5 rounded-lg border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
                <p className="text-sm font-medium text-gray-500 mb-1">{t('restaurant.salariesPaid')}</p>
                <h3 className="text-2xl font-bold text-gray-900">${(stats?.totalSalaries || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
@@ -542,7 +542,7 @@ const Analytics = () => {
          </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex flex-col">
+      <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm flex flex-col">
          <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">
                <div className="w-8 h-8 rounded-full bg-blue-50 text-merkez-blue flex items-center justify-center mr-3">
@@ -596,7 +596,7 @@ const Analytics = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Waiter Leaderboard */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col overflow-hidden">
           <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
              <h3 className="font-bold text-gray-900 flex items-center">
                 <Award className="w-5 h-5 mr-2 text-merkez-blue" />
@@ -642,7 +642,7 @@ const Analytics = () => {
         </div>
 
         {/* Table/Cabin Stats */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col overflow-hidden">
           <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
              <h3 className="font-bold text-gray-900 flex items-center">
                 <DollarSign className="w-5 h-5 mr-2 text-merkez-yellow" />
@@ -693,7 +693,7 @@ const Analytics = () => {
             className="absolute -inset-10 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300" 
             onClick={() => setIsExpenseModalOpen(false)}
           />
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10" onClick={e => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                <h3 className="text-xl font-bold text-gray-900">{t('finance.addTransaction')}</h3>
                <button onClick={() => setIsExpenseModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
@@ -736,7 +736,7 @@ const Analytics = () => {
                </div>
                <button 
                  onClick={handleAddExpense}
-                 className="w-full bg-merkez-blue text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-95"
+                 className="w-full bg-merkez-blue text-white py-3 rounded-lg font-bold shadow-lg shadow-blue-100 hover:bg-blue-600 transition-all active:scale-95"
                >
                  {t('common.save')}
                </button>

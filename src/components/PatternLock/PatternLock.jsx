@@ -80,7 +80,7 @@ const PatternLock = ({ onComplete, onStart, width = 300, height = 300, error = f
   return (
     <div 
       ref={containerRef}
-      className={`relative select-none touch-none bg-white rounded-3xl shadow-inner border-4 transition-all duration-300 ${error ? 'border-red-200 bg-red-50' : 'border-gray-50'}`}
+      className={`relative select-none touch-none bg-white rounded-xl shadow-inner border-4 transition-all duration-300 ${error ? 'border-red-200 bg-red-50' : 'border-gray-50'}`}
       style={{ width, height }}
       onMouseDown={handleStart}
       onMouseMove={handleMove}

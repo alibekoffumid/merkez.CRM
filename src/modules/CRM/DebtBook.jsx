@@ -245,12 +245,12 @@ const DebtBook = () => {
                 placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none"
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-lg text-sm font-medium focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none"
               />
             </div>
             <button
               onClick={fetchData}
-              className="p-3 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-2xl transition-all"
+              className="p-3 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-lg transition-all"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -259,7 +259,7 @@ const DebtBook = () => {
           <div className="flex gap-3 items-center w-full lg:w-auto justify-end">
             <button
               onClick={() => setOnlyDebtors(!onlyDebtors)}
-              className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${
+              className={`px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${
                 onlyDebtors 
                   ? 'bg-rose-50 border-rose-100 text-rose-700 font-black'
                   : 'bg-white border-gray-100 text-gray-400 font-bold hover:text-gray-900'
@@ -271,7 +271,7 @@ const DebtBook = () => {
             
             <button
               onClick={() => setShowAddCustomer(true)}
-              className="px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2"
+              className="px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               {i18n?.language === 'az' ? 'Yeni Müştəri' : i18n?.language === 'ru' ? 'Новый клиент' : 'New Customer'}
@@ -292,7 +292,7 @@ const DebtBook = () => {
               {totalDebt.toLocaleString('az-AZ', { minimumFractionDigits: 2 })} ₼
             </h3>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600">
+          <div className="w-12 h-12 rounded-lg bg-rose-50 flex items-center justify-center text-rose-600">
             <DollarSign className="w-6 h-6" />
           </div>
         </div>
@@ -307,7 +307,7 @@ const DebtBook = () => {
               {totalDebtors} {t('common.unit') || 'nəfər'}
             </h3>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
+          <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
             <Users className="w-6 h-6" />
           </div>
         </div>
@@ -333,7 +333,7 @@ const DebtBook = () => {
               </h3>
             )}
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <div className="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
             <CheckCircle className="w-6 h-6" />
           </div>
         </div>
@@ -389,21 +389,21 @@ const DebtBook = () => {
                           <button
                             onClick={() => handleOpenHistory(customer)}
                             title="Tarixçə"
-                            className="p-3 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all"
+                            className="p-3 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-lg transition-all"
                           >
                             <History className="w-4 h-4" />
                           </button>
                           
                           <button
                             onClick={() => handleOpenTransaction(customer, 'payment')}
-                            className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider rounded-xl transition-all"
+                            className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-wider rounded-lg transition-all"
                           >
                             Ödəniş al
                           </button>
                           
                           <button
                             onClick={() => handleOpenTransaction(customer, 'debt')}
-                            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-black uppercase tracking-wider rounded-xl transition-all"
+                            className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-black uppercase tracking-wider rounded-lg transition-all"
                           >
                             Borc yaz
                           </button>
@@ -433,7 +433,7 @@ const DebtBook = () => {
               </div>
               <button 
                 onClick={handleCloseModal}
-                className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all"
+                className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -452,7 +452,7 @@ const DebtBook = () => {
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-lg font-black focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none"
+                  className="w-full px-5 py-3.5 bg-gray-50 border border-transparent rounded-lg text-lg font-black focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none"
                 />
               </div>
 
@@ -464,7 +464,7 @@ const DebtBook = () => {
                   placeholder={modalType === 'debt' ? "Nisyə alış təfərrüatları..." : "Borc ödənişi təfərrüatları..."}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-5 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none resize-none h-20"
+                  className="w-full px-5 py-3 bg-gray-50 border border-transparent rounded-lg text-sm font-bold focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none resize-none h-20"
                 />
               </div>
 
@@ -472,14 +472,14 @@ const DebtBook = () => {
                 <button 
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-4 py-3 bg-gray-50 text-gray-500 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all"
+                  className="flex-1 px-4 py-3 bg-gray-50 text-gray-500 rounded-lg text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all"
                 >
                   {t('common.cancel')}
                 </button>
                 <button 
                   type="submit"
                   disabled={submitting}
-                  className={`flex-1 px-4 py-3 text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg transition-all flex items-center justify-center ${
+                  className={`flex-1 px-4 py-3 text-white rounded-lg text-sm font-black uppercase tracking-widest shadow-lg transition-all flex items-center justify-center ${
                     modalType === 'debt' 
                       ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20' 
                       : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
@@ -507,7 +507,7 @@ const DebtBook = () => {
               </div>
               <button 
                 onClick={handleCloseModal}
-                className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all"
+                className="w-10 h-10 flex items-center justify-center text-gray-300 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -521,7 +521,7 @@ const DebtBook = () => {
                   <p className="text-xs font-bold uppercase tracking-widest">Təfərrüatlar yüklənir...</p>
                 </div>
               ) : historyLogs.length === 0 ? (
-                <div className="h-48 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 rounded-3xl">
+                <div className="h-48 flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
                   <FileText className="w-12 h-12 mb-2 opacity-15" />
                   <p className="text-sm font-bold">Hələ heç bir əməliyyat yoxdur</p>
                 </div>
@@ -539,7 +539,7 @@ const DebtBook = () => {
                         </div>
                         
                         {/* Box Details */}
-                        <div className="flex-1 bg-gray-50/50 border border-gray-50 p-4 rounded-2xl">
+                        <div className="flex-1 bg-gray-50/50 border border-gray-50 p-4 rounded-lg">
                           <div className="flex justify-between items-start gap-4">
                             <div>
                               <p className="text-sm font-black text-gray-900">

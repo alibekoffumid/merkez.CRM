@@ -98,13 +98,13 @@ const RoomManagement = () => {
               placeholder={t('common.search') || 'Search rooms...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold"
+              className="w-full pl-11 pr-4 py-3 bg-gray-50 rounded-lg border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold"
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
                 filterType === 'all' 
                   ? 'bg-gray-900 text-white shadow-lg' 
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -117,7 +117,7 @@ const RoomManagement = () => {
               <button
                 key={type.id}
                 onClick={() => setFilterType(type.name)}
-                className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
                   filterType === type.name 
                     ? 'bg-gray-900 text-white shadow-lg' 
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -132,7 +132,7 @@ const RoomManagement = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsTypeModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-gray-100 text-gray-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-50 transition-all shadow-sm"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-white border border-gray-100 text-gray-900 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-gray-50 transition-all shadow-sm"
           >
             <Tag className="w-4 h-4 text-pink-600" />
             {t('hotels.manageCategories')}
@@ -143,7 +143,7 @@ const RoomManagement = () => {
               setSelectedRoom(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-pink-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all group"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 bg-pink-600 text-white rounded-lg font-black uppercase tracking-widest text-xs hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all group"
           >
             <Plus className="w-4 h-4 transition-transform group-hover:rotate-90" />
             {t('hotels.addRoom')}
@@ -170,7 +170,7 @@ const RoomManagement = () => {
               setSelectedRoom(null);
               setIsModalOpen(true);
             }}
-            className="px-8 py-4 bg-pink-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all"
+            className="px-8 py-4 bg-pink-600 text-white rounded-lg font-black uppercase tracking-widest text-xs hover:bg-pink-500 shadow-xl shadow-pink-600/20 transition-all"
           >
             {t('hotels.addRoom')}
           </button>
@@ -191,7 +191,7 @@ const RoomManagement = () => {
               
               <div className="relative z-10 flex flex-col h-full">
                 <div className="flex items-start justify-between mb-6">
-                  <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors duration-500">
+                  <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center group-hover:bg-pink-600 group-hover:text-white transition-colors duration-500">
                     <Home className="w-6 h-6" />
                   </div>
                   <div className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-white ${getStatusColor(room.status)}`}>
@@ -205,12 +205,12 @@ const RoomManagement = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mt-auto">
-                  <div className="bg-gray-50 rounded-2xl p-3 flex flex-col items-center justify-center">
+                  <div className="bg-gray-50 rounded-lg p-3 flex flex-col items-center justify-center">
                     <Users className="w-4 h-4 text-gray-400 mb-1" />
                     <span className="text-sm font-black text-gray-900">{room.capacity}</span>
                     <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{t('hotels.capacity')}</span>
                   </div>
-                  <div className="bg-gray-50 rounded-2xl p-3 flex flex-col items-center justify-center">
+                  <div className="bg-gray-50 rounded-lg p-3 flex flex-col items-center justify-center">
                     <DollarSign className="w-4 h-4 text-gray-400 mb-1" />
                     <span className="text-sm font-black text-gray-900">{room.price_per_night}</span>
                     <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">{t('hotels.pricePerNight')}</span>

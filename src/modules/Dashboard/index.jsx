@@ -54,7 +54,7 @@ const Dashboard = () => {
         </div>
         <Link 
           to="/modules"
-          className="flex items-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-2xl text-xs font-black uppercase tracking-[0.1em] hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-900/20"
+          className="flex items-center gap-2 px-6 py-3.5 bg-gray-900 text-white rounded-lg text-xs font-black uppercase tracking-[0.1em] hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-gray-900/20"
         >
           <LayoutGrid className="w-4 h-4" />
           {t('modules.manageModules') || 'Управление модулями'}
@@ -66,7 +66,7 @@ const Dashboard = () => {
         {/* Widget 1: Statistics */}
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-xl transition-all group relative overflow-hidden">
           <div className="flex items-center mb-8 relative z-10">
-            <div className="p-4 rounded-2xl bg-blue-50 mr-4 group-hover:bg-merkez-blue group-hover:text-white transition-all duration-500">
+            <div className="p-4 rounded-lg bg-blue-50 mr-4 group-hover:bg-merkez-blue group-hover:text-white transition-all duration-500">
               <Activity className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('dashboard.statistics')}</h3>
@@ -77,7 +77,7 @@ const Dashboard = () => {
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">{t('dashboard.crmClients')}</p>
                   <h4 className="text-5xl font-black text-gray-900 leading-none">{stats.customers}</h4>
                 </div>
-               <span className="text-xs font-black text-emerald-600 flex items-center bg-emerald-50 px-3 py-1.5 rounded-xl">
+               <span className="text-xs font-black text-emerald-600 flex items-center bg-emerald-50 px-3 py-1.5 rounded-lg">
                  +12.5% <TrendingUp className="w-3.5 h-3.5 ml-1" />
                </span>
             </div>
@@ -93,13 +93,13 @@ const Dashboard = () => {
         {/* Widget 2: Tasks */}
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-xl transition-all group relative overflow-hidden">
           <div className="flex items-center mb-8 relative z-10">
-            <div className="p-4 rounded-2xl bg-yellow-50 mr-4 group-hover:bg-merkez-yellow group-hover:text-white transition-all duration-500">
+            <div className="p-4 rounded-lg bg-yellow-50 mr-4 group-hover:bg-merkez-yellow group-hover:text-white transition-all duration-500">
               <CheckCircle className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('dashboard.tasksToday')}</h3>
           </div>
           <div className="flex-1 space-y-6 relative z-10">
-            <div className="flex items-start gap-5 p-4 rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer group/item">
+            <div className="flex items-start gap-5 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group/item">
                <div className="mt-1 w-6 h-6 rounded-lg border-2 border-gray-200 flex items-center justify-center shrink-0 group-hover/item:border-merkez-yellow transition-all"></div>
                <div>
                  <p className="text-sm font-black text-gray-900 leading-tight">{t('dashboard.taskReport')}</p>
@@ -108,7 +108,7 @@ const Dashboard = () => {
                  </span>
                </div>
             </div>
-            <div className="flex items-start gap-5 p-4 rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer group/item">
+            <div className="flex items-start gap-5 p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group/item">
                <div className="mt-1 w-6 h-6 rounded-lg border-2 border-gray-200 flex items-center justify-center shrink-0 group-hover/item:border-merkez-yellow transition-all"></div>
                <div>
                  <p className="text-sm font-black text-gray-900 leading-tight">{t('dashboard.taskMeeting')}</p>
@@ -124,7 +124,7 @@ const Dashboard = () => {
         {/* Widget 3: Recent Sales */}
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-xl transition-all group relative overflow-hidden">
           <div className="flex items-center mb-8 relative z-10">
-            <div className="p-4 rounded-2xl bg-emerald-50 mr-4 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
+            <div className="p-4 rounded-lg bg-emerald-50 mr-4 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
               <DollarSign className="w-6 h-6" />
             </div>
             <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('dashboard.recentSales')}</h3>
@@ -139,7 +139,7 @@ const Dashboard = () => {
               stats.recentOrders.map((order, idx) => (
                 <div key={order.id} className={`flex justify-between items-center ${idx < stats.recentOrders.length - 1 ? 'border-b border-gray-50 pb-6' : ''}`}>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-sm font-black text-gray-400 border border-gray-100 group-hover:bg-white transition-colors">
+                    <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center text-sm font-black text-gray-400 border border-gray-100 group-hover:bg-white transition-colors">
                       {(order.customers?.name || '??').substring(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -166,7 +166,7 @@ const Dashboard = () => {
             className="relative overflow-hidden bg-gray-900 p-10 rounded-[3rem] shadow-2xl shadow-gray-900/30 flex flex-col justify-between h-full group hover:-translate-y-2 transition-all duration-500"
           >
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-8 border border-white/10">
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-lg flex items-center justify-center mb-8 border border-white/10">
                 <Plus className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-3xl font-black text-white leading-tight mb-4 tracking-tight">

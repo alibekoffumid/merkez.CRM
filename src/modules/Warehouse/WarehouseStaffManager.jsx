@@ -136,7 +136,7 @@ const WarehouseStaffManager = () => {
   return (
     <div className="flex-1 flex flex-col space-y-6 overflow-hidden">
       {/* Header Panel */}
-      <div className="bg-white p-5 rounded-3xl border border-gray-100/80 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="bg-white p-5 rounded-xl border border-gray-100/80 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input 
@@ -144,13 +144,13 @@ const WarehouseStaffManager = () => {
             placeholder={i18n.language === 'az' ? 'İşçi axtar...' : 'Поиск сотрудников...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-medium focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-medium focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors outline-none"
           />
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="px-5 py-2.5 bg-merkez-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
+          className="px-5 py-2.5 bg-merkez-blue text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
         >
           <Plus className="w-4 h-4" />
           {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
@@ -158,7 +158,7 @@ const WarehouseStaffManager = () => {
       </div>
 
       {/* Grid List */}
-      <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
             <Loader2 className="w-8 h-8 animate-spin mb-4 text-merkez-blue" />
@@ -227,14 +227,14 @@ const WarehouseStaffManager = () => {
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
             <div 
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+              className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
                 <h3 className="text-base font-black text-gray-900 uppercase tracking-wider">
                   {editingStaff ? (i18n.language === 'az' ? 'İşçini redaktə et' : 'Редактировать сотрудника') : (i18n.language === 'az' ? 'Yeni İşçi Əlavə Et' : 'Добавить сотрудника')}
                 </h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-gray-100 transition-all">
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-all">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -247,7 +247,7 @@ const WarehouseStaffManager = () => {
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
                     placeholder="Məsələn: Cəfər Əliyev"
                   />
                 </div>
@@ -258,7 +258,7 @@ const WarehouseStaffManager = () => {
                     type="text"
                     value={role}
                     onChange={e => setRole(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
                     placeholder="Məsələn: Anbardar"
                   />
                 </div>
@@ -272,7 +272,7 @@ const WarehouseStaffManager = () => {
                       { value: 'Active', label: i18n.language === 'az' ? 'Aktiv' : 'Активен' },
                       { value: 'Inactive', label: i18n.language === 'az' ? 'Deaktiv' : 'Неактивен' }
                     ]}
-                    buttonClassName="rounded-xl px-4 py-2.5 text-sm font-bold"
+                    buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold"
                   />
                 </div>
 
@@ -280,14 +280,14 @@ const WarehouseStaffManager = () => {
                   <button 
                     type="button" 
                     onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-xs"
+                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-lg font-bold hover:bg-gray-50 transition-all text-xs"
                   >
                     {t('common.cancel')}
                   </button>
                   <button 
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-merkez-blue text-white rounded-xl font-bold hover:bg-blue-600 transition-all text-xs flex items-center justify-center"
+                    className="px-6 py-2.5 bg-merkez-blue text-white rounded-lg font-bold hover:bg-blue-600 transition-all text-xs flex items-center justify-center"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                     {t('common.save') || 'Yadda saxla'}
@@ -303,7 +303,7 @@ const WarehouseStaffManager = () => {
       {confirmDelete && (
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
               <div className="p-4 flex flex-col items-center text-center">
                 <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
                   <Trash2 className="w-8 h-8 text-red-500" />
@@ -319,14 +319,14 @@ const WarehouseStaffManager = () => {
                 <div className="flex gap-3 w-full">
                   <button 
                     onClick={() => setConfirmDelete(null)}
-                    className="flex-1 py-2.5 border border-gray-150 rounded-xl text-xs font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                    className="flex-1 py-2.5 border border-gray-150 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50 transition-colors"
                   >
                     {t('common.cancel')}
                   </button>
                   <button 
                     onClick={handleDelete}
                     disabled={submitting}
-                    className="flex-1 py-2.5 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors flex items-center justify-center"
+                    className="flex-1 py-2.5 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 transition-colors flex items-center justify-center"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
                     {i18n.language === 'az' ? 'Sil' : 'Удалить'}

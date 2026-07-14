@@ -188,7 +188,7 @@ const KitchenDisplay = () => {
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 gap-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900 flex items-center">
             {icon}
@@ -243,7 +243,7 @@ const KitchenDisplay = () => {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-hidden relative" style={{ height: 'calc(100vh - 210px)' }}>
         
         {/* NEW COLUMN */}
-        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'NEW' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`flex-col bg-gray-50 rounded-lg overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'NEW' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 bg-red-500 text-white font-bold flex justify-between items-center shadow-sm z-10">
             <span>🔴 {t('kitchen.columnNew') || 'New Tickets'}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{getColumnData('NEW').length}</span>
@@ -261,7 +261,7 @@ const KitchenDisplay = () => {
         </div>
 
         {/* PREPARING COLUMN */}
-        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'PREPARING' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`flex-col bg-gray-50 rounded-lg overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'PREPARING' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 bg-yellow-500 text-white font-bold flex justify-between items-center shadow-sm z-10">
             <span>🟡 {t('kitchen.columnPreparing') || 'Preparing'}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{getColumnData('PREPARING').length}</span>
@@ -279,7 +279,7 @@ const KitchenDisplay = () => {
         </div>
 
         {/* READY COLUMN */}
-        <div className={`flex-col bg-gray-50 rounded-xl overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'READY' ? 'flex' : 'hidden lg:flex'}`}>
+        <div className={`flex-col bg-gray-50 rounded-lg overflow-hidden border border-gray-100 shadow-inner transition-all duration-300 ${mobileColumn === 'READY' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-4 bg-green-500 text-white font-bold flex justify-between items-center shadow-sm z-10">
             <span>🟢 {t('kitchen.columnReady') || 'Ready'}</span>
             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">{getColumnData('READY').length}</span>

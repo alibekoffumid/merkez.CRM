@@ -165,7 +165,7 @@ const WarehouseClientManager = () => {
   );
 
   return (
-    <div className="flex-1 bg-white rounded-2xl border border-gray-100 p-6 flex flex-col min-h-[500px]">
+    <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 flex flex-col min-h-[500px]">
       {/* Tab Header Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
@@ -185,7 +185,7 @@ const WarehouseClientManager = () => {
         {activeSubTab === 'clients' && (
           <button
             onClick={handleOpenAdd}
-            className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center shadow-lg shadow-gray-900/10 active:scale-95 shrink-0"
+            className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center shadow-lg shadow-gray-900/10 active:scale-95 shrink-0"
           >
             <Plus className="w-4 h-4 mr-2" />
             {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
@@ -194,7 +194,7 @@ const WarehouseClientManager = () => {
       </div>
 
       {/* Sub tabs */}
-      <div className="flex gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-100/50 max-w-max mb-6">
+      <div className="flex gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100/50 max-w-max mb-6">
         <button
           onClick={() => setActiveSubTab('clients')}
           className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
@@ -221,7 +221,7 @@ const WarehouseClientManager = () => {
         <>
 
       {/* Filter and Search */}
-      <div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100 flex items-center gap-4 mb-6">
+      <div className="bg-gray-50/50 p-4 rounded-lg border border-gray-100 flex items-center gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -229,7 +229,7 @@ const WarehouseClientManager = () => {
             placeholder={i18n.language === 'az' ? 'Müştəri adı, telefon və ya ünvan axtar...' : 'Поиск по имени, телефону или адресу...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-medium focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-lg text-xs font-medium focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
           />
         </div>
       </div>
@@ -242,7 +242,7 @@ const WarehouseClientManager = () => {
             <p className="text-xs font-bold uppercase tracking-widest">{t('common.loading')}</p>
           </div>
         ) : filteredClients.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-3 border-2 border-dashed border-gray-100 rounded-2xl">
+          <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-3 border-2 border-dashed border-gray-100 rounded-lg">
             <Users className="w-10 h-10 text-gray-200" />
             <p className="text-xs font-bold">
               {i18n.language === 'az' ? 'Müşətəri tapılmadı.' : i18n.language === 'ru' ? 'Клиенты не найдены.' : 'No clients found.'}
@@ -356,13 +356,13 @@ const WarehouseClientManager = () => {
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
             <div 
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+              className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
               <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-merkez-blue flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 text-merkez-blue flex items-center justify-center">
                     <UserPlus className="w-5 h-5" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">
@@ -372,7 +372,7 @@ const WarehouseClientManager = () => {
                     }
                   </h3>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -388,7 +388,7 @@ const WarehouseClientManager = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
                     placeholder={i18n.language === 'az' ? 'Məsələn: Əli Məmmədov' : 'Например: Али Мамедов'}
                   />
                 </div>
@@ -401,7 +401,7 @@ const WarehouseClientManager = () => {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-mono"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-mono"
                     placeholder="+994 (50) 000-00-00"
                   />
                 </div>
@@ -414,7 +414,7 @@ const WarehouseClientManager = () => {
                     type="text"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-medium"
                     placeholder={i18n.language === 'az' ? 'Bakı ş., Nəsimi r.' : 'г. Баку, Насиминский р-н'}
                   />
                 </div>
@@ -428,7 +428,7 @@ const WarehouseClientManager = () => {
                       type="text"
                       value={passportSer}
                       onChange={(e) => setPassportSer(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold uppercase"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold uppercase"
                       placeholder="AZE 12345678"
                     />
                   </div>
@@ -440,7 +440,7 @@ const WarehouseClientManager = () => {
                       type="text"
                       value={passportFin}
                       onChange={(e) => setPassportFin(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold uppercase"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold uppercase"
                       placeholder="7ABC12D"
                       maxLength={7}
                     />
@@ -454,7 +454,7 @@ const WarehouseClientManager = () => {
                   <textarea
                     value={relativesInfo}
                     onChange={(e) => setRelativesInfo(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-medium resize-none h-20"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-medium resize-none h-20"
                     placeholder={i18n.language === 'az' 
                       ? 'Məsələn: Ata (Əli) - 0501234567\nQardaş (Vəli) - 0709876543' 
                       : 'Например: Отец (Али) - 0501234567\nБрат (Вели) - 0709876543'
@@ -467,14 +467,14 @@ const WarehouseClientManager = () => {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-xs shadow-sm"
+                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-lg font-bold hover:bg-gray-50 transition-all text-xs shadow-sm"
                   >
                     {t('common.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-merkez-blue text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 hover:bg-blue-600 disabled:opacity-50 transition-all text-xs flex items-center justify-center"
+                    className="px-6 py-2.5 bg-merkez-blue text-white rounded-lg font-bold shadow-lg shadow-blue-600/10 hover:bg-blue-600 disabled:opacity-50 transition-all text-xs flex items-center justify-center"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                     {t('common.save')}
@@ -491,7 +491,7 @@ const WarehouseClientManager = () => {
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
             <div 
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col p-6"
+              className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 text-red-500 mb-4">
@@ -509,13 +509,13 @@ const WarehouseClientManager = () => {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setConfirmDelete(null)}
-                  className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-xs shadow-sm"
+                  className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-lg font-bold hover:bg-gray-50 transition-all text-xs shadow-sm"
                 >
                   {t('common.cancel')}
                 </button>
                 <button
                   onClick={() => handleDelete(confirmDelete.id)}
-                  className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all text-xs shadow-lg shadow-red-600/10"
+                  className="px-6 py-2.5 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all text-xs shadow-lg shadow-red-600/10"
                 >
                   {i18n.language === 'az' ? 'Sil' : 'Удалить'}
                 </button>

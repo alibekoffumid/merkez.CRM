@@ -99,7 +99,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
 
         {/* Tooltip */}
         <div 
-          className="absolute p-6 bg-white rounded-3xl shadow-2xl pointer-events-auto transition-all duration-500 ease-in-out w-[350px]"
+          className="absolute p-6 bg-white rounded-xl shadow-2xl pointer-events-auto transition-all duration-500 ease-in-out w-[350px]"
           style={{
             top: `${Math.min(window.innerHeight - 340, Math.max(20, coords.top + coords.height + 24))}px`,
             left: `${Math.min(window.innerWidth - 370, Math.max(20, coords.left + (coords.width / 2) - 175))}px`,
@@ -139,7 +139,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
               {currentStep > 0 && (
                 <button 
                   onClick={() => setCurrentStep(prev => prev - 1)}
-                  className="p-2.5 rounded-2xl border border-gray-100 text-gray-500 hover:bg-gray-50 transition-all active:scale-95"
+                  className="p-2.5 rounded-lg border border-gray-100 text-gray-500 hover:bg-gray-50 transition-all active:scale-95"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -148,7 +148,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
               {currentStep < steps.length - 1 ? (
                 <button 
                   onClick={() => setCurrentStep(prev => prev + 1)}
-                  className="bg-merkez-blue text-white px-6 py-3 rounded-2xl text-sm font-black shadow-lg shadow-blue-600/30 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2"
+                  className="bg-merkez-blue text-white px-6 py-3 rounded-lg text-sm font-black shadow-lg shadow-blue-600/30 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2"
                 >
                   {t('common.next')}
                   <ChevronRight className="w-4 h-4" />
@@ -156,7 +156,7 @@ const WarehouseTour = ({ isOpen, onClose }) => {
               ) : (
                 <button 
                   onClick={handleFinish}
-                  className="bg-merkez-green text-white px-6 py-3 rounded-2xl text-sm font-black shadow-lg shadow-green-600/30 hover:bg-green-600 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2"
+                  className="bg-merkez-green text-white px-6 py-3 rounded-lg text-sm font-black shadow-lg shadow-green-600/30 hover:bg-green-600 hover:-translate-y-0.5 active:scale-95 transition-all flex items-center gap-2"
                 >
                   {t('common.finish')}
                   <Check className="w-5 h-5" />

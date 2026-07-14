@@ -209,10 +209,10 @@ const WarehouseSettings = () => {
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 w-full flex-1 overflow-y-auto">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 w-full flex-1 overflow-y-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center border border-gray-100 shrink-0">
+          <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 shrink-0">
             <Settings2 className="w-6 h-6 text-gray-600" />
           </div>
           <div>
@@ -225,7 +225,7 @@ const WarehouseSettings = () => {
           <button 
             onClick={exportBarcodes}
             disabled={exporting}
-            className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto"
+            className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto"
           >
             {exporting ? (
               <div className="w-4 h-4 border-2 border-gray-300 border-t-merkez-blue rounded-full animate-spin" />
@@ -240,7 +240,7 @@ const WarehouseSettings = () => {
               localStorage.setItem('merkez_warehouse_settings', JSON.stringify(settings));
               toast.success(t('common.success'));
             }}
-            className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 w-full sm:w-auto"
+            className="bg-gray-900 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-black/10 w-full sm:w-auto"
           >
             <Save className="w-4 h-4 shrink-0" />
             {t('common.save') || 'Save'}
@@ -255,7 +255,7 @@ const WarehouseSettings = () => {
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.coreSettings') || 'Основные параметры'}</h3>
             
             {/* Currency */}
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                   <DollarSign className="w-4 h-4 text-merkez-blue" />
@@ -271,7 +271,7 @@ const WarehouseSettings = () => {
             </div>
 
             {/* Default Unit */}
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                   <Scale className="w-4 h-4 text-merkez-blue" />
@@ -287,7 +287,7 @@ const WarehouseSettings = () => {
             </div>
 
             {/* Critical Stock */}
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                   <BellRing className="w-4 h-4 text-merkez-blue" />
@@ -298,7 +298,7 @@ const WarehouseSettings = () => {
                 type="number" 
                 value={settings.lowStockThreshold}
                 onChange={(e) => setSettings({ ...settings, lowStockThreshold: e.target.value })}
-                className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
+                className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
               />
               <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.lowStockThresholdDesc') || 'Порог уведомления о низком запасе товара.'}</p>
             </div>
@@ -310,7 +310,7 @@ const WarehouseSettings = () => {
           {/* Units Selection */}
           <div className="space-y-6">
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.unitSettings') || 'Единицы измерения'}</h3>
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
               <p className="text-xs text-gray-500 font-medium">{t('warehouse.availableUnitsDesc') || 'Отметьте те единицы, которые вы используете:'}</p>
                <div className="flex flex-wrap gap-2 items-center">
                 {units.map(unit => {
@@ -325,7 +325,7 @@ const WarehouseSettings = () => {
                             : [...(settings.availableUnits || []), unit.value];
                           setSettings({ ...settings, availableUnits: newUnits });
                         }}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${isCustom ? 'pr-8' : ''} ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue shadow-sm'}`}
+                        className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all border ${isCustom ? 'pr-8' : ''} ${isSelected ? 'bg-merkez-blue text-white border-merkez-blue shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-merkez-blue hover:text-merkez-blue shadow-sm'}`}
                       >
                         {unit.label}
                       </button>
@@ -350,7 +350,7 @@ const WarehouseSettings = () => {
 
                 {/* Add Custom Unit Button */}
                 {showAddCustomUnit ? (
-                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 bg-white p-1 border border-gray-200 rounded-xl shadow-sm">
+                  <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 bg-white p-1 border border-gray-200 rounded-lg shadow-sm">
                     <input
                       type="text"
                       placeholder={t('warehouse.unitName') || 'Название...'}
@@ -384,7 +384,7 @@ const WarehouseSettings = () => {
                   <button
                     type="button"
                     onClick={() => setShowAddCustomUnit(true)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold transition-all border border-dashed border-gray-300 text-gray-500 hover:border-merkez-blue hover:text-merkez-blue flex items-center gap-1.5 shadow-sm bg-white"
+                    className="px-4 py-2.5 rounded-lg text-xs font-bold transition-all border border-dashed border-gray-300 text-gray-500 hover:border-merkez-blue hover:text-merkez-blue flex items-center gap-1.5 shadow-sm bg-white"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     {t('warehouse.addCustomUnit') || 'Добавить единицу'}
@@ -397,7 +397,7 @@ const WarehouseSettings = () => {
           {/* Barcode Automation */}
           <div className="space-y-6">
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.automation') || 'Автоматизация'}</h3>
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
@@ -429,7 +429,7 @@ const WarehouseSettings = () => {
                     value={settings.barcodePrefix}
                     onChange={(e) => setSettings({ ...settings, barcodePrefix: e.target.value })}
                     placeholder="MRKZ-"
-                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
+                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
                   />
                 </div>
               )}
@@ -439,23 +439,23 @@ const WarehouseSettings = () => {
           {/* Warehouse Management */}
           <div className="space-y-6">
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.management') || 'Управление складами'}</h3>
-            <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-6">
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
               <div className="space-y-3">
                 {warehouses.map(w => (
-                  <div key={w.id} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm group transition-all">
+                  <div key={w.id} className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm group transition-all">
                     {editingWarehouseId === w.id ? (
                       <div className="space-y-4 animate-in fade-in zoom-in-95">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <input 
                             type="text" 
-                            className="bg-gray-50 border-none rounded-xl p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-merkez-blue w-full"
+                            className="bg-gray-50 border-none rounded-lg p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-merkez-blue w-full"
                             value={w.name}
                             onChange={e => setWarehouses(warehouses.map(item => item.id === w.id ? {...item, name: e.target.value} : item))}
                           />
                           <input 
                             type="text" 
                             placeholder={t('common.address')}
-                            className="bg-gray-50 border-none rounded-xl p-3 text-sm font-medium outline-none focus:ring-1 focus:ring-merkez-blue w-full"
+                            className="bg-gray-50 border-none rounded-lg p-3 text-sm font-medium outline-none focus:ring-1 focus:ring-merkez-blue w-full"
                             value={w.address || ''}
                             onChange={e => setWarehouses(warehouses.map(item => item.id === w.id ? {...item, address: e.target.value} : item))}
                           />
@@ -469,7 +469,7 @@ const WarehouseSettings = () => {
                           </button>
                           <button 
                             onClick={() => updateWarehouse(w.id, { name: w.name, address: w.address })}
-                            className="px-6 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all"
+                            className="px-6 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
                           >
                             {t('common.save')}
                           </button>
@@ -517,19 +517,19 @@ const WarehouseSettings = () => {
               </div>
 
               {showAddWarehouse ? (
-                <div className="bg-white p-6 rounded-2xl border-2 border-dashed border-gray-100 space-y-4 animate-in fade-in slide-in-from-top-4">
+                <div className="bg-white p-6 rounded-lg border-2 border-dashed border-gray-100 space-y-4 animate-in fade-in slide-in-from-top-4">
                   <div className="space-y-4">
                     <input 
                       type="text" 
                       placeholder={t('warehouse.warehouseName') || 'Название склада'}
-                      className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-merkez-blue"
+                      className="w-full bg-gray-50 border-none rounded-lg p-3 text-sm font-bold outline-none focus:ring-1 focus:ring-merkez-blue"
                       value={newWarehouse.name}
                       onChange={e => setNewWarehouse({...newWarehouse, name: e.target.value})}
                     />
                     <input 
                       type="text" 
                       placeholder={t('common.address') || 'Адрес (необязательно)'}
-                      className="w-full bg-gray-50 border-none rounded-xl p-3 text-sm font-medium outline-none focus:ring-1 focus:ring-merkez-blue"
+                      className="w-full bg-gray-50 border-none rounded-lg p-3 text-sm font-medium outline-none focus:ring-1 focus:ring-merkez-blue"
                       value={newWarehouse.address}
                       onChange={e => setNewWarehouse({...newWarehouse, address: e.target.value})}
                     />
@@ -543,7 +543,7 @@ const WarehouseSettings = () => {
                     </button>
                     <button 
                       onClick={addWarehouse}
-                      className="flex-1 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-black transition-all"
+                      className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
                     >
                       {t('common.add')}
                     </button>
@@ -552,7 +552,7 @@ const WarehouseSettings = () => {
               ) : (
                 <button 
                   onClick={() => setShowAddWarehouse(true)}
-                  className="w-full py-4 border-2 border-dashed border-gray-200 rounded-2xl text-xs font-black text-gray-400 uppercase tracking-[0.2em] hover:border-merkez-blue hover:text-merkez-blue hover:bg-blue-50/50 transition-all"
+                  className="w-full py-4 border-2 border-dashed border-gray-200 rounded-lg text-xs font-black text-gray-400 uppercase tracking-[0.2em] hover:border-merkez-blue hover:text-merkez-blue hover:bg-blue-50/50 transition-all"
                 >
                   <Plus className="w-4 h-4 inline mr-2" />
                   {t('warehouse.addNewWarehouse') || 'Добавить склад'}

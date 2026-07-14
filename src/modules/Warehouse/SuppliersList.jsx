@@ -38,7 +38,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-white rounded-xl overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-white rounded-lg overflow-hidden">
       <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -77,7 +77,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                   <tr key={supplier.id} className="hover:bg-blue-50/20 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-merkez-blue/5 text-merkez-blue flex items-center justify-center font-black group-hover:bg-merkez-blue group-hover:text-white transition-all duration-300">
+                        <div className="w-10 h-10 rounded-lg bg-merkez-blue/5 text-merkez-blue flex items-center justify-center font-black group-hover:bg-merkez-blue group-hover:text-white transition-all duration-300">
                           {supplier.name.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-bold text-gray-900 text-sm group-hover:text-merkez-blue transition-colors">{supplier.name}</span>
@@ -111,21 +111,21 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                       <div className="flex items-center justify-end gap-1.5">
                         <button 
                           onClick={() => onViewHistory(supplier.id)}
-                          className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-xl transition-all"
+                          className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
                           title={t('warehouse.viewHistory') || 'Смотреть историю'}
                         >
                           <ExternalLink className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => onEdit(supplier)}
-                          className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-xl transition-all"
+                          className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
                           title={t('common.edit') || 'Изменить'}
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => onDelete(supplier.id)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                           title={t('common.delete') || 'Удалить'}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -143,7 +143,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                 <div key={supplier.id} className="py-4 flex flex-col gap-2.5">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-merkez-blue/5 text-merkez-blue flex items-center justify-center font-black">
+                      <div className="w-10 h-10 rounded-lg bg-merkez-blue/5 text-merkez-blue flex items-center justify-center font-black">
                         {supplier.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -179,7 +179,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 bg-gray-50/50 p-2.5 rounded-xl border border-gray-100/50 mt-1">
+                  <div className="grid grid-cols-2 gap-3 bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
                     <div>
                       <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.supplierPhone') || 'Telefon'}</span>
                       <span className="text-xs font-bold text-gray-700 block truncate">{supplier.phone || '—'}</span>

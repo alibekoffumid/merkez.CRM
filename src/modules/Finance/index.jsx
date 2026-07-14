@@ -27,7 +27,7 @@ const FinanceModule = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          {/* Balance Cards */}
-          <div className="bg-white p-6 rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex items-start justify-between">
+          <div className="bg-white p-6 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex items-start justify-between">
             <div>
                <p className="text-sm text-gray-500 font-medium">{t('finance.totalBalance')}</p>
                <h3 className="text-3xl font-bold text-gray-900 mt-2">$124,500.00</h3>
@@ -35,11 +35,11 @@ const FinanceModule = () => {
                  <TrendingUp className="w-4 h-4 mr-1" /> +2.5% {t('finance.vsLastMonth')}
                </span>
             </div>
-            <div className="p-3 rounded-xl bg-blue-50">
+            <div className="p-3 rounded-lg bg-blue-50">
                <DollarSign className="w-6 h-6 text-merkez-blue" />
             </div>
          </div>
-                  <div className="bg-white p-6 rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex items-start justify-between">
+                  <div className="bg-white p-6 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex items-start justify-between">
             <div>
                <p className="text-sm text-gray-500 font-medium">{t('finance.monthlyIncome')}</p>
                <h3 className="text-3xl font-bold text-gray-900 mt-2">$45,200.00</h3>
@@ -47,12 +47,12 @@ const FinanceModule = () => {
                  <TrendingUp className="w-4 h-4 mr-1" /> +14.2% {t('finance.vsLastMonth')}
                </span>
             </div>
-            <div className="p-3 rounded-xl bg-green-50">
+            <div className="p-3 rounded-lg bg-green-50">
                <TrendingUp className="w-6 h-6 text-merkez-green" />
             </div>
          </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex items-start justify-between">
+          <div className="bg-white p-6 rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex items-start justify-between">
             <div>
                <p className="text-sm text-gray-500 font-medium">{t('finance.monthlyExpenses')}</p>
                <h3 className="text-3xl font-bold text-gray-900 mt-2">$18,450.00</h3>
@@ -60,13 +60,13 @@ const FinanceModule = () => {
                  <TrendingDown className="w-4 h-4 mr-1" /> -1.5% {t('finance.vsLastMonth')}
                </span>
             </div>
-            <div className="p-3 rounded-xl bg-red-50">
+            <div className="p-3 rounded-lg bg-red-50">
                <TrendingDown className="w-6 h-6 text-merkez-red" />
             </div>
          </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50">
+      <div className="bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50">
         <div className="p-5 border-b border-gray-100 flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">{t('finance.recentTransactions')}</h3>
           <button className="text-sm font-medium text-merkez-blue hover:text-blue-700 transition-colors">{t('finance.viewAll')}</button>

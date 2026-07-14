@@ -64,7 +64,7 @@ const PinGuard = ({ children, moduleId }) => {
           </button>
 
           <div className="p-8 text-center mt-4">
-            <div className="mx-auto w-16 h-16 bg-amber-50 rounded-3xl flex items-center justify-center mb-6 ring-1 ring-amber-100">
+            <div className="mx-auto w-16 h-16 bg-amber-50 rounded-xl flex items-center justify-center mb-6 ring-1 ring-amber-100">
               <Lock className="w-8 h-8 text-amber-500" />
             </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">
@@ -96,7 +96,7 @@ const PinGuard = ({ children, moduleId }) => {
                     key={num}
                     type="button"
                     onClick={() => handleNumberClick(num.toString())}
-                    className="h-16 rounded-2xl bg-gray-50 text-xl font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
+                    className="h-16 rounded-lg bg-gray-50 text-xl font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
                   >
                     {num}
                   </button>
@@ -104,21 +104,21 @@ const PinGuard = ({ children, moduleId }) => {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+                  className="h-16 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
                 <button
                   type="button"
                   onClick={() => handleNumberClick('0')}
-                  className="h-16 rounded-2xl bg-gray-50 text-xl font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
+                  className="h-16 rounded-lg bg-gray-50 text-xl font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
                 >
                   0
                 </button>
                 <button
                   type="submit"
                   disabled={pin.length !== 4}
-                  className={`h-16 rounded-2xl flex items-center justify-center transition-all ${
+                  className={`h-16 rounded-lg flex items-center justify-center transition-all ${
                     pin.length === 4 
                       ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' 
                       : 'bg-gray-100 text-gray-300'

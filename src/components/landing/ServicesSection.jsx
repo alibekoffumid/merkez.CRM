@@ -50,7 +50,7 @@ const ServicesSection = () => {
               <div key={index} className="flex flex-col gap-6 lg:gap-10">
                 {/* Category Header */}
                 <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center shrink-0">
+                  <div className="w-16 h-16 rounded-lg bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center shrink-0">
                     {getIconForCategory(category.id)}
                   </div>
                   <h3 
@@ -66,7 +66,7 @@ const ServicesSection = () => {
                   {category.items && category.items.map((item, i) => (
                     <div 
                       key={i} 
-                      className="relative bg-white p-6 lg:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-500 group flex flex-col overflow-hidden cursor-pointer animate-text-flip"
+                      className="relative bg-white p-6 lg:p-8 rounded-xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all duration-500 group flex flex-col overflow-hidden cursor-pointer animate-text-flip"
                       style={{ animationDelay: `${(index * 3 + i) * 0.08}s` }}
                     >
                       {/* Decorative background blob */}

@@ -104,7 +104,7 @@ const PricingSection = () => {
               </div>
 
               <button 
-                className={`w-full py-4 rounded-xl font-bold transition-all ${
+                className={`w-full py-4 rounded-lg font-bold transition-all ${
                   plan.popular
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25'
                     : 'bg-slate-50 hover:bg-slate-100 text-slate-900'

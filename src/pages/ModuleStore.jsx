@@ -123,7 +123,7 @@ const ModuleStore = () => {
           
           {/* Quick stats for returning users */}
           {!isFirstVisit && activeModules.length > 0 && (
-            <div className="mt-6 inline-flex items-center gap-3 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-2xl text-sm font-bold border border-emerald-200">
+            <div className="mt-6 inline-flex items-center gap-3 px-5 py-2.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold border border-emerald-200">
               <Check className="w-4 h-4" />
               {activeModules.length} {activeModules.length === 1 ? 'модуль активен' : 'модулей активно'} · {totalPrice - newPrice} AZN/{t('modules.month') || 'мес'}
             </div>
@@ -132,7 +132,7 @@ const ModuleStore = () => {
           <div className="mt-6">
             <button 
               onClick={selectAll}
-              className="px-6 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-gray-900/20"
+              className="px-6 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-gray-900/20"
             >
               {t('modules.selectAll') || 'Выбрать всё'}
             </button>
@@ -170,7 +170,7 @@ const ModuleStore = () => {
                 )}
 
                 {/* Icon */}
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors ${
+                <div className={`w-14 h-14 rounded-lg flex items-center justify-center mb-4 transition-colors ${
                   isActive ? 'bg-emerald-100' :
                   isSelected ? accent.bg : 'bg-gray-50 group-hover:bg-gray-100'
                 }`}>
@@ -227,7 +227,7 @@ const ModuleStore = () => {
               <button 
                 onClick={handleActivate}
                 disabled={isSubmitting}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-70"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 font-black uppercase tracking-widest text-sm rounded-lg hover:bg-gray-100 active:scale-95 transition-all disabled:opacity-70"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -247,7 +247,7 @@ const ModuleStore = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 text-red-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-600/10">
+              <div className="w-20 h-20 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-600/10">
                 <AlertTriangle className="w-10 h-10" />
               </div>
               <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
@@ -260,13 +260,13 @@ const ModuleStore = () => {
               <div className="flex gap-4">
                 <button 
                   onClick={() => setConfirmModal({ isOpen: false, moduleId: null })}
-                  className="flex-1 px-6 py-4 bg-gray-50 text-gray-500 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95"
+                  className="flex-1 px-6 py-4 bg-gray-50 text-gray-500 rounded-lg text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95"
                 >
                   {t('common.cancel')}
                 </button>
                 <button 
                   onClick={handleDeactivate}
-                  className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-600/20 transition-all active:scale-95"
+                  className="flex-1 px-6 py-4 bg-red-600 text-white rounded-lg text-sm font-black uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-600/20 transition-all active:scale-95"
                 >
                   {t('common.confirm') || 'Да, отключить'}
                 </button>

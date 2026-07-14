@@ -237,7 +237,7 @@ const Profile = () => {
           <button 
             onClick={handleSave}
             disabled={isSaving}
-            className="group bg-merkez-blue text-white px-8 py-3 rounded-2xl font-bold text-sm hover:hover:bg-blue-600 transition-all flex items-center shadow-xl shadow-blue-100 active:scale-95 disabled:opacity-50"
+            className="group bg-merkez-blue text-white px-8 py-3 rounded-lg font-bold text-sm hover:hover:bg-blue-600 transition-all flex items-center shadow-xl shadow-blue-100 active:scale-95 disabled:opacity-50"
           >
             {isSaving ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -254,7 +254,7 @@ const Profile = () => {
         <div className="w-full lg:w-[380px] shrink-0 space-y-6">
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden group">
             <div className="h-40 bg-gradient-to-br from-merkez-blue to-blue-500 relative">
-               <button className="absolute bottom-4 right-4 p-2.5 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-colors">
+               <button className="absolute bottom-4 right-4 p-2.5 bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-white/30 transition-colors">
                   <Camera className="w-4 h-4" />
                </button>
                {/* Decorative elements */}
@@ -269,7 +269,7 @@ const Profile = () => {
                       {initials}
                    </div>
                 </div>
-                <button className="absolute bottom-1 right-1 p-2.5 bg-white rounded-xl shadow-xl border border-gray-100 text-merkez-blue hover:text-blue-600 transition-colors">
+                <button className="absolute bottom-1 right-1 p-2.5 bg-white rounded-lg shadow-xl border border-gray-100 text-merkez-blue hover:text-blue-600 transition-colors">
                    <Camera className="w-4 h-4" />
                 </button>
               </div>
@@ -310,17 +310,17 @@ const Profile = () => {
           </div>
 
           <div className="sm:hidden mb-6">
-            <button onClick={handleSave} className="w-full bg-merkez-blue text-white py-4 rounded-2xl font-bold shadow-lg">{t('common.save', 'Сохранить')}</button>
+            <button onClick={handleSave} className="w-full bg-merkez-blue text-white py-4 rounded-lg font-bold shadow-lg">{t('common.save', 'Сохранить')}</button>
           </div>
         </div>
 
         <div className="flex-1 space-y-6">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-2 flex space-x-1">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex space-x-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all ${
+                className={`flex-1 flex items-center justify-center space-x-2 py-4 rounded-lg font-black text-xs uppercase tracking-wider transition-all ${
                   activeTab === tab.id 
                   ? 'bg-merkez-blue text-white shadow-xl shadow-blue-200/50' 
                   : 'text-gray-400 hover:text-merkez-blue hover:bg-blue-50/50'
@@ -340,7 +340,7 @@ const Profile = () => {
                     {/* Personal Section */}
                     <div>
                       <div className="flex items-center space-x-3 mb-8">
-                         <div className="p-2.5 bg-blue-50 rounded-xl text-merkez-blue">
+                         <div className="p-2.5 bg-blue-50 rounded-lg text-merkez-blue">
                            <User className="w-5 h-5" />
                          </div>
                          <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.ownerDetails', 'Личные данные')}</h3>
@@ -354,7 +354,7 @@ const Profile = () => {
                             name="full_name"
                             value={profile.full_name} 
                             onChange={handleChange}
-                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm"
+                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold placeholder:text-gray-300 shadow-sm"
                             placeholder={t('profile.fullNamePlaceholder', 'Your full name')}
                           />
                         </div>
@@ -366,7 +366,7 @@ const Profile = () => {
                                type="email" 
                                disabled
                                value={user?.email || ''} 
-                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-100/50 border border-transparent rounded-2xl text-gray-400 outline-none transition-all font-bold cursor-not-allowed"
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-100/50 border border-transparent rounded-lg text-gray-400 outline-none transition-all font-bold cursor-not-allowed"
                              />
                           </div>
                         </div>
@@ -376,7 +376,7 @@ const Profile = () => {
                     {/* Business Section */}
                     <div className="pt-10 border-t border-gray-50">
                       <div className="flex items-center space-x-3 mb-8">
-                         <div className="p-2.5 bg-orange-50 rounded-xl text-orange-500">
+                         <div className="p-2.5 bg-orange-50 rounded-lg text-orange-500">
                            <Building2 className="w-5 h-5" />
                          </div>
                          <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.businessInfo', 'Информация о бизнесе')}</h3>
@@ -390,7 +390,7 @@ const Profile = () => {
                             name="business_name"
                             value={profile.business_name} 
                             onChange={handleChange}
-                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
                             placeholder={t('profile.businessNamePlaceholder', 'Restaurant/Bar name')}
                           />
                         </div>
@@ -400,7 +400,7 @@ const Profile = () => {
                             name="business_type"
                             value={profile.business_type} 
                             onChange={handleChange}
-                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm cursor-pointer"
+                            className="block w-full px-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm cursor-pointer"
                           >
                             <option value="Restaurant text-gray-700">Premium Restaurant</option>
                             <option value="Cafe">Cozy Cafe</option>
@@ -419,7 +419,7 @@ const Profile = () => {
                                name="address"
                                value={profile.address} 
                                onChange={handleChange}
-                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
                                placeholder={t('profile.addressPlaceholder', 'City, Street, Building...')}
                              />
                           </div>
@@ -434,7 +434,7 @@ const Profile = () => {
                                name="phone"
                                value={profile.phone} 
                                onChange={handleChange}
-                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
                                placeholder={t('profile.phonePlaceholder', '+X XXX XXX XX XX')}
                              />
                           </div>
@@ -449,7 +449,7 @@ const Profile = () => {
                                name="website"
                                value={profile.website} 
                                onChange={handleChange}
-                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
                                placeholder={t('profile.websitePlaceholder', 'www.yourwebsite.com')}
                              />
                           </div>
@@ -464,7 +464,7 @@ const Profile = () => {
                                name="operating_hours"
                                value={profile.operating_hours} 
                                onChange={handleChange}
-                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-2xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
+                               className="block w-full pl-14 pr-6 py-4.5 bg-gray-50/50 border border-transparent rounded-lg text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold shadow-sm"
                                placeholder={t('profile.hoursPlaceholder', 'Mon-Sun: 10:00 - 23:00')}
                              />
                           </div>
@@ -479,7 +479,7 @@ const Profile = () => {
                                name="description"
                                value={profile.description} 
                                onChange={handleChange}
-                               className="block w-full pl-14 pr-6 py-6 bg-gray-50/50 border border-transparent rounded-3xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold resize-none shadow-sm"
+                               className="block w-full pl-14 pr-6 py-6 bg-gray-50/50 border border-transparent rounded-xl text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold resize-none shadow-sm"
                                placeholder={t('profile.essencePlaceholder', 'Tell us about the vibes, the food, and the mission of your establishment...')}
                              />
                           </div>
@@ -492,7 +492,7 @@ const Profile = () => {
               {activeTab === 'notifications' && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
                    <div className="flex items-center space-x-3 mb-2">
-                      <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-500">
+                      <div className="p-2.5 bg-emerald-50 rounded-lg text-emerald-500">
                         <Bell className="w-5 h-5" />
                       </div>
                       <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.notifications.title', 'Smart Notifications')}</h3>
@@ -505,7 +505,7 @@ const Profile = () => {
                        { key: 'community', title: t('profile.notifications.community', 'Community & Ecosystem'), desc: t('profile.notifications.communityDesc', 'Stay updated with new features, benchmarks and tips.'), active: notificationPrefs.community },
                        { key: 'security', title: t('profile.notifications.security', 'Cyber-Security Ledger'), desc: t('profile.notifications.securityDesc', 'Priority alerts for new logins and permission changes.'), active: notificationPrefs.security },
                      ].map((item, idx) => (
-                       <div key={idx} onClick={() => toggleNotification(item.key)} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100/30 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all cursor-pointer">
+                       <div key={idx} onClick={() => toggleNotification(item.key)} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-xl border border-gray-100/30 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all cursor-pointer">
                          <div>
                            <p className="font-black text-gray-900 tracking-tight">{item.title}</p>
                            <p className="text-xs text-gray-400 font-bold mt-1 opacity-70 uppercase tracking-wide">{item.desc}</p>
@@ -522,7 +522,7 @@ const Profile = () => {
               {activeTab === 'security' && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
                    <div className="flex items-center space-x-3 mb-8">
-                      <div className="p-2.5 bg-amber-50 rounded-xl text-amber-500">
+                      <div className="p-2.5 bg-amber-50 rounded-lg text-amber-500">
                         <Shield className="w-5 h-5" />
                       </div>
                       <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.adminPinTitle', 'Защита доступа')}</h3>
@@ -548,14 +548,14 @@ const Profile = () => {
                             const val = e.target.value.replace(/\D/g, '').slice(0, 4);
                             setProfile({ ...profile, admin_pin: val });
                           }}
-                          className="block w-full px-8 py-5 bg-white border-2 border-amber-100 rounded-2xl text-2xl font-black tracking-[1em] text-center text-amber-600 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all shadow-sm"
+                          className="block w-full px-8 py-5 bg-white border-2 border-amber-100 rounded-lg text-2xl font-black tracking-[1em] text-center text-amber-600 focus:border-amber-500 focus:ring-4 focus:ring-amber-100 outline-none transition-all shadow-sm"
                           placeholder="0000"
                         />
                         
                         <button 
                           onClick={handleSave}
                           disabled={isSaving || profile.admin_pin.length !== 4}
-                          className={`mt-6 w-full py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2 ${
+                          className={`mt-6 w-full py-4 rounded-lg font-black text-sm transition-all flex items-center justify-center gap-2 ${
                             profile.admin_pin.length === 4
                               ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-200 active:scale-95'
                               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -583,7 +583,7 @@ const Profile = () => {
                    {/* Language Section */}
                    <div>
                      <div className="flex items-center space-x-3 mb-8">
-                        <div className="p-2.5 bg-violet-50 rounded-xl text-violet-500">
+                        <div className="p-2.5 bg-violet-50 rounded-lg text-violet-500">
                           <Languages className="w-5 h-5" />
                         </div>
                         <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.language', 'Язык интерфейса')}</h3>
@@ -598,7 +598,7 @@ const Profile = () => {
                          <button
                            key={lang.code}
                            onClick={() => i18n.changeLanguage(lang.code)}
-                           className={`relative p-6 rounded-3xl border-2 transition-all text-left group ${
+                           className={`relative p-6 rounded-xl border-2 transition-all text-left group ${
                              i18n.language === lang.code
                                ? 'border-merkez-blue bg-merkez-blue/5 shadow-lg shadow-blue-100'
                                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
@@ -620,7 +620,7 @@ const Profile = () => {
                    {/* Theme Section */}
                    <div className="pt-10 border-t border-gray-50">
                      <div className="flex items-center space-x-3 mb-8">
-                        <div className="p-2.5 bg-amber-50 rounded-xl text-amber-500">
+                        <div className="p-2.5 bg-amber-50 rounded-lg text-amber-500">
                           <Monitor className="w-5 h-5" />
                         </div>
                         <h3 className="text-xl font-black text-gray-900 tracking-tight">{t('profile.theme', 'Тема оформления')}</h3>
@@ -637,13 +637,13 @@ const Profile = () => {
                          <button
                            key={theme.id}
                            onClick={() => handleThemeChange(theme.id)}
-                           className={`p-6 rounded-3xl border-2 transition-all text-left flex items-center gap-4 ${
+                           className={`p-6 rounded-xl border-2 transition-all text-left flex items-center gap-4 ${
                              isActive
                                ? 'border-merkez-blue bg-merkez-blue/5 shadow-lg shadow-blue-100'
                                : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
                            }`}
                          >
-                           <div className={`p-3 rounded-2xl ${
+                           <div className={`p-3 rounded-lg ${
                              isActive ? 'bg-merkez-blue/10 text-merkez-blue' : 'bg-gray-50 text-gray-500'
                            }`}>
                              <theme.icon className="w-6 h-6" />
@@ -665,7 +665,7 @@ const Profile = () => {
                     {/* Air Mouse Section */}
                     <div className="pt-10 border-t border-gray-50">
                       <div className="flex items-center space-x-3 mb-8">
-                         <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-500">
+                         <div className="p-2.5 bg-indigo-50 rounded-lg text-indigo-500">
                            <Hand className="w-5 h-5" />
                          </div>
                          <div>
@@ -678,14 +678,14 @@ const Profile = () => {
                         {/* Main toggle */}
                         <div
                           onClick={() => toggleAirMouse(!airMouseEnabled)}
-                          className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all cursor-pointer ${
+                          className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer ${
                             airMouseEnabled
                               ? 'border-indigo-200 bg-indigo-50/50 shadow-lg shadow-indigo-100'
                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
                           }`}
                         >
                           <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-2xl transition-all ${
+                            <div className={`p-3 rounded-lg transition-all ${
                               airMouseEnabled ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'bg-gray-100 text-gray-400'
                             }`}>
                               <Hand className="w-6 h-6" />
@@ -709,14 +709,14 @@ const Profile = () => {
                         {/* Clap toggle */}
                         <div
                           onClick={() => toggleClapActivation(!clapActivationEnabled)}
-                          className={`flex items-center justify-between p-6 rounded-3xl border-2 transition-all cursor-pointer mt-4 ${
+                          className={`flex items-center justify-between p-6 rounded-xl border-2 transition-all cursor-pointer mt-4 ${
                             clapActivationEnabled
                               ? 'border-indigo-200 bg-indigo-50/50 shadow-lg shadow-indigo-100'
                               : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
                           }`}
                         >
                           <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-2xl transition-all ${
+                            <div className={`p-3 rounded-lg transition-all ${
                               clapActivationEnabled ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'bg-gray-100 text-gray-400'
                             }`}>
                               <span className="text-xl">👏</span>
@@ -739,12 +739,12 @@ const Profile = () => {
 
                          {/* QR + инструкция — показываем только когда включено */}
                          {airMouseEnabled && (
-                           <div className="bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-3xl p-6 md:p-8">
+                           <div className="bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-xl p-6 md:p-8">
                              {/* Выбор устройства */}
-                             <div className="flex gap-2 mb-8 p-1.5 bg-indigo-100/50 rounded-2xl w-fit">
+                             <div className="flex gap-2 mb-8 p-1.5 bg-indigo-100/50 rounded-lg w-fit">
                                <button
                                  onClick={() => changeAirMouseDevice('phone')}
-                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${
+                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-black transition-all ${
                                    airMouseDevice === 'phone' ? 'bg-white text-indigo-600 shadow-sm' : 'text-indigo-400 hover:text-indigo-500'
                                  }`}
                                >
@@ -752,7 +752,7 @@ const Profile = () => {
                                </button>
                                <button
                                  onClick={() => changeAirMouseDevice('pc')}
-                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black transition-all ${
+                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-black transition-all ${
                                    airMouseDevice === 'pc' ? 'bg-white text-indigo-600 shadow-sm' : 'text-indigo-400 hover:text-indigo-500'
                                  }`}
                                >
@@ -764,12 +764,12 @@ const Profile = () => {
                                <div className="flex flex-col md:flex-row items-center gap-8">
                                  {/* QR-код */}
                                  <div className="shrink-0 flex flex-col items-center gap-3">
-                                   <div className="bg-white rounded-2xl p-3 shadow-xl shadow-indigo-100">
+                                   <div className="bg-white rounded-lg p-3 shadow-xl shadow-indigo-100">
                                      <img
                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(airMouseControllerUrl)}&color=6366f1&bgcolor=ffffff&qzone=1`}
                                        alt="Air Mouse QR"
                                        width={160} height={160}
-                                       className="rounded-xl"
+                                       className="rounded-lg"
                                      />
                                    </div>
                                    <div className="text-center">
@@ -788,7 +788,7 @@ const Profile = () => {
                                      { step: '4', icon: '🤏', text: 'Сожми большой и указательный — клик' },
                                    ].map(({ step, icon, text }) => (
                                      <div key={step} className="flex items-center gap-4">
-                                       <div className="w-8 h-8 shrink-0 rounded-xl bg-indigo-500 text-white flex items-center justify-center text-xs font-black shadow-md shadow-indigo-200">
+                                       <div className="w-8 h-8 shrink-0 rounded-lg bg-indigo-500 text-white flex items-center justify-center text-xs font-black shadow-md shadow-indigo-200">
                                          {step}
                                        </div>
                                        <span className="text-xl">{icon}</span>
@@ -799,7 +799,7 @@ const Profile = () => {
                                      href={airMouseControllerUrl}
                                      target="_blank"
                                      rel="noreferrer"
-                                     className="inline-flex items-center gap-2 mt-2 px-5 py-3 bg-indigo-500 text-white rounded-2xl text-sm font-black hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-200 active:scale-95"
+                                     className="inline-flex items-center gap-2 mt-2 px-5 py-3 bg-indigo-500 text-white rounded-lg text-sm font-black hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-200 active:scale-95"
                                    >
                                      <Hand className="w-4 h-4" />
                                      Открыть контроллер
@@ -816,13 +816,13 @@ const Profile = () => {
                                    Вы увидите маленькое окошко с камерой в правом нижнем углу экрана.
                                  </p>
                                  <div className="flex items-center gap-4 mt-6">
-                                   <div className="p-4 bg-white rounded-2xl shadow-sm border border-indigo-50 flex items-center gap-3">
+                                   <div className="p-4 bg-white rounded-lg shadow-sm border border-indigo-50 flex items-center gap-3">
                                      <span className="text-2xl">✋</span>
                                      <div className="text-xs font-black text-indigo-900">
                                        ДВИЖЕНИЕ КУРСОРА
                                      </div>
                                    </div>
-                                   <div className="p-4 bg-white rounded-2xl shadow-sm border border-indigo-50 flex items-center gap-3">
+                                   <div className="p-4 bg-white rounded-lg shadow-sm border border-indigo-50 flex items-center gap-3">
                                      <span className="text-2xl">🤏</span>
                                      <div className="text-xs font-black text-indigo-900">
                                        КЛИК
@@ -844,7 +844,7 @@ const Profile = () => {
 
       {/* In-app Toast */}
       {toast && (
-        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] px-8 py-4 rounded-lg shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 ${
           toast.type === 'success' 
             ? 'bg-green-600 text-white shadow-green-200' 
             : 'bg-red-500 text-white shadow-red-200'

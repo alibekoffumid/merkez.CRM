@@ -692,7 +692,7 @@ const FloorPlan = () => {
   return (
     <div className="flex flex-col xl:flex-row gap-6 min-h-[600px]">
       {/* Tables Grid Layout */}
-      <div className="flex-[2] bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col min-h-[500px] relative">
+      <div className="flex-[2] bg-white rounded-lg shadow-sm border border-gray-100 p-6 flex flex-col min-h-[500px] relative">
         {mergeMode && (
           <div className="absolute top-0 left-0 right-0 z-20 bg-merkez-green text-white px-6 py-4 rounded-t-xl flex justify-between items-center animate-in slide-in-from-top-4">
             <div className="flex items-center">
@@ -750,7 +750,7 @@ const FloorPlan = () => {
                 <span>{t('common.loading')}...</span>
              </div>
           ) : tables.length === 0 ? (
-             <div className="col-span-full h-48 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 rounded-2xl">
+             <div className="col-span-full h-48 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-100 rounded-lg">
                 {t('restaurant.noTables')}
              </div>
           ) : (
@@ -775,7 +775,7 @@ const FloorPlan = () => {
                       }, t('restaurant.authorizeAction'));
                     }
                   }}
-                  className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer h-32 ${
+                  className={`relative flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all cursor-pointer h-32 ${
                     getTableColor(mergeMode && selectedForMerge.includes(table.id) ? 'selected' : table.status)
                   } ${mergeMode && table.id === selectedTable.id ? 'ring-4 ring-merkez-blue ring-offset-4' : ''}`}
                 >
@@ -828,7 +828,7 @@ const FloorPlan = () => {
 
       {/* Active Orders Queue Sidebar */}
       <div className="flex-[1] flex flex-col gap-6">
-       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col min-h-[400px] overflow-hidden">
+       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-5 flex flex-col min-h-[400px] overflow-hidden">
            <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                <Receipt className="w-5 h-5 mr-2 text-merkez-blue" />
@@ -844,7 +844,7 @@ const FloorPlan = () => {
                liveOrders.map(order => (
                  <div 
                    key={order.id} 
-                   className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                   className={`p-4 rounded-lg border transition-all cursor-pointer flex flex-col gap-2 ${
                      order.status === 'ready' 
                        ? 'bg-green-50 border-green-200 shadow-md ring-2 ring-green-100' 
                        : 'border-gray-100 hover:border-gray-200 hover:shadow-sm bg-gray-50/50'
@@ -886,7 +886,7 @@ const FloorPlan = () => {
       {selectedTable && !mergeMode && (
         <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 sm:p-4" onClick={handleCloseModal}>
           <div 
-            className={`bg-white overflow-hidden rounded-none sm:rounded-2xl shadow-xl w-full transition-all duration-300 flex flex-col h-[90vh] sm:h-[85vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-xl'} animate-in fade-in zoom-in-95`}
+            className={`bg-white overflow-hidden rounded-none sm:rounded-lg shadow-xl w-full transition-all duration-300 flex flex-col h-[90vh] sm:h-[85vh] ${isAddingOrder ? 'max-w-5xl' : 'max-w-xl'} animate-in fade-in zoom-in-95`}
             onClick={(e) => e.stopPropagation()}
           >
             
@@ -924,7 +924,7 @@ const FloorPlan = () => {
                 </div>
 
                 {selectedTable.waiter && (
-                  <div className="mb-6 flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="mb-6 flex items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
                      <div className="w-10 h-10 rounded-full bg-blue-100 text-merkez-blue flex items-center justify-center text-sm font-bold mr-3 shadow-sm border border-blue-200">
                        {getInitials(selectedTable.waiter)}
                      </div>
@@ -939,7 +939,7 @@ const FloorPlan = () => {
                   <div className="flex flex-col flex-1 overflow-hidden">
                     {/* Header Info Stats (non-scrolling) */}
                     <div className="space-y-4 shrink-0 pb-4">
-                      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-sm transition-all">
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm transition-all">
                         <div className="flex justify-between text-sm mb-2">
                           <span className="text-gray-600">{t('restaurant.currentBill')}</span>
                           <span className="font-bold text-gray-900 text-lg">${(selectedTable.amount || 0).toFixed(2)}</span>
@@ -1049,7 +1049,7 @@ const FloorPlan = () => {
                       ) : (
                         <button 
                           onClick={() => setIsAddingOrder(false)} 
-                          className="w-full bg-merkez-blue/10 text-merkez-blue py-4 rounded-2xl text-xs font-black hover:bg-merkez-blue/20 transition-all uppercase tracking-widest flex items-center justify-center shadow-sm"
+                          className="w-full bg-merkez-blue/10 text-merkez-blue py-4 rounded-lg text-xs font-black hover:bg-merkez-blue/20 transition-all uppercase tracking-widest flex items-center justify-center shadow-sm"
                         >
                           <CheckCircle2 className="w-4 h-4 mr-2" />
                           {t('restaurant.doneOrdering') || 'DONE ORDERING'}
@@ -1059,7 +1059,7 @@ const FloorPlan = () => {
                   </div>
                 ) : selectedTable.status === 'free' ? (
                   <div className="flex flex-col flex-1">
-                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
                        <Users className="w-12 h-12 text-gray-300 mb-4" />
                        <h4 className="text-lg font-bold text-gray-900">{t('restaurant.tableEmpty')}</h4>
                        <p className="text-sm text-gray-500 max-w-[200px]">{t('restaurant.assignGuests')}</p>
@@ -1090,7 +1090,7 @@ const FloorPlan = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col flex-1 overflow-hidden">
-                    <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100/50 flex-1 flex flex-col">
+                    <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-100/50 flex-1 flex flex-col">
                       <div className="flex items-center gap-3 mb-4">
                          <div className="w-10 h-10 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center">
                            <Clock className="w-5 h-5" />
@@ -1129,7 +1129,7 @@ const FloorPlan = () => {
                 <div className="flex-1 flex flex-col min-w-0 bg-white relative">
                   {/* Menu Header */}
                   <div className="p-4 border-b border-gray-50 flex items-center justify-between gap-4 bg-white sticky top-0 z-30">
-                    <div className="flex bg-gray-100 p-1 rounded-2xl flex-1 max-w-xs">
+                    <div className="flex bg-gray-100 p-1 rounded-lg flex-1 max-w-xs">
                       <button
                         onClick={() => setMenuStation('Kitchen')}
                         className={`flex-1 py-1 px-3 rounded-lg text-[10px] font-black transition-all ${menuStation === 'Kitchen' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -1151,7 +1151,7 @@ const FloorPlan = () => {
                         placeholder={t('common.search')}
                         value={menuSearch}
                         onChange={(e) => setMenuSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-merkez-blue/10 focus:bg-white transition-all shadow-sm"
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold focus:outline-none focus:ring-2 focus:ring-merkez-blue/10 focus:bg-white transition-all shadow-sm"
                       />
                     </div>
                   </div>
@@ -1168,7 +1168,7 @@ const FloorPlan = () => {
                             <button
                               key={product.id}
                               onClick={() => addToCart(product)}
-                              className="group p-4 bg-white border border-gray-100 rounded-2xl text-left hover:border-merkez-blue hover:shadow-lg transition-all active:scale-95 flex flex-col shadow-sm"
+                              className="group p-4 bg-white border border-gray-100 rounded-lg text-left hover:border-merkez-blue hover:shadow-lg transition-all active:scale-95 flex flex-col shadow-sm"
                             >
                               <div className="flex-1 mb-3">
                                 <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">{product.category}</p>
@@ -1204,7 +1204,7 @@ const FloorPlan = () => {
                       {/* Drawer Header */}
                       <div className="px-6 py-2 flex items-center justify-between bg-white border-b border-gray-50 sticky top-0 z-10 rounded-t-[32px]">
                         <div className="flex items-center gap-3">
-                           <div className="bg-merkez-blue text-white p-2 rounded-xl shadow-lg cursor-pointer" onClick={() => setIsCartMinimized(!isCartMinimized)}>
+                           <div className="bg-merkez-blue text-white p-2 rounded-lg shadow-lg cursor-pointer" onClick={() => setIsCartMinimized(!isCartMinimized)}>
                              <ShoppingCart className="w-5 h-5" />
                            </div>
                            <div>
@@ -1227,14 +1227,14 @@ const FloorPlan = () => {
                             <div className="flex gap-2">
                               <button 
                                 onClick={() => setIsCartMinimized(!isCartMinimized)}
-                                className="p-3 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all font-black text-xs uppercase"
+                                className="p-3 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all font-black text-xs uppercase"
                               >
                                 {isCartMinimized ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                               </button>
                               <button 
                                 onClick={() => authenticatedAction(handleSendToKitchen, t('restaurant.sendToKitchen'))}
                                 disabled={isProcessing}
-                                className="bg-merkez-blue text-white px-6 py-3 rounded-2xl font-black text-sm flex items-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+                                className="bg-merkez-blue text-white px-6 py-3 rounded-lg font-black text-sm flex items-center shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
                               >
                                 {isProcessing ? t('common.loading') : t('restaurant.sendToKitchen')} 
                                 <ArrowRight className="ml-2 w-4 h-4" />
@@ -1254,14 +1254,14 @@ const FloorPlan = () => {
                                     <h4 className="text-lg font-black text-gray-900 leading-none mb-1">{item.name}</h4>
                                     <p className="text-sm font-bold text-merkez-blue opacity-70">${(item.price * item.quantity).toFixed(2)}</p>
                                   </div>
-                                  <div className="flex items-center space-x-4 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
-                                     <button onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-xl flex items-center justify-center text-merkez-blue hover:bg-gray-50"><Minus className="w-4 h-4" /></button>
+                                  <div className="flex items-center space-x-4 bg-white p-1 rounded-lg border border-gray-100 shadow-sm">
+                                     <button onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-merkez-blue hover:bg-gray-50"><Minus className="w-4 h-4" /></button>
                                      <span className="text-lg font-black text-merkez-blue w-4 text-center">{item.quantity}</span>
-                                     <button onClick={() => addToCart(item)} className="w-8 h-8 rounded-xl bg-merkez-blue text-white grid place-items-center p-0 hover:bg-blue-700 transition-all"><Plus className="w-5 h-5" /></button>
+                                     <button onClick={() => addToCart(item)} className="w-8 h-8 rounded-lg bg-merkez-blue text-white grid place-items-center p-0 hover:bg-blue-700 transition-all"><Plus className="w-5 h-5" /></button>
                                   </div>
                                 </div>
                                 
-                                <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 focus-within:border-merkez-blue/30 transition-all shadow-inner">
+                                <div className="bg-white p-4 rounded-lg border-2 border-gray-100 focus-within:border-merkez-blue/30 transition-all shadow-inner">
                                   <div className="flex items-center gap-2 mb-3">
                                     <div className="p-1.5 bg-amber-50 rounded-lg">
                                        <ChefHat className="w-4 h-4 text-amber-600" />
@@ -1301,7 +1301,7 @@ const FloorPlan = () => {
        {modalConfig.isOpen && (
          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}></div>
-           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col items-center">
+           <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 animate-in zoom-in-95 duration-200 border border-gray-100 flex flex-col items-center">
              <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 shadow-sm border ${
                modalConfig.type === 'success' ? 'bg-green-50 text-merkez-green border-green-100' :
                modalConfig.type === 'error' ? 'bg-red-50 text-red-500 border-red-100' :
@@ -1319,7 +1319,7 @@ const FloorPlan = () => {
                  <>
                    <button 
                      onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
-                     className="flex-1 px-6 py-4 rounded-2xl bg-gray-50 text-gray-500 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95 border border-gray-100"
+                     className="flex-1 px-6 py-4 rounded-lg bg-gray-50 text-gray-500 text-sm font-black uppercase tracking-widest hover:bg-gray-100 transition-all active:scale-95 border border-gray-100"
                    >
                      {t('common.cancel')}
                    </button>
@@ -1328,7 +1328,7 @@ const FloorPlan = () => {
                         setModalConfig(prev => ({ ...prev, isOpen: false }));
                         if (modalConfig.onConfirm) modalConfig.onConfirm();
                      }}
-                     className="flex-[1.5] px-6 py-4 rounded-2xl bg-merkez-blue text-white text-sm font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
+                     className="flex-[1.5] px-6 py-4 rounded-lg bg-merkez-blue text-white text-sm font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
                    >
                      {t('common.confirm')}
                    </button>
@@ -1336,7 +1336,7 @@ const FloorPlan = () => {
                ) : (
                  <button 
                    onClick={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
-                   className="w-full px-6 py-4 rounded-2xl bg-merkez-blue text-white text-sm font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
+                   className="w-full px-6 py-4 rounded-lg bg-merkez-blue text-white text-sm font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
                  >
                    OK
                  </button>

@@ -318,7 +318,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
       <div className="p-8 border-b border-gray-100 flex flex-col lg:flex-row items-start lg:items-center justify-between bg-gray-50/50 backdrop-blur-xl z-[100] gap-6">
         <div className="flex items-center gap-6">
           <div 
-            className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5 cursor-pointer hover:bg-blue-500/20 transition-all"
+            className="w-14 h-14 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-lg shadow-blue-500/5 cursor-pointer hover:bg-blue-500/20 transition-all"
             onClick={() => setShowCalendar(!showCalendar)}
           >
             <CalendarIcon className="w-7 h-7 text-blue-400" />
@@ -331,7 +331,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               {currentDate.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric', day: 'numeric' })}
             </h2>
             <div className="flex items-center gap-4 mt-1">
-              <div className="flex bg-gray-100 rounded-xl p-1 border border-gray-200/50">
+              <div className="flex bg-gray-100 rounded-lg p-1 border border-gray-200/50">
                 <button onClick={() => changeDate(-1)} className="p-1.5 hover:bg-white rounded-lg transition-all text-gray-400 hover:text-gray-900 shadow-sm"><ChevronLeft className="w-4 h-4" /></button>
                 {currentDate.toDateString() === new Date().toDateString() ? (
                   <span className="px-4 text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center">{t('dental.today')}</span>
@@ -345,7 +345,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               <div className="relative">
                 <button 
                   onClick={() => setShowDoctorDropdown(!showDoctorDropdown)}
-                  className="flex items-center gap-3 bg-gray-100/80 hover:bg-white hover:shadow-md border border-gray-200/50 rounded-xl px-4 py-2 transition-all group"
+                  className="flex items-center gap-3 bg-gray-100/80 hover:bg-white hover:shadow-md border border-gray-200/50 rounded-lg px-4 py-2 transition-all group"
                 >
                   <div className="flex items-center gap-2 pr-3 border-r border-gray-200/50">
                     <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-500 transition-colors" />
@@ -360,7 +360,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 {showDoctorDropdown && (
                   <>
                     <div className="fixed inset-0 z-[490]" onClick={() => setShowDoctorDropdown(false)} />
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[500] py-2 min-w-[200px] animate-in zoom-in-95 fade-in duration-200 origin-top">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl border border-gray-100 z-[500] py-2 min-w-[200px] animate-in zoom-in-95 fade-in duration-200 origin-top">
                       <button
                         onClick={() => {
                           setSelectedDoctorId('all');
@@ -397,7 +397,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
             {/* Calendar Popup */}
             {showCalendar && (
-              <div className="absolute top-full left-0 mt-2 z-[500] bg-white rounded-2xl shadow-2xl border border-gray-200 p-4 w-72 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute top-full left-0 mt-2 z-[500] bg-white rounded-lg shadow-2xl border border-gray-200 p-4 w-72 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="flex items-center justify-between mb-3">
                   <button onClick={() => {
                     const d = new Date(currentDate);
@@ -445,7 +445,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                             setCurrentDate(new Date(year, month, day));
                             setShowCalendar(false);
                           }}
-                          className={`w-8 h-8 rounded-xl text-xs font-bold transition-all ${
+                          className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
                             isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' :
                             isToday ? 'bg-blue-50 text-blue-600 border border-blue-200' :
                             'text-gray-700 hover:bg-gray-100'
@@ -469,7 +469,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             <input 
               type="text" 
               placeholder={t('dental.searchAppointments')}
-              className="w-full bg-gray-100 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+              className="w-full bg-gray-100 border border-gray-200 rounded-lg py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
             />
           </div>
           <button 
@@ -485,7 +485,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
               });
               setShowModal(true);
             }}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-2xl text-sm font-black transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
+            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg text-sm font-black transition-all flex items-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
             <Plus className="w-5 h-5" />
             {t('dental.newAppointment')}
           </button>
@@ -504,7 +504,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             <div className="flex-1 flex min-w-full">
               {doctors.map(doctor => (
                 <div key={doctor.id} className="flex-1 border-r border-gray-100 p-3 flex items-center justify-start gap-3 h-14 bg-white/80 backdrop-blur-md">
-                  <div className={`w-8 h-8 rounded-xl ${doctor.color} flex items-center justify-center text-[10px] font-black text-white shadow-sm shrink-0`}>
+                  <div className={`w-8 h-8 rounded-lg ${doctor.color} flex items-center justify-center text-[10px] font-black text-white shadow-sm shrink-0`}>
                     {doctor.avatar}
                   </div>
                   <div className="flex flex-col items-start justify-center overflow-hidden">
@@ -633,7 +633,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                             setEditData({ name: app.patient, phone: app.phone, notes: app.notes });
                             setIsEditingClient(false);
                           }}
-                          className={`absolute left-1 right-1 rounded-2xl border-2 transition-all hover:shadow-xl hover:brightness-95 cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
+                          className={`absolute left-1 right-1 rounded-lg border-2 transition-all hover:shadow-xl hover:brightness-95 cursor-pointer pointer-events-auto ${cardColor} group/app shadow-sm z-10 overflow-hidden p-4`}
                           style={{ 
                             top: `${top}px`, 
                             height: `${Math.max(height, 60)}px`,
@@ -690,7 +690,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                 e.stopPropagation();
                                 handleDeleteAppointment(app.id);
                               }}
-                              className="absolute right-1 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-xl opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto shadow-sm"
+                              className="absolute right-1 p-2 bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 rounded-lg opacity-0 group-hover/app:opacity-100 transition-all pointer-events-auto shadow-sm"
                               title="Delete"
                             >
                               <X className="w-4 h-4" />
@@ -720,7 +720,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
       {/* Toast Notification */}
       {notification.show && (
         <div className="fixed top-6 right-6 z-[300] animate-in slide-in-from-top-8 fade-in duration-300">
-          <div className={`rounded-2xl shadow-xl border p-4 flex items-center gap-3 ${
+          <div className={`rounded-lg shadow-xl border p-4 flex items-center gap-3 ${
             notification.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'
           }`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
@@ -764,14 +764,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                         });
                         setShowPatientDropdown(true);
                       }} 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-12" 
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pr-12" 
                       placeholder={t('dental.searchExisting')} 
                     />
                     <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                       <ChevronRight className="w-4 h-4 rotate-90" />
                     </div>
                     {showPatientDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl z-[300] max-h-60 overflow-y-auto no-scrollbar py-2 animate-in fade-in zoom-in-95 duration-200">
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-2xl z-[300] max-h-60 overflow-y-auto no-scrollbar py-2 animate-in fade-in zoom-in-95 duration-200">
                         {patientsList
                           .filter(p => p.name.toLowerCase().includes(formData.patient_name.toLowerCase()))
                           .slice(0, 50)
@@ -814,7 +814,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                     type="tel" 
                     value={formData.phone} 
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                     placeholder="+1234 567 890" 
                   />
                 </div>
@@ -834,14 +834,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                   <button 
                     type="button"
                     onClick={() => setShowTimePicker(!showTimePicker)}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all flex items-center justify-between"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all flex items-center justify-between"
                   >
                     <span>{formData.start_time}</span>
                     <Clock className="w-4 h-4 text-gray-400" />
                   </button>
 
                   {showTimePicker && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 z-[1000] p-4 animate-in zoom-in-95 duration-200">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-[1000] p-4 animate-in zoom-in-95 duration-200">
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="space-y-1">
                           <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest text-center mb-2">Hours</p>
@@ -857,7 +857,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                     const mins = formData.start_time.split(':')[1];
                                     setFormData({ ...formData, start_time: `${hourStr}:${mins}` });
                                   }}
-                                  className={`w-full py-2 rounded-xl text-sm font-bold transition-all ${currentHour === hourStr ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
+                                  className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${currentHour === hourStr ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
                                 >
                                   {hourStr}
                                 </button>
@@ -879,7 +879,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                                     setFormData({ ...formData, start_time: `${hour}:${m}` });
                                     setShowTimePicker(false);
                                   }}
-                                  className={`w-full py-2 rounded-xl text-sm font-bold transition-all ${currentMin === m ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
+                                  className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${currentMin === m ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
                                 >
                                   {m}
                                 </button>
@@ -891,7 +891,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                       <button 
                         type="button"
                         onClick={() => setShowTimePicker(false)}
-                        className="w-full py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                        className="w-full py-3 bg-gray-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
                       >
                         {t('common.done') || 'Done'}
                       </button>
@@ -937,12 +937,12 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="e.g. Patient has slight tooth sensitivity..."
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px] resize-none"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[100px] resize-none"
                 />
               </div>
 
               <div className="pt-4 flex gap-3">
-                <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2">
+                <button type="submit" disabled={isSubmitting} className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2">
                   {isSubmitting ? t('dental.saving') : t('dental.bookAppointment')}
                 </button>
               </div>
@@ -957,11 +957,11 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
             <div className="relative h-32 bg-gradient-to-br from-blue-600 to-indigo-700 p-8">
               <button 
                 onClick={() => setSelectedClient(null)}
-                className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all"
+                className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="absolute -bottom-12 left-8 w-24 h-24 rounded-3xl bg-white p-1 shadow-xl">
+              <div className="absolute -bottom-12 left-8 w-24 h-24 rounded-xl bg-white p-1 shadow-xl">
                 <div className="w-full h-full rounded-[1.25rem] bg-blue-50 flex items-center justify-center text-blue-600 font-black text-3xl">
                   {selectedClient.name.charAt(0)}
                 </div>
@@ -989,19 +989,19 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                   {!isEditingClient && (
                     <button 
                       onClick={() => setIsEditingClient(true)}
-                      className="p-3 bg-gray-50 text-gray-400 rounded-2xl hover:bg-blue-50 hover:text-blue-600 transition-all"
+                      className="p-3 bg-gray-50 text-gray-400 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
                     >
                       <Edit2 className="w-5 h-5" />
                     </button>
                   )}
-                  <a href={`tel:${selectedClient.phone}`} className="p-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all">
+                  <a href={`tel:${selectedClient.phone}`} className="p-3 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all">
                     <Phone className="w-5 h-5" />
                   </a>
                 </div>
               </div>
 
               <div className="mt-8 space-y-4">
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.phoneNumber')}</p>
                   {isEditingClient ? (
                     <input 
@@ -1015,7 +1015,7 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                   )}
                 </div>
 
-                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.clinicalNotes')}</p>
                   {isEditingClient ? (
                     <textarea 
@@ -1033,11 +1033,11 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
 
                 {!isEditingClient && (
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.newAppointment')}</p>
                       <p className="text-gray-900 font-bold">{selectedClient.time}</p>
                     </div>
-                    <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                       <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{t('dental.procedure')}</p>
                       <p className="text-gray-900 font-bold truncate">{selectedClient.type}</p>
                     </div>
@@ -1049,14 +1049,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                 <div className="flex gap-4 mt-8">
                   <button 
                     onClick={() => setIsEditingClient(false)}
-                    className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all"
+                    className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-lg font-black text-sm hover:bg-gray-200 transition-all"
                   >
                     {t('dental.cancel')}
                   </button>
                   <button 
                     onClick={handleUpdateClient}
                     disabled={isSubmitting}
-                    className="flex-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
+                    className="flex-2 px-8 py-4 bg-blue-600 text-white rounded-lg font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50"
                   >
                     {isSubmitting ? t('dental.saving') : t('dental.saveChanges')}
                   </button>
@@ -1075,14 +1075,14 @@ const Scheduler = ({ isFullPage, doctors = [], refreshTrigger, onViewChart }) =>
                         showNotification('Patient profile not linked', 'error');
                       }
                     }}
-                    className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3"
+                    className="w-full py-4 bg-blue-600 text-white rounded-lg font-black text-sm hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3"
                   >
                     <Activity className="w-5 h-5" />
                     {t('dental.openMedicalChart')}
                   </button>
                   <button 
                     onClick={() => setSelectedClient(null)}
-                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
+                    className="w-full py-4 bg-gray-900 text-white rounded-lg font-black text-sm hover:bg-gray-800 transition-all shadow-xl shadow-gray-900/10 active:scale-95"
                   >
                     {t('dental.closeProfile')}
                   </button>

@@ -166,7 +166,7 @@ const StaffManager = () => {
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col relative">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 flex flex-col relative">
       
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -205,7 +205,7 @@ const StaffManager = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto overflow-y-auto border border-gray-100 rounded-xl relative" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+      <div className="overflow-x-auto overflow-y-auto border border-gray-100 rounded-lg relative" style={{ maxHeight: 'calc(100vh - 350px)' }}>
         {activeTab === 'list' ? (
         <table className="w-full text-left border-collapse">
           <thead>
@@ -309,7 +309,7 @@ const StaffManager = () => {
             onClick={() => setIsAddModalOpen(false)}
           />
           <div 
-            className="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
+            className="bg-white rounded-none sm:rounded-xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
@@ -431,7 +431,7 @@ const StaffManager = () => {
             onClick={() => setEditingStaff(null)}
           />
           <div 
-            className="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
+            className="bg-white rounded-none sm:rounded-xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
@@ -547,7 +547,7 @@ const StaffManager = () => {
       {isPatternModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-[40px] p-8 w-full max-w-sm flex flex-col items-center">
-                <div className="w-16 h-16 bg-blue-50 text-merkez-blue rounded-2xl flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-blue-50 text-merkez-blue rounded-lg flex items-center justify-center mb-6">
                     <Lock className="w-8 h-8" />
                 </div>
                 <h3 className="text-xl font-black text-gray-900 mb-2">{t('restaurant.setStaffPattern')}</h3>
@@ -578,7 +578,7 @@ const StaffManager = () => {
       {confirmDeleteId && createPortal(
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeleteId(null)}>
           <div 
-            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"
+            className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.removeStaff')}</h3>

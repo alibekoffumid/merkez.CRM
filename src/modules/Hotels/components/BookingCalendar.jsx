@@ -140,7 +140,7 @@ const BookingCalendar = () => {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-white rounded-3xl border border-gray-100 shadow-sm" style={{ minHeight: '400px' }}>
+      <div className="flex h-full items-center justify-center bg-white rounded-xl border border-gray-100 shadow-sm" style={{ minHeight: '400px' }}>
         <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
       </div>
     );
@@ -155,12 +155,12 @@ const BookingCalendar = () => {
 
   return (
     <>
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 h-full flex-1 min-h-[500px]">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300 h-full flex-1 min-h-[500px]">
       {/* Панель управления календарем */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white flex-shrink-0">
          <div className="flex items-center space-x-4">
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100">
+            <div className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-100">
               <button 
                 onClick={() => setViewMode('week')} 
                 className={`p-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold px-3 ${
@@ -184,7 +184,7 @@ const BookingCalendar = () => {
             {/* Time Format Toggle */}
             <button 
               onClick={() => setIs24Hour(!is24Hour)}
-              className={`p-2 px-3 rounded-xl text-xs font-black transition-all border ${
+              className={`p-2 px-3 rounded-lg text-xs font-black transition-all border ${
                 is24Hour ? 'bg-gray-50 text-gray-400 border-gray-100' : 'bg-pink-50 text-pink-600 border-pink-100 shadow-sm'
               }`}
             >
@@ -192,7 +192,7 @@ const BookingCalendar = () => {
             </button>
 
             {/* Date Navigation */}
-            <div ref={calendarRef} className="flex items-center bg-gray-50 rounded-xl p-1 border border-gray-100 relative">
+            <div ref={calendarRef} className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-100 relative">
               <button onClick={navigateBack} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-gray-500 hover:text-gray-900">
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -211,7 +211,7 @@ const BookingCalendar = () => {
 
               {/* Calendar Popup */}
               {isCalendarOpen && (
-                <div className="absolute top-full mt-2 left-0 bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 origin-top">
+                <div className="absolute top-full mt-2 left-0 bg-white rounded-xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 origin-top">
                   {(() => {
                     const viewDate = startDate;
                     const year = viewDate.getFullYear();
@@ -233,7 +233,7 @@ const BookingCalendar = () => {
                             setStartDate(date);
                             setIsCalendarOpen(false);
                           }}
-                          className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
+                          className={`w-9 h-9 rounded-lg text-xs font-bold transition-all ${
                             isSelected ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/30' :
                             isToday ? 'bg-pink-50 text-pink-600 border border-pink-200' :
                             'text-gray-700 hover:bg-gray-100'
@@ -246,13 +246,13 @@ const BookingCalendar = () => {
                     return (
                       <>
                         <div className="flex items-center justify-between mb-6">
-                          <button type="button" onClick={() => setStartDate(subDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                          <button type="button" onClick={() => setStartDate(subDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                             <ChevronLeft className="w-5 h-5" />
                           </button>
                           <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
                             {formatMonthYear(startDate)}
                           </span>
-                          <button type="button" onClick={() => setStartDate(addDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                          <button type="button" onClick={() => setStartDate(addDays(startDate, 30))} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                             <ChevronRight className="w-5 h-5" />
                           </button>
                         </div>
@@ -272,7 +272,7 @@ const BookingCalendar = () => {
             </div>
             <button 
               onClick={() => setStartDate(new Date())}
-              className="text-xs font-bold text-gray-500 hover:text-pink-600 transition-colors uppercase tracking-wider bg-gray-50 hover:bg-pink-50 px-3 py-2 rounded-xl"
+              className="text-xs font-bold text-gray-500 hover:text-pink-600 transition-colors uppercase tracking-wider bg-gray-50 hover:bg-pink-50 px-3 py-2 rounded-lg"
             >
               {t('hotels.today') || 'Today'}
             </button>
@@ -378,7 +378,7 @@ const BookingCalendar = () => {
 
                        {/* Guest Tooltip */}
                        {hoveredDate && isSameDay(d, hoveredDate) && (
-                         <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-64 z-[100] animate-in fade-in zoom-in-95 duration-200">
+                         <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-2xl border border-gray-100 p-4 w-64 z-[100] animate-in fade-in zoom-in-95 duration-200">
                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 border-b border-gray-50 pb-2 flex items-center justify-between">
                              <span>{format(d, 'd')} {t(`common.months.${format(d, 'MMMM').toLowerCase()}`)}</span>
                              <span className="text-pink-600">{bookings.filter(b => isBookingOnDay(b, d)).length} {t('hotels.guests')}</span>
@@ -388,7 +388,7 @@ const BookingCalendar = () => {
                                <div className="text-xs text-gray-400 italic py-2">{t('hotels.noBookings') || 'No bookings'}</div>
                              ) : (
                                bookings.filter(b => isBookingOnDay(b, d)).map(b => (
-                                 <div key={b.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors cursor-default group">
+                                 <div key={b.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors cursor-default group">
                                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
                                    <div className="flex-1 min-w-0">
                                      <div className="text-xs font-bold text-gray-900 truncate">{b.guest_name}</div>
@@ -459,7 +459,7 @@ const BookingCalendar = () => {
                               setSelectedBooking(booking);
                             }}
                             className={`absolute top-2.5 h-14 shadow-md border border-white/30 flex flex-col justify-center px-3 cursor-pointer hover:shadow-xl hover:z-[20] transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
-                              ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-2xl'}
+                              ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-lg'}
                             `}
                             style={{ 
                               left: `${left + 4}px`,
@@ -564,7 +564,7 @@ const BookingCalendar = () => {
                                setSelectedBooking(booking);
                              }}
                              className={`absolute top-2.5 h-14 shadow-md border border-white/30 flex flex-col justify-center px-3 cursor-pointer hover:shadow-xl hover:z-[20] transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden
-                               ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-2xl'}
+                               ${isCutLeft ? 'rounded-r-2xl border-l-0' : isCutRight ? 'rounded-l-2xl border-r-0' : 'rounded-lg'}
                              `}
                              style={{ 
                                left: `${left + (isCutLeft ? 0 : 4)}px`,

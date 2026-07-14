@@ -74,7 +74,7 @@ const TableSettings = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col">
       <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div>
            <h2 className="text-lg font-bold text-gray-900">{t('restaurant.tableConfig')}</h2>
@@ -152,7 +152,7 @@ const TableSettings = () => {
             onClick={() => setIsModalOpen(false)}
           />
           <div 
-            className="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
+            className="bg-white rounded-none sm:rounded-xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
@@ -197,7 +197,7 @@ const TableSettings = () => {
                     />
                  </div>
               </div>
-              <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl space-y-4 shadow-sm">
+              <div className="p-4 bg-gray-50 border border-gray-100 rounded-lg space-y-4 shadow-sm">
                  <div className="flex items-center">
                     <input 
                       type="checkbox" 
@@ -242,7 +242,7 @@ const TableSettings = () => {
             onClick={() => setEditingTable(null)}
           />
           <div 
-            className="bg-white rounded-none sm:rounded-3xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
+            className="bg-white rounded-none sm:rounded-xl shadow-2xl w-full max-w-md h-full sm:h-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50">
@@ -286,7 +286,7 @@ const TableSettings = () => {
                     />
                  </div>
               </div>
-              <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl space-y-4 shadow-sm">
+              <div className="p-4 bg-gray-50 border border-gray-100 rounded-lg space-y-4 shadow-sm">
                  <div className="flex items-center">
                     <input 
                       type="checkbox" 
@@ -327,7 +327,7 @@ const TableSettings = () => {
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setConfirmDeleteId(null)}>
           <div 
-            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"
+            className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200 shadow-2xl border border-gray-100"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold text-gray-900 mb-2">{t('restaurant.deletePlace')}</h3>

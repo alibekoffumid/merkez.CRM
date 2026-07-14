@@ -75,7 +75,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             to={item.path}
             onClick={onCloseMobile}
             className={({ isActive }) =>
-              `flex items-center px-2.5 py-2 rounded-xl transition-all duration-200 ${
+              `flex items-center px-2.5 py-2 rounded-lg transition-all duration-200 ${
                 isActive 
                   ? `${item.activeText} font-bold` 
                   : `text-gray-500 hover:text-gray-800 ${item.color}`
@@ -85,7 +85,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             {({ isActive }) => (
               <>
                 <div className="relative shrink-0">
-                  <div className={`p-2 rounded-xl mr-3 transition-all duration-200 ${
+                  <div className={`p-2 rounded-lg mr-3 transition-all duration-200 ${
                     isActive 
                       ? `${item.activeBg} text-white shadow-lg ${item.activeShadow}` 
                       : 'text-gray-400 group-hover:text-gray-600'
@@ -121,7 +121,7 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
       {/* Language Switcher for Mobile */}
       <div className="lg:hidden p-4 border-t border-gray-50 space-y-3">
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4">Language</p>
-        <div className="flex bg-gray-50 rounded-xl p-1 border border-gray-100 mx-2">
+        <div className="flex bg-gray-50 rounded-lg p-1 border border-gray-100 mx-2">
           {['en', 'ru', 'az'].map((lang) => (
             <button
               key={lang}
@@ -142,9 +142,9 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
         <NavLink
           to="/modules"
           onClick={onCloseMobile}
-          className="flex items-center px-2.5 py-2 text-gray-600 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
+          className="flex items-center px-2.5 py-2 text-gray-600 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors duration-200"
         >
-          <div className="p-2 mr-3 shrink-0 rounded-xl transition-colors">
+          <div className="p-2 mr-3 shrink-0 rounded-lg transition-colors">
             <LayoutGrid className="w-5 h-5" />
           </div>
           <span className={`
@@ -157,9 +157,9 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
         <NavLink
           to="/settings"
           onClick={onCloseMobile}
-          className="flex items-center px-2.5 py-2 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors duration-200"
+          className="flex items-center px-2.5 py-2 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors duration-200"
         >
-          <div className="p-2 mr-3 shrink-0 rounded-xl transition-colors">
+          <div className="p-2 mr-3 shrink-0 rounded-lg transition-colors">
             <Settings className="w-5 h-5" />
           </div>
           <span className={`
@@ -174,9 +174,9 @@ const Sidebar = ({ onHoverChange, isMobileOpen, onCloseMobile }) => {
             onCloseMobile();
             supabase.auth.signOut();
           }}
-          className="w-full flex items-center px-2.5 py-2 text-gray-600 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2"
+          className="w-full flex items-center px-2.5 py-2 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors duration-200 mt-2"
         >
-          <div className="p-2 mr-3 shrink-0 rounded-xl transition-colors">
+          <div className="p-2 mr-3 shrink-0 rounded-lg transition-colors">
             <LogOut className="w-5 h-5" />
           </div>
           <span className={`

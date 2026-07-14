@@ -32,12 +32,12 @@ const XRayGallery = ({ patientId }) => {
     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
             <Image className="w-5 h-5 text-blue-600" />
           </div>
           <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em]">Diagnostic Imagery & X-Rays</h3>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-95">
+        <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg shadow-blue-600/20 transition-all active:scale-95">
           <Plus className="w-4 h-4" />
           Upload New
         </button>
@@ -50,7 +50,7 @@ const XRayGallery = ({ patientId }) => {
           </div>
         ) : xrays.length > 0 ? (
           xrays.map((img) => (
-            <div key={img.id} className="group relative rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500">
+            <div key={img.id} className="group relative rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500">
               <img 
                 src={img.image_url || 'https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop'} 
                 alt={img.type} 
@@ -68,7 +68,7 @@ const XRayGallery = ({ patientId }) => {
                 </div>
               </div>
 
-              <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/40">
+              <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/40">
                 <Maximize2 className="w-5 h-5" />
               </button>
             </div>
@@ -79,7 +79,7 @@ const XRayGallery = ({ patientId }) => {
           </div>
         )}
         
-        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl p-8 hover:bg-gray-50/50 transition-colors cursor-pointer group">
+        <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-xl p-8 hover:bg-gray-50/50 transition-colors cursor-pointer group">
           <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Plus className="w-6 h-6 text-gray-300" />
           </div>

@@ -58,7 +58,7 @@ const ModulesShowcaseMockup = () => {
           <div 
             key={mod.id}
             className={`
-              relative aspect-square rounded-3xl ${mod.bg} ${mod.border} border backdrop-blur-xl 
+              relative aspect-square rounded-xl ${mod.bg} ${mod.border} border backdrop-blur-xl 
               flex flex-col items-center justify-center gap-3 md:gap-5 transition-all duration-500
               hover:scale-105 cursor-pointer ${mod.shadow} animate-float-gentle
             `}
@@ -67,7 +67,7 @@ const ModulesShowcaseMockup = () => {
             {/* Top Shine */}
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-50"></div>
             
-            <div className={`p-5 md:p-6 rounded-2xl ${mod.color}`}>
+            <div className={`p-5 md:p-6 rounded-lg ${mod.color}`}>
               <mod.icon className="w-10 h-10 md:w-14 md:h-14" strokeWidth={1.5} />
             </div>
             

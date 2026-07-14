@@ -169,7 +169,7 @@ const Auth = () => {
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-gray-200/50 p-12 text-center animate-in fade-in zoom-in duration-500">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-xl shadow-gray-200/50 p-12 text-center animate-in fade-in zoom-in duration-500">
           <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-merkez-green" />
           </div>
@@ -188,7 +188,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] relative">
-      <div className="absolute top-6 right-6 flex items-center gap-2 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-gray-100 z-10">
+      <div className="absolute top-6 right-6 flex items-center gap-2 bg-white/80 backdrop-blur-md p-1.5 rounded-lg shadow-sm border border-gray-100 z-10">
         {[
           { code: 'ru', label: 'RU' },
           { code: 'en', label: 'EN' },
@@ -198,7 +198,7 @@ const Auth = () => {
             key={lang.code}
             type="button"
             onClick={() => i18n.changeLanguage(lang.code)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
               i18n.language === lang.code 
                 ? 'bg-merkez-blue text-white shadow-md shadow-blue-500/20' 
                 : 'text-gray-500 hover:bg-gray-100'
@@ -209,7 +209,7 @@ const Auth = () => {
         ))}
       </div>
 
-      <div className="max-w-4xl w-full bg-white rounded-3xl shadow-2xl shadow-gray-200/60 p-8 md:p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
+      <div className="max-w-4xl w-full bg-white rounded-xl shadow-2xl shadow-gray-200/60 p-8 md:p-10 border border-gray-100 animate-in fade-in zoom-in duration-500">
         <div className="flex flex-col md:flex-row gap-10 items-stretch">
           
           {/* Left Side: Brand & Social */}
@@ -228,7 +228,7 @@ const Auth = () => {
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full max-w-[240px] mx-auto flex items-center justify-center space-x-3 py-4 bg-white border border-gray-200 rounded-2xl text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.98] shadow-sm mb-4"
+              className="w-full max-w-[240px] mx-auto flex items-center justify-center space-x-3 py-4 bg-white border border-gray-200 rounded-lg text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.98] shadow-sm mb-4"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -262,7 +262,7 @@ const Auth = () => {
           {/* Right Side: Email Auth */}
           <div className="flex-[1.2] pt-2">
             {error && (
-              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-100 flex items-start animate-in fade-in slide-in-from-top-2">
+              <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-lg text-xs font-bold border border-red-100 flex items-start animate-in fade-in slide-in-from-top-2">
                  <div className="mr-3">⚠️</div>
                  {error}
               </div>
@@ -277,7 +277,7 @@ const Auth = () => {
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                         <Building className="w-4 h-4" />
                       </div>
-                      <input required name="businessName" value={formData.businessName} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-2xl text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="Restaurant Name" />
+                      <input required name="businessName" value={formData.businessName} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-lg text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="Restaurant Name" />
                     </div>
                   </div>
 
@@ -287,7 +287,7 @@ const Auth = () => {
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                         <User className="w-4 h-4" />
                       </div>
-                      <input required name="fullName" value={formData.fullName} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-2xl text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="John Doe" />
+                      <input required name="fullName" value={formData.fullName} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-lg text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-100/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="John Doe" />
                     </div>
                   </div>
                 </>
@@ -299,7 +299,7 @@ const Auth = () => {
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                     <Mail className="w-4 h-4" />
                   </div>
-                  <input required type="email" name="email" value={formData.email} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-2xl text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-50/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="name@work.com" />
+                  <input required type="email" name="email" value={formData.email} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-lg text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-50/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="name@work.com" />
                 </div>
               </div>
 
@@ -309,7 +309,7 @@ const Auth = () => {
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                     <Lock className="w-4 h-4" />
                   </div>
-                  <input required type="password" name="password" value={formData.password} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-2xl text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-50/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="••••••••" />
+                  <input required type="password" name="password" value={formData.password} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-lg text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-50/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="••••••••" />
                 </div>
               </div>
 
@@ -320,7 +320,7 @@ const Auth = () => {
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400 group-focus-within:text-merkez-blue transition-colors">
                       <Lock className="w-4 h-4" />
                     </div>
-                    <input required type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-2xl text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-50/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="••••••••" />
+                    <input required type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="block w-full pl-10 pr-3 py-3.5 bg-gray-50/50 border border-transparent rounded-lg text-sm text-gray-900 focus:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-blue-50/50 outline-none transition-all placeholder:text-gray-300 font-medium" placeholder="••••••••" />
                   </div>
                 </div>
               )}
@@ -329,7 +329,7 @@ const Auth = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-merkez-blue text-white py-4 rounded-2xl font-bold text-sm hover:bg-blue-600 active:scale-[0.98] transition-all flex items-center justify-center group shadow-xl shadow-blue-100"
+                  className="w-full bg-merkez-blue text-white py-4 rounded-lg font-bold text-sm hover:bg-blue-600 active:scale-[0.98] transition-all flex items-center justify-center group shadow-xl shadow-blue-100"
                 >
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

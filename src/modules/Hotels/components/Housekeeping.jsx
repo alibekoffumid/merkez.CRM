@@ -95,7 +95,7 @@ const Housekeeping = () => {
       {/* Stats Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center">
+          <div className="w-14 h-14 bg-gray-50 rounded-lg flex items-center justify-center">
             <Sparkles className="w-6 h-6 text-gray-400" />
           </div>
           <div>
@@ -104,7 +104,7 @@ const Housekeeping = () => {
           </div>
         </div>
         <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center">
+          <div className="w-14 h-14 bg-red-50 rounded-lg flex items-center justify-center">
             <AlertCircle className="w-6 h-6 text-red-500" />
           </div>
           <div>
@@ -113,7 +113,7 @@ const Housekeeping = () => {
           </div>
         </div>
         <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
+          <div className="w-14 h-14 bg-blue-50 rounded-lg flex items-center justify-center">
             <Clock className="w-6 h-6 text-blue-500" />
           </div>
           <div>
@@ -122,7 +122,7 @@ const Housekeeping = () => {
           </div>
         </div>
         <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center">
+          <div className="w-14 h-14 bg-green-50 rounded-lg flex items-center justify-center">
             <CheckCircle2 className="w-6 h-6 text-green-500" />
           </div>
           <div>
@@ -141,7 +141,7 @@ const Housekeeping = () => {
             placeholder={t('common.search') || 'Find room...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 outline-none transition-all text-sm font-bold"
+            className="w-full pl-11 pr-4 py-3 bg-gray-50 rounded-lg border border-gray-100 focus:border-pink-500 outline-none transition-all text-sm font-bold"
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -149,7 +149,7 @@ const Housekeeping = () => {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+              className={`px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                 filter === f 
                   ? 'bg-gray-900 text-white shadow-lg' 
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
@@ -170,7 +170,7 @@ const Housekeeping = () => {
               <div className="p-8 flex-1">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 ${config.bg} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
+                    <div className={`w-14 h-14 ${config.bg} rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 duration-500`}>
                       <config.icon className={`w-7 h-7 ${config.color}`} />
                     </div>
                     <div>
@@ -193,7 +193,7 @@ const Housekeeping = () => {
                     </span>
                   </div>
                   {room.housekeeping_note && (
-                    <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-2xl text-orange-700">
+                    <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-lg text-orange-700">
                       <MessageSquare className="w-4 h-4 mt-0.5" />
                       <p className="text-xs font-bold">{room.housekeeping_note}</p>
                     </div>
@@ -205,7 +205,7 @@ const Housekeeping = () => {
                 {room.status !== 'clean' && (
                   <button 
                     onClick={() => updateStatus(room.id, 'clean')}
-                    className="flex-1 py-3.5 bg-green-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-green-500 shadow-lg shadow-green-600/10 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3.5 bg-green-600 text-white rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-green-500 shadow-lg shadow-green-600/10 transition-all flex items-center justify-center gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     {t('hotels.markAsClean')}
@@ -214,7 +214,7 @@ const Housekeeping = () => {
                 {room.status === 'dirty' && (
                   <button 
                     onClick={() => updateStatus(room.id, 'in_progress')}
-                    className="flex-1 py-3.5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-500 shadow-lg shadow-blue-600/10 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3.5 bg-blue-600 text-white rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-blue-500 shadow-lg shadow-blue-600/10 transition-all flex items-center justify-center gap-2"
                   >
                     <Clock className="w-4 h-4" />
                     {t('hotels.markAsInProgress')}
@@ -223,7 +223,7 @@ const Housekeeping = () => {
                 {room.status === 'clean' && (
                   <button 
                     onClick={() => updateStatus(room.id, 'dirty')}
-                    className="flex-1 py-3.5 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-red-500 shadow-lg shadow-red-600/10 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3.5 bg-red-600 text-white rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-red-500 shadow-lg shadow-red-600/10 transition-all flex items-center justify-center gap-2"
                   >
                     <AlertCircle className="w-4 h-4" />
                     {t('hotels.markAsDirty')}

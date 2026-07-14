@@ -161,7 +161,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
 
   if (loading) {
     return (
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 p-12 flex items-center justify-center">
+      <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-100 p-12 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-merkez-blue" />
       </div>
     );
@@ -172,12 +172,12 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
   return (
     <div className="flex-1 space-y-6">
       {/* Sub tabs */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-gray-100/80">
+      <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100/80">
         {false && isRestaurantActive ? (
           <div className="flex gap-2">
             <button
               onClick={() => setReportType('product')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 reportType === 'product'
                   ? 'bg-gray-900 text-white shadow-md'
                   : 'text-gray-500 hover:bg-gray-50'
@@ -187,7 +187,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
             </button>
             <button
               onClick={() => setReportType('ingredient')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 reportType === 'ingredient'
                   ? 'bg-gray-900 text-white shadow-md'
                   : 'text-gray-500 hover:bg-gray-50'
@@ -211,8 +211,8 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
       {/* Dashboard Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Cost */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
+          <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
             <DollarSign className="w-6 h-6" />
           </div>
           <div>
@@ -224,8 +224,8 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         {/* Retail */}
         {reportType === 'product' && (
           <>
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center">
                 <TrendingUp className="w-6 h-6" />
               </div>
               <div>
@@ -235,8 +235,8 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
             </div>
 
             {/* Profit */}
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-merkez-blue flex items-center justify-center">
+            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-lg bg-blue-50 text-merkez-blue flex items-center justify-center">
                 <DollarSign className="w-6 h-6" />
               </div>
               <div>
@@ -248,8 +248,8 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         )}
 
         {/* Total Items */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-500 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
+          <div className="w-12 h-12 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center">
             <Package className="w-6 h-6" />
           </div>
           <div>
@@ -259,8 +259,8 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         </div>
 
         {/* Low Stock count */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stats.lowStockItemsCount > 0 ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-green-50 text-green-500'}`}>
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${stats.lowStockItemsCount > 0 ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-green-50 text-green-500'}`}>
             <AlertTriangle className="w-6 h-6" />
           </div>
           <div>
@@ -271,7 +271,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
       </div>
 
       {/* Low Stock Report Section */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-black text-gray-900 tracking-tight">Kritik Hədd Hesabatı</h3>
@@ -286,13 +286,13 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
                 placeholder="Axtar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-merkez-blue bg-gray-50/50 focus:bg-white transition-all w-48"
+                className="pl-9 pr-4 py-2 border border-gray-100 rounded-lg text-xs font-bold outline-none focus:border-merkez-blue bg-gray-50/50 focus:bg-white transition-all w-48"
               />
             </div>
 
             <button
               onClick={exportPurchaseOrder}
-              className="px-4 py-2 bg-merkez-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-2 shadow-md shadow-blue-600/10"
+              className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-2 shadow-md shadow-blue-600/10"
             >
               <Copy className="w-3.5 h-3.5" />
               Sifariş Siyahısı

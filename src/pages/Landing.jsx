@@ -108,7 +108,7 @@ const Landing = () => {
                   </a>
                   <a 
                     href={getAppUrl('/auth')} 
-                    className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
+                    className="bg-blue-500 text-white px-6 py-2.5 rounded-lg font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
                   >
                     {t('landing.hero.cta.start', 'Начать')}
                   </a>
@@ -116,7 +116,7 @@ const Landing = () => {
               ) : (
                 <a 
                   href={getAppUrl(needsOnboarding ? '/modules' : '/dashboard')} 
-                  className="bg-blue-500 text-white px-6 py-2.5 rounded-xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
+                  className="bg-blue-500 text-white px-6 py-2.5 rounded-lg font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-600 hover:-translate-y-0.5 active:scale-95 transition-all"
                 >
                   Dashboard
                 </a>
@@ -253,9 +253,9 @@ const Landing = () => {
                 })} />
               </div>
               {/* Floating stats card */}
-              <div className="absolute -bottom-10 -left-10 z-20 bg-white p-6 rounded-3xl shadow-2xl border border-gray-50 hidden sm:block animate-float hover:scale-105 transition-transform cursor-pointer shadow-blue-900/5">
+              <div className="absolute -bottom-10 -left-10 z-20 bg-white p-6 rounded-xl shadow-2xl border border-gray-50 hidden sm:block animate-float hover:scale-105 transition-transform cursor-pointer shadow-blue-900/5">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl ${activeWidget.color} flex items-center justify-center text-white transition-colors duration-300`}>
+                  <div className={`w-12 h-12 rounded-lg ${activeWidget.color} flex items-center justify-center text-white transition-colors duration-300`}>
                     <activeWidget.icon className={`w-6 h-6 ${activeWidget.icon === Zap ? 'fill-white' : ''}`} />
                   </div>
                   <div>
@@ -288,9 +288,9 @@ const Landing = () => {
             {modules.map((module) => (
               <div 
                 key={module.id}
-                className="bg-white p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-100/50 transition-all group cursor-default"
+                className="bg-white p-4 md:p-8 rounded-lg md:rounded-[2rem] border border-gray-100 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-100/50 transition-all group cursor-default"
               >
-                <div className={`relative w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl mb-4 md:mb-8 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 ${
+                <div className={`relative w-12 h-12 md:w-16 md:h-16 rounded-lg md:rounded-lg mb-4 md:mb-8 flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 ${
                   module.color === 'blue' ? 'text-blue-500' :
                   module.color === 'green' ? 'text-green-500' :
                   module.color === 'yellow' ? 'text-amber-500' :
@@ -303,7 +303,7 @@ const Landing = () => {
                   'text-gray-500'
                 }`}>
                   {/* Glowing background blur */}
-                  <div className={`absolute inset-0 rounded-xl md:rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-md ${
+                  <div className={`absolute inset-0 rounded-lg md:rounded-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500 blur-md ${
                     module.color === 'blue' ? 'bg-blue-500' :
                     module.color === 'green' ? 'bg-green-500' :
                     module.color === 'yellow' ? 'bg-amber-500' :
@@ -317,7 +317,7 @@ const Landing = () => {
                   }`}></div>
                   
                   {/* Glassy border and surface */}
-                  <div className={`absolute inset-0 rounded-xl md:rounded-2xl border bg-white/60 backdrop-blur-xl transition-all duration-500 overflow-hidden ${
+                  <div className={`absolute inset-0 rounded-lg md:rounded-lg border bg-white/60 backdrop-blur-xl transition-all duration-500 overflow-hidden ${
                     module.color === 'blue' ? 'border-blue-500/20 group-hover:border-blue-500/50 shadow-[0_8px_30px_rgba(59,130,246,0.12)] group-hover:shadow-[0_8px_30px_rgba(59,130,246,0.25)]' :
                     module.color === 'green' ? 'border-green-500/20 group-hover:border-green-500/50 shadow-[0_8px_30px_rgba(34,197,94,0.12)] group-hover:shadow-[0_8px_30px_rgba(34,197,94,0.25)]' :
                     module.color === 'yellow' ? 'border-amber-500/20 group-hover:border-amber-500/50 shadow-[0_8px_30px_rgba(245,158,11,0.12)] group-hover:shadow-[0_8px_30px_rgba(245,158,11,0.25)]' :
@@ -372,7 +372,7 @@ const Landing = () => {
                   { id: 'mobile', icon: Smartphone, color: 'orange' },
                 ].map((item) => (
                   <div key={item.id} className="flex gap-6">
-                    <div className="w-14 h-14 shrink-0 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-900">
+                    <div className="w-14 h-14 shrink-0 rounded-lg bg-gray-50 flex items-center justify-center text-gray-900">
                       <item.icon className="w-6 h-6" />
                     </div>
                     <div className="animate-text-flip" style={{ animationDelay: `${0.2 + (['modular', 'multilingual', 'mobile'].indexOf(item.id) * 0.1)}s` }}>
@@ -411,7 +411,7 @@ const Landing = () => {
                   0{step.num}
                 </div>
                 <div className="relative z-10 pt-10" key={i18n.language}>
-                  <div className={`mb-6 w-16 h-16 rounded-2xl ${step.bg} ${step.border} border flex items-center justify-center shadow-lg transition-transform group-hover:-translate-y-2 group-hover:scale-110 duration-300`}>
+                  <div className={`mb-6 w-16 h-16 rounded-lg ${step.bg} ${step.border} border flex items-center justify-center shadow-lg transition-transform group-hover:-translate-y-2 group-hover:scale-110 duration-300`}>
                     {step.icon}
                   </div>
                   <div className="animate-text-flip" style={{ animationDelay: `${0.1 * step.num}s` }}>

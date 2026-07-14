@@ -133,7 +133,7 @@ const Header = ({ onMenuClick }) => {
             </button>
 
             {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform opacity-100 scale-100 origin-top-right transition-all">
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-100 z-50 overflow-hidden transform opacity-100 scale-100 origin-top-right transition-all">
                 <div className="p-4 bg-gradient-to-r from-merkez-blue to-blue-600 text-white flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-blue-100" />
@@ -149,7 +149,7 @@ const Header = ({ onMenuClick }) => {
                   ) : (
                     <>
                       {/* Sales Summary */}
-                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
                         <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
                           <ShoppingCart className="w-4 h-4" />
                         </div>
@@ -161,7 +161,7 @@ const Header = ({ onMenuClick }) => {
 
                       {/* Critical Inventory */}
                       {digestData.lowStockItems.length > 0 ? (
-                        <div className="flex items-start gap-3 bg-red-50 p-3 rounded-xl border border-red-100">
+                        <div className="flex items-start gap-3 bg-red-50 p-3 rounded-lg border border-red-100">
                           <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center text-red-600 shrink-0 mt-1">
                             <AlertTriangle className="w-4 h-4" />
                           </div>
@@ -181,7 +181,7 @@ const Header = ({ onMenuClick }) => {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
                           <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-600 shrink-0">
                             <AlertTriangle className="w-4 h-4" />
                           </div>

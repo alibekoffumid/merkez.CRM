@@ -54,14 +54,14 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
           setIsOpen(!isOpen);
           setSearchTerm('');
         }}
-        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl hover:border-pink-500 hover:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left relative group shadow-sm flex items-center justify-between"
+        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-lg hover:border-pink-500 hover:bg-white focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left relative group shadow-sm flex items-center justify-between"
       >
         <span className="font-black tracking-tight">{selected ? selected.label : placeholder || 'Select...'}</span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div className={`absolute left-0 w-full bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[1000] animate-in zoom-in-95 fade-in duration-200 max-h-[350px] overflow-hidden flex flex-col ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'}`}>
+        <div className={`absolute left-0 w-full bg-white rounded-lg shadow-2xl border border-gray-100 py-3 z-[1000] animate-in zoom-in-95 fade-in duration-200 max-h-[350px] overflow-hidden flex flex-col ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'}`}>
           {/* Search Bar */}
           <div className="px-3 mb-2">
             <div className="relative">
@@ -72,7 +72,7 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
                 placeholder={t('common.search') + '...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-50 rounded-xl text-xs font-bold focus:bg-white focus:border-pink-200 outline-none transition-all"
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-50 rounded-lg text-xs font-bold focus:bg-white focus:border-pink-200 outline-none transition-all"
               />
             </div>
           </div>
@@ -92,7 +92,7 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
                         onChange(opt.value);
                         setIsOpen(false);
                       }}
-                      className={`w-full px-4 py-2.5 text-left text-sm font-bold rounded-xl transition-all flex items-center justify-between ${
+                      className={`w-full px-4 py-2.5 text-left text-sm font-bold rounded-lg transition-all flex items-center justify-between ${
                         value === opt.value 
                           ? 'bg-pink-50 text-pink-600' 
                           : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'
@@ -113,7 +113,7 @@ const CustomSelect = ({ value, onChange, options, label, placeholder, isGrouped 
                     onChange(opt.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full px-4 py-2.5 text-left text-sm font-bold rounded-xl transition-all flex items-center justify-between ${
+                  className={`w-full px-4 py-2.5 text-left text-sm font-bold rounded-lg transition-all flex items-center justify-between ${
                     value === opt.value 
                       ? 'bg-pink-50 text-pink-600' 
                       : 'text-gray-700 hover:bg-gray-50 hover:translate-x-1'

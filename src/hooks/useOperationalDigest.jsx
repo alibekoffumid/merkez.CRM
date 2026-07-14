@@ -54,7 +54,7 @@ export const useOperationalDigest = () => {
           <div
             className={`${
               t.visible ? 'animate-enter' : 'animate-leave'
-            } max-w-md w-full bg-white shadow-2xl rounded-2xl pointer-events-auto flex flex-col ring-1 ring-black ring-opacity-5 overflow-hidden`}
+            } max-w-md w-full bg-white shadow-2xl rounded-lg pointer-events-auto flex flex-col ring-1 ring-black ring-opacity-5 overflow-hidden`}
           >
             <div className="p-5 bg-gradient-to-r from-merkez-blue to-blue-600 text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ export const useOperationalDigest = () => {
             
             <div className="p-5 flex flex-col gap-4">
               {/* Sales Summary */}
-              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
                   <ShoppingCart className="w-5 h-5" />
                 </div>
@@ -78,7 +78,7 @@ export const useOperationalDigest = () => {
 
               {/* Critical Inventory */}
               {lowStockItems.length > 0 ? (
-                <div className="flex items-start gap-4 bg-red-50 p-4 rounded-xl border border-red-100">
+                <div className="flex items-start gap-4 bg-red-50 p-4 rounded-lg border border-red-100">
                   <div className="w-10 h-10 rounded-full bg-red-200 flex items-center justify-center text-red-600 shrink-0">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
@@ -98,7 +98,7 @@ export const useOperationalDigest = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-4 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                <div className="flex items-center gap-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
                   <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-600 shrink-0">
                     <AlertTriangle className="w-5 h-5" />
                   </div>

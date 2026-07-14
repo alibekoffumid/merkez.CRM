@@ -98,14 +98,14 @@ const PublicMenu = () => {
     return (
       <div className="min-h-screen bg-[#0a0a0b] flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white/5 backdrop-blur-3xl p-12 rounded-[3.5rem] shadow-2xl max-w-sm border border-white/10">
-           <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-red-500/20">
+           <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-8 shadow-lg shadow-red-500/20">
               <Info className="w-10 h-10 text-white" />
            </div>
            <h1 className="text-3xl font-black text-white mb-3">Menyu tapılmadı</h1>
            <p className="text-white/50 mb-10 leading-relaxed">Bu link üzrə menyu mövcud deyil və ya silinib.</p>
            <button 
              onClick={() => window.location.href = '/'}
-             className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
+             className="w-full bg-blue-600 text-white py-5 rounded-lg font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
            >
              Ana səhifəyə qayıt
            </button>
@@ -174,7 +174,7 @@ const PublicMenu = () => {
                {loadingIngredients ? (
                  <div className="flex gap-3 overflow-x-auto no-scrollbar py-2">
                     {[1,2,3].map(i => (
-                      <div key={i} className="w-32 h-12 bg-white/5 rounded-2xl animate-pulse" />
+                      <div key={i} className="w-32 h-12 bg-white/5 rounded-lg animate-pulse" />
                     ))}
                  </div>
                ) : (
@@ -210,7 +210,7 @@ const PublicMenu = () => {
          <div className="fixed bottom-10 left-0 right-0 px-8 flex justify-center z-50">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-[2rem] shadow-2xl shadow-blue-600/30 flex items-center gap-4 transition-all active:scale-95">
                <span className="text-xs font-black uppercase tracking-[0.2em]">Ofisiantı çağır</span>
-               <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+               <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                   <ChevronRight className="w-4 h-4" />
                </div>
             </button>
@@ -248,13 +248,13 @@ const PublicMenu = () => {
             <h1 className="text-5xl sm:text-7xl font-black tracking-tighter mb-4 animate-in slide-in-from-bottom duration-700">{business.business_name || 'Restoran'}</h1>
             <div className="flex flex-wrap gap-3 text-sm font-bold">
                {business.address && (
-                 <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                 <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
                    <MapPin className="w-4 h-4 text-blue-500" />
                    <span className="text-white/70">{business.address}</span>
                  </div>
                )}
                {business.phone && (
-                 <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
+                 <div className="flex items-center gap-2 bg-white/5 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
                    <Phone className="w-4 h-4 text-blue-500" />
                    <span className="text-white/70">{business.phone}</span>
                  </div>
@@ -269,7 +269,7 @@ const PublicMenu = () => {
         <div className="max-w-4xl mx-auto px-6 overflow-x-auto no-scrollbar flex items-center gap-2">
            <button
              onClick={() => setActiveCategory('All')}
-             className={`px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap flex items-center gap-2 ${
+             className={`px-8 py-3.5 rounded-lg text-[11px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap flex items-center gap-2 ${
                activeCategory === 'All' 
                ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 scale-105' 
                : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10'
@@ -282,7 +282,7 @@ const PublicMenu = () => {
              <button
                key={cat.id}
                onClick={() => setActiveCategory(cat.name)}
-               className={`px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap ${
+               className={`px-8 py-3.5 rounded-lg text-[11px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap ${
                  activeCategory === cat.name 
                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30 scale-105' 
                  : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10'
@@ -332,7 +332,7 @@ const PublicMenu = () => {
                             <div>
                                <div className="flex justify-between items-start mb-2">
                                  <h4 className="text-[17px] font-black text-white/90 truncate pr-2 group-hover:text-white transition-colors tracking-tight">{product.name}</h4>
-                                 <div className="bg-blue-600/10 px-3 py-1 rounded-xl border border-blue-500/20">
+                                 <div className="bg-blue-600/10 px-3 py-1 rounded-lg border border-blue-500/20">
                                    <span className="text-[15px] font-black text-blue-500 tabular-nums">${parseFloat(product.price).toFixed(2)}</span>
                                  </div>
                                </div>

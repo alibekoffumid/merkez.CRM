@@ -105,7 +105,7 @@ const WaiterAuthOverlay = ({ isOpen, onClose, onSuccess, actionTitle }) => {
         </button>
 
         <div className="mb-8 text-center mt-4">
-            <div className={`w-20 h-20 rounded-3xl mx-auto mb-4 flex items-center justify-center transition-colors duration-500 ${selectedStaff ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-400'}`}>
+            <div className={`w-20 h-20 rounded-xl mx-auto mb-4 flex items-center justify-center transition-colors duration-500 ${selectedStaff ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-400'}`}>
                 {selectedStaff ? <ShieldCheck className="w-10 h-10" /> : <User className="w-10 h-10" />}
             </div>
             <h2 className="text-2xl font-black text-gray-900">{actionTitle || t('restaurant.authorizeAction')}</h2>
@@ -122,7 +122,7 @@ const WaiterAuthOverlay = ({ isOpen, onClose, onSuccess, actionTitle }) => {
               <button 
                 key={person.id}
                 onClick={() => setSelectedStaff(person)}
-                className="flex items-center p-4 bg-gray-50 rounded-2xl hover:bg-merkez-blue/5 border border-transparent hover:border-merkez-blue/20 transition-all text-left"
+                className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-merkez-blue/5 border border-transparent hover:border-merkez-blue/20 transition-all text-left"
               >
                 <div className="w-10 h-10 rounded-full bg-merkez-blue/10 text-merkez-blue flex items-center justify-center font-black mr-3 text-sm">
                   {person.name?.[0]}

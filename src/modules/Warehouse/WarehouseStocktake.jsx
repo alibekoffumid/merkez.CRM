@@ -452,7 +452,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
 
   if (loading && view === 'list') {
     return (
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 p-12 flex items-center justify-center">
+      <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-100 p-12 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-merkez-blue" />
       </div>
     );
@@ -466,9 +466,9 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
       {view === 'list' ? (
         <div className="space-y-6">
           {/* Header Controls */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-3xl shadow-sm border border-gray-100 gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-xl shadow-sm border border-gray-100 gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
                 <ClipboardList className="w-6 h-6" />
               </div>
               <div>
@@ -494,7 +494,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                   <select
                     value={auditType}
                     onChange={(e) => setAuditType(e.target.value)}
-                    className="bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs font-bold text-gray-600 outline-none"
+                    className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-xs font-bold text-gray-600 outline-none"
                   >
                     <option value="product">Məhsullar</option>
                     <option value="ingredient">İnqrediyentlər</option>
@@ -503,7 +503,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
 
                 <button
                   onClick={handleNewStocktake}
-                  className="px-4 py-2 bg-merkez-blue text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
+                  className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
                 >
                   <Plus className="w-4 h-4" />
                   Yeni Audit
@@ -513,7 +513,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
           </div>
 
           {/* List Table */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               {stocktakes.length === 0 ? (
                 <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center gap-3">
@@ -630,11 +630,11 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
         <div className="space-y-6 animate-in fade-in duration-150">
           <div className="flex flex-col xl:flex-row gap-4">
             {/* Header Card */}
-            <div className="flex-1 flex items-center justify-between bg-white px-5 py-4 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex-1 flex items-center justify-between bg-white px-5 py-4 rounded-lg shadow-sm border border-gray-100">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setView('list')}
-                  className="p-2 hover:bg-gray-50 rounded-xl transition-colors text-gray-400 hover:text-gray-700"
+                  className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-400 hover:text-gray-700"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -660,19 +660,19 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
 
             {/* Live stats summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 xl:w-[600px] shrink-0">
-              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Sayılan məhsul çeşidi</p>
                 <h4 className="text-lg font-black text-gray-900 leading-none">{totals.count} / {auditItems.length}</h4>
               </div>
-              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
                 <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">Artıq Qalan</p>
                 <h4 className="text-lg font-black text-green-500 leading-none">₼{totals.surplus.toFixed(2)}</h4>
               </div>
-              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
                 <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Əskik Gələn</p>
                 <h4 className="text-lg font-black text-red-500 leading-none">₼{totals.shortage.toFixed(2)}</h4>
               </div>
-              <div className="bg-white px-5 py-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
                 <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Xalis fərq</p>
                 <h4 className={`text-lg font-black leading-none ${totals.net > 0 ? 'text-green-500' : totals.net < 0 ? 'text-red-500' : 'text-gray-900'}`}>
                   {totals.net > 0 ? '+' : ''}₼{totals.net.toFixed(2)}
@@ -684,7 +684,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
 
 
           {/* Audit Rows Form */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="p-6 border-b border-gray-50 flex flex-col xl:flex-row xl:items-end justify-between gap-6">
               {/* Personnel Selectors */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 flex-1">
@@ -700,7 +700,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                       { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
                       ...staffList.map(s => ({ value: s.id, label: s.name }))
                     ]}
-                    buttonClassName="w-full rounded-xl px-4 py-2 text-xs font-bold min-h-[38px]"
+                    buttonClassName="w-full rounded-lg px-4 py-2 text-xs font-bold min-h-[38px]"
                   />
                 </div>
 
@@ -716,7 +716,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                       { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
                       ...staffList.map(s => ({ value: s.id, label: s.name }))
                     ]}
-                    buttonClassName="w-full rounded-xl px-4 py-2 text-xs font-bold min-h-[38px]"
+                    buttonClassName="w-full rounded-lg px-4 py-2 text-xs font-bold min-h-[38px]"
                   />
                 </div>
 
@@ -732,7 +732,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                       { value: '', label: i18n?.language === 'az' ? 'Seçilməyib...' : 'Не выбрано...' },
                       ...staffList.map(s => ({ value: s.id, label: s.name }))
                     ]}
-                    buttonClassName="w-full rounded-xl px-4 py-2 text-xs font-bold min-h-[38px]"
+                    buttonClassName="w-full rounded-lg px-4 py-2 text-xs font-bold min-h-[38px]"
                   />
                 </div>
               </div>
@@ -776,7 +776,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                       value={barcodeBuffer}
                       onChange={(e) => setBarcodeBuffer(e.target.value)}
                       placeholder="Barkod skan edin..."
-                      className="pl-9 pr-4 py-2 w-full border-2 border-merkez-blue/30 rounded-xl text-xs font-bold outline-none focus:border-merkez-blue bg-blue-50/10 focus:bg-white transition-all min-h-[38px]"
+                      className="pl-9 pr-4 py-2 w-full border-2 border-merkez-blue/30 rounded-lg text-xs font-bold outline-none focus:border-merkez-blue bg-blue-50/10 focus:bg-white transition-all min-h-[38px]"
                       autoFocus
                     />
                   </form>
@@ -788,7 +788,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                       placeholder="Məhsul adı və ya barkoda görə axtar..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 pr-4 py-2 w-full border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-merkez-blue bg-gray-50/50 focus:bg-white transition-all min-h-[38px]"
+                      className="pl-9 pr-4 py-2 w-full border border-gray-100 rounded-lg text-xs font-bold outline-none focus:border-merkez-blue bg-gray-50/50 focus:bg-white transition-all min-h-[38px]"
                     />
                   </div>
                 )}
@@ -830,7 +830,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                               value={item.actual_quantity}
                               onChange={(e) => handleQtyChange(item.item_id, e.target.value)}
                               placeholder="0"
-                              className="w-20 bg-gray-50 border border-gray-100 rounded-xl px-3 py-1.5 text-xs font-black text-center outline-none focus:border-merkez-blue focus:bg-white disabled:opacity-75 disabled:bg-gray-100"
+                              className="w-20 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 text-xs font-black text-center outline-none focus:border-merkez-blue focus:bg-white disabled:opacity-75 disabled:bg-gray-100"
                             />
                           </div>
                         </td>
@@ -864,7 +864,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
           </div>
 
           {/* Notes and Actions */}
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-5">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm space-y-5">
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Audit Qeydləri</label>
               <textarea 
@@ -872,7 +872,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                 disabled={viewModeOnly}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Bu audit haqqında qeydlər daxil edin..."
-                className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-xl focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none font-medium h-20 resize-none shadow-sm disabled:opacity-75"
+                className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none font-medium h-20 resize-none shadow-sm disabled:opacity-75"
               />
             </div>
 
@@ -880,7 +880,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
               <div className="flex flex-col md:flex-row gap-4 pt-2">
                 <button
                   onClick={() => setView('list')}
-                  className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                  className="flex-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
                 >
                   Ləğv et
                 </button>
@@ -888,7 +888,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                 <button
                   onClick={() => handleSave(false)}
                   disabled={submitting}
-                  className="flex-1 py-3.5 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
+                  className="flex-1 py-3.5 bg-gray-900 text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Qaralamanı saxla
@@ -897,7 +897,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                 <button
                   onClick={() => handleSave(true)}
                   disabled={submitting}
-                  className="flex-1 py-3.5 bg-merkez-green text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
+                  className="flex-1 py-3.5 bg-merkez-green text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                   Auditi Tamamla

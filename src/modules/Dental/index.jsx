@@ -225,17 +225,17 @@ const DentalModule = () => {
             <p className="text-gray-500 text-sm mt-1 font-medium">{t('dental.subtitle')}</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center bg-gray-50 rounded-2xl p-1 border border-gray-200 shadow-sm">
+            <div className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-200 shadow-sm">
                <button 
                  onClick={() => setIsFullPage(!isFullPage)}
-                 className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${isFullPage ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:text-gray-900 bg-white border border-gray-100'}`}
+                 className={`w-10 h-10 flex items-center justify-center rounded-lg transition-all ${isFullPage ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:text-gray-900 bg-white border border-gray-100'}`}
                  title={isFullPage ? "Minimize" : "Maximize"}
                >
                  {isFullPage ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
                </button>
                <div className="w-px h-6 bg-gray-200 mx-1" />
                <button className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">{t('dental.exportPdf')}</button>
-               <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-white border border-gray-100 rounded-xl">
+               <button className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 bg-white border border-gray-100 rounded-lg">
                  <Settings className="w-5 h-5" />
                </button>
             </div>
@@ -259,7 +259,7 @@ const DentalModule = () => {
              <div className="bg-white rounded-[2rem] p-8 text-gray-900 shadow-sm border border-gray-100 relative overflow-hidden group">
                <div className="relative z-10">
                  <div className="flex items-center gap-4 mb-4">
-                   <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+                   <div className="w-14 h-14 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
                      <Users className="w-7 h-7 text-white" />
                    </div>
                    <div>
@@ -294,7 +294,7 @@ const DentalModule = () => {
                   <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">{doctors?.length || 0} {t('dental.activeStaff')}</span>
                   <button 
                     onClick={() => setShowAddDoctorModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
                   >
                     <Plus className="w-4 h-4" />
                     <span className="text-xs font-bold">{t('dental.addDoctor')}</span>
@@ -303,8 +303,8 @@ const DentalModule = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(doctors || []).map(doc => (
-                  <div key={doc.id} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:border-blue-200 transition-all group">
-                    <div className={`w-10 h-10 rounded-xl ${doc.color || 'bg-blue-500'} flex items-center justify-center text-xs font-black text-white shadow-sm group-hover:scale-110 transition-transform`}>
+                  <div key={doc.id} className="flex items-center gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:border-blue-200 transition-all group">
+                    <div className={`w-10 h-10 rounded-lg ${doc.color || 'bg-blue-500'} flex items-center justify-center text-xs font-black text-white shadow-sm group-hover:scale-110 transition-transform`}>
                       {doc.avatar || '?'}
                     </div>
                     <div>
@@ -335,7 +335,7 @@ const DentalModule = () => {
                   required
                   type="text" 
                   placeholder="e.g. Dr. Sahil Abbasov"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                   value={newDoctor.name}
                   onChange={(e) => setNewDoctor({...newDoctor, name: e.target.value})}
                 />
@@ -345,7 +345,7 @@ const DentalModule = () => {
                 <input 
                   type="text" 
                   placeholder="e.g. Orthodontist"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                   value={newDoctor.specialty}
                   onChange={(e) => setNewDoctor({...newDoctor, specialty: e.target.value})}
                 />
@@ -365,7 +365,7 @@ const DentalModule = () => {
               </div>
               <button 
                 type="submit"
-                className="w-full py-4 bg-blue-600 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] mt-4"
+                className="w-full py-4 bg-blue-600 text-white rounded-lg text-sm font-black uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-[0.98] mt-4"
               >
                 {t('dental.createProfile')}
               </button>

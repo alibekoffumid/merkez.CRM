@@ -153,7 +153,7 @@ const WarehouseAppContent = () => {
         </p>
         <button
           onClick={() => setIsConfigOpen(true)}
-          className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-blue-900 active:scale-95 flex items-center gap-2"
+          className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all shadow-xl shadow-blue-900 active:scale-95 flex items-center gap-2"
         >
           <Server className="w-4 h-4" /> Qoşulmanı tənzimlə
         </button>
@@ -172,7 +172,7 @@ const WarehouseAppContent = () => {
       <div className="flex min-h-screen bg-[#07071a] items-center justify-center p-6">
         <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 max-w-md w-full backdrop-blur-md relative overflow-hidden">
           {/* Language Switcher */}
-          <div className="absolute top-6 left-6 flex bg-white/5 rounded-xl p-0.5 border border-white/5">
+          <div className="absolute top-6 left-6 flex bg-white/5 rounded-lg p-0.5 border border-white/5">
             {['en', 'ru', 'az'].map((lang) => (
               <button
                 key={lang}
@@ -191,7 +191,7 @@ const WarehouseAppContent = () => {
           {/* Settings button in corner */}
           <button
             onClick={() => setIsConfigOpen(true)}
-            className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+            className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-all"
             title="Qoşulma tənzimləmələri"
           >
             <Server className="w-5 h-5" />
@@ -217,7 +217,7 @@ const WarehouseAppContent = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="block w-full pl-14 pr-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
+                  className="block w-full pl-14 pr-5 py-4 bg-white/5 border border-white/5 rounded-lg text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
                 />
               </div>
             </div>
@@ -232,7 +232,7 @@ const WarehouseAppContent = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-14 pr-5 py-4 bg-white/5 border border-white/5 rounded-2xl text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
+                  className="block w-full pl-14 pr-5 py-4 bg-white/5 border border-white/5 rounded-lg text-white outline-none focus:bg-white/10 focus:border-blue-500/50 transition-all font-bold text-sm"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ const WarehouseAppContent = () => {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 flex items-center justify-center"
+              className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all shadow-lg shadow-blue-500/10 active:scale-95 disabled:opacity-50 flex items-center justify-center"
             >
               {authLoading ? t('warehouse.loggingIn') : t('warehouse.loginToTerminal')}
             </button>
@@ -261,7 +261,7 @@ const WarehouseAppContent = () => {
             <button
               onClick={handleGoogleLogin}
               disabled={authLoading}
-              className="mt-6 w-full flex items-center justify-center space-x-3 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold hover:bg-white/10 transition-all active:scale-[0.98] shadow-sm disabled:opacity-50"
+              className="mt-6 w-full flex items-center justify-center space-x-3 py-4 bg-white/5 border border-white/10 rounded-lg text-white font-bold hover:bg-white/10 transition-all active:scale-[0.98] shadow-sm disabled:opacity-50"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -365,7 +365,7 @@ const WarehouseAppContent = () => {
         </div>
 
         {/* Navigation Tabs (Desktop) */}
-        <div className="hidden md:flex bg-white/5 rounded-xl p-0.5 border border-white/10 shrink-0 overflow-x-auto lg:overflow-visible no-scrollbar flex-nowrap max-w-full lg:max-w-none">
+        <div className="hidden md:flex bg-white/5 rounded-lg p-0.5 border border-white/10 shrink-0 overflow-x-auto lg:overflow-visible no-scrollbar flex-nowrap max-w-full lg:max-w-none">
           {navTabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -395,7 +395,7 @@ const WarehouseAppContent = () => {
         <div className="md:hidden relative w-full lg:w-auto" ref={mobileTabsRef}>
           <button
             onClick={() => setShowMobileTabs(!showMobileTabs)}
-            className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all"
+            className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-all"
           >
             <div className="flex items-center gap-2">
               {activeTabItem && <activeTabItem.icon className="w-4 h-4 text-blue-400" />}
@@ -410,7 +410,7 @@ const WarehouseAppContent = () => {
           </button>
 
           {showMobileTabs && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0c0c28] border border-white/10 rounded-xl shadow-2xl z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 max-h-[60vh] overflow-y-auto no-scrollbar">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 max-h-[60vh] overflow-y-auto no-scrollbar">
               {navTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;

@@ -152,7 +152,7 @@ const PatientList = ({ onViewChart }) => {
       {/* Toast Notification */}
       {notification.show && (
         <div className="fixed top-6 right-6 z-[300] animate-in slide-in-from-top-8 fade-in duration-300">
-          <div className={`rounded-2xl shadow-xl border p-4 flex items-center gap-3 ${
+          <div className={`rounded-lg shadow-xl border p-4 flex items-center gap-3 ${
             notification.type === 'success' 
               ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
               : 'bg-rose-50 border-rose-100 text-rose-700'
@@ -221,7 +221,7 @@ const PatientList = ({ onViewChart }) => {
 
               <div className="flex flex-col lg:flex-row items-center gap-6 relative z-10">
                 {/* Avatar */}
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
+                <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
                   <User className="w-8 h-8 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </div>
 
@@ -253,7 +253,7 @@ const PatientList = ({ onViewChart }) => {
                 <div className="flex items-center gap-3 w-full lg:w-auto">
                   <button 
                     onClick={() => onViewChart(patient)}
-                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
                   >
                     <Activity className="w-4 h-4" />
                     {t('dental.viewChart')}
@@ -263,12 +263,12 @@ const PatientList = ({ onViewChart }) => {
                       setSelectedPatientForAppt(patient);
                       setShowAppointmentModal(true);
                     }}
-                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 transition-all">
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-lg text-xs font-black uppercase tracking-widest border border-gray-100 transition-all">
                     {t('dental.addVisit')}
                   </button>
                   <button 
                     onClick={() => showNotification('Options menu coming soon', 'error')}
-                    className="p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all">
+                    className="p-3.5 text-gray-400 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all">
                     <MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
@@ -296,7 +296,7 @@ const PatientList = ({ onViewChart }) => {
               <X className="w-5 h-5" />
             </button>
             <div className="mb-8">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-blue-100">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4 shadow-sm border border-blue-100">
                 <User className="w-6 h-6" />
               </div>
               <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('dental.addPatient')}</h3>
@@ -311,7 +311,7 @@ const PatientList = ({ onViewChart }) => {
                   required
                   value={newPatient.name}
                   onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   placeholder="e.g. John Doe"
                 />
               </div>
@@ -321,7 +321,7 @@ const PatientList = ({ onViewChart }) => {
                   type="tel" 
                   value={newPatient.phone}
                   onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   placeholder="e.g. +1 234 567 890"
                 />
               </div>
@@ -331,7 +331,7 @@ const PatientList = ({ onViewChart }) => {
                   type="email" 
                   value={newPatient.email}
                   onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   placeholder="e.g. john@example.com"
                 />
               </div>
@@ -340,14 +340,14 @@ const PatientList = ({ onViewChart }) => {
                 <button 
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold transition-colors"
+                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-bold transition-colors"
                 >
                   {t('dental.cancel')}
                 </button>
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('common.save') || 'Save'}
                 </button>
@@ -369,7 +369,7 @@ const PatientList = ({ onViewChart }) => {
               <X className="w-5 h-5" />
             </button>
             <div className="mb-8">
-              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-purple-100">
+              <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4 shadow-sm border border-purple-100">
                 <Calendar className="w-6 h-6" />
               </div>
               <h3 className="text-2xl font-black text-gray-900 tracking-tight">{t('dental.addVisit')}</h3>
@@ -394,7 +394,7 @@ const PatientList = ({ onViewChart }) => {
                     required
                     value={newAppointment.appointment_date}
                     onChange={(e) => setNewAppointment({ ...newAppointment, appointment_date: e.target.value })}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   />
                 </div>
                 <div className="relative">
@@ -402,14 +402,14 @@ const PatientList = ({ onViewChart }) => {
                   <button 
                     type="button"
                     onClick={() => setShowTimePicker(!showTimePicker)}
-                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all flex items-center justify-between"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-lg px-5 py-4 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all flex items-center justify-between"
                   >
                     <span>{newAppointment.start_time}</span>
                     <Clock className="w-4 h-4 text-gray-400" />
                   </button>
 
                   {showTimePicker && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 z-[1000] p-4 animate-in zoom-in-95 duration-200">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-[1000] p-4 animate-in zoom-in-95 duration-200">
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         {/* Hours */}
                         <div className="space-y-1">
@@ -426,7 +426,7 @@ const PatientList = ({ onViewChart }) => {
                                     const mins = newAppointment.start_time.split(':')[1];
                                     setNewAppointment({ ...newAppointment, start_time: `${hourStr}:${mins}` });
                                   }}
-                                  className={`w-full py-2 rounded-xl text-sm font-bold transition-all ${currentHour === hourStr ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
+                                  className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${currentHour === hourStr ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
                                 >
                                   {hourStr}
                                 </button>
@@ -449,7 +449,7 @@ const PatientList = ({ onViewChart }) => {
                                     setNewAppointment({ ...newAppointment, start_time: `${hour}:${m}` });
                                     setShowTimePicker(false);
                                   }}
-                                  className={`w-full py-2 rounded-xl text-sm font-bold transition-all ${currentMin === m ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
+                                  className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${currentMin === m ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-600 hover:bg-gray-50'}`}
                                 >
                                   {m}
                                 </button>
@@ -461,7 +461,7 @@ const PatientList = ({ onViewChart }) => {
                       <button 
                         type="button"
                         onClick={() => setShowTimePicker(false)}
-                        className="w-full py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                        className="w-full py-3 bg-gray-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
                       >
                         {t('common.done') || 'Done'}
                       </button>
@@ -506,14 +506,14 @@ const PatientList = ({ onViewChart }) => {
                 <button 
                   type="button"
                   onClick={() => setShowAppointmentModal(false)}
-                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold transition-colors"
+                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-sm font-bold transition-colors"
                 >
                   {t('dental.cancel')}
                 </button>
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-2xl text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('dental.bookAppointment')}
                 </button>

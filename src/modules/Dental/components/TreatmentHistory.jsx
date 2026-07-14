@@ -54,12 +54,12 @@ const TreatmentHistory = ({ patientId }) => {
     <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-purple-50 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
             <Clock className="w-5 h-5 text-purple-600" />
           </div>
           <h3 className="text-sm font-black text-gray-900 uppercase tracking-[0.2em]">{t('dental.treatmentHistory')}</h3>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest border border-gray-100 rounded-xl shadow-sm">
+        <button className="flex items-center gap-2 px-4 py-2 text-[10px] font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest border border-gray-100 rounded-lg shadow-sm">
           <Download className="w-4 h-4" />
           {t('common.exportAll')}
         </button>
@@ -74,7 +74,7 @@ const TreatmentHistory = ({ patientId }) => {
           mappedHistory.map((item) => (
             <div key={item.id} className="group flex flex-col md:flex-row gap-6 p-6 rounded-[1.75rem] bg-gray-50/50 hover:bg-white border border-transparent hover:border-gray-100 transition-all duration-300">
               <div className="flex items-center gap-4 md:w-48 shrink-0">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-gray-100 shadow-sm">
+                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center border border-gray-100 shadow-sm">
                   <FileText className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
@@ -98,7 +98,7 @@ const TreatmentHistory = ({ patientId }) => {
                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t('common.price')}</p>
                   <p className="text-sm font-black text-gray-900">${item.cost}</p>
                 </div>
-                <button className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-900">
+                <button className="p-2 hover:bg-gray-100 rounded-lg transition-all text-gray-400 hover:text-gray-900">
                   <Download className="w-5 h-5" />
                 </button>
               </div>
@@ -111,7 +111,7 @@ const TreatmentHistory = ({ patientId }) => {
         )}
       </div>
       
-      <button className="w-full mt-8 py-4 rounded-2xl bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-900 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-dashed border-gray-200">
+      <button className="w-full mt-8 py-4 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-900 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-dashed border-gray-200">
         {t('common.loadMore')}
       </button>
     </div>

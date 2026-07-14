@@ -59,7 +59,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
   const timeMenu = isOpen && createPortal(
     <div 
       ref={menuRef}
-      className={`fixed z-[99999] bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 flex gap-4 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+      className={`fixed z-[99999] bg-white rounded-xl shadow-2xl border border-gray-100 p-4 flex gap-4 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
       style={{
         top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
         bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
@@ -79,7 +79,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
                 e.stopPropagation();
                 onChange(`${h}:${minutes}`);
               }}
-              className={`w-full py-2 px-3 rounded-xl text-sm font-bold transition-all ${hours === h ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/20' : 'hover:bg-gray-50 text-gray-600'}`}
+              className={`w-full py-2 px-3 rounded-lg text-sm font-bold transition-all ${hours === h ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/20' : 'hover:bg-gray-50 text-gray-600'}`}
             >
               {h}
             </button>
@@ -100,7 +100,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
                 onChange(`${hours}:${m}`);
                 setIsOpen(false);
               }}
-              className={`w-full py-2 px-3 rounded-xl text-sm font-bold transition-all ${minutes === m ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/20' : 'hover:bg-gray-50 text-gray-600'}`}
+              className={`w-full py-2 px-3 rounded-lg text-sm font-bold transition-all ${minutes === m ? 'bg-pink-600 text-white shadow-lg shadow-pink-600/20' : 'hover:bg-gray-50 text-gray-600'}`}
             >
               {m}
             </button>
@@ -125,7 +125,7 @@ const CustomTimePicker = ({ value, onChange, label, position = 'auto', is24Hour 
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className="w-full p-4 bg-gray-50 rounded-2xl border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between group h-[54px]"
+        className="w-full p-4 bg-gray-50 rounded-lg border border-gray-100 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/10 outline-none transition-all text-sm font-bold text-gray-900 flex items-center justify-between group h-[54px]"
       >
         <div className="flex items-center gap-3">
           <Clock className="w-4 h-4 text-gray-400 group-hover:text-pink-500 transition-colors" />

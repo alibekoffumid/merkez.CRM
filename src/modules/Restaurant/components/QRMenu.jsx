@@ -64,14 +64,14 @@ const QRMenu = () => {
           <div className="flex flex-col sm:flex-row gap-4 w-full">
             <button 
               onClick={downloadQR}
-              className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2"
+              className="flex-1 bg-blue-600 text-white py-4 px-6 rounded-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2"
             >
               <Download className="w-5 h-5" />
               QR kodu yüklə
             </button>
             <button 
               onClick={() => window.open(menuUrl, '_blank')}
-              className="flex-1 bg-gray-50 text-gray-900 py-4 px-6 rounded-2xl font-bold hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center gap-2"
+              className="flex-1 bg-gray-50 text-gray-900 py-4 px-6 rounded-lg font-bold hover:bg-gray-100 transition-all border border-gray-200 flex items-center justify-center gap-2"
             >
               <ExternalLink className="w-5 h-5" />
               Menyuya bax
@@ -86,14 +86,14 @@ const QRMenu = () => {
               <Globe className="w-6 h-6 text-blue-600" />
               Menyu Linki
             </h3>
-            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 flex items-center justify-between group">
+            <div className="bg-gray-50 p-5 rounded-lg border border-gray-100 flex items-center justify-between group">
                <span className="text-sm font-bold text-gray-500 truncate mr-4">{menuUrl}</span>
                <button 
                  onClick={() => {
                    navigator.clipboard.writeText(menuUrl);
                    alert('Link kopyalandı!');
                  }}
-                 className="p-3 bg-white rounded-xl shadow-sm border border-gray-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-90"
+                 className="p-3 bg-white rounded-lg shadow-sm border border-gray-100 text-blue-600 hover:bg-blue-600 hover:text-white transition-all active:scale-90"
                >
                  <Share2 className="w-4 h-4" />
                </button>
@@ -127,7 +127,7 @@ const QRMenu = () => {
           </div>
 
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 flex items-center gap-6">
-             <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 shrink-0">
+             <div className="w-16 h-16 bg-green-50 rounded-lg flex items-center justify-center text-green-600 shrink-0">
                 <Globe className="w-8 h-8" />
              </div>
              <div>

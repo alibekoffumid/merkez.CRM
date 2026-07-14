@@ -91,7 +91,7 @@ const DentalInventory = () => {
         {stats.map((stat, i) => (
           <div key={i} className="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm group hover:border-blue-200 transition-all">
             <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-2xl ${stat.bg} flex items-center justify-center border border-transparent`}>
+              <div className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center border border-transparent`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live View</span>
@@ -112,24 +112,24 @@ const DentalInventory = () => {
               <input 
                 type="text" 
                 placeholder={t('dental.searchInventory')} 
-                className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <button className="p-3 bg-gray-50 rounded-2xl border border-gray-100 text-gray-400 hover:text-gray-900 transition-all shadow-sm">
+            <button className="p-3 bg-gray-50 rounded-lg border border-gray-100 text-gray-400 hover:text-gray-900 transition-all shadow-sm">
               <Filter className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex items-center gap-3 w-full lg:w-auto">
-            <button className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-gray-50 rounded-2xl border border-gray-100 text-sm font-black text-gray-700 hover:bg-gray-100 transition-all uppercase tracking-widest">
+            <button className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-gray-50 rounded-lg border border-gray-100 text-sm font-black text-gray-700 hover:bg-gray-100 transition-all uppercase tracking-widest">
               <History className="w-5 h-5 text-purple-600" />
               {t('dental.transactionLog')}
             </button>
             <button 
               onClick={() => setShowAddModal(true)}
-              className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 rounded-2xl text-sm font-black text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
+              className="flex-1 lg:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-blue-600 rounded-lg text-sm font-black text-white hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
             >
               <Plus className="w-5 h-5" />
               {t('dental.addItem')}
@@ -165,7 +165,7 @@ const DentalInventory = () => {
                     <tr key={item.id} className="group hover:bg-gray-50/50 transition-colors">
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-100 group-hover:scale-110 transition-transform">
+                          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 group-hover:scale-110 transition-transform">
                             <Package className="w-5 h-5 text-blue-600" />
                           </div>
                           <span className="text-sm font-bold text-gray-900">{item.name}</span>
@@ -199,7 +199,7 @@ const DentalInventory = () => {
                         </div>
                       </td>
                       <td className="px-8 py-6 text-right">
-                        <button className="p-2 hover:bg-gray-100 rounded-xl transition-all text-gray-400 hover:text-gray-900">
+                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-all text-gray-400 hover:text-gray-900">
                           <MoreVertical className="w-5 h-5" />
                         </button>
                       </td>
@@ -221,8 +221,8 @@ const DentalInventory = () => {
         <div className="p-8 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Showing 1-5 of 128 Items</p>
           <div className="flex items-center gap-2">
-             <button className="px-4 py-2 bg-gray-100 rounded-xl text-[10px] font-black text-gray-500 hover:text-gray-900 transition-all uppercase tracking-widest shadow-sm">Prev</button>
-             <button className="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-black text-white hover:bg-blue-500 transition-all uppercase tracking-widest shadow-md">Next</button>
+             <button className="px-4 py-2 bg-gray-100 rounded-lg text-[10px] font-black text-gray-500 hover:text-gray-900 transition-all uppercase tracking-widest shadow-sm">Prev</button>
+             <button className="px-4 py-2 bg-blue-600 rounded-lg text-[10px] font-black text-white hover:bg-blue-500 transition-all uppercase tracking-widest shadow-md">Next</button>
           </div>
         </div>
       </div>
@@ -239,7 +239,7 @@ const DentalInventory = () => {
               </div>
               <button 
                 onClick={() => setShowAddModal(false)}
-                className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
+                className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-all"
               >
                 <Plus className="w-6 h-6 rotate-45" />
               </button>
@@ -253,7 +253,7 @@ const DentalInventory = () => {
                     <input 
                       required
                       type="text" 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                       placeholder="e.g. Disposable Gloves"
                       value={newItem.name}
                       onChange={(e) => setNewItem({...newItem, name: e.target.value})}
@@ -281,7 +281,7 @@ const DentalInventory = () => {
                     <input 
                       required
                       type="number" 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                       placeholder="0"
                       value={newItem.quantity}
                       onChange={(e) => setNewItem({...newItem, quantity: parseFloat(e.target.value)})}
@@ -292,7 +292,7 @@ const DentalInventory = () => {
                     <input 
                       required
                       type="text" 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                       placeholder="pcs, kg, etc."
                       value={newItem.unit}
                       onChange={(e) => setNewItem({...newItem, unit: e.target.value})}
@@ -303,7 +303,7 @@ const DentalInventory = () => {
                     <input 
                       required
                       type="number" 
-                      className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg py-4 px-6 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                       placeholder="10"
                       value={newItem.min_quantity}
                       onChange={(e) => setNewItem({...newItem, min_quantity: parseFloat(e.target.value)})}
@@ -316,14 +316,14 @@ const DentalInventory = () => {
                 <button 
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                  className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
                 >
                   {t('dental.cancel')}
                 </button>
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
+                  className="flex-[2] py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95 disabled:opacity-50"
                 >
                   {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : t('common.save') || 'Save'}
                 </button>
