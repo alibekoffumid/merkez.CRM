@@ -712,6 +712,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
           )}
 
+          {activeTab === 'debts' && (
+            <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between" />
+          )}
+
           <div className="grid grid-cols-2 lg:flex lg:items-center gap-2 w-full lg:w-auto ml-auto">
             {/* Main Warehouse Actions */}
             <button 
