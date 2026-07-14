@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +32,11 @@ const WarehouseClientManager = () => {
   const [passportSer, setPassportSer] = useState('');
   const [passportFin, setPassportFin] = useState('');
   const [relativesInfo, setRelativesInfo] = useState('');
+  const [portalTarget, setPortalTarget] = useState(null);
+
+  useEffect(() => {
+    setPortalTarget(document.getElementById('warehouse-top-bar-portal-target'));
+  }, []);
 
   useEffect(() => {
     if (profile?.id) {
@@ -164,78 +170,82 @@ const WarehouseClientManager = () => {
     c.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return (
-    <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 flex flex-col min-h-[500px]">
-      {/* Tab Header Actions */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-          <div>
-            <h2 className="text-xl font-black text-gray-900 tracking-tight">
-              {activeSubTab === 'clients' 
-                ? (i18n.language === 'az' ? 'Müştərilər Siyahısı' : i18n.language === 'ru' ? 'Список клиентов' : 'Clients List')
-                : (i18n.language === 'az' ? 'Kredit Müqavilələri (Hissə-hissə Satış)' : i18n.language === 'ru' ? 'Кредитные договора (Рассрочка)' : 'Credit Contracts (Installments)')
-              }
-            </h2>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1">
-              {activeSubTab === 'clients'
-                ? (i18n.language === 'az' ? 'Müştəri kartoteki və redaktə edilməsi' : i18n.language === 'ru' ? 'Картотека клиентов и их редактирование' : 'Customer directory and editing')
-                : (i18n.language === 'az' ? 'Müştəri kreditlərinin və aylıq ödəniş cədvəllərinin idarə edilməsi' : i18n.language === 'ru' ? 'Управление кредитами клиентов и календарем платежей' : 'Management of customer credits and payment schedules')
-              }
-            </p>
-          </div>
-
-          {/* Sub tabs */}
-          <div className="flex gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-100/50 max-w-max shrink-0">
-            <button
-              onClick={() => setActiveSubTab('clients')}
-              className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeSubTab === 'clients'
-                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50 font-black'
-                  : 'text-gray-400 hover:text-gray-900 font-bold'
-              }`}
-            >
-              {i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients'}
-            </button>
-            <button
-              onClick={() => setActiveSubTab('credits')}
-              className={`px-5 py-2 rounded-lg text-xs font-bold transition-all ${
-                activeSubTab === 'credits'
-                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200/50 font-black'
-                  : 'text-gray-400 hover:text-gray-900 font-bold'
-              }`}
-            >
-              {i18n.language === 'az' ? 'Kreditlər / Taksitlər' : i18n.language === 'ru' ? 'Кредиты / Рассрочка' : 'Credits'}
-            </button>
-          </div>
-        </div>
-
-        {activeSubTab === 'clients' && (
-          <button
-            onClick={handleOpenAdd}
-            className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center shadow-lg shadow-gray-900/10 active:scale-95 shrink-0"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
-          </button>
-        )}
+  const topBarContent = (
+    <>
+      <div className="flex items-center gap-2 flex-nowrap shrink-0">
+        <button
+          onClick={() => setActiveSubTab('clients')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+            activeSubTab === 'clients'
+              ? 'bg-merkez-blue text-white shadow-sm shadow-blue-600/20'
+              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+          }`}
+        >
+          {i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients'}
+        </button>
+        <button
+          onClick={() => setActiveSubTab('credits')}
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+            activeSubTab === 'credits'
+              ? 'bg-merkez-blue text-white shadow-sm shadow-blue-600/20'
+              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+          }`}
+        >
+          {i18n.language === 'az' ? 'Kreditlər / Taksitlər' : i18n.language === 'ru' ? 'Кредиты / Рассрочка' : 'Credits'}
+        </button>
       </div>
-
-      {activeSubTab === 'clients' ? (
-        <>
-
-      {/* Filter and Search */}
-      <div className="bg-gray-50/50 p-4 rounded-lg border border-gray-100 flex items-center gap-4 mb-6">
-        <div className="relative flex-1">
+      
+      {activeSubTab === 'clients' && (
+        <div className="relative flex-1 w-full max-w-md">
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder={i18n.language === 'az' ? 'Müştəri adı, telefon və ya ünvan axtar...' : 'Поиск по имени, телефону или адресу...'}
+            placeholder={i18n.language === 'az' ? 'Müştəri axtar...' : 'Поиск клиента...'}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-lg text-xs font-medium focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
           />
         </div>
-      </div>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      {portalTarget && createPortal(topBarContent, portalTarget)}
+      <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 flex flex-col min-h-[500px]">
+        {/* Tab Header Actions */}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+            <div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                {activeSubTab === 'clients' 
+                  ? (i18n.language === 'az' ? 'Müştərilər Siyahısı' : i18n.language === 'ru' ? 'Список клиентов' : 'Clients List')
+                  : (i18n.language === 'az' ? 'Kredit Müqavilələri (Hissə-hissə Satış)' : i18n.language === 'ru' ? 'Кредитные договора (Рассрочка)' : 'Credit Contracts (Installments)')
+                }
+              </h2>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mt-1">
+                {activeSubTab === 'clients'
+                  ? (i18n.language === 'az' ? 'Müştəri kartoteki və redaktə edilməsi' : i18n.language === 'ru' ? 'Картотека клиентов и их редактирование' : 'Customer directory and editing')
+                  : (i18n.language === 'az' ? 'Müştəri kreditlərinin və aylıq ödəniş cədvəllərinin idarə edilməsi' : i18n.language === 'ru' ? 'Управление кредитами клиентов и календарем платежей' : 'Management of customer credits and payment schedules')
+                }
+              </p>
+            </div>
+          </div>
+
+          {activeSubTab === 'clients' && (
+            <button
+              onClick={handleOpenAdd}
+              className="bg-gray-900 text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-black transition-all flex items-center shadow-lg shadow-gray-900/10 active:scale-95 shrink-0"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
+            </button>
+          )}
+        </div>
+
+        {activeSubTab === 'clients' ? (
+          <>
 
       {/* Main Content List */}
       <div className="flex-1 overflow-x-auto">
