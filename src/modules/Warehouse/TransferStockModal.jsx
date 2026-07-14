@@ -240,9 +240,12 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 md:p-4" onClick={onClose}>
-      <div className="bg-white md:rounded-3xl shadow-2xl w-full md:max-w-2xl max-h-screen md:max-h-[90vh] overflow-y-auto overflow-x-hidden animate-in fade-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-        <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={onClose}>
+        <div 
+          className="bg-white w-screen h-screen overflow-hidden animate-in fade-in flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-merkez-blue/10 flex items-center justify-center">
               <ArrowRightLeft className="w-6 h-6 text-merkez-blue" />

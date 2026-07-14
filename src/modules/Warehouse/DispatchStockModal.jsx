@@ -268,9 +268,9 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-0 md:p-6" onClick={onClose}>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={onClose}>
         <div 
-          className="bg-white md:rounded-[2.5rem] shadow-2xl w-full md:max-w-6xl h-full md:h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+          className="bg-white w-screen h-screen overflow-hidden animate-in fade-in flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
