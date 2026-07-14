@@ -510,9 +510,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       {/* Header & Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
         {/* Top Row: Title & Navigation */}
-        <div className="p-4 flex flex-col xl:flex-row items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4 flex-wrap flex-1">
-            <div className="flex items-center gap-4">
+        <div className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-nowrap overflow-x-auto no-scrollbar w-full">
+          <div className="flex items-center gap-4 flex-nowrap shrink-0">
+            <div className="flex items-center gap-4 shrink-0">
               <div className="w-10 h-10 rounded-lg bg-merkez-blue/10 flex items-center justify-center shrink-0">
                 <Package className="w-5 h-5 text-merkez-blue" />
               </div>
@@ -652,7 +652,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {/* Tab-specific actions (Shifted to Left) */}
             {activeTab === 'finished' && (
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 lg:flex-wrap">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
                 <button 
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                   className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
@@ -713,10 +713,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           )}
 
           {activeTab === 'debts' && (
-            <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between" />
+            <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
-          <div className="grid grid-cols-2 lg:flex lg:items-center gap-2 w-full lg:w-auto ml-auto">
+          <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
             <button 
               onClick={() => setShowSellProduct(true)} 
