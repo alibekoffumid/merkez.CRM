@@ -9,12 +9,11 @@ import {
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 
-const WarehouseCreditManager = () => {
+const WarehouseCreditManager = ({ searchTerm = '' }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(true);
   const [credits, setCredits] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   
   // Installments details modal
   const [selectedCredit, setSelectedCredit] = useState(null);
@@ -157,19 +156,6 @@ const WarehouseCreditManager = () => {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* Filter and Search */}
-      <div className="bg-gray-50/50 p-4 rounded-lg border border-gray-100 flex items-center gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder={i18n.language === 'az' ? 'Müştəri adı və ya telefon axtar...' : 'Поиск по имени или телефону...'}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-lg text-xs font-medium focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
-          />
-        </div>
-      </div>
 
       {/* Credits List */}
       <div className="flex-1 overflow-x-auto">
