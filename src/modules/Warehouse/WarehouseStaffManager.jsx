@@ -155,9 +155,9 @@ const WarehouseStaffManager = () => {
 
       <button
         onClick={handleOpenAdd}
-        className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-xs font-bold hover:bg-blue-600 transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap shrink-0"
+        className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap shrink-0 border border-transparent"
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
         {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
       </button>
     </>
