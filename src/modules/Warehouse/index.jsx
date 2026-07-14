@@ -510,7 +510,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       {/* Header & Tabs */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
         {/* Top Row: Title & Navigation */}
-        <div className="p-4 flex flex-col lg:flex-row items-center justify-between gap-4">
+        <div className="p-4 flex flex-col xl:flex-row items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4 flex-wrap flex-1">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center shrink-0">

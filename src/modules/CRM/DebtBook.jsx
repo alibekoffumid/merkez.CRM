@@ -194,14 +194,14 @@ const DebtBook = () => {
       {portalTarget ? createPortal(
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full flex-1">
           <div className="flex items-center gap-3 w-full lg:flex-1 lg:max-w-md">
-            <div className="relative w-full">
+            <div className="relative w-full min-w-[200px]">
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 
                 placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors min-w-[200px]"
               />
             </div>
             <button
