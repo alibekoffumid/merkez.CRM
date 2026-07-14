@@ -236,7 +236,7 @@ const DebtBook = () => {
         </div>,
         portalTarget
       ) : (
-        <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="flex items-center gap-3 w-full lg:w-auto">
             <div className="relative w-full lg:w-96">
               <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -283,7 +283,7 @@ const DebtBook = () => {
       {/* Metrics Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Outstanding Debt */}
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
               {t('crm.totalOutstandingDebt') || 'Ümumi Nisyə Qalıq'}
@@ -298,7 +298,7 @@ const DebtBook = () => {
         </div>
 
         {/* Total Debtors */}
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
               {t('crm.totalDebtors') || 'Borcluların Sayı'}
@@ -313,7 +313,7 @@ const DebtBook = () => {
         </div>
 
         {/* Last Repayment */}
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
           <div className="space-y-2">
             <p className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
               {t('crm.lastRepayment') || 'Son Ödəniş'}

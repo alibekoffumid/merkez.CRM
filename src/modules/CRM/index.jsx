@@ -98,7 +98,7 @@ const CRMModule = () => {
       {activeTab === 'clients' ? (
         <>
           {/* Filters & Search */}
-          <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="relative w-full lg:w-96">
               <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input 
