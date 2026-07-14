@@ -712,7 +712,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
           )}
 
-          {(activeTab === 'debts' || activeTab === 'clients') && (
+          {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff') && (
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
