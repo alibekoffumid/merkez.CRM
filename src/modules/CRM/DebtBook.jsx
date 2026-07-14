@@ -183,6 +183,50 @@ const DebtBook = () => {
 
   return (
     <div className="space-y-6">
+      {/* Filter and Search Bar */}
+      <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="relative w-full lg:w-96">
+            <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none"
+            />
+          </div>
+          <button
+            onClick={fetchData}
+            className="p-3 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-2xl transition-all"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex gap-3 items-center w-full lg:w-auto justify-end">
+          <button
+            onClick={() => setOnlyDebtors(!onlyDebtors)}
+            className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${
+              onlyDebtors 
+                ? 'bg-rose-50 border-rose-100 text-rose-700 font-black'
+                : 'bg-white border-gray-100 text-gray-400 font-bold hover:text-gray-900'
+            }`}
+          >
+            <AlertCircle className="w-4 h-4" />
+            {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
+          </button>
+          
+          <button
+            onClick={() => setShowAddCustomer(true)}
+            className="px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2"
+          >
+            <UserPlus className="w-4 h-4" />
+            {i18n?.language === 'az' ? 'Yeni Müştəri' : i18n?.language === 'ru' ? 'Новый клиент' : 'New Customer'}
+          </button>
+        </div>
+      </div>
+
       {/* Metrics Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Outstanding Debt */}
@@ -239,49 +283,6 @@ const DebtBook = () => {
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <CheckCircle className="w-6 h-6" />
           </div>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-5 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full lg:w-96">
-          <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-          <input 
-            type="text" 
-            placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-rose-600/5 transition-all outline-none"
-          />
-        </div>
-        
-        <div className="flex gap-3 items-center">
-          <button
-            onClick={() => setOnlyDebtors(!onlyDebtors)}
-            className={`px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${
-              onlyDebtors 
-                ? 'bg-rose-50 border-rose-100 text-rose-700 font-black'
-                : 'bg-white border-gray-100 text-gray-400 font-bold hover:text-gray-900'
-            }`}
-          >
-            <AlertCircle className="w-4 h-4" />
-            {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
-          </button>
-          
-          <button
-            onClick={() => setShowAddCustomer(true)}
-            className="px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border border-transparent bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2"
-          >
-            <UserPlus className="w-4 h-4" />
-            {i18n?.language === 'az' ? 'Yeni Müştəri' : i18n?.language === 'ru' ? 'Новый клиент' : 'New Customer'}
-          </button>
-          
-          <button
-            onClick={fetchData}
-            className="p-3 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-2xl transition-all"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
         </div>
       </div>
 
