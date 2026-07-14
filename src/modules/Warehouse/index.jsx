@@ -675,17 +675,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
                   <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
                 </button>
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10 border border-transparent">
-                  <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
-                </button>
               </div>
             )}
 
             {activeTab === 'raw' && isRestaurantActive && (
               <div className="flex items-center gap-2">
-                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10 border border-transparent">
-                  <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
-                </button>
               </div>
             )}
 
@@ -698,19 +692,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             )}
           </div>
 
-          {/* Moved Search Bar */}
-          {(activeTab === 'finished' || activeTab === 'raw') && (
-            <div id="tour-search" className="relative w-full lg:flex-1 lg:max-w-md">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-              />
-            </div>
-          )}
+          {/* Moved Search Bar (relocated to filter bar) */}
 
           {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff') && (
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
@@ -1472,14 +1454,39 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
         {/* Products/Ingredients Table Area */}
         <div className="flex-1 flex flex-col bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
-          <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20">
-            <div className="flex items-center gap-2 flex-1 w-full xl:max-w-md">
+          <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20 items-center justify-between">
+            <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
               {activeTab === 'finished' && (
                 <button
-                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
+                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0 lg:hidden"
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                 >
                   <Menu className="w-5 h-5" />
+                </button>
+              )}
+
+              {(activeTab === 'finished' || activeTab === 'raw') && (
+                <div id="tour-search" className="relative w-full flex-1 min-w-[200px]">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+                  />
+                </div>
+              )}
+
+              {activeTab === 'finished' && (
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                  <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
+                </button>
+              )}
+
+              {activeTab === 'raw' && isRestaurantActive && (
+                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                  <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
                 </button>
               )}
 
