@@ -675,7 +675,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
                   <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
                 </button>
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10 border border-transparent">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addProduct')}
                 </button>
               </div>
@@ -683,7 +683,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {activeTab === 'raw' && isRestaurantActive && (
               <div className="flex items-center gap-2">
-                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10">
+                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10 border border-transparent">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addIngredient')}
                 </button>
               </div>
@@ -691,7 +691,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {activeTab === 'suppliers' && (
               <div className="flex items-center gap-2">
-                <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10">
+                <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-md shadow-blue-600/10 border border-transparent">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
                 </button>
               </div>
@@ -720,7 +720,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {/* Main Warehouse Actions */}
             <button 
               onClick={() => setShowSellProduct(true)} 
-              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap w-full"
+              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap w-full border border-transparent"
             >
               <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
             </button>
