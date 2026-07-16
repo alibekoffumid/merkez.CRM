@@ -354,7 +354,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
   const currentBankCommission = dBank;
 
   const grossAmount = paymentMethod === 'credit'
-    ? Math.ceil(contractTotal) * (1 - currentBankCommission)
+    ? (selectedBank.toLowerCase() === 'birkart' || selectedBank.toLowerCase() === 'tamkart' 
+        ? Math.ceil(contractTotal) 
+        : Math.ceil(contractTotal) * (1 - currentBankCommission))
     : contractTotal;
 
   const calculatedNet = paymentMethod === 'credit'
