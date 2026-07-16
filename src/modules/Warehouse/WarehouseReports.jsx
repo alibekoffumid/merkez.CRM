@@ -170,7 +170,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
   const lowStockItems = getFilteredLowStockList();
 
   return (
-    <div className="flex-1 space-y-6">
+    <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
       {/* Sub tabs */}
       <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100/80">
         {false && isRestaurantActive ? (
