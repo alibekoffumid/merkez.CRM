@@ -353,10 +353,14 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
 
   const currentBankCommission = dBank;
 
+  const kapital35KreditMebleg = Math.ceil(netAmount * 1.0575);
+
   const grossAmount = paymentMethod === 'credit'
-    ? (selectedBank.toLowerCase() === 'birkart' || selectedBank.toLowerCase() === 'tamkart' 
-        ? Math.ceil(contractTotal) 
-        : Math.ceil(contractTotal) * (1 - currentBankCommission))
+    ? (selectedBank === 'Kapital Kredit 35' 
+        ? kapital35KreditMebleg
+        : (selectedBank.toLowerCase() === 'birkart' || selectedBank.toLowerCase() === 'tamkart' 
+            ? Math.ceil(contractTotal) 
+            : Math.ceil(contractTotal) * (1 - currentBankCommission)))
     : contractTotal;
 
   const calculatedNet = paymentMethod === 'credit'
@@ -728,7 +732,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
-                              <span className="text-gray-900 font-black text-base">₼{Math.ceil(contractTotal).toFixed(2)}</span>
+                              <span className="text-gray-900 font-black text-base">₼{kapital35KreditMebleg.toFixed(2)}</span>
                             </div>
                           </>
                         ) : (
