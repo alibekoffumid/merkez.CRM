@@ -331,7 +331,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     ? (1 - dBank) * (1 - dTax - dStore)
     : (1 - dBank - dTax - dStore);
 
-  const rawGross = denominator > 0 ? (netAmount / denominator) : netAmount;
+  const rawGross = paymentMethod === 'birmarket'
+    ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : (denominator > 0 ? (netAmount / denominator) : netAmount))
+    : (denominator > 0 ? (netAmount / denominator) : netAmount);
 
   const MARKUP_RATES = {
     'ABB Kredit': { 1: 0.0, 2: 0.079, 3: 0.09, 6: 0.119, 9: 0.1495, 12: 0.175, 18: 0.274, 24: 0.3735 },
@@ -809,16 +811,24 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                           <span className="text-gray-900 font-black text-sm">₼{netAmount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>{i18n.language === 'az' ? 'Saytın komissiyası:' : 'Комиссия сайта:'}</span>
-                          <span className="text-orange-500 font-black text-sm">{birmarketCategory === 'Alətlər' ? '10%' : '15%'}</span>
+                          <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
+                          <span className="text-orange-500 font-black text-sm">{birmarketCategory === 'Alətlər' ? '17.51%' : '17.51%'}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>{i18n.language === 'az' ? 'Vergi:' : 'Налог:'}</span>
-                          <span className="text-orange-500 font-black text-sm">4.0%</span>
+                          <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого:'}</span>
+                          <span className="text-gray-900 font-black text-sm">₼{grossAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Sayta göndərilən məbləğ:' : 'Сумма отправленная на сайт:'}</span>
+                          <span className="text-gray-900 font-black text-base">₼{grossAmount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kassaya vurulan məbləğ:' : 'Сумма в кассу:'}</span>
+                          <span className="text-gray-900 font-black text-base">₼{grossAmount.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-100 pt-2.5">
-                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Saytda satılan məbləğ:' : 'Сумма продажи на сайте:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{grossAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Alver cədvəlinə yazılan məbləğ:' : 'Сумма записи в торговлю:'}</span>
+                          <span className="text-gray-900 font-black text-base">₼{netAmount.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
