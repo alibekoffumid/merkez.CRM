@@ -48,7 +48,8 @@ const WarehouseAppContent = () => {
       try {
         const { data: productsData } = await supabase
           .from('products')
-          .select('id, stock_quantity, critical_stock');
+          .select('id, stock_quantity, critical_stock')
+          .eq('is_deleted', false);
         
         const { data: ingredientsData } = await supabase
           .from('ingredients')
