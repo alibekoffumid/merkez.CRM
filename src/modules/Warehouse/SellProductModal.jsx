@@ -332,7 +332,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     : (1 - dBank - dTax - dStore);
 
   const rawGross = paymentMethod === 'birmarket'
-    ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : (denominator > 0 ? (netAmount / denominator) : netAmount))
+    ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : Math.floor(netAmount * 1.25 * 100) / 100)
     : (denominator > 0 ? (netAmount / denominator) : netAmount);
 
   const MARKUP_RATES = {
@@ -812,7 +812,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
-                          <span className="text-orange-500 font-black text-sm">{birmarketCategory === 'Alətlər' ? '17.51%' : '17.51%'}</span>
+                          <span className="text-orange-500 font-black text-sm">{birmarketCategory === 'Alətlər' ? '17.51%' : '24.5%'}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого:'}</span>
