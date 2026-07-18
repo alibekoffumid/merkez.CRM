@@ -332,7 +332,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     : (1 - dBank - dTax - dStore);
 
   const rawGross = paymentMethod === 'birmarket'
-    ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : Math.floor(netAmount * 1.25 * 100) / 100)
+    ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : (netAmount * 1.245))
     : (denominator > 0 ? (netAmount / denominator) : netAmount);
 
   const MARKUP_RATES = {
