@@ -33,7 +33,7 @@
     "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.303.0",
-    "papaparse": "^5.5.3",
+    "papaparse": "^5.5.4",
     "pg": "^8.22.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",

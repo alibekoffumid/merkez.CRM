@@ -1,4 +1,18 @@
 {
+  "categories": {
+    "pianos": "Pianos",
+    "keyboards": "Keyboards",
+    "accessories": "Accessories",
+    "guitars": "Guitars",
+    "ukuleles": "Ukuleles",
+    "string-instruments": "String Instruments",
+    "banjo": "Banjo",
+    "amps": "Amps",
+    "percussion": "Percussion",
+    "drums": "Drums",
+    "wind-instruments": "Wind Instruments",
+    "effects": "Effects"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

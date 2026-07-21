@@ -1,4 +1,18 @@
 {
+  "categories": {
+    "pianos": "Pianino",
+    "keyboards": "Sintezatorlar",
+    "accessories": "Aksesuarlar",
+    "guitars": "Gitaralar",
+    "ukuleles": "Ukulele",
+    "string-instruments": "Simli Alətlər",
+    "banjo": "Bancolar",
+    "amps": "Gücləndiricilər",
+    "percussion": "Zərb Alətləri",
+    "drums": "Barabanlar",
+    "wind-instruments": "Nəfəsli Alətlər",
+    "effects": "Effektlər"
+  },
   "common": {
     "save": "Yadda saxla",
     "cancel": "Ləğv et",

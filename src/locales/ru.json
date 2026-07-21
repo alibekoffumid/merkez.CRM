@@ -1,4 +1,18 @@
 {
+  "categories": {
+    "pianos": "Пианино",
+    "keyboards": "Синтезаторы",
+    "accessories": "Аксессуары",
+    "guitars": "Гитары",
+    "ukuleles": "Укулеле",
+    "string-instruments": "Струнные инструменты",
+    "banjo": "Банжо",
+    "amps": "Усилители",
+    "percussion": "Перкуссия",
+    "drums": "Барабаны",
+    "wind-instruments": "Духовые инструменты",
+    "effects": "Эффекты"
+  },
   "common": {
     "save": "Сохранить",
     "cancel": "Отмена",

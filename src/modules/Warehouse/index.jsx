@@ -1398,7 +1398,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   <Folder className="w-3.5 h-3.5" />
                                 </div>
                               )}
-                              <span className="truncate" title={cat.name}>{cat.name}</span>
+                              <span className="truncate" title={t(`categories.${cat.name}`, { defaultValue: cat.name })}>{t(`categories.${cat.name}`, { defaultValue: cat.name })}</span>
                             </div>
                             
                             <div className="flex items-center gap-2">
@@ -1653,7 +1653,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           <td className="px-2 py-4">
                             <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                              {item.categories?.name || '—'}
+                              {item.categories?.name ? (t(`categories.${item.categories.name}`, { defaultValue: item.categories.name })) : '—'}
                             </span>
                           </td>
                           <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
