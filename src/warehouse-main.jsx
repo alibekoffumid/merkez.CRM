@@ -49,11 +49,13 @@ const WarehouseAppContent = () => {
         const { data: productsData } = await supabase
           .from('products')
           .select('id, stock_quantity, critical_stock')
+          .eq('user_id', profile.id)
           .eq('is_deleted', false);
         
         const { data: ingredientsData } = await supabase
           .from('ingredients')
-          .select('id, quantity, min_quantity');
+          .select('id, quantity, min_quantity')
+          .eq('user_id', profile.id);
 
         const lowProducts = (productsData || []).filter(p => parseFloat(p.stock_quantity || 0) < parseFloat(p.critical_stock || 15)).length;
         const lowIngredients = (ingredientsData || []).filter(i => parseFloat(i.quantity || 0) < parseFloat(i.min_quantity || 10)).length;
