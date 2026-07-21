@@ -32,7 +32,6 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
   const [stocktakes, setStocktakes] = useState([]);
   
   // Create/Edit form states
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState(warehouseId || '');
   const [notes, setNotes] = useState('');
   const [auditType, setAuditType] = useState('product'); // 'product' or 'ingredient'
   const [auditItems, setAuditItems] = useState([]);
@@ -130,7 +129,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
 
   // Start new stocktake
   const handleNewStocktake = async () => {
-    if (!selectedWarehouseId) {
+    if (!warehouseId) {
       toast.error('Zəhmət olmasa anbar seçin');
       return;
     }
@@ -154,7 +153,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
         .from(table)
         .select(`id, name, barcode, ${qtyField}, ${priceField}`)
         .eq('user_id', profile.id)
-        .eq('warehouse_id', selectedWarehouseId)
+        .eq('warehouse_id', warehouseId)
         .eq('is_deleted', false)
         .order('name');
 
@@ -307,7 +306,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
           .from('stocktakes')
           .insert({
             user_id: profile.id,
-            warehouse_id: selectedWarehouseId,
+            warehouse_id: warehouseId,
             status: isComplete ? 'completed' : 'draft',
             notes: notes,
             checked_by: checkedBy || null,
@@ -388,7 +387,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
               .insert({
                 user_id: profile.id,
                 [auditType === 'product' ? 'product_id' : 'ingredient_id']: item.item_id,
-                warehouse_id: selectedWarehouseId,
+                warehouse_id: warehouseId,
                 type: discrepancy > 0 ? 'in' : 'out',
                 quantity: Math.abs(discrepancy),
                 notes: `Inventarlaşdırma tənzimlənməsi (Sənəd ID: ${docId.substring(0, 8)})`
@@ -471,63 +470,15 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
     <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-2 pb-10 space-y-6 flex flex-col">
       {view === 'list' ? (
         <div className="space-y-6 flex-1 flex flex-col">
-          {/* Header Controls */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-xl shadow-sm border border-gray-100 gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-                <ClipboardList className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-gray-900 tracking-tight">Inventarlaşdırma (Stocktake)</h3>
-                <p className="text-xs text-gray-500 font-medium">Anbar audit sənədlərinin siyahısı və tənzimlənməsi</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="w-48">
-                <Dropdown 
-                  value={selectedWarehouseId}
-                  onChange={setSelectedWarehouseId}
-                  options={[
-                    { value: '', label: 'Anbar Seçin...' },
-                    ...warehouses.map(w => ({ value: w.id, label: w.name }))
-                  ]}
-                />
-              </div>
-              
-              <div className="flex gap-2">
-                {false && isRestaurantActive && (
-                  <select
-                    value={auditType}
-                    onChange={(e) => setAuditType(e.target.value)}
-                    className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-xs font-bold text-gray-600 outline-none"
-                  >
-                    <option value="product">Məhsullar</option>
-                    <option value="ingredient">İnqrediyentlər</option>
-                  </select>
-                )}
-
-                {portalTarget ? ReactDOM.createPortal(
-                  <button
-                    onClick={handleNewStocktake}
-                    className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap w-full border border-transparent"
-                  >
-                    <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'YENİ AUDİT' : i18n.language === 'ru' ? 'НОВЫЙ АУДИТ' : 'NEW AUDIT'}
-                  </button>,
-                  portalTarget
-                ) : (
-                  <button
-                    onClick={handleNewStocktake}
-                    className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Yeni Audit
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
+          {portalTarget && ReactDOM.createPortal(
+            <button
+              onClick={handleNewStocktake}
+              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap w-full border border-transparent"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'YENİ AUDİT' : i18n.language === 'ru' ? 'НОВЫЙ АУДИТ' : 'NEW AUDIT'}
+            </button>,
+            portalTarget
+          )}
           {/* List Table */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex-1 flex flex-col min-h-[500px]">
             <div className="overflow-x-auto flex-1 flex flex-col">
@@ -659,7 +610,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                     {viewModeOnly ? 'Auditin Detalları' : activeStocktakeId ? 'Auditi Redaktə Et' : 'Yeni Audit Sənədi'}
                   </h3>
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                    {warehouses.find(w => w.id === selectedWarehouseId)?.name} • {auditType === 'product' ? 'Məhsullar' : 'İnqrediyentlər'}
+                    {warehouses.find(w => w.id === warehouseId)?.name} • {auditType === 'product' ? 'Məhsullar' : 'İnqrediyentlər'}
                   </p>
                 </div>
               </div>
