@@ -727,6 +727,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             >
               <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
             </button>
+            <div id="warehouse-actions-portal-target" className="contents"></div>
           </div>
         </div>
       </div>

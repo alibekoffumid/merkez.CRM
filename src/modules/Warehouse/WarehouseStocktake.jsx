@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
@@ -54,6 +55,11 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
       fetchStaff();
     }
   }, [profile]);
+
+  const [portalTarget, setPortalTarget] = useState(null);
+  useEffect(() => {
+    setPortalTarget(document.getElementById('warehouse-actions-portal-target'));
+  }, []);
 
   const fetchStaff = async () => {
     try {
@@ -501,13 +507,23 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                   </select>
                 )}
 
-                <button
-                  onClick={handleNewStocktake}
-                  className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
-                >
-                  <Plus className="w-4 h-4" />
-                  Yeni Audit
-                </button>
+                {portalTarget ? ReactDOM.createPortal(
+                  <button
+                    onClick={handleNewStocktake}
+                    className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'YENİ AUDİT' : i18n.language === 'ru' ? 'НОВЫЙ АУДИТ' : 'NEW AUDIT'}
+                  </button>,
+                  portalTarget
+                ) : (
+                  <button
+                    onClick={handleNewStocktake}
+                    className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all flex items-center gap-1.5 shadow-md shadow-blue-600/10"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Yeni Audit
+                  </button>
+                )}
               </div>
             </div>
           </div>
