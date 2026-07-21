@@ -462,9 +462,9 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
   const filteredItems = getFilteredItems();
 
   return (
-    <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-2 pb-10 space-y-6">
+    <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0 pr-2 pb-10 space-y-6 flex flex-col">
       {view === 'list' ? (
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1 flex flex-col">
           {/* Header Controls */}
           <div className="flex flex-col md:flex-row md:items-center justify-between bg-white p-6 rounded-xl shadow-sm border border-gray-100 gap-4">
             <div className="flex items-center gap-4">
@@ -513,10 +513,10 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
           </div>
 
           {/* List Table */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex-1 flex flex-col min-h-[500px]">
+            <div className="overflow-x-auto flex-1 flex flex-col">
               {stocktakes.length === 0 ? (
-                <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center gap-3">
+                <div className="p-12 text-center text-gray-400 flex flex-col items-center justify-center gap-3 flex-1">
                   <ClipboardList className="w-10 h-10 text-gray-200" />
                   <p className="text-xs font-bold">Hələ heç bir inventarlaşdırma audit sənədi yaradılmayıb.</p>
                 </div>
