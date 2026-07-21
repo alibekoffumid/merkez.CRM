@@ -387,8 +387,8 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
             ) : (
               <div className="space-y-3">
                 {items.map((item, index) => (
-                  <div key={item.id} className="flex gap-3 items-end animate-in fade-in slide-in-from-top-2">
-                    <div className="flex-1">
+                  <div key={item.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 animate-in fade-in slide-in-from-top-2">
+                    <div className="w-full">
                       <Dropdown 
                         value={item.item_id}
                         onChange={(val) => updateItem(item.id, 'item_id', val)}
@@ -404,31 +404,33 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
                         searchable={true}
                       />
                     </div>
-                    <div className="w-32">
-                      <input 
-                        type="number"
-                        placeholder={t('warehouse.quantity')}
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const prod = products.find(p => p.id === item.item_id);
-                          const limit = prod ? (type === 'product' ? prod.stock_quantity : prod.quantity) : 0;
-                          if (parseFloat(e.target.value || 0) > limit) {
-                            toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${limit}`);
-                            return;
-                          }
-                          updateItem(item.id, 'quantity', e.target.value);
-                        }}
-                        className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-2xl focus:ring-4 focus:ring-merkez-blue/10 focus:border-merkez-blue block p-2.5 outline-none font-bold shadow-sm transition-all"
-                      />
+                    <div className="flex gap-3 items-center">
+                      <div className="flex-1">
+                        <input 
+                          type="number"
+                          placeholder={t('warehouse.quantity')}
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const prod = products.find(p => p.id === item.item_id);
+                            const limit = prod ? (type === 'product' ? prod.stock_quantity : prod.quantity) : 0;
+                            if (parseFloat(e.target.value || 0) > limit) {
+                              toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${limit}`);
+                              return;
+                            }
+                            updateItem(item.id, 'quantity', e.target.value);
+                          }}
+                          className="w-full bg-gray-50 border border-gray-100 text-gray-900 text-sm rounded-2xl focus:ring-4 focus:ring-merkez-blue/10 focus:border-merkez-blue block p-2.5 outline-none font-bold shadow-sm transition-all"
+                        />
+                      </div>
+                      {items.length > 1 && (
+                        <button 
+                          onClick={() => removeItem(item.id)}
+                          className="p-3 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
                     </div>
-                    {items.length > 1 && (
-                      <button 
-                        onClick={() => removeItem(item.id)}
-                        className="p-3 text-gray-400 hover:text-red-500 transition-colors mb-0.5"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
