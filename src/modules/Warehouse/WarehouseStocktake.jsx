@@ -510,7 +510,7 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                 {portalTarget ? ReactDOM.createPortal(
                   <button
                     onClick={handleNewStocktake}
-                    className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                    className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center shadow-md shadow-blue-600/10 whitespace-nowrap w-full border border-transparent"
                   >
                     <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'YENİ AUDİT' : i18n.language === 'ru' ? 'НОВЫЙ АУДИТ' : 'NEW AUDIT'}
                   </button>,
