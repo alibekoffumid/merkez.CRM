@@ -14,8 +14,8 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
   // Format categories for hierarchical dropdown
   const hierarchicalCategories = React.useMemo(() => 
-    formatCategoriesHierarchically(categories), 
-    [categories]
+    formatCategoriesHierarchically(categories, null, t), 
+    [categories, t]
   );
 
   const [loading, setLoading] = useState(false);

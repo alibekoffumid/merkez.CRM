@@ -18,8 +18,8 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
 
   // Format categories for hierarchical dropdown
   const hierarchicalCategories = React.useMemo(() => 
-    formatCategoriesHierarchically(categories), 
-    [categories]
+    formatCategoriesHierarchically(categories, null, t), 
+    [categories, t]
   );
 
 

@@ -1531,7 +1531,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
                     options={[
                       { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
-                      ...formatCategoriesHierarchically(categories).map(c => ({ value: c.id, label: c.name }))
+                      ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
                     ]}
                     buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
                   />

@@ -21,8 +21,8 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
 
   // Format categories for hierarchical dropdown, excluding current category and its children
   const hierarchicalCategories = React.useMemo(() => 
-    formatCategoriesHierarchically(categories, category?.id), 
-    [categories, category?.id]
+    formatCategoriesHierarchically(categories, category?.id, t), 
+    [categories, category?.id, t]
   );
 
 
