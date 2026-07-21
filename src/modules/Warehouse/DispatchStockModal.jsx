@@ -7,6 +7,7 @@ import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import Dropdown from '../../components/Common/Dropdown';
 import DatePicker from '../../components/Common/DatePicker';
+import { formatCategoriesHierarchically } from './categoryUtils';
 
 const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'product', warehouseId }) => {
   const { t } = useTranslation();
@@ -386,14 +387,11 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
                                 value={selectedCategoryId}
                                 onChange={handleCategoryChange}
                                 options={[
-                                    { value: '', label: t('warehouse.allCategories') },
-                                    ...categories.filter(c => !c.parent_id).flatMap(cat => [
-                                        { value: cat.id, label: cat.name },
-                                        ...categories.filter(sub => sub.parent_id === cat.id).map(sub => ({
-                                            value: sub.id,
-                                            label: `  ↳ ${sub.name}`
-                                        }))
-                                    ])
+                                    { value: '', label: t('warehouse.allCategories') || 'Bütün Kateqoriyalar' },
+                                    ...formatCategoriesHierarchically(categories, null, t).map(c => ({
+                                        value: c.id,
+                                        label: c.label
+                                    }))
                                 ]}
                             />
                         </div>
