@@ -9,6 +9,7 @@ export const UserProvider = ({ children }) => {
   const [activeModules, setActiveModules] = useState([]);   // ['dental', 'education', ...]
   const [modulesLoading, setModulesLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [currentStaff, setCurrentStaff] = useState(null);
 
   useEffect(() => {
     fetchProfile();
@@ -188,6 +189,8 @@ export const UserProvider = ({ children }) => {
       activateModule,
       activateMultipleModules,
       deactivateModule,
+      currentStaff,
+      setCurrentStaff,
     }}>
       {children}
     </UserContext.Provider>

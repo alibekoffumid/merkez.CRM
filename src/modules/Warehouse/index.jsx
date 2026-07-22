@@ -31,7 +31,7 @@ import WarehouseClientManager from './WarehouseClientManager';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
-  const { profile, activeModules } = useUser();
+  const { profile, activeModules, currentStaff } = useUser();
   const isRestaurantActive = activeModules.includes('restaurant');
   const [localActiveTab, localSetActiveTab] = useState('finished');
   const activeTab = propActiveTab || localActiveTab;
@@ -583,65 +583,73 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </button>
                 )}
                 
-                <button
-                  onClick={() => setActiveTab('suppliers')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                    activeTab === 'suppliers'
-                      ? 'bg-white text-merkez-blue shadow-sm'
-                      : 'text-gray-500 hover:text-gray-850'
-                  }`}
-                >
-                  <Truck className="w-3.5 h-3.5" />
-                  {t('warehouse.suppliers') || 'Tədarükçülər'}
-                </button>
-                
-                <button
-                  onClick={() => setActiveTab('history')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                    activeTab === 'history'
-                      ? 'bg-white text-merkez-blue shadow-sm'
-                      : 'text-gray-500 hover:text-gray-850'
-                  }`}
-                >
-                  <Search className="w-3.5 h-3.5" />
-                  {t('warehouse.history') || 'Tarixçə'}
-                </button>
+                {currentStaff?.role !== 'Cashier' && (
+                  <>
+                    <button
+                      onClick={() => setActiveTab('suppliers')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'suppliers'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                      }`}
+                    >
+                      <Truck className="w-3.5 h-3.5" />
+                      {t('warehouse.suppliers') || 'Tədarükçülər'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveTab('history')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'history'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                      }`}
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      {t('warehouse.history') || 'Tarixçə'}
+                    </button>
 
-                <button
-                  onClick={() => setActiveTab('stocktake')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                    activeTab === 'stocktake'
-                      ? 'bg-white text-merkez-blue shadow-sm'
-                      : 'text-gray-500 hover:text-gray-850'
-                  }`}
-                >
-                  <CheckSquare className="w-3.5 h-3.5" />
-                  {t('warehouse.stocktake') || 'İnventarlaşdırma'}
-                </button>
+                    <button
+                      onClick={() => setActiveTab('stocktake')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'stocktake'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                      }`}
+                    >
+                      <CheckSquare className="w-3.5 h-3.5" />
+                      {t('warehouse.stocktake') || 'İnventarlaşdırma'}
+                    </button>
+                  </>
+                )}
 
-                <button
-                  onClick={() => setActiveTab('reports')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                    activeTab === 'reports'
-                      ? 'bg-white text-merkez-blue shadow-sm'
-                      : 'text-gray-500 hover:text-gray-850'
-                  }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  {t('warehouse.reports') || 'Hesabatlar'}
-                </button>
-                
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                    activeTab === 'settings'
-                      ? 'bg-white text-merkez-blue shadow-sm'
-                      : 'text-gray-500 hover:text-gray-850'
-                  }`}
-                >
-                  <Settings className="w-3.5 h-3.5" />
-                  {t('common.settings') || 'Parametrlər'}
-                </button>
+                {(!currentStaff || currentStaff?.role === 'Manager') && (
+                  <>
+                    <button
+                      onClick={() => setActiveTab('reports')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'reports'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                      }`}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      {t('warehouse.reports') || 'Hesabatlar'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveTab('settings')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'settings'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                      }`}
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      {t('common.settings') || 'Parametrlər'}
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
@@ -650,6 +658,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden sm:block"></div>
             )}
 
+            {/* Tab-specific actions (Shifted to Left) */}
             {/* Tab-specific actions (Shifted to Left) */}
             {activeTab === 'finished' && (
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
@@ -660,21 +669,25 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 >
                   <Menu className="w-4 h-4" />
                 </button>
-                {selectedItems.length > 0 && (
-                  <button 
-                    id="tour-bulk-delete"
-                    onClick={() => setConfirmDelete({ type: 'bulk' })} 
-                    className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
-                  </button>
+                {currentStaff?.role !== 'Cashier' && (
+                  <>
+                    {selectedItems.length > 0 && (
+                      <button 
+                        id="tour-bulk-delete"
+                        onClick={() => setConfirmDelete({ type: 'bulk' })} 
+                        className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
+                      </button>
+                    )}
+                    <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                      <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
+                    </button>
+                    <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                      <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
+                    </button>
+                  </>
                 )}
-                <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                  <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
-                </button>
-                <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                  <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
-                </button>
               </div>
             )}
 
@@ -683,7 +696,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </div>
             )}
 
-            {activeTab === 'suppliers' && (
+            {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10 border border-transparent">
                   <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
@@ -700,33 +713,40 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
-            <button 
-              onClick={() => setShowSellProduct(true)} 
-              className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
-            >
-              <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
-            </button>
-            <button 
-              id="tour-receive-btn"
-              onClick={() => setShowReceiveStock(true)} 
-              className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
-            >
-              <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.receiveStock') || 'Приемка'}
-            </button>
-            <button 
-              id="tour-dispatch-btn"
-              onClick={() => setShowDispatchStock(true)} 
-              className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
-            >
-              <Minus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.dispatchStock') || 'Списание'}
-            </button>
-            <button 
-              id="tour-transfer-btn"
-              onClick={() => setShowTransferStock(true)} 
-              className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
-            </button>
+            {currentStaff?.role !== 'Storeman' && (
+              <button 
+                onClick={() => setShowSellProduct(true)} 
+                className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
+              >
+                <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+              </button>
+            )}
+            
+            {currentStaff?.role !== 'Cashier' && (
+              <>
+                <button 
+                  id="tour-receive-btn"
+                  onClick={() => setShowReceiveStock(true)} 
+                  className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                >
+                  <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.receiveStock') || 'Приемка'}
+                </button>
+                <button 
+                  id="tour-dispatch-btn"
+                  onClick={() => setShowDispatchStock(true)} 
+                  className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                >
+                  <Minus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.dispatchStock') || 'Списание'}
+                </button>
+                <button 
+                  id="tour-transfer-btn"
+                  onClick={() => setShowTransferStock(true)} 
+                  className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
+                </button>
+              </>
+            )}
             <div id="warehouse-actions-portal-target" className="contents"></div>
           </div>
         </div>
@@ -1622,11 +1642,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
+                        {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
+                        )}
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
-                        <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
+                        {currentStaff?.role !== 'Cashier' && (
+                          <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -1657,7 +1681,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {item.categories?.name ? (t(`categories.${item.categories.name}`, { defaultValue: item.categories.name })) : '—'}
                             </span>
                           </td>
-                          <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
+                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                            <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
+                          )}
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">
                             {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
@@ -1668,37 +1694,39 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
                             </div>
                           </td>
-                          <td className="px-2 py-4 pr-6 text-right">
-                            <div className="relative inline-block">
-                              <button
-                                id={index === 0 ? "tour-actions" : undefined}
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                className="text-gray-400 hover:text-merkez-blue transition-colors p-1.5 rounded-md hover:bg-blue-50"
-                              >
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
+                          {currentStaff?.role !== 'Cashier' && (
+                            <td className="px-2 py-4 pr-6 text-right">
+                              <div className="relative inline-block">
+                                <button
+                                  id={index === 0 ? "tour-actions" : undefined}
+                                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                  className="text-gray-400 hover:text-merkez-blue transition-colors p-1.5 rounded-md hover:bg-blue-50"
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
 
-                              {openMenuId === item.id && (
-                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
-                                  <button
-                                    onClick={() => handleEdit(item)}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                  >
-                                    <Pencil className="w-4 h-4 text-merkez-blue" />
-                                    {t('warehouse.editProduct')}
-                                  </button>
-                                  <div className="mx-3 my-1 border-t border-gray-100" />
-                                  <button
-                                    onClick={() => requestDeleteProduct(item.id)}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    {t('warehouse.deleteProduct')}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </td>
+                                {openMenuId === item.id && (
+                                  <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                                    <button
+                                      onClick={() => handleEdit(item)}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                    >
+                                      <Pencil className="w-4 h-4 text-merkez-blue" />
+                                      {t('warehouse.editProduct')}
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
+                                      onClick={() => requestDeleteProduct(item.id)}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                      {t('warehouse.deleteProduct')}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -1728,33 +1756,35 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </div>
                           </div>
 
-                          <div className="relative">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
-                            >
-                              <MoreVertical className="w-5 h-5" />
-                            </button>
-                            {openMenuId === item.id && (
-                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
-                                <button
-                                  onClick={() => handleEdit(item)}
-                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
-                                >
-                                  <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
-                                  {t('warehouse.editProduct') || 'Düzəliş et'}
-                                </button>
-                                <div className="mx-3 my-1 border-t border-gray-100" />
-                                <button
-                                  onClick={() => requestDeleteProduct(item.id)}
-                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  {t('warehouse.deleteProduct') || 'Sil'}
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          {currentStaff?.role !== 'Cashier' && (
+                            <div className="relative">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
+                              >
+                                <MoreVertical className="w-5 h-5" />
+                              </button>
+                              {openMenuId === item.id && (
+                                <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                  <button
+                                    onClick={() => handleEdit(item)}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
+                                    {t('warehouse.editProduct') || 'Düzəliş et'}
+                                  </button>
+                                  <div className="mx-3 my-1 border-t border-gray-100" />
+                                  <button
+                                    onClick={() => requestDeleteProduct(item.id)}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    {t('warehouse.deleteProduct') || 'Sil'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1768,10 +1798,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         </div>
 
                         <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
-                          <div>
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
-                            <span className="text-xs font-bold text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</span>
-                          </div>
+                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                            <div>
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
+                              <span className="text-xs font-bold text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</span>
+                            </div>
+                          )}
                           <div className="text-center">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPrice') || 'Satış'}</span>
                             <span className="text-xs font-black text-gray-900">${parseFloat(item.price).toFixed(2)}</span>

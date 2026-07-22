@@ -28,6 +28,7 @@ const WarehouseStaffManager = () => {
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('Active');
+  const [pin, setPin] = useState('');
   
   const [portalTarget, setPortalTarget] = useState(null);
 
@@ -64,6 +65,7 @@ const WarehouseStaffManager = () => {
     setName('');
     setRole('Staff');
     setStatus('Active');
+    setPin('');
     setIsModalOpen(true);
   };
 
@@ -72,6 +74,7 @@ const WarehouseStaffManager = () => {
     setName(staff.name);
     setRole(staff.role || 'Staff');
     setStatus(staff.status || 'Active');
+    setPin(staff.pin || '');
     setIsModalOpen(true);
   };
 
@@ -88,6 +91,7 @@ const WarehouseStaffManager = () => {
         name: name.trim(),
         role,
         status,
+        pin: pin.trim() || null,
         user_id: profile.id
       };
 
@@ -264,12 +268,29 @@ const WarehouseStaffManager = () => {
 
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{i18n.language === 'az' ? 'Vəzifə' : 'Должность'}</label>
+                  <Dropdown 
+                    value={role}
+                    onChange={setRole}
+                    options={[
+                      { value: 'Manager', label: i18n.language === 'az' ? 'Menecer' : 'Менеджер' },
+                      { value: 'Storeman', label: i18n.language === 'az' ? 'Anbardar' : 'Кладовщик' },
+                      { value: 'Cashier', label: i18n.language === 'az' ? 'Kassir' : 'Кассир' },
+                      { value: 'Staff', label: i18n.language === 'az' ? 'İşçi' : 'Сотрудник' },
+                    ]}
+                    buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">PIN (4 {i18n.language === 'az' ? 'rəqəm' : 'цифры'})</label>
                   <input
                     type="text"
-                    value={role}
-                    onChange={e => setRole(e.target.value)}
+                    maxLength={4}
+                    pattern="\d{4}"
+                    value={pin}
+                    onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
-                    placeholder="Məsələn: Anbardar"
+                    placeholder="0000"
                   />
                 </div>
 
