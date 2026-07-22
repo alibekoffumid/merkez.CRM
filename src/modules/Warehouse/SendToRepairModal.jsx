@@ -54,7 +54,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
         // Fetch products
         const { data: productsData } = await supabase
           .from('products')
-          .select('id, name, stock_quantity, article_number')
+          .select('id, name, stock_quantity, barcode')
           .eq('user_id', profile.id)
           .eq('is_deleted', false)
           .order('name');
@@ -241,7 +241,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                         { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
                         ...products.map(p => ({
                           value: p.id,
-                          label: `${p.name} ${p.article_number ? `(${p.article_number})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
+                          label: `${p.name} ${p.barcode ? `(${p.barcode})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
                         }))
                       ]}
                       buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"

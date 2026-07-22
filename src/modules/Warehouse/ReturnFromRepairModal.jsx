@@ -26,7 +26,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
       try {
         const { data } = await supabase
           .from('products')
-          .select('id, name, cost_price, stock_quantity')
+          .select('id, name, barcode, cost_price, stock_quantity')
           .eq('user_id', profile.id)
           .eq('is_deleted', false)
           .gt('stock_quantity', 0) // only products in stock
