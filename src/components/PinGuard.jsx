@@ -7,7 +7,7 @@ import ModalPortal from './Common/ModalPortal';
 import { supabase } from '../supabaseClient';
 
 const PinGuard = ({ children, moduleId }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile, setCurrentStaff } = useUser();
   const navigate = useNavigate();
   const [isLocked, setIsLocked] = useState(true);
@@ -153,7 +153,13 @@ const PinGuard = ({ children, moduleId }) => {
                       </div>
                       <div className="text-left flex-1">
                         <h3 className="font-bold text-gray-900">{staff.name}</h3>
-                        <p className="text-xs text-gray-500">{staff.role}</p>
+                        <p className="text-xs text-gray-500">
+                          {staff.role === 'Manager' ? (i18n.language === 'az' ? 'Menecer' : 'Менеджер') :
+                           staff.role === 'Storeman' ? (i18n.language === 'az' ? 'Anbardar' : 'Кладовщик') :
+                           staff.role === 'Cashier' ? (i18n.language === 'az' ? 'Kassir' : 'Кассир') :
+                           staff.role === 'Staff' ? (i18n.language === 'az' ? 'İşçi' : 'Сотрудник') :
+                           staff.role}
+                        </p>
                       </div>
                     </button>
                   ))}

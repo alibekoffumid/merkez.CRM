@@ -202,7 +202,11 @@ const WarehouseStaffManager = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
-                        {staff.role}
+                        {staff.role === 'Manager' ? (i18n.language === 'az' ? 'Menecer' : 'Менеджер') :
+                         staff.role === 'Storeman' ? (i18n.language === 'az' ? 'Anbardar' : 'Кладовщик') :
+                         staff.role === 'Cashier' ? (i18n.language === 'az' ? 'Kassir' : 'Кассир') :
+                         staff.role === 'Staff' ? (i18n.language === 'az' ? 'İşçi' : 'Сотрудник') :
+                         staff.role}
                       </span>
                     </td>
                     <td className="px-6 py-4">
