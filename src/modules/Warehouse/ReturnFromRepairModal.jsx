@@ -247,6 +247,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
                     <Dropdown
                       value={selectedPartId}
                       onChange={setSelectedPartId}
+                      searchable={true}
                       options={[
                         { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
                         ...products.map(p => ({

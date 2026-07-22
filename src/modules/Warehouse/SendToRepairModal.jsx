@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Save, Hammer, Box, User, AlertCircle, Loader2, Package } from 'lucide-react';
+import { X, Save, Hammer, Box, User, AlertCircle, Loader2, Package, Search } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
@@ -24,6 +24,10 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   
   const [newMasterName, setNewMasterName] = useState('');
   const [isAddingMaster, setIsAddingMaster] = useState(false);
+
+  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeBuffer, setBarcodeBuffer] = useState('');
+  const barcodeInputRef = React.useRef(null);
 
   useEffect(() => {
     if (!profile) return;
@@ -111,6 +115,26 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       console.error('Error adding master:', err);
       toast.error(i18n.language === 'az' ? 'Usta əlavə edilə bilmədi' : 'Не удалось добавить мастера');
     }
+  };
+
+  const handleBarcodeSubmit = (e) => {
+    e.preventDefault();
+    const barcode = barcodeBuffer.trim();
+    if (!barcode) return;
+
+    const product = (products || []).find(p => p.barcode === barcode);
+    if (product) {
+      handleProductSelect(product.id);
+      setBarcodeBuffer('');
+      toast.success(`${product.name} seçildi`);
+    } else {
+      toast.error(i18n.language === 'az' ? 'Məhsul tapılmadı' : 'Товар не найден');
+    }
+    
+    // Keep focus
+    setTimeout(() => {
+      barcodeInputRef.current?.focus();
+    }, 10);
   };
 
   const handleSubmit = async (e) => {
@@ -231,21 +255,60 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
               <div className="space-y-4">
                 {type === 'INTERNAL_STOCK' ? (
                   <div>
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                      {i18n.language === 'az' ? 'Məhsul Seçin' : 'Выберите Товар'} *
-                    </label>
-                    <Dropdown
-                      value={selectedProductId}
-                      onChange={handleProductSelect}
-                      options={[
-                        { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
-                        ...products.map(p => ({
-                          value: p.id,
-                          label: `${p.name} ${p.barcode ? `(${p.barcode})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
-                        }))
-                      ]}
-                      buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                    />
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                        {i18n.language === 'az' ? 'Məhsul Seçin' : 'Выберите Товар'} *
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <span className="text-xs font-bold text-gray-500">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                        <div className="relative">
+                          <input 
+                            type="checkbox"
+                            checked={barcodeMode}
+                            onChange={(e) => {
+                              setBarcodeMode(e.target.checked);
+                              if (e.target.checked) {
+                                setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                              }
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    {barcodeMode ? (
+                      <div className="relative mb-2">
+                        <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <input
+                          ref={barcodeInputRef}
+                          type="text"
+                          value={barcodeBuffer}
+                          onChange={(e) => setBarcodeBuffer(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleBarcodeSubmit(e);
+                          }}
+                          placeholder={t('warehouse.scanBarcodePlaceholder') || 'Skan edin...'}
+                          className="w-full bg-gray-50 border-2 border-orange-500/30 rounded-xl pl-12 pr-4 py-3 text-sm font-bold focus:bg-white focus:border-orange-500 outline-none transition-all"
+                          autoFocus
+                        />
+                      </div>
+                    ) : (
+                      <Dropdown
+                        value={selectedProductId}
+                        onChange={handleProductSelect}
+                        searchable={true}
+                        options={[
+                          { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
+                          ...products.map(p => ({
+                            value: p.id,
+                            label: `${p.name} ${p.barcode ? `(${p.barcode})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
+                          }))
+                        ]}
+                        buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      />
+                    )}
                   </div>
                 ) : (
                   <div>
