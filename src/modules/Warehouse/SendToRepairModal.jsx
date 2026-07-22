@@ -213,19 +213,18 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                     <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
                       {i18n.language === 'az' ? 'Məhsul Seçin' : 'Выберите Товар'} *
                     </label>
-                    <select
+                    <Dropdown
                       value={selectedProductId}
-                      onChange={(e) => handleProductSelect(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                    >
-                      <option value="">{i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...'}</option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} {p.article_number ? `(${p.article_number})` : ''} - {i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: {p.stock_quantity}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={handleProductSelect}
+                      options={[
+                        { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
+                        ...products.map(p => ({
+                          value: p.id,
+                          label: `${p.name} ${p.article_number ? `(${p.article_number})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
+                        }))
+                      ]}
+                      buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    />
                   </div>
                 ) : (
                   <div>
@@ -287,17 +286,17 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                       </div>
                     ) : (
                       <>
-                        <select
-                          value={selectedMasterId}
-                          onChange={(e) => setSelectedMasterId(e.target.value)}
-                          required
-                          className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                        >
-                          <option value="">{i18n.language === 'az' ? 'Usta seçin...' : 'Выберите мастера...'}</option>
-                          {masters.map(m => (
-                            <option key={m.id} value={m.id}>{m.name}</option>
-                          ))}
-                        </select>
+                        <div className="flex-1">
+                          <Dropdown
+                            value={selectedMasterId}
+                            onChange={setSelectedMasterId}
+                            options={[
+                              { value: '', label: i18n.language === 'az' ? 'Usta seçin...' : 'Выберите мастера...' },
+                              ...masters.map(m => ({ value: m.id, label: m.name }))
+                            ]}
+                            buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => setIsAddingMaster(true)}

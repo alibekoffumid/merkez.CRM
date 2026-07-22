@@ -5,6 +5,7 @@ import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import Dropdown from '../../components/Common/Dropdown';
 
 const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   const { t, i18n } = useTranslation();
@@ -242,18 +243,20 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
                   {i18n.language === 'az' ? 'İstifadə olunan ehtiyat hissələri (İxtiyari)' : 'Использованные запчасти (Необязательно)'}
                 </label>
                 <div className="flex gap-2 mb-3">
-                  <select
-                    value={selectedPartId}
-                    onChange={(e) => setSelectedPartId(e.target.value)}
-                    className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
-                  >
-                    <option value="">{i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...'}</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} - ₼{p.cost_price} (Qalıq: {p.stock_quantity})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <Dropdown
+                      value={selectedPartId}
+                      onChange={setSelectedPartId}
+                      options={[
+                        { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
+                        ...products.map(p => ({
+                          value: p.id,
+                          label: `${p.name} - ₼${p.cost_price} (${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity})`
+                        }))
+                      ]}
+                      buttonClassName="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                    />
+                  </div>
                   <input
                     type="number"
                     min="0.001"
