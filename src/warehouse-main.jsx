@@ -15,7 +15,7 @@ import { FlagAZ, FlagRU, FlagGB } from './components/Common/FlagIcons';
 
 const WarehouseAppContent = () => {
   const { t, i18n } = useTranslation();
-  const { profile, loading, activeModules } = useUser();
+  const { profile, loading, activeModules, currentStaff } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -291,14 +291,16 @@ const WarehouseAppContent = () => {
   const navTabs = [
     { id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' },
     ...(false && activeModules?.includes('restaurant') ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
-    { id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' },
+    ...(currentStaff?.role !== 'Cashier' ? [{ id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' }] : []),
     { id: 'history', icon: Search, label: t('warehouse.history') || 'История' },
     { id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' },
-    { id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null },
-    { id: 'debts', icon: BookOpen, label: t('crm.debtBook') || 'Книга долгов' },
-    { id: 'clients', icon: User, label: i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients' },
-    { id: 'staff', icon: Users, label: i18n.language === 'az' ? 'Heyət' : i18n.language === 'ru' ? 'Персонал' : 'Staff' },
-    { id: 'settings', icon: Settings, label: t('common.settings') || 'Настройки' }
+    ...(!currentStaff ? [{ id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null }] : []),
+    ...(!currentStaff || currentStaff?.role === 'Manager' ? [
+      { id: 'debts', icon: BookOpen, label: t('crm.debtBook') || 'Книга долгов' },
+      { id: 'clients', icon: User, label: i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients' },
+      { id: 'staff', icon: Users, label: i18n.language === 'az' ? 'Heyət' : i18n.language === 'ru' ? 'Персонал' : 'Staff' },
+      { id: 'settings', icon: Settings, label: t('common.settings') || 'Настройки' }
+    ] : [])
   ];
 
   const activeTabItem = navTabs.find(t => t.id === activeTab) || navTabs[0];
