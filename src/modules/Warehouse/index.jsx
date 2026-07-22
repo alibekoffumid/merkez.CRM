@@ -623,21 +623,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </>
                 )}
 
+                {(!currentStaff) && (
+                  <button
+                    onClick={() => setActiveTab('reports')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      activeTab === 'reports'
+                        ? 'bg-white text-merkez-blue shadow-sm'
+                        : 'text-gray-500 hover:text-gray-850'
+                    }`}
+                  >
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    {t('warehouse.reports') || 'Hesabatlar'}
+                  </button>
+                )}
+                
                 {(!currentStaff || currentStaff?.role === 'Manager') && (
-                  <>
-                    <button
-                      onClick={() => setActiveTab('reports')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                        activeTab === 'reports'
-                          ? 'bg-white text-merkez-blue shadow-sm'
-                          : 'text-gray-500 hover:text-gray-850'
-                      }`}
-                    >
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      {t('warehouse.reports') || 'Hesabatlar'}
-                    </button>
-                    
-                    <button
+                  <button
                       onClick={() => setActiveTab('settings')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                         activeTab === 'settings'
@@ -648,7 +649,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       <Settings className="w-3.5 h-3.5" />
                       {t('common.settings') || 'Parametrlər'}
                     </button>
-                  </>
                 )}
               </div>
             )}
@@ -1499,13 +1499,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </div>
               )}
 
-              {activeTab === 'finished' && (
+              {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
                 <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
                 </button>
               )}
 
-              {activeTab === 'raw' && isRestaurantActive && (
+              {activeTab === 'raw' && isRestaurantActive && currentStaff?.role !== 'Cashier' && (
                 <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
                 </button>
@@ -1617,9 +1617,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                   <FolderTree className="w-12 h-12 text-gray-200" />
                   <p className="font-medium">{t('warehouse.noProductsFound')}</p>
-                  <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
-                    <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
-                  </button>
+                  {currentStaff?.role !== 'Cashier' && (
+                    <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+                      <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <>
