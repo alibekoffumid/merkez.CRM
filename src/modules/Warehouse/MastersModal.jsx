@@ -19,6 +19,27 @@ const MastersModal = ({ isOpen, onClose }) => {
     if (!profile) return;
     setLoading(true);
     try {
+      // Sync masters from staff table
+      const { data: staffMasters } = await supabase
+        .from('staff')
+        .select('name')
+        .eq('user_id', profile.id)
+        .eq('role', 'Master');
+        
+      const { data: existingMastersRaw } = await supabase
+        .from('warehouse_masters')
+        .select('name')
+        .eq('user_id', profile.id);
+        
+      const existingNames = new Set((existingMastersRaw || []).map(m => m.name));
+      const newMasters = (staffMasters || [])
+        .filter(m => !existingNames.has(m.name))
+        .map(m => ({ user_id: profile.id, name: m.name }));
+        
+      if (newMasters.length > 0) {
+        await supabase.from('warehouse_masters').insert(newMasters);
+      }
+
       const { data, error } = await supabase
         .from('warehouse_masters')
         .select('*')

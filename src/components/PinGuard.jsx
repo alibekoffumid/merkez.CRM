@@ -162,6 +162,7 @@ const PinGuard = ({ children, moduleId }) => {
                            staff.role === 'Storeman' ? (i18n.language === 'az' ? 'Anbardar' : 'Кладовщик') :
                            staff.role === 'Cashier' ? (i18n.language === 'az' ? 'Kassir' : 'Кассир') :
                            staff.role === 'Staff' ? (i18n.language === 'az' ? 'İşçi' : 'Сотрудник') :
+                           staff.role === 'Master' ? (i18n.language === 'az' ? 'Usta' : 'Мастер') :
                            staff.role}
                         </p>
                       </div>
