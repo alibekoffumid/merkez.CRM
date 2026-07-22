@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
 import { UserProvider, useUser } from './core/UserContext';
 import WarehouseModule from './modules/Warehouse';
+import PinGuard from './components/PinGuard';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
@@ -504,7 +506,9 @@ const WarehouseAppContent = () => {
 
       {/* Main content container */}
       <main className="flex-1 overflow-hidden p-3 md:p-6 flex flex-col">
-        <WarehouseModule activeTab={activeTab} setActiveTab={setActiveTab} />
+        <PinGuard moduleId="warehouse">
+          <WarehouseModule activeTab={activeTab} setActiveTab={setActiveTab} />
+        </PinGuard>
       </main>
 
       <LocalConnectionModal 
@@ -517,9 +521,11 @@ const WarehouseAppContent = () => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <UserProvider>
-      <WarehouseAppContent />
-      <Toaster position="top-right" />
-    </UserProvider>
+    <HashRouter>
+      <UserProvider>
+        <WarehouseAppContent />
+        <Toaster position="top-right" />
+      </UserProvider>
+    </HashRouter>
   </React.StrictMode>
 );
