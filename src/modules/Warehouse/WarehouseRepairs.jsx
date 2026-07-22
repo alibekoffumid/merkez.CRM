@@ -23,6 +23,48 @@ const WarehouseRepairs = ({ activeTab }) => {
   const [isMastersModalOpen, setIsMastersModalOpen] = useState(false);
   const [selectedRepair, setSelectedRepair] = useState(null);
 
+  const STATUSES = {
+    RECEIVED_FROM_CUSTOMER: { az: 'Müştəridən təhvil alındı', ru: 'Получено от клиента', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+    SENT_TO_WORKSHOP: { az: 'Emalatxanaya göndərildi', ru: 'Отправлено в мастерскую', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    BEING_REPAIRED: { az: 'Təmir edilir', ru: 'Ремонтируется', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    READY: { az: 'Hazır', ru: 'Готово', color: 'bg-green-100 text-green-800 border-green-200' },
+    RECEIVED_FROM_WORKSHOP: { az: 'Emalatxanadan təhvil alındı', ru: 'Получено из мастерской', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+    DELIVERED_TO_CUSTOMER: { az: 'Müştəriyə təhvil verildi', ru: 'Выдано клиенту', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+    RETURNED_TO_STOCK: { az: 'Anbara qaytarıldı', ru: 'Возвращено на склад', color: 'bg-gray-100 text-gray-800 border-gray-200' }
+  };
+
+  const getStatusOptions = (type) => {
+    if (type === 'INTERNAL_STOCK') {
+      return ['SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'READY', 'RETURNED_TO_STOCK'];
+    }
+    return ['RECEIVED_FROM_CUSTOMER', 'SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'READY', 'RECEIVED_FROM_WORKSHOP', 'DELIVERED_TO_CUSTOMER'];
+  };
+
+  const handleStatusChange = async (repair, newStatus) => {
+    // If it requires master fee computation
+    if (newStatus === 'RECEIVED_FROM_WORKSHOP' || newStatus === 'RETURNED_TO_STOCK') {
+      setSelectedRepair({ ...repair, targetStatus: newStatus });
+      setIsReturnModalOpen(true);
+      return;
+    }
+
+    // Otherwise, just update directly
+    const loadingToast = toast.loading(i18n.language === 'az' ? 'Yenilənir...' : 'Обновление...');
+    try {
+      const { error } = await supabase
+        .from('warehouse_repairs')
+        .update({ status: newStatus })
+        .eq('id', repair.id);
+        
+      if (error) throw error;
+      toast.success(i18n.language === 'az' ? 'Status dəyişdirildi' : 'Статус изменен', { id: loadingToast });
+      fetchRepairs();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message, { id: loadingToast });
+    }
+  };
+
   const fetchRepairs = async () => {
     if (!profile) return;
     setLoading(true);
@@ -72,15 +114,6 @@ const WarehouseRepairs = ({ activeTab }) => {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusBadge = (status) => {
-    switch(status) {
-      case 'SENT_TO_MASTER': return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold rounded-lg border border-yellow-200 flex items-center gap-1"><Clock className="w-3 h-3"/> {i18n.language === 'az' ? 'Ustadadır' : 'У мастера'}</span>;
-      case 'READY': return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-lg border border-green-200 flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> {i18n.language === 'az' ? 'Hazırdır' : 'Готово'}</span>;
-      case 'RETURNED_TO_STOCK': return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-bold rounded-lg border border-gray-200 flex items-center gap-1"><RefreshCw className="w-3 h-3"/> {i18n.language === 'az' ? 'Anbara qaytarıldı' : 'Возвращен'}</span>;
-      default: return null;
-    }
-  };
-
   return (
     <div className="flex-1 bg-gray-50/50 p-4 lg:p-6 overflow-hidden flex flex-col h-full relative">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -125,7 +158,7 @@ const WarehouseRepairs = ({ activeTab }) => {
         </div>
         
         <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0">
-          {['ALL', 'SENT_TO_MASTER', 'READY', 'RETURNED_TO_STOCK'].map(status => (
+          {['ALL', ...Object.keys(STATUSES)].map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -135,10 +168,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                   : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
-              {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') :
-               status === 'SENT_TO_MASTER' ? (i18n.language === 'az' ? 'Ustadadır' : 'У мастера') :
-               status === 'READY' ? (i18n.language === 'az' ? 'Hazırdır' : 'Готово') :
-               (i18n.language === 'az' ? 'Qaytarıldı' : 'Возвращены')}
+              {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') : STATUSES[status]?.[i18n.language === 'az' ? 'az' : 'ru']}
             </button>
           ))}
         </div>
@@ -170,7 +200,6 @@ const WarehouseRepairs = ({ activeTab }) => {
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Usta' : 'Мастер'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Status' : 'Статус'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">{i18n.language === 'az' ? 'Tarix' : 'Дата'}</th>
-                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -201,25 +230,25 @@ const WarehouseRepairs = ({ activeTab }) => {
                     </div>
                   </td>
                   <td className="p-4">
-                    {getStatusBadge(repair.status)}
+                    <select
+                      value={repair.status}
+                      onChange={(e) => handleStatusChange(repair, e.target.value)}
+                      className={`px-2 py-1.5 text-xs font-bold rounded-lg border focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer appearance-none ${STATUSES[repair.status]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}
+                    >
+                      <option value={repair.status} disabled hidden>
+                        {STATUSES[repair.status]?.[i18n.language === 'az' ? 'az' : 'ru'] || repair.status}
+                      </option>
+                      {getStatusOptions(repair.type).map(opt => (
+                        <option key={opt} value={opt} className="bg-white text-gray-900 font-medium">
+                          {STATUSES[opt]?.[i18n.language === 'az' ? 'az' : 'ru']}
+                        </option>
+                      ))}
+                    </select>
                   </td>
                   <td className="p-4 text-right">
                     <div className="text-sm font-bold text-gray-700">
                       {new Date(repair.created_at).toLocaleDateString()}
                     </div>
-                  </td>
-                  <td className="p-4 text-right">
-                    {repair.status !== 'RETURNED_TO_STOCK' && (
-                      <button
-                        onClick={() => {
-                          setSelectedRepair(repair);
-                          setIsReturnModalOpen(true);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 bg-white border border-gray-200 hover:border-orange-500 hover:text-orange-600 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-all"
-                      >
-                        {i18n.language === 'az' ? 'Qəbul Et' : 'Принять'}
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}

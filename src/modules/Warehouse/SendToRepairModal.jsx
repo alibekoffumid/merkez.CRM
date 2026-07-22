@@ -171,8 +171,8 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
           item_name: itemName,
           serial_number: serialNumber || null,
           master_id: selectedMasterId,
-          issue_description: issueDescription,
-          status: 'SENT_TO_MASTER'
+          issue_description: issueDescription.trim(),
+          status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER'
         }])
         .select()
         .single();

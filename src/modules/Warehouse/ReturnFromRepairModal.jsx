@@ -69,9 +69,11 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
     setParts(newParts);
   };
 
-  const handleSubmit = async (e, returnToStock = false) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
+    const returnToStock = repair.targetStatus === 'RETURNED_TO_STOCK';
     
     try {
       const fee = parseFloat(masterFee) || 0;
@@ -152,7 +154,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
       const { error: updateError } = await supabase
         .from('warehouse_repairs')
         .update({
-          status: returnToStock ? 'RETURNED_TO_STOCK' : 'READY',
+          status: repair.targetStatus || (returnToStock ? 'RETURNED_TO_STOCK' : 'READY'),
           master_fee: fee,
           parts_cost: totalPartsCost
         })
@@ -340,28 +342,16 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
             >
               {t('common.cancel') || 'Ləğv et'}
             </button>
-            <div className="flex-1 flex gap-2 justify-end">
+            <div className="flex-1 flex justify-end">
               <button
                 type="button"
                 disabled={loading}
-                onClick={(e) => handleSubmit(e, false)}
-                className="px-4 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all shadow-lg shadow-gray-900/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                onClick={handleSubmit}
+                className="px-6 py-3 bg-orange-600 text-white rounded-xl font-bold text-sm hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                {i18n.language === 'az' ? 'Hazırdır (Müştəriyə Ver)' : 'Готово (Выдать)'}
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {i18n.language === 'az' ? 'Yadda Saxla' : 'Сохранить'}
               </button>
-              
-              {repair.type === 'INTERNAL_STOCK' && (
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={(e) => handleSubmit(e, true)}
-                  className="px-4 py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-600/20 active:scale-95 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  {i18n.language === 'az' ? 'Anbara Qaytar' : 'Вернуть на Склад'}
-                </button>
-              )}
             </div>
           </div>
 
