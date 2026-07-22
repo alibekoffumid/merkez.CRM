@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Plus, Trash2, ArrowRightLeft, Package, AlertCircle, Loader2, Search } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
