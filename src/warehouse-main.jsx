@@ -7,7 +7,7 @@ import PinGuard from './components/PinGuard';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
@@ -292,6 +292,7 @@ const WarehouseAppContent = () => {
     { id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' },
     ...(false && activeModules?.includes('restaurant') ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
     ...(currentStaff?.role !== 'Cashier' ? [{ id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' }] : []),
+    { id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : 'Ремонт' },
     { id: 'history', icon: Search, label: t('warehouse.history') || 'История' },
     { id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' },
     ...(!currentStaff ? [{ id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null }] : []),

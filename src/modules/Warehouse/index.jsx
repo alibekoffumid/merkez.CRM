@@ -28,6 +28,7 @@ import SellProductModal from './SellProductModal';
 import { formatCategoriesHierarchically } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
+import WarehouseRepairs from './WarehouseRepairs';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -61,6 +62,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showAddSupplier, setShowAddSupplier] = useState(false);
   const [showReceiveStock, setShowReceiveStock] = useState(false);
   const [showDispatchStock, setShowDispatchStock] = useState(false);
+  const [activeRepairsMap, setActiveRepairsMap] = useState({});
   const [showTransferStock, setShowTransferStock] = useState(false);
   const [showSellProduct, setShowSellProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -157,7 +159,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       fetchSuppliers(),
       fetchReceipts(),
       fetchDispatches(),
-      fetchTransfers()
+      fetchTransfers(),
+      fetchActiveRepairs()
     ]);
     setLoading(false);
   };
@@ -187,6 +190,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           setCurrentWarehouseId(data[0].id);
         }
       }
+    }
+  };
+
+  const fetchActiveRepairs = async () => {
+    if (!profile?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('warehouse_repairs')
+        .select('product_id')
+        .eq('user_id', profile.id)
+        .eq('status', 'SENT_TO_MASTER')
+        .not('product_id', 'is', null);
+        
+      if (!error && data) {
+        const counts = {};
+        data.forEach(r => {
+          counts[r.product_id] = (counts[r.product_id] || 0) + 1;
+        });
+        setActiveRepairsMap(counts);
+      }
+    } catch (err) {
+      console.warn("fetchActiveRepairs error (table might not exist yet):", err);
     }
   };
 
@@ -759,6 +784,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           </div>
         ) : activeTab === 'clients' ? (
           <WarehouseClientManager />
+        ) : activeTab === 'repairs' ? (
+          <WarehouseRepairs activeTab={activeTab} />
         ) : activeTab === 'staff' ? (
           <WarehouseStaffManager />
         ) : activeTab === 'suppliers' ? (
@@ -1671,7 +1698,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </button>
                           </td>
                           <td className="px-2 py-4">
-                            <p className="font-medium text-gray-900">{item.name}</p>
+                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                              {item.name}
+                              {activeRepairsMap[item.id] && (
+                                <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2 whitespace-nowrap">
+                                  {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-2 py-4">
                             <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
@@ -1751,7 +1785,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               )}
                             </button>
                             <div>
-                              <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                              <p className="font-bold text-gray-900 text-sm flex items-center gap-2 flex-wrap">
+                                {item.name}
+                                {activeRepairsMap[item.id] && (
+                                  <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
+                                    {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
+                                  </span>
+                                )}
+                              </p>
                               <span className="text-[10px] font-mono text-gray-400 mt-1 block">
                                 {item.barcode || '—'}
                               </span>
@@ -2016,6 +2057,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           onClose={() => setShowSellProduct(false)}
           onSaleComplete={fetchAll}
           warehouseId={currentWarehouseId}
+          activeRepairsMap={activeRepairsMap}
         />
       </ModalPortal>
       {confirmDelete && (

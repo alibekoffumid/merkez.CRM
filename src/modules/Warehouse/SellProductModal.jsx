@@ -19,7 +19,7 @@ const BANK_RATES = {
   'Ferrum DTI': { 3: 0.08, 6: 0.12, 9: 0.16, 12: 0.19 }
 };
 
-const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
+const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, activeRepairsMap = {} }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -188,10 +188,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
     if (product) {
       const existingItem = cart.find(item => item.product_id === product.id);
       const currentQtyInCart = existingItem ? existingItem.quantity : 0;
+      const itemsInRepair = activeRepairsMap[product.id] || 0;
+      const availableStock = (product.stock_quantity || 0) - itemsInRepair;
       
-      if (currentQtyInCart + 1 > (product.stock_quantity || 0)) {
+      if (currentQtyInCart + 1 > availableStock) {
         playBeep(false);
-        toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${product.stock_quantity || 0}`);
+        toast.error(`${t('warehouse.insufficientStock') || 'Məhsul anbarda kifayət deyil'}: ${availableStock} ${itemsInRepair > 0 ? `(${itemsInRepair} ${i18n.language === 'az' ? 'təmirdə' : 'в ремонте'})` : ''}`);
         setBarcodeBuffer('');
         return;
       }
@@ -248,9 +250,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId }) => {
 
     const existingItem = cart.find(item => item.product_id === currentItem.product_id);
     const newTotal = (existingItem ? existingItem.quantity : 0) + qty;
+    
+    const itemsInRepair = activeRepairsMap[product.id] || 0;
+    const availableStock = (product.stock_quantity || 0) - itemsInRepair;
 
-    if (newTotal > (product.stock_quantity || 0)) {
-      toast.error(`${t('warehouse.insufficientStock') || 'Недостаточно товара на складе'}: ${product.stock_quantity || 0}`);
+    if (newTotal > availableStock) {
+      toast.error(`${t('warehouse.insufficientStock') || 'Недостаточно товара на складе'}: ${availableStock} ${itemsInRepair > 0 ? `(${itemsInRepair} ${i18n.language === 'az' ? 'təmirdə' : 'в ремонте'})` : ''}`);
       return;
     }
 
