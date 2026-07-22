@@ -114,10 +114,10 @@ const PinGuard = ({ children, moduleId }) => {
                   <Users className="w-8 h-8 text-merkez-blue" />
                 </div>
                 <h2 className="text-2xl font-black text-gray-900 mb-2">
-                  {t('common.selectUser') || 'Кто работает?'}
+                  {i18n.language === 'az' ? 'Kim işləyir?' : 'Кто работает?'}
                 </h2>
                 <p className="text-sm text-gray-500 font-medium">
-                  Выберите свой профиль для входа
+                  {i18n.language === 'az' ? 'Giriş etmək üçün profilinizi seçin' : 'Выберите свой профиль для входа'}
                 </p>
               </div>
 
@@ -136,8 +136,12 @@ const PinGuard = ({ children, moduleId }) => {
                       <User className="w-6 h-6" />
                     </div>
                     <div className="text-left flex-1">
-                      <h3 className="font-bold text-gray-900">Владелец / Администратор</h3>
-                      <p className="text-xs text-gray-500">Полный доступ</p>
+                      <h3 className="font-bold text-gray-900">
+                        {i18n.language === 'az' ? 'Sahib / İdarəçi' : 'Владелец / Администратор'}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {i18n.language === 'az' ? 'Tam giriş' : 'Полный доступ'}
+                      </p>
                     </div>
                   </button>
 
@@ -179,10 +183,10 @@ const PinGuard = ({ children, moduleId }) => {
                 <Lock className="w-8 h-8 text-amber-500" />
               </div>
               <h2 className="text-xl font-black text-gray-900 mb-1">
-                {selectedUser === 'owner' ? 'Владелец' : selectedUser.name}
+                {selectedUser === 'owner' ? (i18n.language === 'az' ? 'Sahib' : 'Владелец') : selectedUser.name}
               </h2>
               <p className="text-sm text-gray-500 font-medium mb-8">
-                {t('common.enterPinToAccess') || 'Введите 4-значный PIN-код для доступа'}
+                {i18n.language === 'az' ? 'Giriş etmək üçün 4 rəqəmli PIN kodu daxil edin' : 'Введите 4-значный PIN-код для доступа'}
               </p>
 
               <form onSubmit={handlePinSubmit}>
