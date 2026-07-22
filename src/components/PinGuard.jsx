@@ -98,7 +98,7 @@ const PinGuard = ({ children, moduleId }) => {
   return (
     <ModalPortal>
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/60 backdrop-blur-sm animate-in fade-in duration-300 p-4">
-        <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 relative flex flex-col max-h-[90vh]">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 relative flex flex-col max-h-[90vh]">
           {/* Close Button */}
           <button 
             onClick={handleClose}
