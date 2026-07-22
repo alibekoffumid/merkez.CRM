@@ -315,10 +315,7 @@ const WarehouseAppContent = () => {
             <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <div>
-              <h1 className="text-base font-black tracking-tight leading-tight">{t('warehouse.terminalTitle')}</h1>
-              <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mt-0.5">{t('warehouse.terminalSubtitle')}</p>
-            </div>
+
           </div>
 
           {/* Mobile Header Controls */}
