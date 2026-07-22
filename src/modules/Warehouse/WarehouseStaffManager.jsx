@@ -206,6 +206,7 @@ const WarehouseStaffManager = () => {
                          staff.role === 'Storeman' ? (i18n.language === 'az' ? 'Anbardar' : 'Кладовщик') :
                          staff.role === 'Cashier' ? (i18n.language === 'az' ? 'Kassir' : 'Кассир') :
                          staff.role === 'Staff' ? (i18n.language === 'az' ? 'İşçi' : 'Сотрудник') :
+                         staff.role === 'Master' ? (i18n.language === 'az' ? 'Usta' : 'Мастер') :
                          staff.role}
                       </span>
                     </td>
@@ -280,6 +281,7 @@ const WarehouseStaffManager = () => {
                       { value: 'Storeman', label: i18n.language === 'az' ? 'Anbardar' : 'Кладовщик' },
                       { value: 'Cashier', label: i18n.language === 'az' ? 'Kassir' : 'Кассир' },
                       { value: 'Staff', label: i18n.language === 'az' ? 'İşçi' : 'Сотрудник' },
+                      { value: 'Master', label: i18n.language === 'az' ? 'Usta' : 'Мастер' },
                     ]}
                     buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold"
                   />
