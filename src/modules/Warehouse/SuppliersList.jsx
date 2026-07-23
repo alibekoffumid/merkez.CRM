@@ -16,6 +16,7 @@ import {
 import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHistory }) => {
   const { t } = useTranslation();
@@ -39,8 +40,8 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
 
   return (
     <div className="flex flex-col h-full w-full bg-white rounded-lg overflow-hidden">
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <ModalPortal targetId="warehouse-top-bar-portal-target">
+        <div className="relative flex-1 max-w-md w-full">
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input 
             type="text" 
@@ -50,7 +51,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
             className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue transition-colors" 
           />
         </div>
-      </div>
+      </ModalPortal>
 
       <div className="flex-1 overflow-auto">
         {filteredSuppliers.length === 0 ? (

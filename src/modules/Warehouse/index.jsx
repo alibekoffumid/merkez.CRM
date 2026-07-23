@@ -715,19 +715,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               <div className="flex items-center gap-2">
               </div>
             )}
-
-            {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
-              <div className="flex items-center gap-2">
-                <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10 border border-transparent">
-                  <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addSupplier')}
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Moved Search Bar (relocated to filter bar) */}
 
-          {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff' || activeTab === 'repairs' || activeTab === 'stocktake') && (
+          {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff' || activeTab === 'repairs' || activeTab === 'stocktake' || activeTab === 'suppliers') && (
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
@@ -739,6 +731,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
               >
                 <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+              </button>
+            )}
+            
+            {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
+              <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent">
+                <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addSupplier')}
               </button>
             )}
             
