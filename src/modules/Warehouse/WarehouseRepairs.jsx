@@ -132,20 +132,23 @@ const WarehouseRepairs = ({ activeTab }) => {
           />
         </div>
         
-        <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0 max-w-full">
-          {['ALL', ...Object.keys(STATUSES)].map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
-                statusFilter === status
-                  ? 'bg-orange-50 text-orange-600 border border-orange-200'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') : STATUSES[status]?.[i18n.language === 'az' ? 'az' : 'ru']}
-            </button>
-          ))}
+        <div className="shrink-0 min-w-[180px]">
+          <Dropdown
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            options={[
+              { value: 'ALL', label: i18n.language === 'az' ? 'Bütün Statuslar' : 'Все статусы' },
+              ...Object.keys(STATUSES).map(opt => ({
+                value: opt,
+                label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : 'ru']
+              }))
+            ]}
+            buttonClassName={`px-3 py-2 text-xs font-bold rounded-lg border focus:outline-none focus:ring-1 focus:ring-orange-500 cursor-pointer shadow-sm w-full ${
+              statusFilter === 'ALL' 
+                ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' 
+                : (STATUSES[statusFilter]?.color || 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50')
+            }`}
+          />
         </div>
       </div>
       
