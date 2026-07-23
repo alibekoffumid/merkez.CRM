@@ -727,7 +727,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <div className="relative w-full lg:flex-1 flex items-center justify-end gap-4 shrink-0 px-2">
               {historyTab === 'receipts' && (
                 <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
                   <Dropdown 
                     value={historyFilter || ''} 
                     onChange={(val) => setHistoryFilter(val || null)}
@@ -748,9 +747,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               {historyTab === 'sales' && (
                 <>
                   <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                      {i18n.language === 'az' ? 'Satış kanalı' : 'Канал продажи'}
-                    </label>
                     <Dropdown 
                       value={salesChannelFilter} 
                       onChange={(val) => setSalesChannelFilter(val)}
@@ -774,9 +770,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </div>
 
                   <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                      {i18n.language === 'az' ? 'Məhsul Kateqoriyası' : 'Категория товара'}
-                    </label>
                     <Dropdown 
                       value={categoryFilter} 
                       onChange={(val) => setCategoryFilter(val)}
@@ -794,7 +787,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </>
               )}
               <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.search') || 'Поиск'}</label>
                 <div className="relative">
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input 
@@ -807,7 +799,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </div>
               </div>
               <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
                 <DateRangePicker 
                   startDate={startDate}
                   endDate={endDate}
