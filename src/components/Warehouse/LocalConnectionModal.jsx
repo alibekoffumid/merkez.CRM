@@ -132,9 +132,10 @@ const LocalConnectionModal = ({ isOpen, onClose }) => {
             
             <button
               onClick={handleSave}
-              className="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-100 active:scale-95 flex items-center justify-center gap-2"
+              className="flex-1 py-4 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-100 active:scale-95 flex items-center justify-center gap-2"
             >
-              <Save className="w-4 h-4" /> Yadda saxla və yenidən yüklə
+              <Save className="w-4 h-4 shrink-0" /> 
+              <span className="text-center leading-snug">Yadda saxla və yenidən yüklə</span>
             </button>
           </div>
 
