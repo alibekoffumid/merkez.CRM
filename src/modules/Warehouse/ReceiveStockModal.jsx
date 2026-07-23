@@ -117,7 +117,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
     setCurrentItem(prev => ({
       ...prev,
       product_id: productId,
-      unit_price: product?.purchase_price || prev.unit_price
+      unit_price: product?.purchase_price !== undefined && product?.purchase_price !== null ? product.purchase_price.toString() : ''
     }));
 
     // Auto-fill supplier if not set
