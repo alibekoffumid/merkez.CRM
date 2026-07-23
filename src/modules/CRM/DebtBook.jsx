@@ -215,7 +215,7 @@ const DebtBook = () => {
           <div className="flex gap-2 items-center w-full lg:w-auto shrink-0 overflow-x-auto no-scrollbar pb-1 -mb-1 lg:pb-0 lg:mb-0">
             <button
               onClick={() => setOnlyDebtors(!onlyDebtors)}
-              className={`px-3.5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border flex items-center gap-2 whitespace-nowrap ${
+              className={`px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold uppercase tracking-wider transition-all border flex items-center justify-center gap-2 whitespace-nowrap ${
                 onlyDebtors 
                   ? 'bg-rose-50 border-rose-100 text-rose-700'
                   : 'bg-white border-gray-100 text-gray-500 hover:text-gray-900'
@@ -251,7 +251,7 @@ const DebtBook = () => {
           <div className="flex gap-3 items-center w-full lg:w-auto justify-end">
             <button
               onClick={() => setOnlyDebtors(!onlyDebtors)}
-              className={`px-5 py-3 rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${
+              className={`px-5 py-2 h-[38px] rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center justify-center gap-2 ${
                 onlyDebtors 
                   ? 'bg-rose-50 border-rose-100 text-rose-700 font-black'
                   : 'bg-white border-gray-100 text-gray-400 font-bold hover:text-gray-900'
