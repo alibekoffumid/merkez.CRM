@@ -537,10 +537,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         {/* Top Row: Title & Navigation */}
         <div className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-nowrap overflow-x-auto no-scrollbar w-full">
           <div className="flex items-center gap-4 flex-nowrap shrink-0">
-            <div className="flex items-center gap-4 shrink-0">
-              <div className="w-10 h-10 rounded-lg bg-merkez-blue/10 flex items-center justify-center shrink-0">
-                <Package className="w-5 h-5 text-merkez-blue" />
-              </div>
+            <div className="flex items-center shrink-0">
               <div id="tour-warehouse-selector">
                 {warehouses?.length > 0 ? (
                   <Dropdown
