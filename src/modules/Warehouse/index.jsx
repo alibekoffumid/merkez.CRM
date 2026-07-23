@@ -738,7 +738,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {currentStaff?.role !== 'Storeman' && (
               <button 
                 onClick={() => setShowSellProduct(true)} 
-                className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
+                className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
               >
                 <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
               </button>
@@ -749,21 +749,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button 
                   id="tour-receive-btn"
                   onClick={() => setShowReceiveStock(true)} 
-                  className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
                 >
                   <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.receiveStock') || 'Приемка'}
                 </button>
                 <button 
                   id="tour-dispatch-btn"
                   onClick={() => setShowDispatchStock(true)} 
-                  className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
                 >
                   <Minus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.dispatchStock') || 'Списание'}
                 </button>
                 <button 
                   id="tour-transfer-btn"
                   onClick={() => setShowTransferStock(true)} 
-                  className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
                 >
                   <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
                 </button>
