@@ -9,6 +9,7 @@ interface DateRangePickerProps {
   label?: string;
   placeholder?: string;
   position?: 'top' | 'bottom';
+  className?: string;
 }
 
 const DateRangePicker: React.FC<DateRangePickerProps> = ({ 
@@ -17,7 +18,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   onChange, 
   label,
   placeholder = 'Select date range',
-  position = 'bottom'
+  position = 'bottom',
+  className
 }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -115,7 +117,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-4 py-2.5 pl-12 bg-gray-50 border border-gray-100 rounded-lg hover:border-merkez-blue hover:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-merkez-blue/10 outline-none transition-all text-sm font-bold text-gray-900 text-left flex items-center justify-between shadow-sm group"
+          className={`w-full px-4 pl-12 bg-gray-50 border border-gray-100 rounded-lg hover:border-merkez-blue hover:bg-white focus:border-merkez-blue focus:ring-4 focus:ring-merkez-blue/10 outline-none transition-all font-bold text-gray-900 text-left flex items-center justify-between shadow-sm group ${className || 'py-2.5 text-sm'}`}
         >
           <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-merkez-blue transition-colors" />
           <span className={startDate ? 'text-gray-900' : 'text-gray-400 font-medium'}>

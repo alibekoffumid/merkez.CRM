@@ -740,6 +740,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }))
                     ]}
                     className="w-full"
+                    buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
                   />
                 </div>
               )}
@@ -768,6 +769,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         { value: 'Kredit - Ferrum DTI', label: 'Kredit - Ferrum DTI' }
                       ]}
                       className="w-full"
+                      buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
                     />
                   </div>
 
@@ -786,6 +788,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         }))
                       ]}
                       className="w-full"
+                      buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
                     />
                   </div>
                 </>
@@ -812,7 +815,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     setStartDate(start);
                     setEndDate(end);
                   }}
-                  placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
+                  placeholder={i18n.language === 'az' ? 'Tarix aralığı' : 'Период'}
+                  className="py-2 h-[38px] text-xs"
                 />
               </div>
             </div>
