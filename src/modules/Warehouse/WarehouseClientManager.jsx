@@ -256,7 +256,7 @@ const WarehouseClientManager = () => {
           <div className="h-64 flex flex-col items-center justify-center text-gray-400 gap-3 border-2 border-dashed border-gray-100 rounded-lg">
             <Users className="w-10 h-10 text-gray-200" />
             <p className="text-xs font-bold">
-              {i18n.language === 'az' ? 'Müşətəri tapılmadı.' : i18n.language === 'ru' ? 'Клиенты не найдены.' : 'No clients found.'}
+              {i18n.language === 'az' ? 'Müştəri tapılmadı.' : i18n.language === 'ru' ? 'Клиенты не найдены.' : 'No clients found.'}
             </p>
           </div>
         ) : (

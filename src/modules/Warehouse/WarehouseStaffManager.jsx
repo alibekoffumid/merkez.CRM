@@ -31,9 +31,11 @@ const WarehouseStaffManager = () => {
   const [pin, setPin] = useState('');
   
   const [portalTarget, setPortalTarget] = useState(null);
+  const [actionTarget, setActionTarget] = useState(null);
 
   useEffect(() => {
     setPortalTarget(document.getElementById('warehouse-top-bar-portal-target'));
+    setActionTarget(document.getElementById('warehouse-actions-portal-target'));
   }, []);
 
   useEffect(() => {
@@ -156,20 +158,23 @@ const WarehouseStaffManager = () => {
           className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors outline-none"
         />
       </div>
-
-      <button
-        onClick={handleOpenAdd}
-        className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent"
-      >
-        <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-        {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
-      </button>
     </>
+  );
+
+  const actionContent = (
+    <button
+      onClick={handleOpenAdd}
+      className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent"
+    >
+      <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+      {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
+    </button>
   );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {portalTarget && createPortal(topBarContent, portalTarget)}
+      {actionTarget && createPortal(actionContent, actionTarget)}
 
       {/* Grid List */}
       <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
