@@ -33,9 +33,11 @@ const WarehouseClientManager = () => {
   const [passportFin, setPassportFin] = useState('');
   const [relativesInfo, setRelativesInfo] = useState('');
   const [portalTarget, setPortalTarget] = useState(null);
+  const [actionTarget, setActionTarget] = useState(null);
 
   useEffect(() => {
     setPortalTarget(document.getElementById('warehouse-top-bar-portal-target'));
+    setActionTarget(document.getElementById('warehouse-actions-portal-target'));
   }, []);
 
   useEffect(() => {
@@ -208,9 +210,20 @@ const WarehouseClientManager = () => {
     </>
   );
 
+  const actionContent = activeSubTab === 'clients' && (
+    <button
+      onClick={handleOpenAdd}
+      className="bg-merkez-green text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center shadow-lg shadow-green-600/10 active:scale-95 shrink-0"
+    >
+      <Plus className="w-4 h-4 mr-2" />
+      {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
+    </button>
+  );
+
   return (
     <>
       {portalTarget && createPortal(topBarContent, portalTarget)}
+      {actionTarget && createPortal(actionContent, actionTarget)}
       <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 flex flex-col min-h-[500px]">
         {/* Tab Header Actions */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-6">
@@ -230,16 +243,6 @@ const WarehouseClientManager = () => {
               </p>
             </div>
           </div>
-
-          {activeSubTab === 'clients' && (
-            <button
-              onClick={handleOpenAdd}
-              className="bg-merkez-green text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center shadow-lg shadow-green-600/10 active:scale-95 shrink-0"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
-            </button>
-          )}
         </div>
 
         {activeSubTab === 'clients' ? (
