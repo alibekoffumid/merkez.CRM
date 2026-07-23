@@ -25,6 +25,14 @@ const WarehouseRepairs = ({ activeTab }) => {
   const [isMastersModalOpen, setIsMastersModalOpen] = useState(false);
   const [selectedRepair, setSelectedRepair] = useState(null);
 
+  const [topBarTarget, setTopBarTarget] = useState(null);
+  const [actionTarget, setActionTarget] = useState(null);
+
+  useEffect(() => {
+    setTopBarTarget(document.getElementById('warehouse-top-bar-portal-target'));
+    setActionTarget(document.getElementById('warehouse-actions-portal-target'));
+  }, [activeTab]);
+
   const STATUSES = {
     RECEIVED_FROM_CUSTOMER: { az: 'Müştəridən təhvil alındı', ru: 'Получено от клиента', en: 'Received from customer', color: 'bg-blue-100 text-blue-800 border-blue-200' },
     SENT_TO_WORKSHOP: { az: 'Emalatxanaya göndərildi', ru: 'Отправлено в мастерскую', en: 'Sent to workshop', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -169,9 +177,6 @@ const WarehouseRepairs = ({ activeTab }) => {
       </button>
     </div>
   );
-
-  const topBarTarget = document.getElementById('warehouse-top-bar-portal-target');
-  const actionTarget = document.getElementById('warehouse-actions-portal-target');
 
   return (
     <>

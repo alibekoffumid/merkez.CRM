@@ -22,6 +22,11 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [topBarTarget, setTopBarTarget] = useState(null);
+
+  useEffect(() => {
+    setTopBarTarget(document.getElementById('warehouse-top-bar-portal-target'));
+  }, []);
 
   const filteredSuppliers = (suppliers || []).filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,8 +42,6 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
       </div>
     );
   }
-
-  const topBarTarget = document.getElementById('warehouse-top-bar-portal-target');
 
   return (
     <div className="flex flex-col h-full w-full bg-white rounded-lg overflow-hidden">
