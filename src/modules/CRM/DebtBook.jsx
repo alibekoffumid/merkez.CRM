@@ -16,10 +16,12 @@ const DebtBook = () => {
   const [customers, setCustomers] = useState([]);
   const [lastPayment, setLastPayment] = useState(null);
   const [portalTarget, setPortalTarget] = useState(null);
+  const [actionTarget, setActionTarget] = useState(null);
 
   useEffect(() => {
     // We check for the portal target in the DOM after initial render
     setPortalTarget(document.getElementById('warehouse-top-bar-portal-target'));
+    setActionTarget(document.getElementById('warehouse-actions-portal-target'));
   }, []);
   
   // Search & Filter
@@ -191,42 +193,46 @@ const DebtBook = () => {
   return (
     <div className="space-y-6">
       {/* Filter and Search Bar */}
-      {portalTarget ? createPortal(
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full flex-1">
-          <div className="flex items-center gap-3 w-full lg:flex-1 lg:max-w-md">
-            <div className="relative w-full min-w-[200px]">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors min-w-[200px]"
-              />
-            </div>
-            <button
-              onClick={fetchData}
-              className="p-2 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-lg transition-all shrink-0"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          </div>
-          
-          <div className="flex gap-2 items-center w-full lg:w-auto shrink-0 overflow-x-auto no-scrollbar pb-1 -mb-1 lg:pb-0 lg:mb-0">
-            <button
-              onClick={() => setOnlyDebtors(!onlyDebtors)}
-              className={`px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold uppercase tracking-wider transition-all border flex items-center justify-center gap-2 whitespace-nowrap ${
-                onlyDebtors 
-                  ? 'bg-rose-50 border-rose-100 text-rose-700'
-                  : 'bg-white border-gray-100 text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
-            </button>
-          </div>
-        </div>,
-        portalTarget
+      {portalTarget ? (
+        <>
+          {createPortal(
+            <div className="flex items-center gap-3 w-full lg:flex-1 lg:max-w-md">
+              <div className="relative w-full min-w-[200px]">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  placeholder={t('crm.searchDebtors') || "Borclularda axtar..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors min-w-[200px]"
+                />
+              </div>
+              <button
+                onClick={fetchData}
+                className="p-2 bg-gray-50 text-gray-400 hover:text-gray-900 border border-transparent rounded-lg transition-all shrink-0"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>,
+            portalTarget
+          )}
+          {actionTarget && createPortal(
+            <div className="flex gap-2 items-center w-full lg:w-auto shrink-0 overflow-x-auto no-scrollbar pb-1 -mb-1 lg:pb-0 lg:mb-0">
+              <button
+                onClick={() => setOnlyDebtors(!onlyDebtors)}
+                className={`px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold uppercase tracking-wider transition-all border flex items-center justify-center gap-2 whitespace-nowrap ${
+                  onlyDebtors 
+                    ? 'bg-rose-50 border-rose-100 text-rose-700'
+                    : 'bg-white border-gray-100 text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {t('crm.onlyActiveDebts') || 'Yalnız borcu olanlar'}
+              </button>
+            </div>,
+            actionTarget
+          )}
+        </>
       ) : (
         <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between">
           <div className="flex items-center gap-3 w-full lg:w-auto">
