@@ -742,7 +742,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </button>
             )}
             
-            {currentStaff?.role !== 'Cashier' && currentStaff?.role !== 'Master' && (
+            {currentStaff?.role !== 'Cashier' && currentStaff?.role !== 'Master' && activeTab === 'products' && (
               <>
                 <button 
                   id="tour-receive-btn"
