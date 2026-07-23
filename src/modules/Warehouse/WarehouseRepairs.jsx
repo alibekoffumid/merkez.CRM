@@ -117,18 +117,37 @@ const WarehouseRepairs = ({ activeTab }) => {
 
   return (
     <div className="flex-1 bg-gray-50/50 p-4 lg:p-6 overflow-hidden flex flex-col h-full relative">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
-            <Hammer className="w-6 h-6 text-orange-500" />
-            {i18n.language === 'az' ? 'Təmir və Emalatxana' : 'Ремонт и Мастерская'}
-          </h2>
-          <p className="text-sm text-gray-500 font-medium mt-1">
-            {i18n.language === 'az' ? 'Təmirə verilmiş alətlər və emalatxana idarəetməsi' : 'Управление инструментами в ремонте и мастерами'}
-          </p>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-4 flex flex-col xl:flex-row gap-4 mb-6 items-start xl:items-center justify-between">
+        <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto flex-1 overflow-hidden">
+          <div className="relative w-full md:w-64 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder={i18n.language === 'az' ? 'Axtarış...' : 'Поиск...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+            />
+          </div>
+          
+          <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0 max-w-full">
+            {['ALL', ...Object.keys(STATUSES)].map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  statusFilter === status
+                    ? 'bg-orange-50 text-orange-600 border border-orange-200 shadow-sm'
+                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                }`}
+              >
+                {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') : STATUSES[status]?.[i18n.language === 'az' ? 'az' : 'ru']}
+              </button>
+            ))}
+          </div>
         </div>
         
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-3 w-full xl:w-auto shrink-0">
           <button 
             onClick={() => setIsMastersModalOpen(true)}
             className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95"
@@ -143,35 +162,6 @@ const WarehouseRepairs = ({ activeTab }) => {
             <Plus className="w-4 h-4" />
             {i18n.language === 'az' ? 'Təmirə Göndər' : 'Передать в ремонт'}
           </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-4 flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder={i18n.language === 'az' ? 'Axtarış (ad, kod, usta)...' : 'Поиск (название, код, мастер)...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
-          />
-        </div>
-        
-        <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0">
-          {['ALL', ...Object.keys(STATUSES)].map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                statusFilter === status
-                  ? 'bg-orange-50 text-orange-600 border border-orange-200 shadow-sm'
-                  : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') : STATUSES[status]?.[i18n.language === 'az' ? 'az' : 'ru']}
-            </button>
-          ))}
         </div>
       </div>
 
