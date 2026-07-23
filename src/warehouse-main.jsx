@@ -323,11 +323,37 @@ const WarehouseAppContent = () => {
       {/* Header bar for standalone terminal */}
       <header className="bg-[#07071a] text-white px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 shrink-0 gap-3">
         <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
             <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
 
+            {/* Navigation Tabs (Desktop) */}
+            <div className="hidden md:flex bg-white/5 rounded-lg p-0.5 border border-white/10 shrink-0 overflow-x-auto lg:overflow-visible no-scrollbar flex-nowrap max-w-full lg:max-w-none">
+              {navTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                    {tab.badge && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse shadow-sm">
+                        {tab.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Mobile Header Controls */}
@@ -379,33 +405,6 @@ const WarehouseAppContent = () => {
               <LogOut className="w-4 h-4" />
             </button>
           </div>
-        </div>
-
-        {/* Navigation Tabs (Desktop) */}
-        <div className="hidden md:flex bg-white/5 rounded-lg p-0.5 border border-white/10 shrink-0 overflow-x-auto lg:overflow-visible no-scrollbar flex-nowrap max-w-full lg:max-w-none">
-          {navTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {tab.label}
-                {tab.badge && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse shadow-sm">
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            );
-          })}
         </div>
 
         {/* Mobile Tabs Dropdown */}
