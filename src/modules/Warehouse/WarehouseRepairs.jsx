@@ -13,7 +13,7 @@ import Dropdown from '../../components/Common/Dropdown';
 
 const WarehouseRepairs = ({ activeTab }) => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
   
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -151,23 +151,24 @@ const WarehouseRepairs = ({ activeTab }) => {
           />
         </div>
       </div>
-      
-      <div className="flex items-center gap-2 shrink-0">
-        <button 
-          onClick={() => setIsMastersModalOpen(true)}
-          className="flex items-center justify-center gap-2 h-[38px] bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm active:scale-95"
-        >
-          <User className="w-3.5 h-3.5" />
-          {i18n.language === 'az' ? 'Ustalar' : i18n.language === 'ru' ? 'Мастера' : 'Masters'}
-        </button>
-        <button 
-          onClick={() => setIsSendModalOpen(true)}
-          className="flex items-center justify-center gap-2 h-[38px] bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          {i18n.language === 'az' ? 'Təmirə Göndər' : i18n.language === 'ru' ? 'Передать в ремонт' : 'Send to repair'}
-        </button>
-      </div>
+      {currentStaff?.role !== 'Master' && (
+        <div className="flex items-center gap-2 shrink-0">
+          <button 
+            onClick={() => setIsMastersModalOpen(true)}
+            className="flex items-center justify-center gap-2 h-[38px] bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm active:scale-95"
+          >
+            <User className="w-3.5 h-3.5" />
+            {i18n.language === 'az' ? 'Ustalar' : i18n.language === 'ru' ? 'Мастера' : 'Masters'}
+          </button>
+          <button 
+            onClick={() => setIsSendModalOpen(true)}
+            className="flex items-center justify-center gap-2 h-[38px] bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            {i18n.language === 'az' ? 'Təmirə Göndər' : i18n.language === 'ru' ? 'Передать в ремонт' : 'Send to repair'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
