@@ -304,7 +304,7 @@ const WarehouseAppContent = () => {
     ...(!isMaster ? [{ id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' }] : []),
     ...(false && activeModules?.includes('restaurant') && !isMaster ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
     ...(currentStaff?.role !== 'Cashier' && !isMaster ? [{ id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' }] : []),
-    { id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : i18n.language === 'ru' ? 'Ремонт' : 'Repairs' },
+    ...(currentStaff?.role !== 'Storeman' ? [{ id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : i18n.language === 'ru' ? 'Ремонт' : 'Repairs' }] : []),
     ...(!isMaster ? [{ id: 'history', icon: Search, label: t('warehouse.history') || 'История' }] : []),
     ...(!isMaster ? [{ id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' }] : []),
     ...(!currentStaff && !isMaster ? [{ id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null }] : []),
