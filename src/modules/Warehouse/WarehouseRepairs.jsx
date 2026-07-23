@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import SendToRepairModal from './SendToRepairModal';
 import ReturnFromRepairModal from './ReturnFromRepairModal';
 import MastersModal from './MastersModal';
+import Dropdown from '../../components/Common/Dropdown';
 
 const WarehouseRepairs = ({ activeTab }) => {
   const { t, i18n } = useTranslation();
@@ -230,20 +231,15 @@ const WarehouseRepairs = ({ activeTab }) => {
                     </div>
                   </td>
                   <td className="p-4">
-                    <select
+                    <Dropdown
                       value={repair.status}
-                      onChange={(e) => handleStatusChange(repair, e.target.value)}
-                      className={`px-2 py-1.5 text-xs font-bold rounded-lg border focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer appearance-none ${STATUSES[repair.status]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}
-                    >
-                      <option value={repair.status} disabled hidden>
-                        {STATUSES[repair.status]?.[i18n.language === 'az' ? 'az' : 'ru'] || repair.status}
-                      </option>
-                      {getStatusOptions(repair.type).map(opt => (
-                        <option key={opt} value={opt} className="bg-white text-gray-900 font-medium">
-                          {STATUSES[opt]?.[i18n.language === 'az' ? 'az' : 'ru']}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleStatusChange(repair, val)}
+                      options={getStatusOptions(repair.type).map(opt => ({
+                        value: opt,
+                        label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : 'ru']
+                      }))}
+                      buttonClassName={`px-3 py-1.5 text-xs font-bold rounded-lg border focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer ${STATUSES[repair.status]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}
+                    />
                   </td>
                   <td className="p-4 text-right">
                     <div className="text-sm font-bold text-gray-700">
