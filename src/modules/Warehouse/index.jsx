@@ -723,6 +723,101 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
+          {activeTab === 'history' && (
+            <div className="relative w-full lg:flex-1 flex items-center justify-end gap-4 shrink-0 px-2">
+              {historyTab === 'receipts' && (
+                <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
+                  <Dropdown 
+                    value={historyFilter || ''} 
+                    onChange={(val) => setHistoryFilter(val || null)}
+                    options={[
+                      { value: '', label: t('common.all') || 'Все', icon: Truck },
+                      ...suppliers.map(s => ({
+                        value: s.id,
+                        label: s.name,
+                        icon: Truck
+                      }))
+                    ]}
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              {historyTab === 'sales' && (
+                <>
+                  <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                      {i18n.language === 'az' ? 'Satış kanalı' : 'Канал продажи'}
+                    </label>
+                    <Dropdown 
+                      value={salesChannelFilter} 
+                      onChange={(val) => setSalesChannelFilter(val)}
+                      options={[
+                        { value: '', label: i18n.language === 'az' ? 'Bütün kanallar' : 'Все каналы' },
+                        { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
+                        { value: 'Sosial şəbəkə', label: i18n.language === 'az' ? 'Sosial şəbəkə' : 'Социальные сети' },
+                        { value: 'Birmarket', label: 'Birmarket' },
+                        { value: 'Kredit', label: i18n.language === 'az' ? 'Kredit (Bütün Banklar)' : 'Кредит (Все банки)' },
+                        { value: 'Kredit - ABB Kredit', label: 'Kredit - ABB Kredit' },
+                        { value: 'Kredit - Birkart', label: 'Kredit - Birkart' },
+                        { value: 'Kredit - Tamkart', label: 'Kredit - Tamkart' },
+                        { value: 'Kredit - Kapital Kredit 35', label: 'Kredit - Kapital Kredit 35' },
+                        { value: 'Kredit - Ferrum Standart', label: 'Kredit - Ferrum Standart' },
+                        { value: 'Kredit - Ferrum Fast', label: 'Kredit - Ferrum Fast' },
+                        { value: 'Kredit - Ferrum DTI', label: 'Kredit - Ferrum DTI' }
+                      ]}
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                      {i18n.language === 'az' ? 'Məhsul Kateqoriyası' : 'Категория товара'}
+                    </label>
+                    <Dropdown 
+                      value={categoryFilter} 
+                      onChange={(val) => setCategoryFilter(val)}
+                      options={[
+                        { value: '', label: t('common.all') || 'Все' },
+                        ...categories.map(c => ({
+                          value: c.id,
+                          label: c.name
+                        }))
+                      ]}
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              )}
+              <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.search') || 'Поиск'}</label>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    placeholder={t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...'} 
+                    value={historySearchTerm} 
+                    onChange={(e) => setHistorySearchTerm(e.target.value)} 
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-lg text-xs focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors h-[38px]" 
+                  />
+                </div>
+              </div>
+              <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
+                <DateRangePicker 
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                  }}
+                  placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
+                />
+              </div>
+            </div>
+          )}
+
 
 
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
@@ -863,99 +958,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </div>
               </div>
 
-              {/* Filters Bar */}
-              <div className="flex flex-col md:flex-row justify-end gap-4 p-5 bg-gray-50/50 rounded-lg border border-gray-100">
-                {historyTab === 'receipts' && (
-                  <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('warehouse.supplier')}</label>
-                    <Dropdown 
-                      value={historyFilter || ''} 
-                      onChange={(val) => setHistoryFilter(val || null)}
-                      options={[
-                        { value: '', label: t('common.all') || 'Все', icon: Truck },
-                        ...suppliers.map(s => ({
-                          value: s.id,
-                          label: s.name,
-                          icon: Truck
-                        }))
-                      ]}
-                      className="w-full"
-                    />
-                  </div>
-                )}
-
-                {historyTab === 'sales' && (
-                  <>
-                    <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                        {i18n.language === 'az' ? 'Satış kanalı' : 'Канал продажи'}
-                      </label>
-                      <Dropdown 
-                        value={salesChannelFilter} 
-                        onChange={(val) => setSalesChannelFilter(val)}
-                        options={[
-                          { value: '', label: i18n.language === 'az' ? 'Bütün kanallar' : 'Все каналы' },
-                          { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
-                          { value: 'Sosial şəbəkə', label: i18n.language === 'az' ? 'Sosial şəbəkə' : 'Социальные сети' },
-                          { value: 'Birmarket', label: 'Birmarket' },
-                          { value: 'Kredit', label: i18n.language === 'az' ? 'Kredit (Bütün Banklar)' : 'Кредит (Все банки)' },
-                          { value: 'Kredit - ABB Kredit', label: 'Kredit - ABB Kredit' },
-                          { value: 'Kredit - Birkart', label: 'Kredit - Birkart' },
-                          { value: 'Kredit - Tamkart', label: 'Kredit - Tamkart' },
-                          { value: 'Kredit - Kapital Kredit 35', label: 'Kredit - Kapital Kredit 35' },
-                          { value: 'Kredit - Ferrum Standart', label: 'Kredit - Ferrum Standart' },
-                          { value: 'Kredit - Ferrum Fast', label: 'Kredit - Ferrum Fast' },
-                          { value: 'Kredit - Ferrum DTI', label: 'Kredit - Ferrum DTI' }
-                        ]}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                        {i18n.language === 'az' ? 'Məhsul Kateqoriyası' : 'Категория товара'}
-                      </label>
-                      <Dropdown 
-                        value={categoryFilter} 
-                        onChange={(val) => setCategoryFilter(val)}
-                        options={[
-                          { value: '', label: t('common.all') || 'Все' },
-                          ...categories.map(c => ({
-                            value: c.id,
-                            label: c.name
-                          }))
-                        ]}
-                        className="w-full"
-                      />
-                    </div>
-                  </>
-                )}
-                <div className="w-full md:w-64 flex flex-col gap-1.5 shrink-0">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.search') || 'Поиск'}</label>
-                  <div className="relative">
-                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input 
-                      type="text" 
-                      placeholder={t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...'} 
-                      value={historySearchTerm} 
-                      onChange={(e) => setHistorySearchTerm(e.target.value)} 
-                      className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-                    />
-                  </div>
-                </div>
-                <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{t('common.period') || 'Период'}</label>
-                  <DateRangePicker 
-                    startDate={startDate}
-                    endDate={endDate}
-                    onChange={(start, end) => {
-                      setStartDate(start);
-                      setEndDate(end);
-                    }}
-                    placeholder={t('restaurant.selectDateRange') || 'Выберите диапазон'}
-                  />
-                </div>
-              </div>
+              {/* Filters Bar moved to top bar */}
             </div>
             <div className="flex-1 overflow-auto">
               <table className="w-full min-w-[850px] text-left">
