@@ -702,9 +702,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
                       </button>
                     )}
-                    <button onClick={() => setShowAddCategory(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                      <Plus className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.addCategory')}
-                    </button>
+
                     <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
                       <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
                     </button>
