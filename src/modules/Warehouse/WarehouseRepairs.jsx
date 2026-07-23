@@ -121,18 +121,18 @@ const WarehouseRepairs = ({ activeTab }) => {
   const topBarContent = (
     <div className="flex w-full gap-4 items-center justify-between">
       <div className="flex items-center gap-4 flex-1 overflow-hidden">
-        <div className="relative w-64 shrink-0 hidden md:block">
+        <div className="relative w-48 shrink-0 hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
             placeholder={i18n.language === 'az' ? 'Axtarış...' : 'Поиск...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
+            className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
           />
         </div>
         
-        <div className="shrink-0 min-w-[180px]">
+        <div className="shrink-0 min-w-[160px]">
           <Dropdown
             value={statusFilter}
             onChange={(val) => setStatusFilter(val)}
