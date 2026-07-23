@@ -735,7 +735,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
-            {currentStaff?.role !== 'Storeman' && (
+            {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && (
               <button 
                 onClick={() => setShowSellProduct(true)} 
                 className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
@@ -744,7 +744,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </button>
             )}
             
-            {currentStaff?.role !== 'Cashier' && (
+            {currentStaff?.role !== 'Cashier' && currentStaff?.role !== 'Master' && (
               <>
                 <button 
                   id="tour-receive-btn"
