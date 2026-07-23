@@ -595,63 +595,58 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
       ) : (
         /* Create or Edit stocktake document */
         <div className="space-y-6 animate-in fade-in duration-150">
-          {(() => {
-            const headerContent = (
-              <div className="flex flex-col xl:flex-row gap-4 w-full">
-                {/* Header Card */}
-                <div className="flex-1 flex items-center justify-between bg-white px-5 py-4 rounded-lg shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setView('list')}
-                      className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-400 hover:text-gray-700"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <div>
-                      <h3 className="text-md font-black text-gray-900 leading-none mb-1">
-                        {viewModeOnly ? 'Auditin Detalları' : activeStocktakeId ? 'Auditi Redaktə Et' : 'Yeni Audit Sənədi'}
-                      </h3>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        {warehouses.find(w => w.id === warehouseId)?.name} • {auditType === 'product' ? 'Məhsullar' : 'İnqrediyentlər'}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {!viewModeOnly && (
-                    <button
-                      onClick={autofillAll}
-                      className="px-3.5 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
-                    >
-                      Hamısını doldur
-                    </button>
-                  )}
-                </div>
-
-                {/* Live stats summary */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 xl:w-[600px] shrink-0">
-                  <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Sayılan məhsul çeşidi</p>
-                    <h4 className="text-lg font-black text-gray-900 leading-none">{totals.count} / {auditItems.length}</h4>
-                  </div>
-                  <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
-                    <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">Artıq Qalan</p>
-                    <h4 className="text-lg font-black text-green-500 leading-none">₼{totals.surplus.toFixed(2)}</h4>
-                  </div>
-                  <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
-                    <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Əskik Gələn</p>
-                    <h4 className="text-lg font-black text-red-500 leading-none">₼{totals.shortage.toFixed(2)}</h4>
-                  </div>
-                  <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
-                    <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Xalis fərq</p>
-                    <h4 className={`text-lg font-black leading-none ${totals.net > 0 ? 'text-green-500' : totals.net < 0 ? 'text-red-500' : 'text-gray-900'}`}>
-                      {totals.net > 0 ? '+' : ''}₼{totals.net.toFixed(2)}
-                    </h4>
-                  </div>
+          <div className="flex flex-col xl:flex-row gap-4">
+            {/* Header Card */}
+            <div className="flex-1 flex items-center justify-between bg-white px-5 py-4 rounded-lg shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setView('list')}
+                  className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-400 hover:text-gray-700"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <div>
+                  <h3 className="text-md font-black text-gray-900 leading-none mb-1">
+                    {viewModeOnly ? 'Auditin Detalları' : activeStocktakeId ? 'Auditi Redaktə Et' : 'Yeni Audit Sənədi'}
+                  </h3>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    {warehouses.find(w => w.id === warehouseId)?.name} • {auditType === 'product' ? 'Məhsullar' : 'İnqrediyentlər'}
+                  </p>
                 </div>
               </div>
-            );
-            return portalTarget ? ReactDOM.createPortal(headerContent, portalTarget) : headerContent;
-          })()}
+              
+              {!viewModeOnly && (
+                <button
+                  onClick={autofillAll}
+                  className="px-3.5 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
+                >
+                  Hamısını doldur
+                </button>
+              )}
+            </div>
+
+            {/* Live stats summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 xl:w-[600px] shrink-0">
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Sayılan məhsul çeşidi</p>
+                <h4 className="text-lg font-black text-gray-900 leading-none">{totals.count} / {auditItems.length}</h4>
+              </div>
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-green-500 uppercase tracking-widest mb-1">Artıq Qalan</p>
+                <h4 className="text-lg font-black text-green-500 leading-none">₼{totals.surplus.toFixed(2)}</h4>
+              </div>
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-red-500 uppercase tracking-widest mb-1">Əskik Gələn</p>
+                <h4 className="text-lg font-black text-red-500 leading-none">₼{totals.shortage.toFixed(2)}</h4>
+              </div>
+              <div className="bg-white px-5 py-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-center">
+                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Xalis fərq</p>
+                <h4 className={`text-lg font-black leading-none ${totals.net > 0 ? 'text-green-500' : totals.net < 0 ? 'text-red-500' : 'text-gray-900'}`}>
+                  {totals.net > 0 ? '+' : ''}₼{totals.net.toFixed(2)}
+                </h4>
+              </div>
+            </div>
+          </div>
 
 
 
