@@ -166,7 +166,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
-        <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col" onClick={(e) => e.stopPropagation()}>
           <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
@@ -181,7 +181,7 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
 
           <div className="p-8">
             {!isProcessing && !result && (
-              <div {...getRootProps()} className={`border-2 border-dashed rounded-[2rem] p-12 flex flex-col items-center justify-center transition-all cursor-pointer ${isDragActive ? 'border-merkez-blue bg-blue-50' : 'border-gray-200 hover:border-merkez-blue hover:bg-gray-50'}`}>
+              <div {...getRootProps()} className={`border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center transition-all cursor-pointer ${isDragActive ? 'border-merkez-blue bg-blue-50' : 'border-gray-200 hover:border-merkez-blue hover:bg-gray-50'}`}>
                 <input {...getInputProps()} />
                 <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4 group-hover:bg-white transition-colors">
                   <FileText className="w-8 h-8 text-gray-400 group-hover:text-merkez-blue" />
