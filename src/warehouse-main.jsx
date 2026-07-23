@@ -7,7 +7,7 @@ import PinGuard from './components/PinGuard';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer, Maximize, Minimize } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
@@ -32,6 +32,26 @@ const WarehouseAppContent = () => {
       setActiveTab('repairs');
     }
   }, [currentStaff?.role]);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(e => console.error(e));
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
   const [lowStockCount, setLowStockCount] = useState(0);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showMobileTabs, setShowMobileTabs] = useState(false);
@@ -495,6 +515,14 @@ const WarehouseAppContent = () => {
               </div>
             )}
           </div>
+
+          <button
+            onClick={toggleFullscreen}
+            className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg transition-all"
+            title={isFullscreen ? "Kiçilt" : "Tam ekran (F11)"}
+          >
+            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+          </button>
 
           <button
             onClick={() => setIsConfigOpen(true)}
