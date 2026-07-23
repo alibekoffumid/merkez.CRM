@@ -26,13 +26,13 @@ const WarehouseRepairs = ({ activeTab }) => {
   const [selectedRepair, setSelectedRepair] = useState(null);
 
   const STATUSES = {
-    RECEIVED_FROM_CUSTOMER: { az: 'Müştəridən təhvil alındı', ru: 'Получено от клиента', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-    SENT_TO_WORKSHOP: { az: 'Emalatxanaya göndərildi', ru: 'Отправлено в мастерскую', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-    BEING_REPAIRED: { az: 'Təmir edilir', ru: 'Ремонтируется', color: 'bg-purple-100 text-purple-800 border-purple-200' },
-    READY: { az: 'Hazır', ru: 'Готово', color: 'bg-green-100 text-green-800 border-green-200' },
-    RECEIVED_FROM_WORKSHOP: { az: 'Emalatxanadan təhvil alındı', ru: 'Получено из мастерской', color: 'bg-teal-100 text-teal-800 border-teal-200' },
-    DELIVERED_TO_CUSTOMER: { az: 'Müştəriyə təhvil verildi', ru: 'Выдано клиенту', color: 'bg-gray-100 text-gray-800 border-gray-200' },
-    RETURNED_TO_STOCK: { az: 'Anbara qaytarıldı', ru: 'Возвращено на склад', color: 'bg-gray-100 text-gray-800 border-gray-200' }
+    RECEIVED_FROM_CUSTOMER: { az: 'Müştəridən təhvil alındı', ru: 'Получено от клиента', en: 'Received from customer', color: 'bg-blue-100 text-blue-800 border-blue-200' },
+    SENT_TO_WORKSHOP: { az: 'Emalatxanaya göndərildi', ru: 'Отправлено в мастерскую', en: 'Sent to workshop', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    BEING_REPAIRED: { az: 'Təmir edilir', ru: 'Ремонтируется', en: 'Being repaired', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    READY: { az: 'Hazır', ru: 'Готово', en: 'Ready', color: 'bg-green-100 text-green-800 border-green-200' },
+    RECEIVED_FROM_WORKSHOP: { az: 'Emalatxanadan təhvil alındı', ru: 'Получено из мастерской', en: 'Received from workshop', color: 'bg-teal-100 text-teal-800 border-teal-200' },
+    DELIVERED_TO_CUSTOMER: { az: 'Müştəriyə təhvil verildi', ru: 'Выдано клиенту', en: 'Delivered to customer', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+    RETURNED_TO_STOCK: { az: 'Anbara qaytarıldı', ru: 'Возвращено на склад', en: 'Returned to stock', color: 'bg-gray-100 text-gray-800 border-gray-200' }
   };
 
   const getStatusOptions = (type) => {
@@ -51,7 +51,7 @@ const WarehouseRepairs = ({ activeTab }) => {
     }
 
     // Otherwise, just update directly
-    const loadingToast = toast.loading(i18n.language === 'az' ? 'Yenilənir...' : 'Обновление...');
+    const loadingToast = toast.loading(i18n.language === 'az' ? 'Yenilənir...' : i18n.language === 'ru' ? 'Обновление...' : 'Updating...');
     try {
       const { error } = await supabase
         .from('warehouse_repairs')
@@ -125,7 +125,7 @@ const WarehouseRepairs = ({ activeTab }) => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
-            placeholder={i18n.language === 'az' ? 'Axtarış...' : 'Поиск...'}
+            placeholder={i18n.language === 'az' ? 'Axtarış...' : i18n.language === 'ru' ? 'Поиск...' : 'Search...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
@@ -137,10 +137,10 @@ const WarehouseRepairs = ({ activeTab }) => {
             value={statusFilter}
             onChange={(val) => setStatusFilter(val)}
             options={[
-              { value: 'ALL', label: i18n.language === 'az' ? 'Bütün Statuslar' : 'Все статусы' },
+              { value: 'ALL', label: i18n.language === 'az' ? 'Bütün Statuslar' : i18n.language === 'ru' ? 'Все статусы' : 'All Statuses' },
               ...Object.keys(STATUSES).map(opt => ({
                 value: opt,
-                label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : 'ru']
+                label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : i18n.language === 'ru' ? 'ru' : 'en']
               }))
             ]}
             buttonClassName={`px-3 py-2 text-xs font-bold rounded-lg border focus:outline-none focus:ring-1 focus:ring-orange-500 cursor-pointer shadow-sm w-full ${
@@ -158,14 +158,14 @@ const WarehouseRepairs = ({ activeTab }) => {
           className="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm active:scale-95"
         >
           <User className="w-3.5 h-3.5" />
-          {i18n.language === 'az' ? 'Ustalar' : 'Мастера'}
+          {i18n.language === 'az' ? 'Ustalar' : i18n.language === 'ru' ? 'Мастера' : 'Masters'}
         </button>
         <button 
           onClick={() => setIsSendModalOpen(true)}
           className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
         >
           <Plus className="w-3.5 h-3.5" />
-          {i18n.language === 'az' ? 'Təmirə Göndər' : 'Передать в ремонт'}
+          {i18n.language === 'az' ? 'Təmirə Göndər' : i18n.language === 'ru' ? 'Передать в ремонт' : 'Send to repair'}
         </button>
       </div>
     </div>
@@ -186,21 +186,21 @@ const WarehouseRepairs = ({ activeTab }) => {
               <Hammer className="w-8 h-8 text-gray-300" />
             </div>
             <p className="text-gray-500 font-bold mb-1">
-              {i18n.language === 'az' ? 'Təmir qeydi tapılmadı' : 'Записей о ремонте не найдено'}
+              {i18n.language === 'az' ? 'Təmir qeydi tapılmadı' : i18n.language === 'ru' ? 'Записей о ремонте не найдено' : 'No repair records found'}
             </p>
             <p className="text-sm text-gray-400 font-medium">
-              {i18n.language === 'az' ? 'Yeni təmir qeydi yaratmaq üçün yuxarıdakı düymədən istifadə edin' : 'Используйте кнопку выше, чтобы создать новую запись'}
+              {i18n.language === 'az' ? 'Yeni təmir qeydi yaratmaq üçün yuxarıdakı düymədən istifadə edin' : i18n.language === 'ru' ? 'Используйте кнопку выше, чтобы создать новую запись' : 'Use the button above to create a new record'}
             </p>
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-50/80 sticky top-0 z-10">
               <tr>
-                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Kod' : 'Код'}</th>
-                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Alət / Məhsul' : 'Инструмент / Товар'}</th>
-                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Usta' : 'Мастер'}</th>
-                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Status' : 'Статус'}</th>
-                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">{i18n.language === 'az' ? 'Tarix' : 'Дата'}</th>
+                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Kod' : i18n.language === 'ru' ? 'Код' : 'Code'}</th>
+                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Alət / Məhsul' : i18n.language === 'ru' ? 'Инструмент / Товар' : 'Tool / Product'}</th>
+                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Usta' : i18n.language === 'ru' ? 'Мастер' : 'Master'}</th>
+                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">{i18n.language === 'az' ? 'Status' : i18n.language === 'ru' ? 'Статус' : 'Status'}</th>
+                <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right">{i18n.language === 'az' ? 'Tarix' : i18n.language === 'ru' ? 'Дата' : 'Date'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -215,9 +215,9 @@ const WarehouseRepairs = ({ activeTab }) => {
                     <div className="font-bold text-sm text-gray-900">{repair.item_name}</div>
                     <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                       {repair.type === 'INTERNAL_STOCK' ? (
-                        <span className="text-orange-600 font-bold text-[10px] px-1.5 py-0.5 bg-orange-100 rounded">{i18n.language === 'az' ? 'Anbar' : 'Склад'}</span>
+                        <span className="text-orange-600 font-bold text-[10px] px-1.5 py-0.5 bg-orange-100 rounded">{i18n.language === 'az' ? 'Anbar' : i18n.language === 'ru' ? 'Склад' : 'Stock'}</span>
                       ) : (
-                        <span className="text-purple-600 font-bold text-[10px] px-1.5 py-0.5 bg-purple-100 rounded">{i18n.language === 'az' ? 'Müştəri' : 'Клиент'}</span>
+                        <span className="text-purple-600 font-bold text-[10px] px-1.5 py-0.5 bg-purple-100 rounded">{i18n.language === 'az' ? 'Müştəri' : i18n.language === 'ru' ? 'Клиент' : 'Client'}</span>
                       )}
                       {repair.serial_number && <span>S/N: {repair.serial_number}</span>}
                     </div>
@@ -236,7 +236,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                       onChange={(val) => handleStatusChange(repair, val)}
                       options={getStatusOptions(repair.type).map(opt => ({
                         value: opt,
-                        label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : 'ru']
+                        label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : i18n.language === 'ru' ? 'ru' : 'en']
                       }))}
                       buttonClassName={`px-3 py-1.5 text-xs font-bold rounded-lg border focus:outline-none focus:ring-2 focus:ring-orange-500/20 cursor-pointer ${STATUSES[repair.status]?.color || 'bg-gray-100 text-gray-800 border-gray-200'}`}
                     />
