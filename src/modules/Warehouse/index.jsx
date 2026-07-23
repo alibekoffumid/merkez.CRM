@@ -868,28 +868,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             )}
             <div id="warehouse-actions-portal-target" className="contents"></div>
             {activeTab === 'history' && (
-              <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto">
+              <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto items-center h-[38px]">
                 <button 
                   onClick={() => setHistoryTab('receipts')}
-                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.receipts') || 'Приёмки'}
                 </button>
                 <button 
                   onClick={() => setHistoryTab('sales')}
-                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
                 </button>
                 <button 
                   onClick={() => setHistoryTab('dispatches')}
-                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.dispatches') || 'Списания'}
                 </button>
                 <button 
                   onClick={() => setHistoryTab('transfers')}
-                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.transfers') || 'Перемещения'}
                 </button>
