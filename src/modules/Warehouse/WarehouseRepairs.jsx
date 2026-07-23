@@ -10,7 +10,6 @@ import SendToRepairModal from './SendToRepairModal';
 import ReturnFromRepairModal from './ReturnFromRepairModal';
 import MastersModal from './MastersModal';
 import Dropdown from '../../components/Common/Dropdown';
-import ModalPortal from '../../components/Common/ModalPortal';
 
 const WarehouseRepairs = ({ activeTab }) => {
   const { t, i18n } = useTranslation();
@@ -171,14 +170,13 @@ const WarehouseRepairs = ({ activeTab }) => {
     </div>
   );
 
+  const topBarTarget = document.getElementById('warehouse-top-bar-portal-target');
+  const actionTarget = document.getElementById('warehouse-actions-portal-target');
+
   return (
     <>
-      <ModalPortal targetId="warehouse-top-bar-portal-target">
-        {topBarContent}
-      </ModalPortal>
-      <ModalPortal targetId="warehouse-actions-portal-target">
-        {actionButtons}
-      </ModalPortal>
+      {topBarTarget && createPortal(topBarContent, topBarTarget)}
+      {actionTarget && createPortal(actionButtons, actionTarget)}
       <div className="flex-1 bg-white rounded-lg border border-gray-100 p-4 lg:p-6 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto min-h-0">
         {loading ? (
