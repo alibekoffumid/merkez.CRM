@@ -10,6 +10,7 @@ import SendToRepairModal from './SendToRepairModal';
 import ReturnFromRepairModal from './ReturnFromRepairModal';
 import MastersModal from './MastersModal';
 import Dropdown from '../../components/Common/Dropdown';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const WarehouseRepairs = ({ activeTab }) => {
   const { t, i18n } = useTranslation();
@@ -116,65 +117,68 @@ const WarehouseRepairs = ({ activeTab }) => {
     return matchesSearch && matchesStatus;
   });
 
-  const portalTarget = document.getElementById('warehouse-top-bar-portal-target');
 
   const topBarContent = (
-    <div className="flex w-full gap-4 items-center justify-between">
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="relative w-48 shrink-0 hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder={i18n.language === 'az' ? 'Axtarış...' : i18n.language === 'ru' ? 'Поиск...' : 'Search...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-[38px] pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
-          />
-        </div>
-        
-        <div className="shrink-0 min-w-[160px]">
-          <Dropdown
-            value={statusFilter}
-            onChange={(val) => setStatusFilter(val)}
-            options={[
-              { value: 'ALL', label: i18n.language === 'az' ? 'Bütün Statuslar' : i18n.language === 'ru' ? 'Все статусы' : 'All Statuses' },
-              ...Object.keys(STATUSES).map(opt => ({
-                value: opt,
-                label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : i18n.language === 'ru' ? 'ru' : 'en']
-              }))
-            ]}
-            buttonClassName={`h-[38px] px-3 py-2 text-xs font-bold rounded-lg border focus:outline-none focus:ring-1 focus:ring-merkez-blue cursor-pointer shadow-sm w-full ${
-              statusFilter === 'ALL' 
-                ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' 
-                : (STATUSES[statusFilter]?.color || 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50')
-            }`}
-          />
-        </div>
+    <div className="flex items-center gap-4 flex-1 min-w-0">
+      <div className="relative w-48 shrink-0 hidden md:block">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input
+          type="text"
+          placeholder={i18n.language === 'az' ? 'Axtarış...' : i18n.language === 'ru' ? 'Поиск...' : 'Search...'}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full h-[38px] pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-all outline-none"
+        />
       </div>
-      {currentStaff?.role !== 'Master' && (
-        <div className="flex items-center gap-2 shrink-0">
-          <button 
-            onClick={() => setIsMastersModalOpen(true)}
-            className="flex items-center justify-center gap-2 h-[38px] bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm active:scale-95"
-          >
-            <User className="w-3.5 h-3.5" />
-            {i18n.language === 'az' ? 'Ustalar' : i18n.language === 'ru' ? 'Мастера' : 'Masters'}
-          </button>
-          <button 
-            onClick={() => setIsSendModalOpen(true)}
-            className="flex items-center justify-center gap-2 h-[38px] bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {i18n.language === 'az' ? 'Təmirə Göndər' : i18n.language === 'ru' ? 'Передать в ремонт' : 'Send to repair'}
-          </button>
-        </div>
-      )}
+      
+      <div className="shrink-0 min-w-[160px]">
+        <Dropdown
+          value={statusFilter}
+          onChange={(val) => setStatusFilter(val)}
+          options={[
+            { value: 'ALL', label: i18n.language === 'az' ? 'Bütün Statuslar' : i18n.language === 'ru' ? 'Все статусы' : 'All Statuses' },
+            ...Object.keys(STATUSES).map(opt => ({
+              value: opt,
+              label: STATUSES[opt]?.[i18n.language === 'az' ? 'az' : i18n.language === 'ru' ? 'ru' : 'en']
+            }))
+          ]}
+          buttonClassName={`h-[38px] px-3 py-2 text-xs font-bold rounded-lg border focus:outline-none focus:ring-1 focus:ring-merkez-blue cursor-pointer shadow-sm w-full ${
+            statusFilter === 'ALL' 
+              ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' 
+              : (STATUSES[statusFilter]?.color || 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50')
+          }`}
+        />
+      </div>
+    </div>
+  );
+
+  const actionButtons = currentStaff?.role !== 'Master' && (
+    <div className="flex items-center gap-2 shrink-0">
+      <button 
+        onClick={() => setIsMastersModalOpen(true)}
+        className="flex items-center justify-center gap-2 h-[38px] bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm active:scale-95"
+      >
+        <User className="w-3.5 h-3.5" />
+        {i18n.language === 'az' ? 'Ustalar' : i18n.language === 'ru' ? 'Мастера' : 'Masters'}
+      </button>
+      <button 
+        onClick={() => setIsSendModalOpen(true)}
+        className="flex items-center justify-center gap-2 h-[38px] bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        {i18n.language === 'az' ? 'Təmirə Göndər' : i18n.language === 'ru' ? 'Передать в ремонт' : 'Send to repair'}
+      </button>
     </div>
   );
 
   return (
     <>
-      {portalTarget && createPortal(topBarContent, portalTarget)}
+      <ModalPortal targetId="warehouse-top-bar-portal-target">
+        {topBarContent}
+      </ModalPortal>
+      <ModalPortal targetId="warehouse-actions-portal-target">
+        {actionButtons}
+      </ModalPortal>
       <div className="flex-1 bg-white rounded-lg border border-gray-100 p-4 lg:p-6 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto min-h-0">
         {loading ? (
