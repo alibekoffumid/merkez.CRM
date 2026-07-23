@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import Dropdown from '../../components/Common/Dropdown';
 import DatePicker from '../../components/Common/DatePicker';
 import QuickAddCustomerModal from './QuickAddCustomerModal';
+import AnimatedNumber from '../../components/Common/AnimatedNumber';
 
 const BANK_RATES = {
   'ABB Kredit': { 1: 0.0, 2: 0.02, 3: 0.03, 6: 0.055, 9: 0.08, 12: 0.10, 18: 0.17, 24: 0.23 },
@@ -717,50 +718,50 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       <div className="bg-white/80 border border-blue-100/30 p-4 rounded-xl space-y-3 text-sm font-bold text-gray-500">
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Məhsulun dəyəri:' : 'Стоимость товара:'}</span>
-                          <span className="text-gray-900 font-black text-sm">₼{netAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-sm">₼<AnimatedNumber value={netAmount} /></span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
-                          <span className="text-orange-500 font-black text-sm">{commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%</span>
+                          <span className="text-orange-500 font-black text-sm"><AnimatedNumber value={commissionRateDisplay} format={v => v.toFixed(3).replace(/\.?0+$/, '')} />%</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span>{i18n.language === 'az' ? 'Cəmi:' : 'İтого (Цена + Процент):'}</span>
-                          <span className="text-gray-900 font-black text-sm">₼{contractTotal.toFixed(2)}</span>
+                          <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого (Цена + Процент):'}</span>
+                          <span className="text-gray-900 font-black text-sm">₼<AnimatedNumber value={contractTotal} /></span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz məbləği (Manatla):' : 'Сумма процента (В манатах):'}</span>
-                          <span className="text-orange-500 font-black text-sm">₼{(contractTotal - netAmount).toFixed(2)}</span>
+                          <span className="text-orange-500 font-black text-sm">₼<AnimatedNumber value={contractTotal - netAmount} /></span>
                         </div>
                         {selectedBank === 'Kapital Kredit 35' ? (
                           <>
                             <div className="flex justify-between items-center border-t border-gray-100 pt-2.5">
                               <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
-                              <span className="text-merkez-blue font-black text-lg">₼{monthlyPayment.toFixed(2)} / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
+                              <span className="text-merkez-blue font-black text-lg">₼<AnimatedNumber value={monthlyPayment} /> / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
-                              <span className="text-gray-900 font-black text-base">₼{kapital35KreditMebleg.toFixed(2)}</span>
+                              <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={kapital35KreditMebleg} /></span>
                             </div>
                           </>
                         ) : (
                           <>
                             <div className="flex justify-between items-center border-t border-gray-100 pt-2.5">
                               <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
-                              <span className="text-gray-900 font-black text-base">₼{Math.ceil(contractTotal).toFixed(2)}</span>
+                              <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={Math.ceil(contractTotal)} /></span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
-                              <span className="text-merkez-blue font-black text-lg">₼{monthlyPayment.toFixed(2)} / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
+                              <span className="text-merkez-blue font-black text-lg">₼<AnimatedNumber value={monthlyPayment} /> / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
                             </div>
                           </>
                         )}
                         <div className="flex justify-between items-center">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kassaya vurulan məbləğ:' : 'Сумма в кассу:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{grossAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={grossAmount} /></span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-955 font-black text-sm">{i18n.language === 'az' ? 'Alver cədvəlinə yazılan məbləğ:' : 'Сумма записи в торговлю:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{netAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={netAmount} /></span>
                         </div>
                       </div>
                     </div>
@@ -813,7 +814,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       <div className="bg-white/80 border border-blue-100/30 p-4 rounded-xl space-y-3 text-sm font-bold text-gray-500">
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Məhsulun dəyəri:' : 'Стоимость товара:'}</span>
-                          <span className="text-gray-900 font-black text-sm">₼{netAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-sm">₼<AnimatedNumber value={netAmount} /></span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
@@ -821,19 +822,19 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого:'}</span>
-                          <span className="text-gray-900 font-black text-sm">₼{grossAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-sm">₼<AnimatedNumber value={grossAmount} /></span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Sayta göndərilən məbləğ:' : 'Сумма отправленная на сайт:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{grossAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={grossAmount} /></span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Kassaya vurulan məbləğ:' : 'Сумма в кассу:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{grossAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={grossAmount} /></span>
                         </div>
                         <div className="flex justify-between items-center border-t border-gray-100 pt-2.5">
                           <span className="text-gray-900 font-black text-sm">{i18n.language === 'az' ? 'Alver cədvəlinə yazılan məbləğ:' : 'Сумма записи в торговлю:'}</span>
-                          <span className="text-gray-900 font-black text-base">₼{netAmount.toFixed(2)}</span>
+                          <span className="text-gray-900 font-black text-base">₼<AnimatedNumber value={netAmount} /></span>
                         </div>
                       </div>
                     </div>
@@ -853,11 +854,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                 <div className="bg-blue-50/70 p-6 rounded-2xl border border-blue-100">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-xs font-bold text-gray-500">{i18n.language === 'az' ? 'Məhsul sayı' : i18n.language === 'ru' ? 'Количество товаров' : 'Items count'}:</span>
-                    <span className="font-black text-merkez-blue">{cart.reduce((sum, i) => sum + i.quantity, 0)}</span>
+                    <span className="font-black text-merkez-blue"><AnimatedNumber value={cart.reduce((sum, i) => sum + i.quantity, 0)} format={v => Math.round(v)} /></span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold text-gray-500">{i18n.language === 'az' ? 'Toplam məbləğ' : i18n.language === 'ru' ? 'Toplam сумма' : 'Total Amount'}:</span>
-                    <span className="text-xl font-black text-merkez-blue">₼{(paymentMethod === 'credit' ? contractTotal : (paymentMethod === 'birmarket' ? grossAmount : calculateTotal())).toFixed(2)}</span>
+                    <span className="text-xl font-black text-merkez-blue">₼<AnimatedNumber value={paymentMethod === 'credit' ? contractTotal : (paymentMethod === 'birmarket' ? grossAmount : calculateTotal())} /></span>
                   </div>
                 </div>
               </div>
