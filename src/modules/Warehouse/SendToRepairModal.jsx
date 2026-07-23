@@ -21,6 +21,8 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const [serialNumber, setSerialNumber] = useState('');
   const [selectedMasterId, setSelectedMasterId] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
+  const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
   
   const [newMasterName, setNewMasterName] = useState('');
   const [isAddingMaster, setIsAddingMaster] = useState(false);
@@ -150,9 +152,15 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
     
-    if (type === 'CLIENT_ITEM' && !itemName.trim()) {
-      toast.error(i18n.language === 'az' ? 'Alətin adı daxil edilməlidir' : 'Необходимо ввести название инструмента');
-      return;
+    if (type === 'CLIENT_ITEM') {
+      if (!clientName.trim() || !clientPhone.trim()) {
+        toast.error(i18n.language === 'az' ? 'Müştərinin adı və nömrəsi daxil edilməlidir' : 'Необходимо ввести имя и номер клиента');
+        return;
+      }
+      if (!itemName.trim()) {
+        toast.error(i18n.language === 'az' ? 'Alətin adı daxil edilməlidir' : 'Необходимо ввести название инструмента');
+        return;
+      }
     }
     
     setLoading(true);
@@ -161,6 +169,11 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       // Generate unique code
       const repairCode = `REP-${Date.now().toString().slice(-6)}`;
       
+      let finalIssueDescription = issueDescription.trim();
+      if (type === 'CLIENT_ITEM' && (clientName || clientPhone)) {
+        finalIssueDescription = `Müştəri: ${clientName || '-'}\nTelefon: ${clientPhone || '-'}\n\nProblem: ${finalIssueDescription}`;
+      }
+
       const { data, error } = await supabase
         .from('warehouse_repairs')
         .insert([{
@@ -171,7 +184,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
           item_name: itemName,
           serial_number: serialNumber || null,
           master_id: selectedMasterId,
-          issue_description: issueDescription.trim(),
+          issue_description: finalIssueDescription,
           status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER'
         }])
         .select()
@@ -311,18 +324,48 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                     )}
                   </div>
                 ) : (
-                  <div>
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                      {i18n.language === 'az' ? 'Alətin Adı' : 'Название Инструмента'} *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={itemName}
-                      onChange={(e) => setItemName(e.target.value)}
-                      placeholder={i18n.language === 'az' ? 'Məsələn: Yamaha Gitara' : 'Например: Гитара Yamaha'}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                    />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                          {i18n.language === 'az' ? 'Müştərinin Adı, Soyadı' : 'Имя, Фамилия Клиента'} *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={clientName}
+                          onChange={(e) => setClientName(e.target.value)}
+                          placeholder={i18n.language === 'az' ? 'Məsələn: İlkin Əliyev' : 'Например: Иван Иванов'}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                          {i18n.language === 'az' ? 'Əlaqə Nömrəsi' : 'Номер Телефона'} *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={clientPhone}
+                          onChange={(e) => setClientPhone(e.target.value)}
+                          placeholder="+994 50 123 45 67"
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                        {i18n.language === 'az' ? 'Alətin Adı' : 'Название Инструмента'} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={itemName}
+                        onChange={(e) => setItemName(e.target.value)}
+                        placeholder={i18n.language === 'az' ? 'Məsələn: Yamaha Gitara' : 'Например: Гитара Yamaha'}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                      />
+                    </div>
                   </div>
                 )}
 
