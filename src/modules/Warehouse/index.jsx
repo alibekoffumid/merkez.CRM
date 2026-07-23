@@ -723,6 +723,37 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
+          {activeTab === 'history' && (
+            <div className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 shrink-0 justify-end">
+              <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto">
+                <button 
+                  onClick={() => setHistoryTab('receipts')}
+                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  {t('warehouse.receipts') || 'Приёмки'}
+                </button>
+                <button 
+                  onClick={() => setHistoryTab('sales')}
+                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
+                </button>
+                <button 
+                  onClick={() => setHistoryTab('dispatches')}
+                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  {t('warehouse.dispatches') || 'Списания'}
+                </button>
+                <button 
+                  onClick={() => setHistoryTab('transfers')}
+                  className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                  {t('warehouse.transfers') || 'Перемещения'}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
             {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && (
@@ -814,32 +845,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full xl:w-auto">
-                  <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto">
-                    <button 
-                      onClick={() => setHistoryTab('receipts')}
-                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.receipts') || 'Приёмки'}
-                    </button>
-                    <button 
-                      onClick={() => setHistoryTab('sales')}
-                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
-                    </button>
-                    <button 
-                      onClick={() => setHistoryTab('dispatches')}
-                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.dispatches') || 'Списания'}
-                    </button>
-                    <button 
-                      onClick={() => setHistoryTab('transfers')}
-                      className={`flex-1 sm:flex-none px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      {t('warehouse.transfers') || 'Перемещения'}
-                    </button>
-                  </div>
                   {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter) && (
                     <button 
                       onClick={() => {

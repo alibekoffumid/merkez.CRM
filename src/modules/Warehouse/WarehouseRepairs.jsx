@@ -39,20 +39,19 @@ const WarehouseRepairs = ({ activeTab }) => {
     BEING_REPAIRED: { az: 'Təmir edilir', ru: 'Ремонтируется', en: 'Being repaired', color: 'bg-purple-100 text-purple-800 border-purple-200' },
     READY: { az: 'Hazır', ru: 'Готово', en: 'Ready', color: 'bg-green-100 text-green-800 border-green-200' },
     RECEIVED_FROM_WORKSHOP: { az: 'Emalatxanadan təhvil alındı', ru: 'Получено из мастерской', en: 'Received from workshop', color: 'bg-teal-100 text-teal-800 border-teal-200' },
-    DELIVERED_TO_CUSTOMER: { az: 'Müştəriyə təhvil verildi', ru: 'Выдано клиенту', en: 'Delivered to customer', color: 'bg-gray-100 text-gray-800 border-gray-200' },
-    RETURNED_TO_STOCK: { az: 'Anbara qaytarıldı', ru: 'Возвращено на склад', en: 'Returned to stock', color: 'bg-gray-100 text-gray-800 border-gray-200' }
+    DELIVERED_TO_CUSTOMER: { az: 'Müştəriyə təhvil verildi', ru: 'Выдано клиенту', en: 'Delivered to customer', color: 'bg-gray-100 text-gray-800 border-gray-200' }
   };
 
   const getStatusOptions = (type) => {
     if (type === 'INTERNAL_STOCK') {
-      return ['SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'READY', 'RETURNED_TO_STOCK'];
+      return ['SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'READY', 'RECEIVED_FROM_WORKSHOP'];
     }
     return ['RECEIVED_FROM_CUSTOMER', 'SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'READY', 'RECEIVED_FROM_WORKSHOP', 'DELIVERED_TO_CUSTOMER'];
   };
 
   const handleStatusChange = async (repair, newStatus) => {
     // If it requires master fee computation
-    if (newStatus === 'RECEIVED_FROM_WORKSHOP' || newStatus === 'RETURNED_TO_STOCK') {
+    if (newStatus === 'RECEIVED_FROM_WORKSHOP') {
       setSelectedRepair({ ...repair, targetStatus: newStatus });
       setIsReturnModalOpen(true);
       return;

@@ -73,7 +73,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     
-    const returnToStock = repair.targetStatus === 'RETURNED_TO_STOCK';
+    const returnToStock = repair.targetStatus === 'RECEIVED_FROM_WORKSHOP' && repair.type === 'INTERNAL_STOCK';
     
     try {
       const fee = parseFloat(masterFee) || 0;
@@ -154,7 +154,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
       const { error: updateError } = await supabase
         .from('warehouse_repairs')
         .update({
-          status: repair.targetStatus || (returnToStock ? 'RETURNED_TO_STOCK' : 'READY'),
+          status: repair.targetStatus || (returnToStock ? 'RECEIVED_FROM_WORKSHOP' : 'READY'),
           master_fee: fee,
           parts_cost: totalPartsCost
         })
