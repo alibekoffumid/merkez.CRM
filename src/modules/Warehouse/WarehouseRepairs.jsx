@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus, Search, Filter, Hammer, RefreshCw, CheckCircle2, User, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
@@ -115,57 +116,63 @@ const WarehouseRepairs = ({ activeTab }) => {
     return matchesSearch && matchesStatus;
   });
 
-  return (
-    <div className="flex-1 bg-gray-50/50 p-4 lg:p-6 overflow-hidden flex flex-col h-full relative">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100/50 p-4 flex flex-col xl:flex-row gap-4 mb-6 items-start xl:items-center justify-between">
-        <div className="flex flex-col md:flex-row gap-4 w-full xl:w-auto flex-1 overflow-hidden">
-          <div className="relative w-full md:w-64 shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder={i18n.language === 'az' ? 'Axtarış...' : 'Поиск...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
-            />
-          </div>
-          
-          <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0 max-w-full">
-            {['ALL', ...Object.keys(STATUSES)].map(status => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  statusFilter === status
-                    ? 'bg-orange-50 text-orange-600 border border-orange-200 shadow-sm'
-                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 hover:text-gray-900'
-                }`}
-              >
-                {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') : STATUSES[status]?.[i18n.language === 'az' ? 'az' : 'ru']}
-              </button>
-            ))}
-          </div>
+  const portalTarget = document.getElementById('warehouse-top-bar-portal-target');
+
+  const topBarContent = (
+    <div className="flex w-full gap-4 items-center justify-between">
+      <div className="flex items-center gap-4 flex-1 overflow-hidden">
+        <div className="relative w-64 shrink-0 hidden md:block">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder={i18n.language === 'az' ? 'Axtarış...' : 'Поиск...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
+          />
         </div>
         
-        <div className="flex items-center gap-3 w-full xl:w-auto shrink-0">
-          <button 
-            onClick={() => setIsMastersModalOpen(true)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95"
-          >
-            <User className="w-4 h-4" />
-            {i18n.language === 'az' ? 'Ustalar' : 'Мастера'}
-          </button>
-          <button 
-            onClick={() => setIsSendModalOpen(true)}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-orange-500/20 active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            {i18n.language === 'az' ? 'Təmirə Göndər' : 'Передать в ремонт'}
-          </button>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar shrink-0 max-w-full">
+          {['ALL', ...Object.keys(STATUSES)].map(status => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
+                statusFilter === status
+                  ? 'bg-orange-50 text-orange-600 border border-orange-200'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              {status === 'ALL' ? (i18n.language === 'az' ? 'Bütün' : 'Все') : STATUSES[status]?.[i18n.language === 'az' ? 'az' : 'ru']}
+            </button>
+          ))}
         </div>
       </div>
+      
+      <div className="flex items-center gap-2 shrink-0">
+        <button 
+          onClick={() => setIsMastersModalOpen(true)}
+          className="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm active:scale-95"
+        >
+          <User className="w-3.5 h-3.5" />
+          {i18n.language === 'az' ? 'Ustalar' : 'Мастера'}
+        </button>
+        <button 
+          onClick={() => setIsSendModalOpen(true)}
+          className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          {i18n.language === 'az' ? 'Təmirə Göndər' : 'Передать в ремонт'}
+        </button>
+      </div>
+    </div>
+  );
 
-      <div className="flex-1 overflow-y-auto min-h-0 bg-white border border-gray-100 rounded-2xl shadow-sm">
+  return (
+    <>
+      {portalTarget && createPortal(topBarContent, portalTarget)}
+      <div className="flex-1 bg-white rounded-lg border border-gray-100 p-4 lg:p-6 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <RefreshCw className="w-6 h-6 text-orange-500 animate-spin" />
@@ -276,6 +283,7 @@ const WarehouseRepairs = ({ activeTab }) => {
         />
       )}
     </div>
+    </>
   );
 };
 

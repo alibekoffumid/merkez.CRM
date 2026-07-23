@@ -732,7 +732,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           {/* Moved Search Bar (relocated to filter bar) */}
 
-          {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff') && (
+          {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff' || activeTab === 'repairs') && (
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
