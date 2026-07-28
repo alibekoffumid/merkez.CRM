@@ -342,9 +342,58 @@ const WarehouseAppContent = () => {
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header bar for standalone terminal */}
       <header className="bg-[#07071a] text-white px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 shrink-0 gap-3">
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-6">
-            <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
+        <div className="flex items-center justify-between w-full md:w-auto gap-3">
+          <div className="flex items-center gap-3 md:gap-6">
+            {/* Mobile Tabs Dropdown (Burger Menu) */}
+            <div className="md:hidden relative shrink-0" ref={mobileTabsRef}>
+              <button
+                onClick={() => setShowMobileTabs(!showMobileTabs)}
+                className="w-8 h-8 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-gray-300 hover:text-white transition-all shadow-sm relative"
+              >
+                <Menu className="w-5 h-5" />
+                {activeTabItem?.badge && (
+                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">
+                    {activeTabItem.badge}
+                  </span>
+                )}
+              </button>
+
+              {showMobileTabs && (
+                <div className="absolute top-full left-0 mt-2 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 w-56 max-h-[60vh] overflow-y-auto no-scrollbar">
+                  {navTabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          setActiveTab(tab.id);
+                          setShowMobileTabs(false);
+                        }}
+                        className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
+                          isActive
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 truncate">
+                          <Icon className="w-4 h-4 shrink-0" />
+                          <span className="truncate">{tab.label}</span>
+                        </div>
+                        {tab.badge && (
+                          <span className="min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm ml-2">
+                            {tab.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Logo */}
+            <div className="hidden md:flex w-10 h-10 overflow-hidden items-center justify-center shrink-0">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
 
@@ -374,58 +423,6 @@ const WarehouseAppContent = () => {
                 );
               })}
             </div>
-          </div>
-
-          {/* Mobile Tabs Dropdown */}
-          <div className="md:hidden flex-1 relative min-w-0 mx-2" ref={mobileTabsRef}>
-            <button
-              onClick={() => setShowMobileTabs(!showMobileTabs)}
-              className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 h-8 text-[10px] font-bold text-white shadow-sm transition-all"
-            >
-              <div className="flex items-center gap-1.5 truncate">
-                {activeTabItem && <activeTabItem.icon className="w-3.5 h-3.5 text-blue-400 shrink-0" />}
-                <span className="truncate">{activeTabItem?.label}</span>
-                {activeTabItem?.badge && (
-                  <span className="min-w-[14px] h-[14px] px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm ml-1">
-                    {activeTabItem.badge}
-                  </span>
-                )}
-              </div>
-              <ChevronDown className={`w-3.5 h-3.5 shrink-0 transition-transform ${showMobileTabs ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showMobileTabs && (
-              <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 max-h-[60vh] overflow-y-auto no-scrollbar">
-                {navTabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        setActiveTab(tab.id);
-                        setShowMobileTabs(false);
-                      }}
-                      className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                        isActive
-                          ? 'bg-blue-600/20 text-blue-400'
-                          : 'text-gray-400 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 truncate">
-                        <Icon className="w-4 h-4 shrink-0" />
-                        <span className="truncate">{tab.label}</span>
-                      </div>
-                      {tab.badge && (
-                        <span className="min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm ml-2">
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           {/* Mobile Header Controls */}
