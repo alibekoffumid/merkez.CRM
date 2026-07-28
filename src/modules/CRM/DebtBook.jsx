@@ -313,7 +313,7 @@ const DebtBook = () => {
               {t('crm.totalDebtors') || 'Borcluların Sayı'}
             </p>
             <h3 className="text-3xl font-black text-gray-900 group-hover:scale-105 transition-transform duration-300">
-              {totalDebtors} {t('common.unit') || 'nəfər'}
+              {totalDebtors} {i18n.language === 'az' ? 'nəfər' : i18n.language === 'ru' ? 'чел.' : 'persons'}
             </h3>
           </div>
           <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
