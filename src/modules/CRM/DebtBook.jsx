@@ -9,9 +9,11 @@ import {
 import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
 import QuickAddCustomerModal from '../Warehouse/QuickAddCustomerModal';
+import { useUser } from '../../core/UserContext';
 
 const DebtBook = () => {
   const { t, i18n } = useTranslation();
+  const { profile } = useUser();
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState([]);
   const [lastPayment, setLastPayment] = useState(null);
@@ -175,6 +177,23 @@ const DebtBook = () => {
       toast.error('Əməliyyat baş tutmadı: ' + err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (customerId, customerName) => {
+    if (!window.confirm(`"${customerName}" adlı müştərini və onun bütün borc tarixçəsini silmək istədiyinizə əminsiniz?`)) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', customerId);
+      if (error) throw error;
+      
+      toast.success(i18n.language === 'az' ? 'Müştəri uğurla silindi' : 'Клиент успешно удален');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error(i18n.language === 'az' ? 'Xəta baş verdi: ' + err.message : 'Произошла ошибка: ' + err.message);
+      setLoading(false);
     }
   };
 
@@ -397,6 +416,16 @@ const DebtBook = () => {
                           >
                             Borc yaz
                           </button>
+                          
+                          {profile?.role === 'admin' && (
+                            <button
+                              onClick={() => handleDeleteCustomer(customer.id, customer.name)}
+                              title="Müştərini Sil"
+                              className="p-3 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-all ml-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
