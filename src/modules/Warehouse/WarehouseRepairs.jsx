@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Filter, Hammer, RefreshCw, CheckCircle2, User, Clock, AlertCircle, Eye } from 'lucide-react';
+import { Plus, Search, Filter, Hammer, RefreshCw, CheckCircle2, User, Clock, AlertCircle, Eye, Trash2 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
@@ -103,6 +103,27 @@ const WarehouseRepairs = ({ activeTab }) => {
       console.error('Error fetching repairs:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteRepair = async (id) => {
+    if (!window.confirm(i18n.language === 'az' ? 'Bu təmiri silmək istədiyinizə əminsiniz?' : 'Вы уверены, что хотите удалить этот ремонт?')) {
+      return;
+    }
+    const loadingToast = toast.loading(i18n.language === 'az' ? 'Silinir...' : 'Удаление...');
+    try {
+      const { error } = await supabase
+        .from('warehouse_repairs')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      toast.success(i18n.language === 'az' ? 'Təmir silindi' : 'Ремонт удален', { id: loadingToast });
+      setRepairs(prev => prev.filter(r => r.id !== id));
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message, { id: loadingToast });
     }
   };
 
@@ -276,6 +297,18 @@ const WarehouseRepairs = ({ activeTab }) => {
                       </div>
                       
                       <div className="flex items-center gap-2">
+                        {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteRepair(repair.id);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-colors text-xs font-bold"
+                            title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -285,7 +318,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                           title={i18n.language === 'az' ? 'Çekə bax' : 'Посмотреть чек'}
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>{i18n.language === 'az' ? 'Çek' : 'Чек'}</span>
+                          <span className="hidden sm:inline">{i18n.language === 'az' ? 'Çek' : 'Чек'}</span>
                         </button>
 
                         <button
