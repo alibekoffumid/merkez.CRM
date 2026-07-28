@@ -535,7 +535,7 @@ const DebtBook = () => {
       {/* History Log Drawer/Modal */}
       {modalType === 'history' && selectedCustomer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/60 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
             {/* Drawer Header */}
             <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
               <div>

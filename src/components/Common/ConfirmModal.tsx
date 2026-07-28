@@ -33,7 +33,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           onClick={onClose} 
         />
         
-        <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 p-8 shadow-2xl animate-in zoom-in-95 fade-in duration-200">
+        <div className="bg-white rounded-2xl w-full max-w-md relative z-10 p-8 shadow-2xl animate-in zoom-in-95 fade-in duration-200">
           <button 
             onClick={onClose}
             className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 hover:text-gray-900 transition-colors"
