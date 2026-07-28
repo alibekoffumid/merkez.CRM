@@ -220,13 +220,34 @@ const WarehouseRepairs = ({ activeTab }) => {
                   </td>
                   <td className="p-4">
                     <div className="font-bold text-sm text-gray-900">{repair.item_name}</div>
-                    <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                      {repair.type === 'INTERNAL_STOCK' ? (
-                        <span className="text-orange-600 font-bold text-[10px] px-1.5 py-0.5 bg-orange-100 rounded">{i18n.language === 'az' ? 'Anbar' : i18n.language === 'ru' ? 'Склад' : 'Stock'}</span>
-                      ) : (
-                        <span className="text-purple-600 font-bold text-[10px] px-1.5 py-0.5 bg-purple-100 rounded">{i18n.language === 'az' ? 'Müştəri' : i18n.language === 'ru' ? 'Клиент' : 'Client'}</span>
-                      )}
-                      {repair.serial_number && <span>S/N: {repair.serial_number}</span>}
+                    <div className="text-xs text-gray-500 flex flex-col gap-1 mt-1">
+                      <div className="flex items-center gap-1">
+                        {repair.type === 'INTERNAL_STOCK' ? (
+                          <span className="text-orange-600 font-bold text-[10px] px-1.5 py-0.5 bg-orange-100 rounded">{i18n.language === 'az' ? 'Anbar' : i18n.language === 'ru' ? 'Склад' : 'Stock'}</span>
+                        ) : (
+                          <span className="text-purple-600 font-bold text-[10px] px-1.5 py-0.5 bg-purple-100 rounded">{i18n.language === 'az' ? 'Müştəri' : i18n.language === 'ru' ? 'Клиент' : 'Client'}</span>
+                        )}
+                        {repair.serial_number && <span>S/N: {repair.serial_number}</span>}
+                      </div>
+                      
+                      {/* Extract client info from issue_description if exists */}
+                      {(() => {
+                        const clientNameMatch = repair.issue_description?.match(/Müştəri:\s*(.+)/);
+                        const clientPhoneMatch = repair.issue_description?.match(/Telefon:\s*(.+)/);
+                        const cName = clientNameMatch ? clientNameMatch[1].trim() : null;
+                        const cPhone = clientPhoneMatch ? clientPhoneMatch[1].trim() : null;
+                        
+                        if (cName || cPhone) {
+                          return (
+                            <div className="mt-1 text-gray-600">
+                              {cName && <span className="font-semibold text-gray-800">{cName}</span>}
+                              {cName && cPhone && <span> • </span>}
+                              {cPhone && <span>{cPhone}</span>}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   </td>
                   <td className="p-4">
@@ -256,11 +277,25 @@ const WarehouseRepairs = ({ activeTab }) => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          
+                          // Extract phone
+                          const clientPhoneMatch = repair.issue_description?.match(/Telefon:\s*(.+)/);
+                          let cPhone = clientPhoneMatch ? clientPhoneMatch[1].trim() : '';
+                          if (cPhone) {
+                            cPhone = cPhone.replace(/[^\d+]/g, ''); // keep only digits and +
+                            if (!cPhone.startsWith('+')) cPhone = '+' + cPhone;
+                          }
+                          
                           const receiptUrl = `${window.location.origin}/repair-receipt/${repair.id}`;
                           const text = i18n.language === 'az' 
                             ? `Salam! Təmir üçün kvitansiyanız və foto hesabatınız buradadır: ${receiptUrl}`
                             : `Здравствуйте! Ваш чек за ремонт и фотоотчет здесь: ${receiptUrl}`;
-                          window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                          
+                          const waUrl = cPhone 
+                            ? `https://wa.me/${cPhone}?text=${encodeURIComponent(text)}`
+                            : `https://wa.me/?text=${encodeURIComponent(text)}`;
+                            
+                          window.open(waUrl, '_blank');
                         }}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white rounded-lg transition-colors text-xs font-bold"
                         title="WhatsApp ilə paylaş"
