@@ -339,7 +339,7 @@ const WarehouseAppContent = () => {
   const activeTabItem = navTabs.find(t => t.id === activeTab) || navTabs[0];
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-gray-50 flex flex-col overflow-hidden">
       {/* Header bar for standalone terminal */}
       <header className="bg-[#07071a] text-white px-4 md:px-6 py-3 md:py-4 flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 shrink-0 gap-3">
         <div className="flex items-center justify-between w-full md:w-auto gap-3">
