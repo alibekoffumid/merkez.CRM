@@ -108,13 +108,6 @@
     -webkit-print-color-adjust: exact;
   }
 
-  .sticker-brand {
-    font-size: 8px;
-    font-weight: 900;
-    text-align: center;
-    text-transform: uppercase;
-    color: #000;
-  }
 
   .sticker-title {
     font-size: 10px;
@@ -137,7 +130,6 @@
   }
   
   .sticker-barcode-vertical svg {
-    height: 28px !important;
     width: auto !important;
     max-width: 100%;
   }

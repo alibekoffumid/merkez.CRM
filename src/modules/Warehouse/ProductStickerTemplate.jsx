@@ -28,9 +28,6 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
         
         return (
           <div key={`${item.id}-${index}`} className="sticker-page">
-            {/* Top: Branding */}
-            <div className="sticker-brand">RAST MUSIC SHOP</div>
-            
             {/* Product Title */}
             <div className="sticker-title">
               {item.name}
@@ -53,7 +50,7 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
                 format="CODE128" 
                 width={1.2} 
                 height={26} 
-                fontSize={10}
+                fontSize={14}
                 margin={0}
                 displayValue={true}
                 background="transparent"
