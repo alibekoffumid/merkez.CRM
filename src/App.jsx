@@ -115,6 +115,14 @@ const DynamicRedirect = () => {
   return <Navigate to="/modules" replace />;
 };
 
+// Wrapper to hide AirMouse on public pages
+const ConditionalAirMouse = ({ enabled, device, sessionCode }) => {
+  if (window.location.pathname.startsWith('/repair-receipt') || window.location.pathname.startsWith('/receipt') || window.location.pathname.startsWith('/m/')) {
+    return null;
+  }
+  return <AirMouseReceiver enabled={enabled} device={device} sessionCode={sessionCode} />;
+};
+
 function App() {
   React.useEffect(() => {
     // Listen for deep links (e.g. returning from Google Auth)
@@ -300,7 +308,7 @@ function App() {
         </Route>
       </Routes>
       <Toaster position="top-right" />
-      <AirMouseReceiver 
+      <ConditionalAirMouse 
         sessionCode={localStorage.getItem('merkez_airmouse_session')}
         enabled={airMouseEnabled}
         device={airMouseDevice}
