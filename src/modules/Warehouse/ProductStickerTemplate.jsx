@@ -19,9 +19,9 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   return (
     <div className="print-only-container">
       {items.map((item, index) => {
-        const qrUrl = `https://rastmusicshop.com/mahsul/${item.id}`;
         // Ensure barcode has a value, fallback to short ID if empty
         const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 10) || '00000000';
+        const qrUrl = `https://rastmusicshop.com/mahsul/${barcodeValue}`;
         
         return (
           <div key={`${item.id}-${index}`} className="sticker-page">
