@@ -282,8 +282,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                           const clientPhoneMatch = repair.issue_description?.match(/Telefon:\s*(.+)/);
                           let cPhone = clientPhoneMatch ? clientPhoneMatch[1].trim() : '';
                           if (cPhone) {
-                            cPhone = cPhone.replace(/[^\d+]/g, ''); // keep only digits and +
-                            if (!cPhone.startsWith('+')) cPhone = '+' + cPhone;
+                            cPhone = cPhone.replace(/\D/g, ''); // keep ONLY digits for wa.me
                           }
                           
                           const receiptUrl = `${window.location.origin}/repair-receipt/${repair.id}`;
