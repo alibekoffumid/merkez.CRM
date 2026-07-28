@@ -29,6 +29,7 @@ const WarehouseStaffManager = () => {
   const [role, setRole] = useState('');
   const [status, setStatus] = useState('Active');
   const [pin, setPin] = useState('');
+  const [phone, setPhone] = useState('');
   
   const [portalTarget, setPortalTarget] = useState(null);
   const [actionTarget, setActionTarget] = useState(null);
@@ -68,6 +69,7 @@ const WarehouseStaffManager = () => {
     setRole('Staff');
     setStatus('Active');
     setPin('');
+    setPhone('');
     setIsModalOpen(true);
   };
 
@@ -77,6 +79,7 @@ const WarehouseStaffManager = () => {
     setRole(staff.role || 'Staff');
     setStatus(staff.status || 'Active');
     setPin(staff.pin || '');
+    setPhone(staff.phone || '');
     setIsModalOpen(true);
   };
 
@@ -94,6 +97,7 @@ const WarehouseStaffManager = () => {
         role,
         status,
         pin: pin.trim() || null,
+        phone: phone.trim() || null,
         user_id: profile.id
       };
 
@@ -194,6 +198,7 @@ const WarehouseStaffManager = () => {
               <thead className="bg-gray-50/50 border-b border-gray-100 sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'AD SOYAD' : 'ФИО'}</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'TELEFON' : 'ТЕЛЕФОН'}</th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'VƏZİFƏ' : 'ДОЛЖНОСТЬ'}</th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'STATUS' : 'СТАТУС'}</th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'ƏMƏLİYYATLAR' : 'ДЕЙСТВИЯ'}</th>
@@ -204,6 +209,9 @@ const WarehouseStaffManager = () => {
                   <tr key={staff.id} className="hover:bg-gray-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-gray-900">{staff.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-gray-500">{staff.phone || '—'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
@@ -289,6 +297,17 @@ const WarehouseStaffManager = () => {
                       { value: 'Master', label: i18n.language === 'az' ? 'Usta' : 'Мастер' },
                     ]}
                     buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{i18n.language === 'az' ? 'Telefon' : 'Телефон'}</label>
+                  <input
+                    type="text"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
+                    placeholder="+994"
                   />
                 </div>
 
