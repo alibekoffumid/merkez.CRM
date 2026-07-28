@@ -10,6 +10,7 @@ import { supabase } from '../../supabaseClient';
 import toast from 'react-hot-toast';
 import QuickAddCustomerModal from '../Warehouse/QuickAddCustomerModal';
 import { useUser } from '../../core/UserContext';
+import ConfirmModal from '../../components/Common/ConfirmModal';
 
 const DebtBook = () => {
   const { t, i18n } = useTranslation();
@@ -35,6 +36,7 @@ const DebtBook = () => {
   const [modalType, setModalType] = useState(null); // 'debt' | 'payment' | 'history'
   const [historyLogs, setHistoryLogs] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
 
   // Form Inputs
   const [amount, setAmount] = useState('');
@@ -187,12 +189,15 @@ const DebtBook = () => {
     }
   };
 
-  const handleDeleteCustomer = async (customerId, customerName) => {
-    if (!window.confirm(`"${customerName}" adlı müştərini və onun bütün borc tarixçəsini silmək istədiyinizə əminsiniz?`)) return;
-    
+  const handleDeleteCustomer = (customerId, customerName) => {
+    setDeleteConfirm({ id: customerId, name: customerName });
+  };
+
+  const executeDeleteCustomer = async () => {
+    if (!deleteConfirm) return;
     setLoading(true);
     try {
-      const { error } = await supabase.from('customers').delete().eq('id', customerId);
+      const { error } = await supabase.from('customers').delete().eq('id', deleteConfirm.id);
       if (error) throw error;
       
       toast.success(i18n.language === 'az' ? 'Müştəri uğurla silindi' : 'Клиент успешно удален');
@@ -201,6 +206,8 @@ const DebtBook = () => {
       console.error(err);
       toast.error(i18n.language === 'az' ? 'Xəta baş verdi: ' + err.message : 'Произошла ошибка: ' + err.message);
       setLoading(false);
+    } finally {
+      setDeleteConfirm(null);
     }
   };
 
@@ -615,6 +622,19 @@ const DebtBook = () => {
         isOpen={showAddCustomer}
         onClose={() => setShowAddCustomer(false)}
         onCustomerAdded={handleCustomerAdded}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={executeDeleteCustomer}
+        title={i18n.language === 'az' ? 'Müştərini Sil' : 'Удалить клиента'}
+        message={i18n.language === 'az' 
+          ? `"${deleteConfirm?.name}" adlı müştərini və onun bütün borc tarixçəsini silmək istədiyinizə əminsiniz?`
+          : `Вы уверены, что хотите удалить клиента "${deleteConfirm?.name}" и всю его историю долгов?`}
+        confirmText={i18n.language === 'az' ? 'Bəli, Sil' : 'Да, удалить'}
+        cancelText={i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
       />
     </div>
   );
