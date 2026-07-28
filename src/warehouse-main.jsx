@@ -359,36 +359,49 @@ const WarehouseAppContent = () => {
               </button>
 
               {showMobileTabs && (
-                <div className="absolute top-full left-0 mt-2 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl z-50 p-1 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 w-56 max-h-[60vh] overflow-y-auto no-scrollbar">
-                  {navTabs.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveTab(tab.id);
-                          setShowMobileTabs(false);
-                        }}
-                        className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${
-                          isActive
-                            ? 'bg-blue-600/20 text-blue-400'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2.5 truncate">
-                          <Icon className="w-4 h-4 shrink-0" />
-                          <span className="truncate">{tab.label}</span>
-                        </div>
-                        {tab.badge && (
-                          <span className="min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm ml-2">
-                            {tab.badge}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+                <>
+                  <div 
+                    className="fixed inset-0 bg-black/60 z-[60] animate-in fade-in md:hidden" 
+                    onClick={() => setShowMobileTabs(false)} 
+                  />
+                  <div className="fixed inset-y-0 left-0 w-72 bg-[#0c0c28] border-r border-white/10 shadow-2xl z-[70] p-4 flex flex-col animate-in slide-in-from-left md:hidden">
+                    <div className="flex items-center gap-3 mb-8 px-2 mt-2">
+                      <div className="w-8 h-8 shrink-0">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                      </div>
+                      <span className="text-white font-black text-lg tracking-wide">MERKEZ CRM</span>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1 overflow-y-auto no-scrollbar flex-1 pb-10">
+                      {navTabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            onClick={() => {
+                              setActiveTab(tab.id);
+                              setShowMobileTabs(false);
+                            }}
+                            className={`flex items-center gap-3.5 w-full px-4 py-3.5 rounded-xl text-sm font-bold transition-all ${
+                              isActive
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5 shrink-0" />
+                            <span className="truncate flex-1 text-left">{tab.label}</span>
+                            {tab.badge && (
+                              <span className="min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
+                                {tab.badge}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 
