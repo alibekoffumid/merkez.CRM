@@ -10,6 +10,7 @@ import SendToRepairModal from './SendToRepairModal';
 import ReturnFromRepairModal from './ReturnFromRepairModal';
 import MastersModal from './MastersModal';
 import Dropdown from '../../components/Common/Dropdown';
+import ConfirmModal from '../../components/Common/ConfirmModal';
 
 const WarehouseRepairs = ({ activeTab }) => {
   const { t, i18n } = useTranslation();
@@ -23,6 +24,7 @@ const WarehouseRepairs = ({ activeTab }) => {
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [isMastersModalOpen, setIsMastersModalOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [selectedRepair, setSelectedRepair] = useState(null);
 
   const [topBarTarget, setTopBarTarget] = useState(null);
@@ -107,9 +109,6 @@ const WarehouseRepairs = ({ activeTab }) => {
   };
 
   const handleDeleteRepair = async (id) => {
-    if (!window.confirm(i18n.language === 'az' ? 'Bu təmiri silmək istədiyinizə əminsiniz?' : 'Вы уверены, что хотите удалить этот ремонт?')) {
-      return;
-    }
     const loadingToast = toast.loading(i18n.language === 'az' ? 'Silinir...' : 'Удаление...');
     try {
       const { error } = await supabase
@@ -301,7 +300,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteRepair(repair.id);
+                              setDeleteConfirmId(repair.id);
                             }}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-colors text-xs font-bold"
                             title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
@@ -393,6 +392,19 @@ const WarehouseRepairs = ({ activeTab }) => {
           onClose={() => setIsMastersModalOpen(false)}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) handleDeleteRepair(deleteConfirmId);
+        }}
+        title={i18n.language === 'az' ? 'Təmiri Sil' : 'Удалить Ремонт'}
+        message={i18n.language === 'az' ? 'Bu təmiri silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.' : 'Вы уверены, что хотите удалить этот ремонт? Это действие нельзя отменить.'}
+        confirmText={i18n.language === 'az' ? 'Sil' : 'Удалить'}
+        cancelText={i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
+        isDanger={true}
+      />
     </div>
     </>
   );
