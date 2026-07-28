@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
 import EditProductModal from './EditProductModal';
@@ -80,6 +81,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [currentWarehouseId, setCurrentWarehouseId] = useState(null);
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [printingItems, setPrintingItems] = useState(null);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
 
@@ -694,13 +696,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 {currentStaff?.role !== 'Cashier' && (
                   <>
                     {selectedItems.length > 0 && (
-                      <button 
-                        id="tour-bulk-delete"
-                        onClick={() => setConfirmDelete({ type: 'bulk' })} 
-                        className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
+                            setPrintingItems(itemsToPrint);
+                          }}
+                          className="bg-gray-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-900 transition-colors flex items-center shadow-sm"
+                        >
+                          <Printer className="w-3.5 h-3.5 mr-1.5" /> Seçilənləri Çap Et ({selectedItems.length})
+                        </button>
+                        <button 
+                          id="tour-bulk-delete"
+                          onClick={() => setConfirmDelete({ type: 'bulk' })} 
+                          className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
+                        </button>
+                      </>
                     )}
 
                     <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
@@ -1747,6 +1760,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                     </button>
                                     <div className="mx-3 my-1 border-t border-gray-100" />
                                     <button
+                                      onClick={() => { setPrintingItems([item]); setOpenMenuId(null); }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                    >
+                                      <Printer className="w-4 h-4 text-gray-500" />
+                                      Etiket Çap Et
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
                                       onClick={() => requestDeleteProduct(item.id)}
                                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
                                     >
@@ -2098,6 +2119,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         isOpen={showTour}
         onClose={() => setShowTour(false)}
       />
+
+      {printingItems && (
+        <ProductStickerTemplate items={printingItems} onPrintComplete={() => setPrintingItems(null)} />
+      )}
     </div>
   );
 };
