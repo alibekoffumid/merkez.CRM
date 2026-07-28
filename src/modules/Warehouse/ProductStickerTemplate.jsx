@@ -35,7 +35,7 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
             
             {/* QR Code */}
             <div className="sticker-qr-vertical">
-              <QRCodeSVG value={qrUrl} size={36} level="M" includeMargin={false} />
+              <QRCodeSVG value={qrUrl} size={32} level="M" includeMargin={false} />
             </div>
             
             {/* Bottom Row: Price */}
@@ -49,8 +49,8 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
                 value={barcodeValue} 
                 format="CODE128" 
                 width={1.2} 
-                height={26} 
-                fontSize={14}
+                height={20} 
+                fontSize={12}
                 margin={0}
                 displayValue={true}
                 background="transparent"
