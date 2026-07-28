@@ -518,11 +518,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         const amountToLog = paymentMethod === 'credit' ? contractTotal : totalAmount;
         const newDebt = currentDebt + amountToLog;
 
-        let descriptionText = `Məhsul satışı (Anbar terminalı). Borc yazıldı.`;
+        const productNames = cart.map(i => i.productName).join(', ');
+        let descriptionText = `Satış (${productNames}). Borc yazıldı.`;
         if (paymentMethod === 'credit') {
           descriptionText = isFerrum 
-            ? `Kredit satışı (${selectedBank} - ${installmentMonths} ay): Müqavilə: ₼${contractTotal}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
-            : `Kredit satışı (${selectedBank} - ${installmentMonths} ay): Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`;
+            ? `Kredit (${selectedBank} - ${installmentMonths} ay) [${productNames}]: Müqavilə: ₼${contractTotal}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
+            : `Kredit (${selectedBank} - ${installmentMonths} ay) [${productNames}]: Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`;
         }
 
         // Log to customer_debts
@@ -558,8 +559,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               monthly_payment: monthlyPayment,
               remaining_months: installmentMonths,
               notes: notes || (isFerrum 
-                ? `Bank: ${selectedBank}, Müqavilə: ₼${contractTotal}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
-                : `Bank: ${selectedBank}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`),
+                ? `Məhsul(lar): ${productNames} | Bank: ${selectedBank}, Müqavilə: ₼${contractTotal}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
+                : `Məhsul(lar): ${productNames} | Bank: ${selectedBank}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`),
               status: 'active'
             }])
             .select()
