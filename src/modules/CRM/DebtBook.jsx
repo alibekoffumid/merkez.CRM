@@ -377,7 +377,7 @@ const DebtBook = () => {
                   <th className="p-6">{t('crm.client') || 'Müştəri'}</th>
                   <th className="p-6">{t('crm.phoneNumber') || 'Telefon'}</th>
                   <th className="p-6">{t('crm.address') || 'Ünvan'}</th>
-                  <th className="p-6">{t('crm.lastTransaction') || 'Son Əməliyyat'}</th>
+                  <th className="p-6">{i18n.language === 'az' ? 'Son Əməliyyat' : i18n.language === 'ru' ? 'Последняя операция' : 'Last Transaction'}</th>
                   <th className="p-6">{t('crm.debtBalance') || 'Borc'}</th>
                   <th className="p-6 text-right">{t('common.actions') || 'Əməliyyatlar'}</th>
                 </tr>
