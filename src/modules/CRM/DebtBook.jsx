@@ -13,7 +13,7 @@ import { useUser } from '../../core/UserContext';
 
 const DebtBook = () => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState([]);
   const [lastPayment, setLastPayment] = useState(null);
@@ -56,7 +56,14 @@ const DebtBook = () => {
       // 1. Fetch all customers
       const { data: customerData, error: customerErr } = await supabase
         .from('customers')
-        .select('*')
+        .select(`
+          *,
+          customer_debts (
+            description,
+            created_at,
+            type
+          )
+        `)
         .order('name', { ascending: true });
 
       if (customerErr) throw customerErr;
@@ -370,6 +377,7 @@ const DebtBook = () => {
                   <th className="p-6">{t('crm.client') || 'Müştəri'}</th>
                   <th className="p-6">{t('crm.phoneNumber') || 'Telefon'}</th>
                   <th className="p-6">{t('crm.address') || 'Ünvan'}</th>
+                  <th className="p-6">{t('crm.lastTransaction') || 'Son Əməliyyat'}</th>
                   <th className="p-6">{t('crm.debtBalance') || 'Borc'}</th>
                   <th className="p-6 text-right">{t('common.actions') || 'Əməliyyatlar'}</th>
                 </tr>
@@ -377,6 +385,8 @@ const DebtBook = () => {
               <tbody className="divide-y divide-gray-50">
                 {filteredCustomers.map(customer => {
                   const balance = parseFloat(customer.debt_balance || 0);
+                  const lastDebt = customer.customer_debts?.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+                  
                   return (
                     <tr key={customer.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="p-6">
@@ -387,6 +397,9 @@ const DebtBook = () => {
                       </td>
                       <td className="p-6 text-sm font-bold text-gray-400 italic">
                         {customer.address || '—'}
+                      </td>
+                      <td className="p-6 text-xs font-bold text-gray-500 max-w-xs truncate" title={lastDebt?.description || '—'}>
+                        {lastDebt?.description || '—'}
                       </td>
                       <td className="p-6">
                         <span className={`text-lg font-black ${balance > 0 ? 'text-rose-600' : 'text-gray-400'}`}>
@@ -417,7 +430,7 @@ const DebtBook = () => {
                             Borc yaz
                           </button>
                           
-                          {profile?.role === 'admin' && (
+                          {!currentStaff && (
                             <button
                               onClick={() => handleDeleteCustomer(customer.id, customer.name)}
                               title="Müştərini Sil"
