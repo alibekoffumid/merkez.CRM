@@ -19,6 +19,9 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   return (
     <div className="print-only-container">
       {items.map((item, index) => {
+        // Ensure barcode has a value, fallback to short ID if empty
+        const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 10) || '00000000';
+        
         // Encode the product name so the store can search by name without extra data entry
         const encodedName = encodeURIComponent(item.name.trim());
         const qrUrl = `https://rastmusicshop.com/mahsul/name::${encodedName}`;
