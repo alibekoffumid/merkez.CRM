@@ -91,6 +91,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       setSelectedCustomerId('');
       setPaymentMethod('cash');
       setNotes('');
+      setDiscount(0);
       setBirmarketCategory('Alətlər');
       setSalesChannel('Mağaza');
       setCurrentItem({
@@ -140,11 +141,36 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   const fetchCustomers = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase
+    const { data: custData } = await supabase
       .from('customers')
       .select('id, name, phone, debt_balance')
       .order('name');
-    if (data) setCustomers(data);
+      
+    const { data: staffData } = await supabase
+      .from('staff')
+      .select('id, name')
+      .order('name');
+
+    let combined = custData ? [...custData] : [];
+    
+    if (staffData) {
+      staffData.forEach(staff => {
+        const exists = combined.find(c => c.name.toLowerCase().trim() === staff.name.toLowerCase().trim());
+        if (!exists) {
+          combined.push({
+            id: `staff_${staff.id}`,
+            name: `${staff.name} (Usta)`,
+            phone: '',
+            debt_balance: 0,
+            isStaffVirtual: true,
+            originalStaffName: staff.name
+          });
+        }
+      });
+    }
+    
+    combined.sort((a, b) => a.name.localeCompare(b.name));
+    setCustomers(combined);
   };
 
   const fetchBankSettings = async () => {
@@ -285,13 +311,16 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     setCart(cart.filter((_, i) => i !== index));
   };
 
+  const [discount, setDiscount] = useState(0);
+
   const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const sum = cart.reduce((acc, item) => acc + (item.quantity * item.price), 0);
+    return Math.max(0, sum - (Number(discount) || 0));
   };
 
   useEffect(() => {
     setBasePriceInput(calculateTotal());
-  }, [cart]);
+  }, [cart, discount]);
 
   const getBankPercentForMonth = (m) => {
     const setting = bankSettings.find(
@@ -402,6 +431,27 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     setLoading(true);
 
     try {
+      let finalCustomerId = selectedCustomerId;
+
+      if (finalCustomerId?.startsWith('staff_')) {
+        const staffObj = customers.find(c => c.id === finalCustomerId);
+        if (staffObj) {
+          const { data: newCust, error: custErr } = await supabase
+            .from('customers')
+            .insert([{
+              name: staffObj.originalStaffName,
+              type: 'Client',
+              status: 'Active',
+              user_id: profile.id
+            }])
+            .select('id')
+            .single();
+            
+          if (custErr) throw custErr;
+          finalCustomerId = newCust.id;
+        }
+      }
+
       const totalAmount = calculateTotal();
 
       // 1. Process each item in database
@@ -428,8 +478,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         }
 
         // Append customer info if selected
-        if (selectedCustomerId) {
-          const customerObj = customers.find(c => c.id === selectedCustomerId);
+        if (finalCustomerId) {
+          const customerObj = customers.find(c => c.id === finalCustomerId);
           if (customerObj) {
             dispatchNote += ` [Müştəri: ${customerObj.name}${customerObj.phone ? ` (${customerObj.phone})` : ''}]`;
           }
@@ -462,7 +512,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
       // 2. If payment method is Debt or Credit, update customer balance & log debt transaction
       if (paymentMethod === 'debt' || paymentMethod === 'credit') {
-        const customer = customers.find(c => c.id === selectedCustomerId);
+        const customer = customers.find(c => c.id === finalCustomerId);
         const currentDebt = Number(customer?.debt_balance || 0);
         
         const amountToLog = paymentMethod === 'credit' ? contractTotal : totalAmount;
@@ -480,7 +530,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           .from('customer_debts')
           .insert([{
             user_id: profile?.id,
-            customer_id: selectedCustomerId,
+            customer_id: finalCustomerId,
             type: 'debt',
             amount: amountToLog,
             description: descriptionText
@@ -492,7 +542,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         const { error: custUpdateError } = await supabase
           .from('customers')
           .update({ debt_balance: newDebt })
-          .eq('id', selectedCustomerId);
+          .eq('id', finalCustomerId);
 
         if (custUpdateError) throw custUpdateError;
 
@@ -502,7 +552,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             .from('customer_credits')
             .insert([{
               user_id: profile?.id,
-              customer_id: selectedCustomerId,
+              customer_id: finalCustomerId,
               total_amount: contractTotal,
               months: installmentMonths,
               monthly_payment: monthlyPayment,
@@ -840,6 +890,20 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                     </div>
                   )}
                   
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                      {i18n.language === 'az' ? 'Endirim (AZN)' : 'Скидка (AZN)'}
+                    </label>
+                    <input 
+                      type="number"
+                      min="0"
+                      value={discount}
+                      onChange={e => setDiscount(e.target.value === '' ? '' : Number(e.target.value))}
+                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-2.5 outline-none transition-all font-bold text-sm focus:border-merkez-blue shadow-sm"
+                      placeholder="0.00"
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{t('common.notes')}</label>
                     <textarea 
