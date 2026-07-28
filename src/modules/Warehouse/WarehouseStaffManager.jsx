@@ -257,7 +257,7 @@ const WarehouseStaffManager = () => {
       {/* Add/Edit Modal */}
       {isModalOpen && (
         <ModalPortal>
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
+          <div className="fixed inset-0 bg-gray-950/60 z-[9999] flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
             <div 
               className="bg-white rounded-lg shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
               onClick={(e) => e.stopPropagation()}
