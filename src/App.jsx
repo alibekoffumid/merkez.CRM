@@ -21,6 +21,7 @@ import FleetModule from './modules/Fleet';
 import ScannerModule from './modules/Scanner';
 import HotelsModule from './modules/Hotels';
 import CyberCafeModule from './modules/CyberCafe';
+import RepairReceipt from './modules/Warehouse/RepairReceipt';
 import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';

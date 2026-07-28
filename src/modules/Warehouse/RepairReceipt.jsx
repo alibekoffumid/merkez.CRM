@@ -22,10 +22,7 @@ const RepairReceipt = () => {
         // Note: warehouse_repairs needs a public read policy for this to work
         const { data, error } = await supabase
           .from('warehouse_repairs')
-          .select(`
-            *,
-            customer:customers(name, phone)
-          `)
+          .select('*')
           .eq('id', id)
           .single();
 
@@ -44,13 +41,14 @@ const RepairReceipt = () => {
 
   const getStatusInfo = (status) => {
     switch (status) {
-      case 'RECEIVED':
+      case 'RECEIVED_FROM_CUSTOMER':
         return { 
           label: i18n.language === 'az' ? 'Qəbul Edildi' : 'Принято',
           color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
           icon: <Search className="w-5 h-5 text-yellow-600" />
         };
-      case 'IN_PROGRESS':
+      case 'SENT_TO_WORKSHOP':
+      case 'BEING_REPAIRED':
         return { 
           label: i18n.language === 'az' ? 'Təmirdədir' : 'В ремонте',
           color: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -63,7 +61,7 @@ const RepairReceipt = () => {
           color: 'bg-green-100 text-green-800 border-green-200',
           icon: <CheckCircle2 className="w-5 h-5 text-green-600" />
         };
-      case 'DELIVERED':
+      case 'DELIVERED_TO_CUSTOMER':
         return { 
           label: i18n.language === 'az' ? 'Təhvil Verildi' : 'Выдано',
           color: 'bg-gray-100 text-gray-800 border-gray-200',
@@ -115,6 +113,12 @@ const RepairReceipt = () => {
   const statusInfo = getStatusInfo(repair.status);
   const totalCost = parseFloat(repair.estimated_cost || 0);
 
+  // Extract customer info
+  const clientNameMatch = repair.issue_description?.match(/Müştəri:\s*(.+)/);
+  const clientPhoneMatch = repair.issue_description?.match(/Telefon:\s*(.+)/);
+  const cName = clientNameMatch ? clientNameMatch[1].trim() : null;
+  const cPhone = clientPhoneMatch ? clientPhoneMatch[1].trim() : null;
+
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       {/* Brand Header */}
@@ -149,15 +153,15 @@ const RepairReceipt = () => {
               </div>
             </div>
 
-            {repair.customer && (
+            {(cName || cPhone) && (
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <span className="font-black text-gray-600 text-lg">{repair.customer.name.charAt(0)}</span>
+                  <span className="font-black text-gray-600 text-lg">{cName ? cName.charAt(0).toUpperCase() : 'M'}</span>
                 </div>
                 <div>
                   <p className="text-xs font-bold text-gray-400 uppercase">Müştəri</p>
-                  <p className="font-bold text-gray-900">{repair.customer.name}</p>
-                  <p className="text-sm text-gray-500">{repair.customer.phone}</p>
+                  {cName && <p className="font-bold text-gray-900">{cName}</p>}
+                  {cPhone && <p className="text-sm text-gray-500">{cPhone}</p>}
                 </div>
               </div>
             )}
