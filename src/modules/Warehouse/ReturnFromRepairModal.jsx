@@ -6,7 +6,7 @@ import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
-import ImageUpload from '../../components/Common/ImageUpload';
+import MultiImageUpload from '../../components/Common/MultiImageUpload';
 
 const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   const { t, i18n } = useTranslation();
@@ -19,7 +19,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   
   const [selectedPartId, setSelectedPartId] = useState('');
   const [partQuantity, setPartQuantity] = useState('1');
-  const [photoAfter, setPhotoAfter] = useState('');
+  const [photoAfter, setPhotoAfter] = useState([]);
 
   useEffect(() => {
     if (!profile) return;
@@ -159,7 +159,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
           status: repair.targetStatus || (returnToStock ? 'RECEIVED_FROM_WORKSHOP' : 'READY'),
           master_fee: fee,
           parts_cost: totalPartsCost,
-          photo_after: photoAfter || null
+          photo_after: photoAfter && photoAfter.length > 0 ? JSON.stringify(photoAfter) : null
         })
         .eq('id', repair.id);
         
@@ -321,13 +321,14 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
                 )}
               </div>
 
-              <div>
-                <ImageUpload 
-                  value={photoAfter} 
-                  onChange={setPhotoAfter} 
-                  label={i18n.language === 'az' ? 'Təmirdən Sonra Foto (İxtiyari)' : 'Фото ПОСЛЕ Ремонта (Необязательно)'} 
-                />
-              </div>
+                <div>
+                  <MultiImageUpload 
+                    value={photoAfter} 
+                    onChange={setPhotoAfter} 
+                    label={i18n.language === 'az' ? 'TƏMİRDƏN SONRA FOTO (İXTİYARİ)' : 'ФОТО ПОСЛЕ РЕМОНТА (НЕОБЯЗАТЕЛЬНО)'}
+                    bucketName="repairs"
+                  />
+                </div>
 
               <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">
                 <div>

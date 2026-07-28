@@ -119,6 +119,19 @@ const RepairReceipt = () => {
   const cName = clientNameMatch ? clientNameMatch[1].trim() : null;
   const cPhone = clientPhoneMatch ? clientPhoneMatch[1].trim() : null;
 
+  const parsePhotos = (photoData) => {
+    if (!photoData) return [];
+    try {
+      const parsed = JSON.parse(photoData);
+      return Array.isArray(parsed) ? parsed : [photoData];
+    } catch {
+      return [photoData];
+    }
+  };
+
+  const beforePhotos = parsePhotos(repair.photo_before);
+  const afterPhotos = parsePhotos(repair.photo_after);
+
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       {/* Brand Header */}
@@ -145,42 +158,36 @@ const RepairReceipt = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <Wrench className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                <Wrench className="w-5 h-5 text-gray-400" />
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase">Alət / Məhsul</p>
-                <p className="font-bold text-gray-900 text-lg">{repair.item_name}</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Alət / Məhsul</p>
+                <p className="text-gray-900 font-bold">{repair.product?.name || repair.item_name}</p>
               </div>
             </div>
 
-            {(cName || cPhone) && (
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                  <span className="font-black text-gray-600 text-lg">{cName ? cName.charAt(0).toUpperCase() : 'M'}</span>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase">Müştəri</p>
-                  {cName && <p className="font-bold text-gray-900">{cName}</p>}
-                  {cPhone && <p className="text-sm text-gray-500">{cPhone}</p>}
-                </div>
-              </div>
-            )}
-
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                <Calendar className="w-5 h-5 text-gray-600" />
+              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                <span className="font-black text-gray-400 text-lg">B</span>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase">Tarix</p>
-                <p className="font-bold text-gray-900">
-                  {format(new Date(repair.created_at), 'dd.MM.yyyy')}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {format(new Date(repair.created_at), 'HH:mm')}
-                </p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Müştəri</p>
+                <p className="text-gray-900 font-bold">{cName || 'Göstərilməyib'}</p>
+                {cPhone && <p className="text-gray-500 text-sm">{cPhone}</p>}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
+                <Calendar className="w-5 h-5 text-gray-400" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Tarix</p>
+                <p className="text-gray-900 font-bold">{format(new Date(repair.created_at), 'dd.MM.yyyy')}</p>
+                <p className="text-gray-500 text-sm">{format(new Date(repair.created_at), 'HH:mm')}</p>
               </div>
             </div>
           </div>
@@ -207,55 +214,58 @@ const RepairReceipt = () => {
         </div>
 
         {/* Photo Gallery Card (Only shows if there are photos) */}
-        {(repair.photo_before || repair.photo_after) && (
+        {(beforePhotos.length > 0 || afterPhotos.length > 0) && (
           <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
-            <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
               <span className="w-2 h-6 bg-amber-400 rounded-full"></span>
               Foto Hesabat
             </h3>
             
-            <div className="grid grid-cols-2 gap-4">
-              {repair.photo_before && (
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-gray-500 text-center uppercase tracking-wider">Təmirdən Öncə</p>
-                  <div 
-                    className="aspect-square rounded-2xl overflow-hidden border-2 border-gray-100 cursor-pointer relative group"
-                    onClick={() => setLightboxImage(repair.photo_before)}
-                  >
-                    <img 
-                      src={repair.photo_before} 
-                      alt="Before Repair" 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <Search className="text-white opacity-0 group-hover:opacity-100 w-6 h-6 drop-shadow-md" />
-                    </div>
+            <div className="flex flex-col gap-6">
+              {beforePhotos.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Təmirdən Öncə</p>
+                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x -mx-2 px-2">
+                    {beforePhotos.map((url, idx) => (
+                      <div 
+                        key={idx}
+                        className="flex-shrink-0 w-36 h-36 rounded-2xl overflow-hidden border-2 border-gray-100 cursor-pointer relative group snap-start"
+                        onClick={() => setLightboxImage(url)}
+                      >
+                        <img 
+                          src={url} 
+                          alt={`Before Repair ${idx + 1}`} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Search className="text-white opacity-0 group-hover:opacity-100 w-6 h-6 drop-shadow-md" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
               
-              {repair.photo_after ? (
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-green-600 text-center uppercase tracking-wider">Təmirdən Sonra</p>
-                  <div 
-                    className="aspect-square rounded-2xl overflow-hidden border-2 border-green-100 cursor-pointer relative group"
-                    onClick={() => setLightboxImage(repair.photo_after)}
-                  >
-                    <img 
-                      src={repair.photo_after} 
-                      alt="After Repair" 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <Search className="text-white opacity-0 group-hover:opacity-100 w-6 h-6 drop-shadow-md" />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-bold text-gray-400 text-center uppercase tracking-wider">Təmirdən Sonra</p>
-                  <div className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400">
-                    <p className="text-xs font-medium text-center px-4">Təmir bitdikdən sonra əlavə ediləcək</p>
+              {afterPhotos.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-3">Təmirdən Sonra</p>
+                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x -mx-2 px-2">
+                    {afterPhotos.map((url, idx) => (
+                      <div 
+                        key={idx}
+                        className="flex-shrink-0 w-36 h-36 rounded-2xl overflow-hidden border-2 border-green-100 cursor-pointer relative group snap-start"
+                        onClick={() => setLightboxImage(url)}
+                      >
+                        <img 
+                          src={url} 
+                          alt={`After Repair ${idx + 1}`} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Search className="text-white opacity-0 group-hover:opacity-100 w-6 h-6 drop-shadow-md" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

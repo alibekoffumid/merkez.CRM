@@ -6,7 +6,7 @@ import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
-import ImageUpload from '../../components/Common/ImageUpload';
+import MultiImageUpload from '../../components/Common/MultiImageUpload';
 
 const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const { t, i18n } = useTranslation();
@@ -24,7 +24,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const [issueDescription, setIssueDescription] = useState('');
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
-  const [photoBefore, setPhotoBefore] = useState('');
+  const [photoBefore, setPhotoBefore] = useState([]);
   
   const [newMasterName, setNewMasterName] = useState('');
   const [isAddingMaster, setIsAddingMaster] = useState(false);
@@ -188,7 +188,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
           master_id: selectedMasterId,
           issue_description: finalIssueDescription,
           status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER',
-          photo_before: photoBefore || null
+          photo_before: photoBefore && photoBefore.length > 0 ? JSON.stringify(photoBefore) : null
         }])
         .select()
         .single();
@@ -453,11 +453,12 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                   />
                 </div>
 
-                <div>
-                  <ImageUpload 
+                <div className="pt-2">
+                  <MultiImageUpload 
                     value={photoBefore} 
                     onChange={setPhotoBefore} 
-                    label={i18n.language === 'az' ? 'Təmirdən Öncə Foto (İxtiyari)' : 'Фото ДО Ремонта (Необязательно)'} 
+                    label={i18n.language === 'az' ? 'TƏMİRDƏN ÖNCƏ FOTO (İXTİYARİ)' : 'ФОТО ДО РЕМОНТА (НЕОБЯЗАТЕЛЬНО)'}
+                    bucketName="repairs"
                   />
                 </div>
               </div>
