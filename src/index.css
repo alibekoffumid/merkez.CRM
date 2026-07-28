@@ -69,8 +69,7 @@
 
 @media print {
   @page {
-    size: 58mm 40mm;
-    margin: 0;
+    margin: 5mm;
   }
   
   body * {
@@ -80,23 +79,23 @@
   .print-only-container, .print-only-container * {
     visibility: visible;
   }
-
+  
   .print-only-container {
-    display: block;
     position: absolute;
     left: 0;
     top: 0;
-    width: 58mm;
-    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 2mm;
+    width: 100%;
     margin: 0;
-    background: white;
-    z-index: 9999;
+    padding: 0;
   }
 
   .sticker-page {
     width: 58mm;
     min-height: 40mm;
-    page-break-after: always;
     page-break-inside: avoid;
     padding: 1mm;
     box-sizing: border-box;
