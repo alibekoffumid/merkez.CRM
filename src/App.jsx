@@ -196,7 +196,6 @@ function App() {
       <BrowserRouter>
       <Routes>
         {/* Digital Receipt Routes */}
-        <Route path="/receipt/:id" element={<DigitalReceipt />} />
         <Route path="/repair-receipt/:id" element={<RepairReceipt />} />
         
         {/* Public Routes */}
