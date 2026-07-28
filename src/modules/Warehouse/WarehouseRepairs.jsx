@@ -270,7 +270,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                     />
                   </td>
                   <td className="p-4 text-right">
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center justify-end gap-4">
                       <div className="text-sm font-bold text-gray-700">
                         {new Date(repair.created_at).toLocaleDateString()}
                       </div>
