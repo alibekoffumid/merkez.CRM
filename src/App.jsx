@@ -194,6 +194,10 @@ function App() {
     <UserProvider>
       <BrowserRouter>
       <Routes>
+        {/* Digital Receipt Routes */}
+        <Route path="/receipt/:id" element={<DigitalReceipt />} />
+        <Route path="/repair-receipt/:id" element={<RepairReceipt />} />
+        
         {/* Public Routes */}
         <Route path="/" element={isAppDomain ? <Navigate to="/dashboard" replace /> : <Landing />} />
         <Route path="/auth" element={<Auth />} />

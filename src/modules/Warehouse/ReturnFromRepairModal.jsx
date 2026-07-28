@@ -6,6 +6,7 @@ import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
+import ImageUpload from '../../components/Common/ImageUpload';
 
 const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   const { t, i18n } = useTranslation();
@@ -18,6 +19,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   
   const [selectedPartId, setSelectedPartId] = useState('');
   const [partQuantity, setPartQuantity] = useState('1');
+  const [photoAfter, setPhotoAfter] = useState('');
 
   useEffect(() => {
     if (!profile) return;
@@ -156,7 +158,8 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
         .update({
           status: repair.targetStatus || (returnToStock ? 'RECEIVED_FROM_WORKSHOP' : 'READY'),
           master_fee: fee,
-          parts_cost: totalPartsCost
+          parts_cost: totalPartsCost,
+          photo_after: photoAfter || null
         })
         .eq('id', repair.id);
         
@@ -280,6 +283,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
 
                 {parts.length > 0 && (
                   <div className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+                    {/* table is inside here */}
                     <table className="w-full text-left text-sm">
                       <thead className="bg-gray-100/50">
                         <tr>
@@ -315,6 +319,14 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
                     </table>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <ImageUpload 
+                  value={photoAfter} 
+                  onChange={setPhotoAfter} 
+                  label={i18n.language === 'az' ? 'Təmirdən Sonra Foto (İxtiyari)' : 'Фото ПОСЛЕ Ремонта (Необязательно)'} 
+                />
               </div>
 
               <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl flex items-center justify-between">

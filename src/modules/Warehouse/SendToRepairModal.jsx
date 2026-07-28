@@ -6,6 +6,7 @@ import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
+import ImageUpload from '../../components/Common/ImageUpload';
 
 const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const { t, i18n } = useTranslation();
@@ -23,6 +24,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const [issueDescription, setIssueDescription] = useState('');
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [photoBefore, setPhotoBefore] = useState('');
   
   const [newMasterName, setNewMasterName] = useState('');
   const [isAddingMaster, setIsAddingMaster] = useState(false);
@@ -185,7 +187,8 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
           serial_number: serialNumber || null,
           master_id: selectedMasterId,
           issue_description: finalIssueDescription,
-          status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER'
+          status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER',
+          photo_before: photoBefore || null
         }])
         .select()
         .single();
@@ -447,6 +450,14 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                     rows={3}
                     placeholder={i18n.language === 'az' ? 'Problemi ətraflı təsvir edin...' : 'Опишите проблему подробно...'}
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 resize-none"
+                  />
+                </div>
+
+                <div>
+                  <ImageUpload 
+                    value={photoBefore} 
+                    onChange={setPhotoBefore} 
+                    label={i18n.language === 'az' ? 'Təmirdən Öncə Foto (İxtiyari)' : 'Фото ДО Ремонта (Необязательно)'} 
                   />
                 </div>
               </div>
