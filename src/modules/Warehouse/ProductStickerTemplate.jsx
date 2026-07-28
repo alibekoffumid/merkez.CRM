@@ -48,7 +48,7 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
                 />
               </div>
               <div className="sticker-qr-wrapper">
-                <QRCodeSVG value={qrUrl} size={42} level="M" includeMargin={false} />
+                <QRCodeSVG value={qrUrl} size={32} level="M" includeMargin={false} />
               </div>
             </div>
             

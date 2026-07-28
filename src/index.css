@@ -63,6 +63,10 @@
     appearance: textfield;
   }
 }
+.print-only-container {
+  display: none;
+}
+
 @media print {
   @page {
     size: 58mm 40mm;
@@ -78,6 +82,7 @@
   }
 
   .print-only-container {
+    display: block;
     position: absolute;
     left: 0;
     top: 0;
@@ -85,6 +90,7 @@
     padding: 0;
     margin: 0;
     background: white;
+    z-index: 9999;
   }
 
   .sticker-page {
@@ -93,34 +99,32 @@
     page-break-after: always;
     page-break-inside: avoid;
     overflow: hidden;
-    padding: 2mm 3mm;
+    padding: 2mm;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     background: white;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
   .sticker-brand {
-    font-size: 7px;
+    font-size: 8px;
     font-weight: 900;
     text-align: center;
     text-transform: uppercase;
     color: #000;
-    letter-spacing: 0.5px;
   }
 
   .sticker-title {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 800;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.2;
-    margin: 2px 0 4px 0;
+    margin: 2px 0;
     color: #000;
   }
 
@@ -129,8 +133,7 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    gap: 4px;
-    flex: 1;
+    margin-bottom: 2px;
   }
 
   .sticker-barcode-wrapper {
@@ -138,21 +141,20 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    overflow: hidden;
   }
   
   .sticker-barcode-wrapper svg {
+    height: 26px !important;
+    width: auto !important;
     max-width: 100%;
-    height: 24px !important;
   }
 
   .sticker-qr-wrapper {
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
-    flex-shrink: 0;
   }
 
   .sticker-bottom-row {
@@ -160,22 +162,22 @@
     justify-content: space-between;
     align-items: flex-end;
     width: 100%;
-    margin-top: 2px;
+    margin-top: auto;
   }
 
   .sticker-price {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 900;
     color: #000;
     line-height: 1;
   }
 
   .sticker-cta {
-    font-size: 6px;
+    font-size: 7px;
     font-weight: 800;
     text-align: right;
     line-height: 1.1;
     color: #000;
-    max-width: 50%;
+    max-width: 55%;
   }
 }
