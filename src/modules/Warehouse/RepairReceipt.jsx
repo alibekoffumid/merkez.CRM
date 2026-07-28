@@ -122,14 +122,15 @@ const RepairReceipt = () => {
   return (
     <div className="min-h-screen bg-gray-100 font-sans pb-10">
       {/* Brand Header */}
-      <div className="bg-gray-900 text-white pt-8 pb-16 px-4 text-center rounded-b-[40px] shadow-lg flex flex-col items-center justify-center">
-        <div className="bg-white rounded-2xl py-2.5 px-6 mb-3 inline-block shadow-md">
-          <img src="/logo.png" alt="RAST Music Shop" className="h-8 object-contain" />
-        </div>
-        <p className="text-gray-300 font-medium text-sm tracking-wide">Təmir və Bərpa Servisi</p>
+      <div className="bg-white pt-8 pb-12 px-4 text-center rounded-b-[40px] shadow-sm border-b border-gray-100 flex flex-col items-center justify-center relative z-10">
+        <h1 className="text-3xl font-black tracking-tight mb-1 flex items-center gap-2">
+          <span className="text-[#FF6B00]">RAST</span>
+          <span className="text-[#0B1B3D]">music</span>
+        </h1>
+        <p className="text-gray-500 font-medium text-sm tracking-wide">Təmir və Bərpa Servisi</p>
       </div>
 
-      <div className="max-w-md mx-auto px-4 -mt-10 space-y-6">
+      <div className="max-w-md mx-auto px-4 -mt-6 space-y-6 relative z-20">
         
         {/* Main Info Card */}
         <div className="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
