@@ -95,10 +95,9 @@
 
   .sticker-page {
     width: 58mm;
-    height: 40mm;
+    min-height: 40mm;
     page-break-after: always;
     page-break-inside: avoid;
-    overflow: hidden;
     padding: 2mm;
     box-sizing: border-box;
     display: flex;
@@ -133,7 +132,7 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin-bottom: 2px;
+    margin-bottom: 0px;
   }
 
   .sticker-barcode-wrapper {
@@ -162,7 +161,7 @@
     justify-content: space-between;
     align-items: flex-end;
     width: 100%;
-    margin-top: auto;
+    margin-top: 2px;
   }
 
   .sticker-price {
