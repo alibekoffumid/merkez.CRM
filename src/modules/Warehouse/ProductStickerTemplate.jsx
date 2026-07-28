@@ -36,33 +36,28 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
               {item.name}
             </div>
             
-            {/* Middle Row: Barcode & QR */}
-            <div className="sticker-middle-row">
-              <div className="sticker-barcode-wrapper">
-                <Barcode 
-                  value={barcodeValue} 
-                  format="CODE128" 
-                  width={1.1} 
-                  height={24} 
-                  fontSize={10}
-                  margin={0}
-                  displayValue={true}
-                  background="transparent"
-                />
-              </div>
-              <div className="sticker-qr-wrapper">
-                <QRCodeSVG value={qrUrl} size={32} level="M" includeMargin={false} />
-              </div>
+            {/* Middle: Barcode */}
+            <div className="sticker-barcode-vertical">
+              <Barcode 
+                value={barcodeValue} 
+                format="CODE128" 
+                width={1.2} 
+                height={26} 
+                fontSize={10}
+                margin={0}
+                displayValue={true}
+                background="transparent"
+              />
             </div>
             
-            {/* Bottom Row: Price & Call to action */}
-            <div className="sticker-bottom-row">
-              <div className="sticker-price">
-                Nağd: {item.price || item.sale_price || 0} ₼
-              </div>
-              <div className="sticker-cta">
-                Kredit kalkulyatoru<br />üçün skan edin
-              </div>
+            {/* QR Code */}
+            <div className="sticker-qr-vertical">
+              <QRCodeSVG value={qrUrl} size={36} level="M" includeMargin={false} />
+            </div>
+            
+            {/* Bottom Row: Price */}
+            <div className="sticker-price-vertical">
+              {item.price || item.sale_price || 0} ₼
             </div>
           </div>
         );

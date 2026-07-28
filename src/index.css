@@ -127,56 +127,35 @@
     color: #000;
   }
 
-  .sticker-middle-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .sticker-barcode-vertical {
     width: 100%;
-    margin-bottom: 0px;
-  }
-
-  .sticker-barcode-wrapper {
-    flex: 1;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
+    margin-bottom: 2px;
   }
   
-  .sticker-barcode-wrapper svg {
-    height: 26px !important;
+  .sticker-barcode-vertical svg {
+    height: 28px !important;
     width: auto !important;
     max-width: 100%;
   }
 
-  .sticker-qr-wrapper {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  .sticker-bottom-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+  .sticker-qr-vertical {
     width: 100%;
-    margin-top: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2px;
   }
 
-  .sticker-price {
-    font-size: 14px;
+  .sticker-price-vertical {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
     font-weight: 900;
     color: #000;
     line-height: 1;
-  }
-
-  .sticker-cta {
-    font-size: 7px;
-    font-weight: 800;
-    text-align: right;
-    line-height: 1.1;
-    color: #000;
-    max-width: 55%;
+    margin-top: 2px;
   }
 }
