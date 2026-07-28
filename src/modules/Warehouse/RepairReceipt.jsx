@@ -185,7 +185,13 @@ const RepairReceipt = () => {
           <div className="mt-6 pt-6 border-t border-gray-100 border-dashed">
             <p className="text-xs font-bold text-gray-400 uppercase mb-2">Problemin Təsviri</p>
             <p className="text-gray-800 font-medium whitespace-pre-wrap bg-gray-50 p-4 rounded-xl">
-              {repair.issue_description || 'Göstərilməyib'}
+              {repair.issue_description
+                ? repair.issue_description
+                    .replace(/Müştəri:\s*(.+)/, '')
+                    .replace(/Telefon:\s*(.+)/, '')
+                    .replace(/Problem:\s*/, '')
+                    .trim()
+                : 'Göstərilməyib'}
             </p>
           </div>
 
