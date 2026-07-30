@@ -448,7 +448,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                       ) : orderItems.map((item) => (
                         <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50">
                           <td className="p-3 border-r border-gray-100 font-medium">
-                            {item.article_number || item.name}
+                            {item.name}
                           </td>
                           <td className="p-3 border-r border-gray-100">
                              <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)} className="w-full p-2 text-center border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0" />
