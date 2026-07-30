@@ -445,6 +445,47 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     setOpenMenuId(null);
   };
 
+  const handleDuplicate = async (product) => {
+    setOpenMenuId(null);
+    let finalBarcode = '';
+    if (settings?.autoGenerateBarcode) {
+      const prefix = settings.barcodePrefix || '';
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      finalBarcode = `${prefix}${randomNum}`;
+    }
+    
+    // Create a copy without ID, with new barcode, zero stock
+    const newProduct = {
+      name: product.name,
+      category_id: product.category_id,
+      supplier_id: product.supplier_id,
+      price: product.price,
+      purchase_price: product.purchase_price,
+      barcode: finalBarcode, // User can change it in edit modal
+      stock_quantity: 0,
+      critical_stock: product.critical_stock,
+      color: product.color,
+      image_url: product.image_url,
+      unit: product.unit,
+      user_id: profile.id,
+      warehouse_id: warehouseId
+    };
+    
+    // Instead of directly inserting, let's just open AddProductModal with initialData?
+    // Wait, AddProductModal doesn't have initialData prop currently.
+    // It's easier to insert, then edit!
+    
+    try {
+      const { data, error } = await supabase.from('products').insert([newProduct]).select().single();
+      if (error) throw error;
+      toast.success(i18n.language === 'az' ? 'Məhsul kopyalandı' : 'Товар продублирован');
+      fetchData();
+      setEditingProduct(data); // Open edit modal for the newly duplicated product
+    } catch(err) {
+      toast.error(err.message);
+    }
+  };
+
   const handleEditIngredient = (ingredient) => {
     setEditingIngredient(ingredient);
     setOpenMenuId(null);
@@ -1678,6 +1719,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </button>
                         </th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Rəng' : 'Цвет'}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
                         {(!currentStaff || currentStaff?.role === 'Manager') && (
@@ -1715,6 +1757,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 </span>
                               )}
                             </div>
+                          </td>
+                          <td className="px-2 py-4">
+                            <span className="text-sm text-gray-600 font-medium">{item.color || '—'}</span>
                           </td>
                           <td className="px-2 py-4">
                             <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
@@ -1758,6 +1803,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                     >
                                       <Pencil className="w-4 h-4 text-merkez-blue" />
                                       {t('warehouse.editProduct')}
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
+                                      onClick={() => handleDuplicate(item)}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                    >
+                                      <Plus className="w-4 h-4 text-merkez-green" />
+                                      {i18n.language === 'az' ? 'Məhsulu kopyala (Yeni Barkod)' : 'Дублировать товар'}
                                     </button>
                                     <div className="mx-3 my-1 border-t border-gray-100" />
                                     <button

@@ -62,7 +62,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
     } else {
       setFormData({
         name: '', price: '', purchase_price: '', barcode: '',
-        category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: '', unit: 'pcs'
+        category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: '', unit: 'pcs', color: ''
       });
     }
   }, [isOpen, initialCategoryId]);
@@ -76,7 +76,8 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
     stock_quantity: '0',
     critical_stock: '5',
     supplier_id: '',
-    unit: 'pcs'
+    unit: 'pcs',
+    color: ''
   });
 
   if (!isOpen) return null;
@@ -300,6 +301,33 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                   options={[
                     { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
                     ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{i18n.language === 'az' ? 'Rəng' : 'Цвет'}</label>
+                <Dropdown 
+                  value={formData.color}
+                  onChange={val => setFormData({ ...formData, color: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
+                  options={[
+                    { value: '', label: '-' },
+                    { value: 'WH', label: 'WH (White)' },
+                    { value: 'BL', label: 'BL (Black)' },
+                    { value: 'NT', label: 'NT (Natural)' },
+                    { value: 'SB', label: 'SB (Sunburst)' },
+                    { value: 'RD', label: 'RD (Red)' },
+                    { value: 'BLU', label: 'BLU (Blue)' },
+                    { value: 'GR', label: 'GR (Green)' },
+                    { value: 'SL', label: 'SL (Silver)' },
+                    { value: 'GD', label: 'GD (Gold)' },
+                    { value: 'YL', label: 'YL (Yellow)' },
+                    { value: 'PK', label: 'PK (Pink)' },
+                    { value: 'BR', label: 'BR (Brown)' },
+                    { value: 'GRY', label: 'GRY (Gray)' }
                   ]}
                 />
               </div>
