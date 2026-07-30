@@ -20,7 +20,7 @@ import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import CreateSupplierOrderModal from './CreateSupplierOrderModal';
 
-const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHistory }) => {
+const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHistory, warehouseId }) => {
   const { t, i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
