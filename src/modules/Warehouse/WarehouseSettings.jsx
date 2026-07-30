@@ -19,7 +19,7 @@ const WarehouseSettings = () => {
     customUnits: [],
     lowStockThreshold: '10',
     autoGenerateBarcode: false,
-    barcodePrefix: 'MRKZ-'
+    barcodePrefix: ''
   });
   const [warehouses, setWarehouses] = useState([]);
   const [loadingWarehouses, setLoadingWarehouses] = useState(false);
@@ -419,20 +419,7 @@ const WarehouseSettings = () => {
                 </label>
               </div>
 
-              {settings.autoGenerateBarcode && (
-                <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                    {t('warehouse.barcodePrefix') || 'Префикс'}
-                  </label>
-                  <input 
-                    type="text" 
-                    value={settings.barcodePrefix}
-                    onChange={(e) => setSettings({ ...settings, barcodePrefix: e.target.value })}
-                    placeholder="MRKZ-"
-                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
-                  />
-                </div>
-              )}
+
               <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара.'}</p>
             </div>
           </div>

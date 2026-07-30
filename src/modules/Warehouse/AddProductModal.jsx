@@ -36,9 +36,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
           setSettings(parsed);
           let initialBarcode = '';
           if (parsed.autoGenerateBarcode) {
-            const prefix = parsed.barcodePrefix || '';
-            const randomNum = Math.floor(100000 + Math.random() * 900000);
-            initialBarcode = `${prefix}${randomNum}`;
+            initialBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
           }
 
           if (parsed.availableUnits && parsed.availableUnits.length > 0) {
@@ -133,9 +131,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
 
     let finalBarcode = formData.barcode?.trim();
     if (!finalBarcode && settings?.autoGenerateBarcode) {
-      const prefix = settings.barcodePrefix || '';
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      finalBarcode = `${prefix}${randomNum}`;
+      finalBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
     }
 
     let newProduct = { 
@@ -310,7 +306,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <input
                   type="text"
                   className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-sm"
-                  placeholder={settings?.autoGenerateBarcode ? `${settings.barcodePrefix || ''}XXXXXX (Авто)` : "000000000"}
+                  placeholder={settings?.autoGenerateBarcode ? "200... (Авто)" : "000000000"}
                   value={formData.barcode}
                   onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                 />

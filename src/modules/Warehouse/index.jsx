@@ -461,9 +461,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     } catch (e) {}
 
     if (settings?.autoGenerateBarcode) {
-      const prefix = settings.barcodePrefix || '';
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      finalBarcode = `${prefix}${randomNum}`;
+      finalBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
     }
     
     try {
