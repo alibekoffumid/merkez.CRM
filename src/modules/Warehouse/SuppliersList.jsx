@@ -12,21 +12,32 @@ import {
   Plus, 
   Search,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  FileSpreadsheet
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
+import CreateSupplierOrderModal from './CreateSupplierOrderModal';
 
 const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHistory }) => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
   const [topBarTarget, setTopBarTarget] = useState(null);
+  
+  // State for Supplier Order Modal
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [selectedSupplierForOrder, setSelectedSupplierForOrder] = useState(null);
 
   useEffect(() => {
     setTopBarTarget(document.getElementById('warehouse-top-bar-portal-target'));
   }, []);
+
+  const openOrderModal = (supplierId = null) => {
+    setSelectedSupplierForOrder(supplierId);
+    setIsOrderModalOpen(true);
+  };
 
   const filteredSuppliers = (suppliers || []).filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,15 +57,24 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
   return (
     <div className="flex flex-col h-full w-full bg-white rounded-lg overflow-hidden">
       {topBarTarget && createPortal(
-        <div className="relative flex-1 max-w-md w-full">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input 
-            type="text" 
-            placeholder={t('warehouse.searchSuppliers') || 'Поиск поставщиков...'} 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue transition-colors" 
-          />
+        <div className="relative flex-1 max-w-md w-full flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text" 
+              placeholder={t('warehouse.searchSuppliers') || 'Поиск поставщиков...'} 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue transition-colors" 
+            />
+          </div>
+          <button 
+            onClick={() => openOrderModal()}
+            className="hidden md:flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors whitespace-nowrap text-sm"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            {t('warehouse.newOrder') || 'Новый заказ'}
+          </button>
         </div>,
         topBarTarget
       )}
@@ -100,8 +120,8 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
-                        <Mail className="w-3.5 h-3.5 text-gray-400" />
+                      <span className="text-sm font-bold text-gray-700 flex items-center gap-1.5 max-w-[150px] truncate" title={supplier.email}>
+                        <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         {supplier.email || '—'}
                       </span>
                     </td>
@@ -116,6 +136,13 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        <button 
+                          onClick={() => openOrderModal(supplier.id)}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                          title={t('warehouse.newOrder') || 'Новый заказ (Excel)'}
+                        >
+                          <FileSpreadsheet className="w-4 h-4" />
+                        </button>
                         <button 
                           onClick={() => onViewHistory(supplier.id)}
                           className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
@@ -163,6 +190,13 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
 
                     <div className="flex items-center gap-1">
                       <button 
+                        onClick={() => openOrderModal(supplier.id)}
+                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                        title={t('warehouse.newOrder') || 'Новый заказ (Excel)'}
+                      >
+                        <FileSpreadsheet className="w-4 h-4" />
+                      </button>
+                      <button 
                         onClick={() => onViewHistory(supplier.id)}
                         className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
                         title={t('warehouse.viewHistory') || 'Смотреть историю'}
@@ -206,6 +240,12 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
           </div>
         )}
       </div>
+
+      <CreateSupplierOrderModal 
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        selectedSupplierId={selectedSupplierForOrder}
+      />
     </div>
   );
 };
