@@ -290,15 +290,15 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
       // Add Total Row
       const totalRow = sheet.getRow(currentRow);
       totalRow.height = 40;
-      sheet.mergeCells(`A${currentRow}:D${currentRow}`);
+      sheet.mergeCells(`A${currentRow}:F${currentRow}`);
       
       const totalLabelCell = sheet.getCell(`A${currentRow}`);
       totalLabelCell.value = 'TOTAL:';
-      totalLabelCell.alignment = { vertical: 'middle', horizontal: 'right' };
+      totalLabelCell.alignment = { vertical: 'middle', horizontal: 'right', padding: { right: 2 } };
       totalLabelCell.font = { bold: true, name: 'Times New Roman', size: 14 };
       totalLabelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
       
-      const totalAmountCell = sheet.getCell(`E${currentRow}`);
+      const totalAmountCell = sheet.getCell(`G${currentRow}`);
       totalAmountCell.value = calculateTotal();
       totalAmountCell.numFmt = '$#,##0.00';
       totalAmountCell.font = { bold: true, name: 'Times New Roman', size: 14 };
@@ -309,7 +309,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
       ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
          const cell = sheet.getCell(`${col}${currentRow}`);
          cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
-         if (col === 'F' || col === 'G') {
+         if (col !== 'G') {
              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
          }
       });
