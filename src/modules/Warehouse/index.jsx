@@ -454,28 +454,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       finalBarcode = `${prefix}${randomNum}`;
     }
     
-    // Create a copy without ID, with new barcode, zero stock
-    const newProduct = {
-      name: product.name,
-      category_id: product.category_id,
-      supplier_id: product.supplier_id,
-      price: product.price,
-      purchase_price: product.purchase_price,
-      barcode: finalBarcode, // User can change it in edit modal
-      stock_quantity: 0,
-      critical_stock: product.critical_stock,
-      color: product.color,
-      image_url: product.image_url,
-      unit: product.unit,
-      user_id: profile.id,
-      warehouse_id: warehouseId
-    };
-    
-    // Instead of directly inserting, let's just open AddProductModal with initialData?
-    // Wait, AddProductModal doesn't have initialData prop currently.
-    // It's easier to insert, then edit!
-    
     try {
+      // Create a copy without ID, with new barcode, zero stock
+      const newProduct = {
+        name: product.name,
+        category_id: product.category_id,
+        supplier_id: product.supplier_id,
+        price: product.price,
+        purchase_price: product.purchase_price,
+        barcode: finalBarcode, // User can change it in edit modal
+        stock_quantity: 0,
+        critical_stock: product.critical_stock,
+        color: product.color,
+        image_url: product.image_url,
+        unit: product.unit,
+        user_id: profile.id,
+        warehouse_id: currentWarehouseId
+      };
+      
       const { data, error } = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
       if (error) throw error;
       toast.success(i18n.language === 'az' ? 'Məhsul kopyalandı' : 'Товар продублирован');
