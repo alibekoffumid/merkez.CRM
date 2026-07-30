@@ -46,9 +46,23 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
   };
 
   const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase()))
+    (!supplierId || p.supplier_id === supplierId) &&
+    (p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase())))
   );
+
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleAddItem = (product) => {
     // Check if already in list
@@ -69,6 +83,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
       package_size: ''
     }]);
     setProductSearch('');
+    setIsSearchFocused(false);
   };
 
   const updateItem = (id, field, value) => {
@@ -319,7 +334,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                 />
               </div>
 
-              <div className="relative">
+              <div className="relative" ref={searchContainerRef}>
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                   {i18n.language === 'az' ? 'Məhsul Axtarışı' : 'Поиск товара'}
                 </label>
@@ -330,10 +345,11 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                     placeholder={i18n.language === 'az' ? 'Ad və ya barkod...' : 'Имя или артикул...'}
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
                     className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:border-merkez-blue outline-none text-sm"
                   />
                 </div>
-                {productSearch && filteredProducts.length > 0 && (
+                {isSearchFocused && filteredProducts.length > 0 && (
                   <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-60 overflow-y-auto z-50">
                     {filteredProducts.map(p => (
                       <div 
