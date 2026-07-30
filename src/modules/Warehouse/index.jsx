@@ -904,7 +904,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
 
 
-          <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
+          {(activeTab === 'finished' || activeTab === 'raw') && (
+            <div id="tour-search" className="relative w-full lg:flex-1 lg:max-w-md shrink-0 order-3 lg:order-none">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0 order-4 lg:order-none">
             {/* Main Warehouse Actions */}
             {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && (
               <button 
@@ -1590,18 +1603,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20 items-center justify-between">
             <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
 
-              {(activeTab === 'finished' || activeTab === 'raw') && (
-                <div id="tour-search" className="relative w-full flex-1 min-w-[200px]">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="text" 
-                    placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-                  />
-                </div>
-              )}
+
 
               {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
                 <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
