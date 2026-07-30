@@ -516,7 +516,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       
       setEditingProduct(data); // Open edit modal for the newly duplicated product
     } catch(err) {
-      toast.error(err.message);
+      console.error("Duplicate Error Details:", err);
+      toast.error(`Ошибка дублирования: ${err.message || 'Неизвестная ошибка'}. Посмотрите консоль (F12) для деталей.`, { duration: 10000 });
     }
   };
 
@@ -1919,6 +1920,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   >
                                     <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
                                     {t('warehouse.editProduct') || 'Düzəliş et'}
+                                  </button>
+                                  <div className="mx-3 my-1 border-t border-gray-100" />
+                                  <button
+                                    onClick={() => handleDuplicate(item)}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
+                                  >
+                                    <Plus className="w-3.5 h-3.5 text-merkez-green" />
+                                    {i18n.language === 'az' ? 'Məhsulu kopyala' : 'Дублировать товар'}
+                                  </button>
+                                  <div className="mx-3 my-1 border-t border-gray-100" />
+                                  <button
+                                    onClick={() => { setPrintingItems([item]); setOpenMenuId(null); }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
+                                  >
+                                    <Printer className="w-3.5 h-3.5 text-gray-500" />
+                                    Etiket Çap Et
                                   </button>
                                   <div className="mx-3 my-1 border-t border-gray-100" />
                                   <button
