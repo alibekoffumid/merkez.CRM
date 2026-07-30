@@ -242,9 +242,11 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
       </div>
 
       <CreateSupplierOrderModal 
-        isOpen={isOrderModalOpen}
-        onClose={() => setIsOrderModalOpen(false)}
+        isOpen={showOrderModal} 
+        onClose={() => setShowOrderModal(false)}
         selectedSupplierId={selectedSupplierForOrder}
+        warehouseId={warehouseId}
+        suppliers={suppliers}
       />
     </div>
   );

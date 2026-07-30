@@ -9,14 +9,13 @@ import Dropdown from '../../components/Common/Dropdown';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehouseId }) => {
+const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehouseId, suppliers = [] }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   
   // Data fetching
-  const [suppliers, setSuppliers] = useState([]);
   const [products, setProducts] = useState([]);
   const [productSearch, setProductSearch] = useState('');
   
@@ -35,16 +34,9 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
 
   useEffect(() => {
     if (isOpen && profile?.id && warehouseId) {
-      fetchSuppliers();
       fetchProducts();
     }
   }, [isOpen, profile?.id, warehouseId]);
-
-  const fetchSuppliers = async () => {
-    if (!profile?.id) return;
-    const { data } = await supabase.from('suppliers').select('id, name').eq('user_id', profile.id).order('name');
-    if (data) setSuppliers(data);
-  };
 
   const fetchProducts = async () => {
     if (!profile?.id || !warehouseId) return;
