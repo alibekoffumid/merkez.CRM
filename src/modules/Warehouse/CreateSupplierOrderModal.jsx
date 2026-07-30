@@ -5,6 +5,7 @@ import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import Dropdown from '../../components/Common/Dropdown';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
@@ -278,10 +279,14 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
 
   if (!isOpen) return null;
 
+  const supplierOptions = [
+    { value: '', label: i18n.language === 'az' ? 'Seçin...' : 'Выберите...' },
+    ...suppliers.map(s => ({ value: s.id, label: s.name }))
+  ];
+
   return (
     <ModalPortal>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-gray-900/60 animate-in fade-in duration-300 print:bg-white print:p-0 print:absolute print:inset-0">
-        <div className="bg-white w-full max-w-6xl h-[90vh] rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-300 print:h-auto print:shadow-none print:rounded-none">
+      <div className="fixed inset-0 z-[1000] bg-white flex flex-col animate-in slide-in-from-bottom-4 duration-300 print:absolute print:inset-0">
           
           {/* Header */}
           <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0 print:hidden">
@@ -305,14 +310,13 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                   {i18n.language === 'az' ? 'Təchizatçı' : 'Поставщик'}
                 </label>
-                <select
+                <Dropdown
                   value={supplierId}
-                  onChange={(e) => setSupplierId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:border-merkez-blue outline-none"
-                >
-                  <option value="">{i18n.language === 'az' ? 'Seçin...' : 'Выберите...'}</option>
-                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
+                  onChange={(val) => setSupplierId(val)}
+                  options={supplierOptions}
+                  className="w-full"
+                  buttonClassName="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:border-merkez-blue outline-none text-left"
+                />
               </div>
 
               <div>
@@ -355,14 +359,16 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                   {i18n.language === 'az' ? 'Valyuta' : 'Валюта'}
                 </label>
-                <select
+                <Dropdown
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl mb-3 outline-none"
-                >
-                  <option value="USD">USD ($)</option>
-                  <option value="AZN">AZN (₼)</option>
-                </select>
+                  onChange={(val) => setCurrency(val)}
+                  options={[
+                    { value: 'USD', label: 'USD ($)' },
+                    { value: 'AZN', label: 'AZN (₼)' }
+                  ]}
+                  className="w-full mb-3"
+                  buttonClassName="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl outline-none text-left"
+                />
 
                 {currency === 'AZN' && (
                   <div>
@@ -486,7 +492,6 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
             </div>
           </div>
           
-        </div>
       </div>
     </ModalPortal>
   );
