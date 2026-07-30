@@ -789,8 +789,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </>
                     )}
 
-                    <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                      <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
+                    <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 p-2 md:px-3.5 md:py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm" title={t('warehouse.import')}>
+                      <Upload className="w-4 h-4 md:w-3.5 md:h-3.5 md:mr-1.5" /> <span className="hidden md:inline">{t('warehouse.import')}</span>
                     </button>
                   </>
                 )}
