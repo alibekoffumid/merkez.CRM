@@ -46,9 +46,8 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
   };
 
   const filteredProducts = products.filter(p => 
-    (!supplierId || p.supplier_id === supplierId) &&
-    (p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase())))
+    p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase()))
   );
 
   const handleAddItem = (product) => {
