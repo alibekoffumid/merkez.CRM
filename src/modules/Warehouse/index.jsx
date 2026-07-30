@@ -86,6 +86,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [printingItems, setPrintingItems] = useState(null);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
+  const mobileFilterRef = useRef(null);
 
   useEffect(() => {
     if (profile?.id) {
@@ -114,7 +115,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpenMenuId(null);
       }
-      if (filterRef.current && !filterRef.current.contains(e.target)) {
+      const isOutsideDesktop = filterRef.current ? !filterRef.current.contains(e.target) : true;
+      const isOutsideMobile = mobileFilterRef.current ? !mobileFilterRef.current.contains(e.target) : true;
+      if (isOutsideDesktop && isOutsideMobile) {
         setShowFilterDropdown(false);
       }
     };
@@ -791,7 +794,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </button>
                   </>
                 )}
-                <div className="relative shrink-0 lg:hidden" ref={filterRef}>
+                <div className="relative shrink-0 lg:hidden" ref={mobileFilterRef}>
                   <button 
                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
                     className={`p-2 rounded-lg border transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-white border-gray-200 text-gray-500 hover:text-gray-700'}`}
@@ -801,8 +804,38 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </button>
                   
                   {showFilterDropdown && (
-                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-64 py-1.5 animate-in fade-in zoom-in-95">
                       <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                      
+                      {activeTab === 'finished' && (
+                        <div className="px-4 py-2 space-y-3">
+                          <div className="space-y-1">
+                            <Dropdown
+                              value={selectedCategory || 'all'}
+                              onChange={(val) => { setSelectedCategory(val === 'all' ? null : val); }}
+                              options={[
+                                { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
+                                ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
+                              ]}
+                              buttonClassName="rounded-md px-3 py-2 text-sm w-full border border-gray-200"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Dropdown
+                              value={supplierFilter}
+                              onChange={(val) => { setSupplierFilter(val); }}
+                              options={[
+                                { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
+                                ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                              ]}
+                              buttonClassName="rounded-md px-3 py-2 text-sm w-full border border-gray-200"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-y border-gray-50 mt-1 mb-1">{t('warehouse.thStatus') || 'Статус'}</p>
                       {[
                         { id: 'all', label: t('common.all') },
                         { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
@@ -1670,7 +1703,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
 
             {activeTab === 'finished' && (
-              <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
+              <div className="hidden lg:flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
                 <div className="w-full sm:w-56 shrink-0">
                   <Dropdown
                     value={selectedCategory || 'all'}
