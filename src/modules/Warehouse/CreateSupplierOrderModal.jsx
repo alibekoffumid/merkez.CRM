@@ -41,15 +41,23 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
   };
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('id, name, article_number, cost_price, picture_url, supplier_id').order('name');
+    if (!profile?.id) return;
+    const { data } = await supabase
+      .from('products')
+      .select('id, name, article_number, cost_price, picture_url, supplier_id')
+      .eq('is_deleted', false)
+      .eq('user_id', profile.id)
+      .order('name');
     if (data) setProducts(data);
   };
 
-  const filteredProducts = products.filter(p => 
-    (!supplierId || p.supplier_id === supplierId) &&
-    (p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase())))
-  );
+  const filteredProducts = products.filter(p => {
+    const matchesSupplier = !supplierId || p.supplier_id === supplierId;
+    const searchLower = productSearch.toLowerCase();
+    const matchesSearch = p.name?.toLowerCase().includes(searchLower) || 
+                          (p.article_number && p.article_number.toLowerCase().includes(searchLower));
+    return matchesSupplier && matchesSearch;
+  });
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchContainerRef = React.useRef(null);
@@ -349,24 +357,30 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                     className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:border-merkez-blue outline-none text-sm"
                   />
                 </div>
-                {isSearchFocused && filteredProducts.length > 0 && (
+                {isSearchFocused && (
                   <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-60 overflow-y-auto z-50">
-                    {filteredProducts.map(p => (
-                      <div 
-                        key={p.id} 
-                        onClick={() => handleAddItem(p)}
-                        className="p-3 border-b border-gray-50 flex items-center gap-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                      >
-                        <div className="w-10 h-10 rounded bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
-                           {p.picture_url ? <img src={p.picture_url} className="w-full h-full object-cover" /> : <ImageIcon className="w-4 h-4 text-gray-400" />}
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map(p => (
+                        <div 
+                          key={p.id} 
+                          onClick={() => handleAddItem(p)}
+                          className="p-3 border-b border-gray-50 flex items-center gap-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <div className="w-10 h-10 rounded bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
+                             {p.picture_url ? <img src={p.picture_url} className="w-full h-full object-cover" /> : <ImageIcon className="w-4 h-4 text-gray-400" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-gray-900 text-sm truncate">{p.name}</p>
+                            <p className="text-xs text-gray-500">{p.article_number}</p>
+                          </div>
+                          <Plus className="w-4 h-4 text-merkez-blue shrink-0" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-gray-900 text-sm truncate">{p.name}</p>
-                          <p className="text-xs text-gray-500">{p.article_number}</p>
-                        </div>
-                        <Plus className="w-4 h-4 text-merkez-blue shrink-0" />
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-sm text-gray-400 font-medium">
+                        {supplierId ? (i18n.language === 'az' ? 'Bu təchizatçı üçün məhsul tapılmadı' : 'У этого поставщика нет таких товаров') : (i18n.language === 'az' ? 'Məhsul tapılmadı' : 'Товар не найден')}
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
