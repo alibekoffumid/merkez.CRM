@@ -476,10 +476,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     // It's easier to insert, then edit!
     
     try {
-      const { data, error } = await supabase.from('products').insert([newProduct]).select().single();
+      const { data, error } = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
       if (error) throw error;
       toast.success(i18n.language === 'az' ? 'Məhsul kopyalandı' : 'Товар продублирован');
-      fetchData();
+      
+      // Update local state to insert right below the original product
+      setProducts(prev => {
+        const index = prev.findIndex(p => p.id === product.id);
+        if (index !== -1) {
+          const newArr = [...prev];
+          newArr.splice(index + 1, 0, data);
+          return newArr;
+        }
+        return [...prev, data];
+      });
+      
       setEditingProduct(data); // Open edit modal for the newly duplicated product
     } catch(err) {
       toast.error(err.message);
