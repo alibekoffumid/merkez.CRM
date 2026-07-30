@@ -925,6 +925,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               setHistoryFilter(id);
               setActiveTab('history');
             }}
+            warehouseId={currentWarehouseId}
           />
         ) : activeTab === 'settings' ? (
           <WarehouseSettings />

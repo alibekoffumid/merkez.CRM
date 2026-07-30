@@ -9,7 +9,7 @@ import Dropdown from '../../components/Common/Dropdown';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
+const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehouseId }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -28,25 +28,32 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetchSuppliers();
-      fetchProducts();
       setSupplierId(selectedSupplierId || '');
       setOrderItems([]);
     }
   }, [isOpen, selectedSupplierId]);
 
+  useEffect(() => {
+    if (isOpen && profile?.id && warehouseId) {
+      fetchSuppliers();
+      fetchProducts();
+    }
+  }, [isOpen, profile?.id, warehouseId]);
+
   const fetchSuppliers = async () => {
-    const { data } = await supabase.from('suppliers').select('id, name').order('name');
+    if (!profile?.id) return;
+    const { data } = await supabase.from('suppliers').select('id, name').eq('user_id', profile.id).order('name');
     if (data) setSuppliers(data);
   };
 
   const fetchProducts = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id || !warehouseId) return;
     const { data } = await supabase
       .from('products')
       .select('id, name, article_number, cost_price, picture_url, supplier_id')
       .eq('is_deleted', false)
       .eq('user_id', profile.id)
+      .eq('warehouse_id', warehouseId)
       .order('name');
     if (data) setProducts(data);
   };
