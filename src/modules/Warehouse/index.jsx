@@ -448,6 +448,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const handleDuplicate = async (product) => {
     setOpenMenuId(null);
     let finalBarcode = product.barcode ? `${product.barcode}-COPY-${Math.floor(100 + Math.random() * 900)}` : `COPY-${Math.floor(10000 + Math.random() * 90000)}`;
+    
+    let settings = null;
+    try {
+      const saved = localStorage.getItem('merkez_warehouse_settings');
+      if (saved) settings = JSON.parse(saved);
+    } catch (e) {}
+
     if (settings?.autoGenerateBarcode) {
       const prefix = settings.barcodePrefix || '';
       const randomNum = Math.floor(100000 + Math.random() * 900000);
