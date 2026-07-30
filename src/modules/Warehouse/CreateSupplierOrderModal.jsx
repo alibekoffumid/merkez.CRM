@@ -40,20 +40,26 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
 
   const fetchProducts = async () => {
     if (!profile?.id || !warehouseId) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('products')
-      .select('id, name, article_number, cost_price, picture_url, supplier_id')
+      .select('id, name, barcode, purchase_price, image_url, supplier_id')
       .eq('is_deleted', false)
       .eq('user_id', profile.id)
       .eq('warehouse_id', warehouseId)
       .order('name');
-    if (data) setProducts(data);
+    
+    if (error) {
+      console.error('Error fetching products:', error);
+      toast.error(i18n.language === 'az' ? 'Məhsulları yükləmək mümkün olmadı' : 'Ошибка загрузки товаров');
+    } else if (data) {
+      setProducts(data);
+    }
   };
 
   const filteredProducts = products.filter(p => {
     const searchLower = productSearch.toLowerCase();
     return p.name?.toLowerCase().includes(searchLower) || 
-           (p.article_number && p.article_number.toLowerCase().includes(searchLower));
+           (p.barcode && p.barcode.toLowerCase().includes(searchLower));
   });
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -80,10 +86,10 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
       id: Date.now().toString(),
       product_id: product.id,
       name: product.name,
-      article_number: product.article_number,
-      picture_url: product.picture_url,
+      article_number: product.barcode,
+      picture_url: product.image_url,
       quantity: 1,
-      unit_price: product.cost_price || 0,
+      unit_price: product.purchase_price || 0,
       remark: '',
       package_size: ''
     }]);
