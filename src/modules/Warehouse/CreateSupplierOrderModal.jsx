@@ -52,11 +52,9 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
   };
 
   const filteredProducts = products.filter(p => {
-    const matchesSupplier = !supplierId || p.supplier_id === supplierId;
     const searchLower = productSearch.toLowerCase();
-    const matchesSearch = p.name?.toLowerCase().includes(searchLower) || 
-                          (p.article_number && p.article_number.toLowerCase().includes(searchLower));
-    return matchesSupplier && matchesSearch;
+    return p.name?.toLowerCase().includes(searchLower) || 
+           (p.article_number && p.article_number.toLowerCase().includes(searchLower));
   });
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
