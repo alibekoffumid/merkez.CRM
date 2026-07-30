@@ -791,6 +791,38 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </button>
                   </>
                 )}
+                <div className="relative shrink-0 lg:hidden" ref={filterRef}>
+                  <button 
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    className={`p-2 rounded-lg border transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-white border-gray-200 text-gray-500 hover:text-gray-700'}`}
+                    title={t('retail.filters')}
+                  >
+                    <Filter className="w-4 h-4" />
+                  </button>
+                  
+                  {showFilterDropdown && (
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                      <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                      {[
+                        { id: 'all', label: t('common.all') },
+                        { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
+                        { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
+                        { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
+                      ].map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
+                          className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
+                            {item.label}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button 
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                   className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
@@ -1634,37 +1666,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </button>
               )}
 
-              <div className="relative shrink-0 xl:hidden" ref={filterRef}>
-                <button 
-                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                  className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
-                >
-                  <Filter className="w-5 h-5" />
-                </button>
-                
-                {showFilterDropdown && (
-                  <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
-                    <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
-                    {[
-                      { id: 'all', label: t('common.all') },
-                      { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
-                      { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
-                      { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
-                    ].map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
-                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
-                          {item.label}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+
             </div>
 
             {activeTab === 'finished' && (
