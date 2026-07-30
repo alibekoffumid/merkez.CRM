@@ -10,7 +10,7 @@ import ModalPortal from '../../components/Common/ModalPortal';
 import { formatCategoriesHierarchically } from './categoryUtils';
 
 const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = [], onProductUpdated }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Format categories for hierarchical dropdown
   const hierarchicalCategories = React.useMemo(() => 
