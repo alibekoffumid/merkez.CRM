@@ -447,7 +447,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const handleDuplicate = async (product) => {
     setOpenMenuId(null);
-    let finalBarcode = '';
+    let finalBarcode = product.barcode ? `${product.barcode}-COPY-${Math.floor(100 + Math.random() * 900)}` : `COPY-${Math.floor(10000 + Math.random() * 90000)}`;
     if (settings?.autoGenerateBarcode) {
       const prefix = settings.barcodePrefix || '';
       const randomNum = Math.floor(100000 + Math.random() * 900000);
