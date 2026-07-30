@@ -464,27 +464,29 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                           <td className="p-3 border-r border-gray-100 text-center font-bold text-gray-900">
                              ${((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)).toFixed(2)}
                           </td>
-                          <td className="p-3 border-r border-gray-100">
-                             <select 
-                                value={item.remark} 
-                                onChange={(e) => updateItem(item.id, 'remark', e.target.value)} 
-                                className="w-full p-2 border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0 print:appearance-none"
-                             >
-                                <option value="">-</option>
-                                <option value="WH">WH (White)</option>
-                                <option value="BL">BL (Black)</option>
-                                <option value="NT">NT (Natural)</option>
-                                <option value="SB">SB (Sunburst)</option>
-                                <option value="RD">RD (Red)</option>
-                                <option value="BLU">BLU (Blue)</option>
-                                <option value="GR">GR (Green)</option>
-                                <option value="SL">SL (Silver)</option>
-                                <option value="GD">GD (Gold)</option>
-                                <option value="YL">YL (Yellow)</option>
-                                <option value="PK">PK (Pink)</option>
-                                <option value="BR">BR (Brown)</option>
-                                <option value="GRY">GRY (Gray)</option>
-                             </select>
+                          <td className="p-3 border-r border-gray-100 relative">
+                             <Dropdown
+                                value={item.remark}
+                                onChange={(val) => updateItem(item.id, 'remark', val)}
+                                options={[
+                                  { value: '', label: '-' },
+                                  { value: 'WH', label: 'WH (White)' },
+                                  { value: 'BL', label: 'BL (Black)' },
+                                  { value: 'NT', label: 'NT (Natural)' },
+                                  { value: 'SB', label: 'SB (Sunburst)' },
+                                  { value: 'RD', label: 'RD (Red)' },
+                                  { value: 'BLU', label: 'BLU (Blue)' },
+                                  { value: 'GR', label: 'GR (Green)' },
+                                  { value: 'SL', label: 'SL (Silver)' },
+                                  { value: 'GD', label: 'GD (Gold)' },
+                                  { value: 'YL', label: 'YL (Yellow)' },
+                                  { value: 'PK', label: 'PK (Pink)' },
+                                  { value: 'BR', label: 'BR (Brown)' },
+                                  { value: 'GRY', label: 'GRY (Gray)' }
+                                ]}
+                                className="w-full"
+                                buttonClassName="w-full p-2 bg-white border border-gray-200 rounded text-left outline-none focus:border-merkez-blue print:border-none print:p-0"
+                             />
                           </td>
                           <td className="p-3 border-r border-gray-100">
                              <input type="text" placeholder="Carton size..." value={item.package_size} onChange={(e) => updateItem(item.id, 'package_size', e.target.value)} className="w-full p-2 border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0 print:placeholder-transparent" />
