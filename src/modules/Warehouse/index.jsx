@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer } from 'lucide-react';
@@ -905,16 +906,32 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
 
           {(activeTab === 'finished' || activeTab === 'raw') && (
-            <div id="tour-search" className="relative w-full lg:flex-1 lg:max-w-md shrink-0 order-3 lg:order-none">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-              />
-            </div>
+            <>
+              <div id="tour-search-desktop" className="hidden md:block relative w-full lg:flex-1 lg:max-w-md shrink-0 order-3 lg:order-none">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input 
+                  type="text" 
+                  placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                  value={searchTerm} 
+                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+                />
+              </div>
+              
+              {document.getElementById('mobile-header-search-portal') && ReactDOM.createPortal(
+                <div id="tour-search-mobile" className="relative w-full transition-all">
+                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full pl-8 pr-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors placeholder-gray-500" 
+                  />
+                </div>,
+                document.getElementById('mobile-header-search-portal')
+              )}
+            </>
           )}
 
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0 order-4 lg:order-none">

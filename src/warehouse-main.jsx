@@ -438,6 +438,9 @@ const WarehouseAppContent = () => {
             </div>
           </div>
 
+          {/* Mobile Search Portal Target */}
+          <div id="mobile-header-search-portal" className="flex-1 md:hidden min-w-[120px]"></div>
+
           {/* Mobile Header Controls */}
           <div className="flex items-center gap-1.5 md:hidden shrink-0">
             <div className="relative">
