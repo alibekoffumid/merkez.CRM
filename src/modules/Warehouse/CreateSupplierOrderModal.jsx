@@ -108,7 +108,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
   };
 
   const calculateTotal = () => {
-    return orderItems.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+    return orderItems.reduce((sum, item) => sum + ((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)), 0);
   };
 
   const handleSave = async () => {
@@ -231,7 +231,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
       let currentRow = 3;
 
       for (const item of orderItems) {
-        const amount = item.quantity * item.unit_price;
+        const amount = (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
         
         const row = sheet.getRow(currentRow);
         row.height = 80;
@@ -451,13 +451,13 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                             {item.name}
                           </td>
                           <td className="p-3 border-r border-gray-100">
-                             <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 1)} className="w-full p-2 text-center border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0" />
+                             <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(item.id, 'quantity', e.target.value === '' ? '' : parseInt(e.target.value))} className="w-full p-2 text-center border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0" />
                           </td>
                           <td className="p-3 border-r border-gray-100">
-                             <input type="number" step="0.01" value={item.unit_price} onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} className="w-full p-2 text-center border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0" />
+                             <input type="number" step="0.01" value={item.unit_price} onChange={(e) => updateItem(item.id, 'unit_price', e.target.value === '' ? '' : parseFloat(e.target.value))} className="w-full p-2 text-center border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0" />
                           </td>
                           <td className="p-3 border-r border-gray-100 text-center font-bold text-gray-900">
-                             ${(item.quantity * item.unit_price).toFixed(2)}
+                             ${((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)).toFixed(2)}
                           </td>
                           <td className="p-3 border-r border-gray-100 flex justify-center">
                              <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
