@@ -173,11 +173,11 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
 
       // Setup Columns
       sheet.columns = [
+        { header: 'Picture', key: 'picture', width: 20 },
         { header: 'Item No.', key: 'itemNo', width: 25 },
         { header: 'Quantity', key: 'qty', width: 15 },
         { header: 'Unit price (USD)', key: 'price', width: 20 },
         { header: 'Amount (USD)', key: 'amount', width: 20 },
-        { header: 'Picture', key: 'picture', width: 20 },
         { header: 'Remark', key: 'remark', width: 30 },
         { header: 'Package size', key: 'packageSize', width: 20 }
       ];
@@ -237,14 +237,14 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
         row.height = 80;
         
         // Output Product Name instead of Barcode for Item No. column
-        sheet.getCell(`A${currentRow}`).value = item.name;
-        sheet.getCell(`B${currentRow}`).value = item.quantity;
+        sheet.getCell(`B${currentRow}`).value = item.name;
+        sheet.getCell(`C${currentRow}`).value = item.quantity;
         
-        const priceCell = sheet.getCell(`C${currentRow}`);
+        const priceCell = sheet.getCell(`D${currentRow}`);
         priceCell.value = item.unit_price;
         priceCell.numFmt = '$#,##0.00';
         
-        const amountCell = sheet.getCell(`D${currentRow}`);
+        const amountCell = sheet.getCell(`E${currentRow}`);
         amountCell.value = amount;
         amountCell.numFmt = '$#,##0.00';
         
@@ -272,16 +272,16 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
             });
 
             sheet.addImage(imageId, {
-              tl: { col: 4.1, row: currentRow - 1 + 0.1 }, // E is col 5, index is 4
-              br: { col: 4.9, row: currentRow - 0.1 },
+              tl: { col: 0.1, row: currentRow - 1 + 0.1 }, // A is col 0, index is 0
+              br: { col: 0.9, row: currentRow - 0.1 },
               editAs: 'oneCell'
             });
           } catch (imgErr) {
             console.error('Failed to load image:', imgErr);
-            sheet.getCell(`E${currentRow}`).value = 'No Image';
+            sheet.getCell(`A${currentRow}`).value = 'No Image';
           }
         } else {
-            sheet.getCell(`E${currentRow}`).value = 'No Image';
+            sheet.getCell(`A${currentRow}`).value = 'No Image';
         }
         
         currentRow++;
@@ -427,11 +427,11 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                   <table className="w-full min-w-[800px] border-collapse">
                     <thead className="sticky top-0 bg-gray-100 z-10 print:static print:bg-gray-200">
                       <tr className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="p-4 text-center border-b border-r border-gray-200 w-24">Picture</th>
                         <th className="p-4 text-left border-b border-r border-gray-200">Item No.</th>
                         <th className="p-4 text-center border-b border-r border-gray-200 w-24">Quantity</th>
                         <th className="p-4 text-center border-b border-r border-gray-200 w-32">Unit price ($)</th>
                         <th className="p-4 text-center border-b border-r border-gray-200 w-32">Amount ($)</th>
-                        <th className="p-4 text-center border-b border-r border-gray-200 w-24">Picture</th>
                         <th className="p-4 text-left border-b border-r border-gray-200">Remark / Color</th>
                         <th className="p-4 text-left border-b border-r border-gray-200">Package size</th>
                         <th className="p-4 text-center border-b border-gray-200 w-16 print:hidden"></th>
@@ -447,6 +447,11 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                         </tr>
                       ) : orderItems.map((item) => (
                         <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50/50">
+                          <td className="p-3 border-r border-gray-100 flex justify-center">
+                             <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                                {item.picture_url ? <img src={item.picture_url} className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6 text-gray-300" />}
+                             </div>
+                          </td>
                           <td className="p-3 border-r border-gray-100 font-medium">
                             {item.name}
                           </td>
@@ -458,11 +463,6 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                           </td>
                           <td className="p-3 border-r border-gray-100 text-center font-bold text-gray-900">
                              ${((Number(item.quantity) || 0) * (Number(item.unit_price) || 0)).toFixed(2)}
-                          </td>
-                          <td className="p-3 border-r border-gray-100 flex justify-center">
-                             <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-                                {item.picture_url ? <img src={item.picture_url} className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6 text-gray-300" />}
-                             </div>
                           </td>
                           <td className="p-3 border-r border-gray-100">
                              <input type="text" placeholder="Color, variant..." value={item.remark} onChange={(e) => updateItem(item.id, 'remark', e.target.value)} className="w-full p-2 border border-gray-200 rounded bg-white outline-none focus:border-merkez-blue print:border-none print:p-0 print:placeholder-transparent" />
