@@ -792,6 +792,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 p-2 md:px-3.5 md:py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm" title={t('warehouse.import')}>
                       <Upload className="w-4 h-4 md:w-3.5 md:h-3.5 md:mr-1.5" /> <span className="hidden md:inline">{t('warehouse.import')}</span>
                     </button>
+
+                    {activeTab === 'finished' && (
+                      <button onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addProduct')}>
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    )}
+                    
+                    {activeTab === 'raw' && isRestaurantActive && (
+                      <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addIngredient')}>
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    )}
                   </>
                 )}
                 <div className="relative shrink-0 lg:hidden" ref={mobileFilterRef}>
@@ -1688,13 +1700,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
 
               {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="hidden lg:flex bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors items-center justify-center shadow-sm shrink-0">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
                 </button>
               )}
 
               {activeTab === 'raw' && isRestaurantActive && currentStaff?.role !== 'Cashier' && (
-                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                <button onClick={() => setShowAddIngredient(true)} className="hidden lg:flex bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors items-center justify-center shadow-sm shrink-0">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
                 </button>
               )}
