@@ -216,11 +216,11 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
       });
       
       // Fix borders for the merged cell below
-      sheet.getCell('A1').merge(sheet.getCell('A2'));
-      sheet.getCell('B1').merge(sheet.getCell('B2'));
-      sheet.getCell('C1').merge(sheet.getCell('C2'));
-      sheet.getCell('D1').merge(sheet.getCell('D2'));
-      sheet.getCell('E1').merge(sheet.getCell('E2'));
+      sheet.mergeCells('A1:A2');
+      sheet.mergeCells('B1:B2');
+      sheet.mergeCells('C1:C2');
+      sheet.mergeCells('D1:D2');
+      sheet.mergeCells('E1:E2');
 
       // Re-apply borders and centering for merged cells
       ['A', 'B', 'C', 'D', 'E'].forEach(col => {
@@ -236,7 +236,8 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
         const row = sheet.getRow(currentRow);
         row.height = 80;
         
-        sheet.getCell(`A${currentRow}`).value = item.article_number || item.name;
+        // Output Product Name instead of Barcode for Item No. column
+        sheet.getCell(`A${currentRow}`).value = item.name;
         sheet.getCell(`B${currentRow}`).value = item.quantity;
         
         const priceCell = sheet.getCell(`C${currentRow}`);
