@@ -21,7 +21,7 @@ import { useUser } from '../../core/UserContext';
 import CreateSupplierOrderModal from './CreateSupplierOrderModal';
 
 const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHistory }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
   const [topBarTarget, setTopBarTarget] = useState(null);
@@ -73,7 +73,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
             className="hidden md:flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg transition-colors whitespace-nowrap text-sm"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            {t('warehouse.newOrder') || 'Новый заказ'}
+            {i18n.language === 'az' ? 'Yeni Sifariş' : 'Новый заказ'}
           </button>
         </div>,
         topBarTarget
@@ -139,7 +139,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                         <button 
                           onClick={() => openOrderModal(supplier.id)}
                           className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                          title={t('warehouse.newOrder') || 'Новый заказ (Excel)'}
+                          title={i18n.language === 'az' ? 'Yeni Sifariş (Excel)' : 'Новый заказ (Excel)'}
                         >
                           <FileSpreadsheet className="w-4 h-4" />
                         </button>
@@ -192,7 +192,7 @@ const SuppliersList = ({ suppliers, loading, onEdit, onDelete, onAdd, onViewHist
                       <button 
                         onClick={() => openOrderModal(supplier.id)}
                         className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                        title={t('warehouse.newOrder') || 'Новый заказ (Excel)'}
+                        title={i18n.language === 'az' ? 'Yeni Sifariş (Excel)' : 'Новый заказ (Excel)'}
                       >
                         <FileSpreadsheet className="w-4 h-4" />
                       </button>
