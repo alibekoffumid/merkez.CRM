@@ -762,13 +762,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {/* Tab-specific actions (Shifted to Left) */}
             {activeTab === 'finished' && (
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
-                <button 
-                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
-                  className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
-                  title={t('warehouse.categories')}
-                >
-                  <Menu className="w-4 h-4" />
-                </button>
                 {currentStaff?.role !== 'Cashier' && (
                   <>
                     {selectedItems.length > 0 && (
@@ -797,6 +790,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </button>
                   </>
                 )}
+                <button 
+                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                  className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
+                  title={t('warehouse.categories')}
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
               </div>
             )}
 
