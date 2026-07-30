@@ -472,9 +472,27 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         warehouse_id: currentWarehouseId
       };
       
-      const { data, error } = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
+      let data, error;
+      const res = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
+      data = res.data;
+      error = res.error;
+      
+      if (error && error.message && error.message.includes('column "color" of relation "products" does not exist')) {
+        // Fallback if the user hasn't created the color column yet in Supabase
+        delete newProduct.color;
+        const fallbackRes = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
+        data = fallbackRes.data;
+        error = fallbackRes.error;
+        if (!error) {
+          toast.warning('Товар скопирован, но колонка "Цвет" еще не добавлена в базу данных. Пожалуйста, выполните SQL-запрос!');
+        }
+      }
+
       if (error) throw error;
-      toast.success(i18n.language === 'az' ? 'Məhsul kopyalandı' : 'Товар продублирован');
+      
+      if (!error && newProduct.color !== undefined) {
+          toast.success(i18n.language === 'az' ? 'Məhsul kopyalandı' : 'Товар продублирован');
+      }
       
       // Update local state to insert right below the original product
       setProducts(prev => {
