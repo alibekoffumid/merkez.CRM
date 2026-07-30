@@ -1589,14 +1589,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <div className="flex-1 flex flex-col bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
           <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20 items-center justify-between">
             <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
-              {activeTab === 'finished' && (
-                <button
-                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
-                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
-              )}
 
               {(activeTab === 'finished' || activeTab === 'raw') && (
                 <div id="tour-search" className="relative w-full flex-1 min-w-[200px]">
