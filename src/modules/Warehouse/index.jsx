@@ -32,6 +32,7 @@ import { formatCategoriesHierarchically } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
+import LabelPrintModal from './LabelPrintModal';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -84,6 +85,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [printingItems, setPrintingItems] = useState(null);
+  const [labelModalItems, setLabelModalItems] = useState(null);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
   const mobileFilterRef = useRef(null);
@@ -771,7 +773,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <button
                           onClick={() => {
                             const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
-                            setPrintingItems(itemsToPrint);
+                            setLabelModalItems(itemsToPrint);
                           }}
                           className="bg-gray-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-900 transition-colors flex items-center shadow-sm"
                         >
@@ -1905,7 +1907,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                     </button>
                                     <div className="mx-3 my-1 border-t border-gray-100" />
                                     <button
-                                      onClick={() => { setPrintingItems([item]); setOpenMenuId(null); }}
+                                      onClick={() => { setLabelModalItems([item]); setOpenMenuId(null); }}
                                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                     >
                                       <Printer className="w-4 h-4 text-gray-500" />
@@ -1993,7 +1995,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   </button>
                                   <div className="mx-3 my-1 border-t border-gray-100" />
                                   <button
-                                    onClick={() => { setPrintingItems([item]); setOpenMenuId(null); }}
+                                    onClick={() => { setLabelModalItems([item]); setOpenMenuId(null); }}
                                     className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
                                   >
                                     <Printer className="w-3.5 h-3.5 text-gray-500" />
@@ -2277,6 +2279,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       <WarehouseTour 
         isOpen={showTour}
         onClose={() => setShowTour(false)}
+      />
+
+      <LabelPrintModal 
+        isOpen={!!labelModalItems}
+        onClose={() => setLabelModalItems(null)}
+        selectedProducts={labelModalItems}
+        onPrint={(expandedItems) => {
+          setLabelModalItems(null);
+          setPrintingItems(expandedItems);
+        }}
       />
 
       {printingItems && (
