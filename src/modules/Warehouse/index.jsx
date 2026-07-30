@@ -485,14 +485,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       data = res.data;
       error = res.error;
       
-      if (error && error.message && error.message.includes('column "color" of relation "products" does not exist')) {
-        // Fallback if the user hasn't created the color column yet in Supabase
+      if (error && (error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
+        // Fallback if the user hasn't created the color or unit columns yet in Supabase
         delete newProduct.color;
+        delete newProduct.unit;
         const fallbackRes = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
         data = fallbackRes.data;
         error = fallbackRes.error;
         if (!error) {
-          toast.warning('Товар скопирован, но колонка "Цвет" еще не добавлена в базу данных. Пожалуйста, выполните SQL-запрос!');
+          toast.warning('Товар скопирован, но новые колонки (Цвет / Unit) еще не добавлены в БД. Выполните SQL-запрос!');
         }
       }
 
