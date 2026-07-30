@@ -448,7 +448,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const handleDuplicate = async (product) => {
     setOpenMenuId(null);
-    let finalBarcode = product.barcode ? `${product.barcode}-COPY-${Math.floor(100 + Math.random() * 900)}` : `COPY-${Math.floor(10000 + Math.random() * 90000)}`;
+    let finalBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
     
     let settings = null;
     try {
