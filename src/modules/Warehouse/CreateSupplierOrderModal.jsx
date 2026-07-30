@@ -319,7 +319,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                 />
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
                   {i18n.language === 'az' ? 'Məhsul Axtarışı' : 'Поиск товара'}
                 </label>
@@ -334,7 +334,7 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
                   />
                 </div>
                 {productSearch && filteredProducts.length > 0 && (
-                  <div className="mt-2 bg-white border border-gray-100 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                  <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-60 overflow-y-auto z-50">
                     {filteredProducts.map(p => (
                       <div 
                         key={p.id} 
