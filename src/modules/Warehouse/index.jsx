@@ -493,7 +493,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         data = fallbackRes.data;
         error = fallbackRes.error;
         if (!error) {
-          toast.warning('Товар скопирован, но новые колонки (Цвет / Unit) еще не добавлены в БД. Выполните SQL-запрос!');
+          toast.success('Товар скопирован, но новые колонки (Цвет / Unit) отсутствуют в БД. Выполните SQL-запрос!', { duration: 6000, icon: '⚠️' });
         }
       }
 
