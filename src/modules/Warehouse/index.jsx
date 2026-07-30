@@ -1966,7 +1966,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
-                            {item.categories?.name || '—'}
+                            {item.categories?.name ? (t(`categories.${item.categories.name}`, { defaultValue: item.categories.name })) : '—'}
                           </span>
                           <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
                             {getStatusIcon(item.stock_quantity, item.critical_stock)}
