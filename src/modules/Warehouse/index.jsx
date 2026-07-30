@@ -792,18 +792,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 p-2 md:px-3.5 md:py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm" title={t('warehouse.import')}>
                       <Upload className="w-4 h-4 md:w-3.5 md:h-3.5 md:mr-1.5" /> <span className="hidden md:inline">{t('warehouse.import')}</span>
                     </button>
-
-                    {activeTab === 'finished' && (
-                      <button onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addProduct')}>
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    )}
-                    
-                    {activeTab === 'raw' && isRestaurantActive && (
-                      <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addIngredient')}>
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    )}
                   </>
                 )}
                 <div className="relative shrink-0 lg:hidden" ref={mobileFilterRef}>
@@ -868,6 +856,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </div>
                   )}
                 </div>
+
+                {activeTab === 'finished' && (
+                  <button onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addProduct')}>
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
+                
+                {activeTab === 'raw' && isRestaurantActive && (
+                  <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addIngredient')}>
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
                 <button 
                   onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                   className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
