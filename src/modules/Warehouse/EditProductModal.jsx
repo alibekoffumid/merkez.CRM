@@ -125,9 +125,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
         if (uploadedUrl) finalImageUrl = uploadedUrl;
     }
 
-    const { data, error } = await supabase
-      .from('products')
-      .update({
+    let updatePayload = {
         name: formData.name,
         price: parseFloat(formData.price),
         purchase_price: parseFloat(formData.purchase_price || 0),
@@ -139,9 +137,23 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
         supplier_id: formData.supplier_id || null,
         unit: formData.unit,
         color: formData.color
-      })
-      .eq('id', product.id)
-      .select();
+    };
+
+    let res = await supabase.from('products').update(updatePayload).eq('id', product.id).select();
+    let data = res.data;
+    let error = res.error;
+
+    if (error && (error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
+      delete updatePayload.unit;
+      delete updatePayload.color;
+      let fallbackRes = await supabase.from('products').update(updatePayload).eq('id', product.id).select();
+      data = fallbackRes.data;
+      error = fallbackRes.error;
+      if (!error) {
+        toast.success(t('warehouse.productUpdated') || 'Товар обновлен', { icon: '⚠️' });
+        toast('Новые колонки (Цвет / Unit) отсутствуют в БД. Выполните SQL-запрос!', { duration: 6000, icon: '💡' });
+      }
+    }
 
     if (error) {
         toast.error(error.message);
@@ -155,7 +167,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
         return;
     }
 
-    toast.success(t('warehouse.productUpdated') || 'Товар обновлен');
+    if (!error && updatePayload.unit !== undefined) {
+        toast.success(t('warehouse.productUpdated') || 'Товар обновлен');
+    }
+    
     setLoading(false);
     onProductUpdated();
     onClose();

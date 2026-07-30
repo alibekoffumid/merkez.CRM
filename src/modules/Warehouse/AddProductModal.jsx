@@ -138,9 +138,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
       finalBarcode = `${prefix}${randomNum}`;
     }
 
-     const { data, error } = await supabase
-       .from('products')
-       .insert([{ 
+    let newProduct = { 
          name: formData.name, 
          price: parseFloat(formData.price), 
          purchase_price: parseFloat(formData.purchase_price || 0),
@@ -152,9 +150,25 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
          supplier_id: formData.supplier_id || null,
          user_id: profile?.id,
          warehouse_id: warehouseId,
-         unit: formData.unit
-       }])
-      .select('*, categories(name)');
+         unit: formData.unit,
+         color: formData.color
+    };
+
+    let res = await supabase.from('products').insert([newProduct]).select('*, categories(name)');
+    let data = res.data;
+    let error = res.error;
+
+    if (error && (error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
+      delete newProduct.unit;
+      delete newProduct.color;
+      let fallbackRes = await supabase.from('products').insert([newProduct]).select('*, categories(name)');
+      data = fallbackRes.data;
+      error = fallbackRes.error;
+      if (!error) {
+        toast.success(t('warehouse.productAdded') || 'Товар добавлен', { icon: '⚠️' });
+        toast('Новые колонки (Цвет / Unit) отсутствуют в БД. Выполните SQL-запрос!', { duration: 6000, icon: '💡' });
+      }
+    }
 
     if (error) {
       toast.error(error.message);
@@ -162,13 +176,22 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
       return;
     }
 
-    setLoading(false);
+    if (!data || data.length === 0) {
+      toast.error(t('warehouse.noPermission') || 'У вас нет прав для добавления товаров на этот склад');
+      setLoading(false);
+      return;
+    }
+
+    if (!error && newProduct.unit !== undefined) {
+      toast.success(t('warehouse.productAdded') || 'Товар успешно добавлен');
+    }
     if (!error && data) {
       onProductAdded();
       onClose();
       setImageFile(null);
       setImagePreview(null);
     }
+    setLoading(false);
   };
 
   return (
