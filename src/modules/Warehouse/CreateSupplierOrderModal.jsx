@@ -287,6 +287,33 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
         currentRow++;
       }
 
+      // Add Total Row
+      const totalRow = sheet.getRow(currentRow);
+      totalRow.height = 40;
+      sheet.mergeCells(`A${currentRow}:D${currentRow}`);
+      
+      const totalLabelCell = sheet.getCell(`A${currentRow}`);
+      totalLabelCell.value = 'TOTAL:';
+      totalLabelCell.alignment = { vertical: 'middle', horizontal: 'right' };
+      totalLabelCell.font = { bold: true, name: 'Times New Roman', size: 14 };
+      totalLabelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+      
+      const totalAmountCell = sheet.getCell(`E${currentRow}`);
+      totalAmountCell.value = calculateTotal();
+      totalAmountCell.numFmt = '$#,##0.00';
+      totalAmountCell.font = { bold: true, name: 'Times New Roman', size: 14 };
+      totalAmountCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      totalAmountCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF00' } }; // Yellow highlight
+      
+      // Apply borders to the total row cells
+      ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+         const cell = sheet.getCell(`${col}${currentRow}`);
+         cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+         if (col === 'F' || col === 'G') {
+             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+         }
+      });
+
       // Buffer & Save
       const buffer = await workbook.xlsx.writeBuffer();
       const supplierName = suppliers.find(s => s.id === supplierId)?.name || 'Unknown';
