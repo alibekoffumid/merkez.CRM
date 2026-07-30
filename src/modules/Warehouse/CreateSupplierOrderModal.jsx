@@ -41,13 +41,14 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId }) => {
   };
 
   const fetchProducts = async () => {
-    const { data } = await supabase.from('products').select('id, name, article_number, cost_price, picture_url').order('name');
+    const { data } = await supabase.from('products').select('id, name, article_number, cost_price, picture_url, supplier_id').order('name');
     if (data) setProducts(data);
   };
 
   const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
-    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase()))
+    (!supplierId || p.supplier_id === supplierId) &&
+    (p.name.toLowerCase().includes(productSearch.toLowerCase()) || 
+    (p.article_number && p.article_number.toLowerCase().includes(productSearch.toLowerCase())))
   );
 
   const handleAddItem = (product) => {
