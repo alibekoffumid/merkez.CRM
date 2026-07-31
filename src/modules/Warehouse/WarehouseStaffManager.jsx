@@ -344,10 +344,9 @@ const WarehouseStaffManager = () => {
                         {(isAdmin && activeSubTab === 'salaries') && (
                           <button 
                             onClick={() => { setSelectedStaffForSalary(staff); setIsSalaryModalOpen(true); }}
-                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors flex items-center justify-center"
-                            title={i18n.language === 'az' ? 'Maaşı idarə et' : 'Управление зарплатой'}
+                            className="px-3 py-1.5 bg-merkez-blue text-white hover:bg-blue-600 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center whitespace-nowrap shadow-sm"
                           >
-                            <span className="text-[14px] leading-none">💰</span>
+                            {i18n.language === 'az' ? 'İdarə et' : 'Управление'}
                           </button>
                         )}
                         {activeSubTab === 'staff' && (
