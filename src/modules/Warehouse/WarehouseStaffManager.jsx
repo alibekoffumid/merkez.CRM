@@ -10,10 +10,11 @@ import {
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
+import StaffSalaryModal from './StaffSalaryModal';
 
 const WarehouseStaffManager = () => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +31,13 @@ const WarehouseStaffManager = () => {
   const [status, setStatus] = useState('Active');
   const [pin, setPin] = useState('');
   const [phone, setPhone] = useState('');
+  const [salaryAmount, setSalaryAmount] = useState('');
+  const [salaryType, setSalaryType] = useState('monthly');
+  const [autoSalary, setAutoSalary] = useState(false);
+  const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
+  const [selectedStaffForSalary, setSelectedStaffForSalary] = useState(null);
+  
+  const isAdmin = !currentStaff;
   
   const [portalTarget, setPortalTarget] = useState(null);
   const [actionTarget, setActionTarget] = useState(null);
@@ -56,10 +64,73 @@ const WarehouseStaffManager = () => {
 
       if (error) throw error;
       setStaffList(data || []);
+      
+      // Process automatic salaries if admin
+      if (isAdmin && data) {
+        checkAndAccrueSalaries(data);
+      }
     } catch (err) {
       toast.error('Error fetching staff: ' + err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkAndAccrueSalaries = async (staffData) => {
+    const now = new Date();
+    
+    for (const staff of staffData) {
+      if (!staff.auto_salary || !staff.salary_amount || staff.salary_amount <= 0) continue;
+      
+      let lastAccrual = staff.last_accrual_date ? new Date(staff.last_accrual_date) : null;
+      let shouldAccrue = false;
+      
+      if (!lastAccrual) {
+        // If it's the first time, we don't retroactively accrue for years. 
+        // We just set the last_accrual_date to now so it starts counting from today.
+        await supabase.from('staff').update({ last_accrual_date: now.toISOString() }).eq('id', staff.id);
+        continue;
+      }
+      
+      const diffTime = Math.abs(now - lastAccrual);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      let intervalsToAccrue = 0;
+      
+      if (staff.salary_type === 'daily' && diffDays >= 1) {
+        intervalsToAccrue = diffDays;
+      } else if (staff.salary_type === 'weekly' && diffDays >= 7) {
+        intervalsToAccrue = Math.floor(diffDays / 7);
+      } else if (staff.salary_type === 'monthly' && diffDays >= 30) {
+        // Simple 30-day month approximation
+        intervalsToAccrue = Math.floor(diffDays / 30);
+      }
+      
+      if (intervalsToAccrue > 0) {
+        try {
+          const totalAmount = staff.salary_amount * intervalsToAccrue;
+          
+          // 1. Insert transaction
+          await supabase.from('staff_transactions').insert([{
+            staff_id: staff.id,
+            user_id: profile.id,
+            type: 'salary',
+            amount: totalAmount,
+            description: `Avtomatik maaş (${intervalsToAccrue} ${staff.salary_type})`
+          }]);
+          
+          // 2. Update last accrual date (pushing it forward by exactly the intervals to not lose remainder days)
+          let newDate = new Date(lastAccrual);
+          if (staff.salary_type === 'daily') newDate.setDate(newDate.getDate() + intervalsToAccrue);
+          if (staff.salary_type === 'weekly') newDate.setDate(newDate.getDate() + (intervalsToAccrue * 7));
+          if (staff.salary_type === 'monthly') newDate.setDate(newDate.getDate() + (intervalsToAccrue * 30));
+          
+          await supabase.from('staff').update({ last_accrual_date: newDate.toISOString() }).eq('id', staff.id);
+          
+        } catch (e) {
+          console.error('Error auto accruing salary for staff', staff.id, e);
+        }
+      }
     }
   };
 
@@ -70,6 +141,9 @@ const WarehouseStaffManager = () => {
     setStatus('Active');
     setPin('');
     setPhone('');
+    setSalaryAmount('');
+    setSalaryType('monthly');
+    setAutoSalary(false);
     setIsModalOpen(true);
   };
 
@@ -80,6 +154,9 @@ const WarehouseStaffManager = () => {
     setStatus(staff.status || 'Active');
     setPin(staff.pin || '');
     setPhone(staff.phone || '');
+    setSalaryAmount(staff.salary_amount || '');
+    setSalaryType(staff.salary_type || 'monthly');
+    setAutoSalary(staff.auto_salary || false);
     setIsModalOpen(true);
   };
 
@@ -98,7 +175,10 @@ const WarehouseStaffManager = () => {
         status,
         pin: pin.trim() || null,
         phone: phone.trim() || null,
-        user_id: profile.id
+        user_id: profile.id,
+        salary_amount: salaryAmount ? parseFloat(salaryAmount) : 0,
+        salary_type: salaryType,
+        auto_salary: autoSalary
       };
 
       if (editingStaff) {
@@ -201,6 +281,7 @@ const WarehouseStaffManager = () => {
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'TELEFON' : 'ТЕЛЕФОН'}</th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'VƏZİFƏ' : 'ДОЛЖНОСТЬ'}</th>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'STATUS' : 'СТАТУС'}</th>
+                  {isAdmin && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'BALANS' : 'БАЛАНС'}</th>}
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'ƏMƏLİYYATLAR' : 'ДЕЙСТВИЯ'}</th>
                 </tr>
               </thead>
@@ -230,8 +311,24 @@ const WarehouseStaffManager = () => {
                         {staff.status === 'Active' ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
                       </span>
                     </td>
+                    {isAdmin && (
+                      <td className="px-6 py-4 text-right">
+                        <span className={`text-sm font-black ${staff.balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                          {staff.balance ? parseFloat(staff.balance).toFixed(2) : '0.00'} ₼
+                        </span>
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                        {isAdmin && (
+                          <button 
+                            onClick={() => { setSelectedStaffForSalary(staff); setIsSalaryModalOpen(true); }}
+                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors flex items-center justify-center"
+                            title={i18n.language === 'az' ? 'Maaşı idarə et' : 'Управление зарплатой'}
+                          >
+                            <span className="text-[14px] leading-none">💰</span>
+                          </button>
+                        )}
                         <button 
                           onClick={() => handleOpenEdit(staff)} 
                           className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
@@ -337,6 +434,53 @@ const WarehouseStaffManager = () => {
                   />
                 </div>
 
+                {isAdmin && (
+                  <div className="pt-2 mt-2 border-t border-gray-100 space-y-4">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">{i18n.language === 'az' ? 'Maaş Parametrləri' : 'Настройки зарплаты'}</h4>
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{i18n.language === 'az' ? 'Məbləğ' : 'Сумма'} (₼)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={salaryAmount}
+                          onChange={e => setSalaryAmount(e.target.value)}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:bg-white transition-all shadow-sm font-bold"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{i18n.language === 'az' ? 'Növü' : 'Тип'}</label>
+                        <Dropdown 
+                          value={salaryType}
+                          onChange={setSalaryType}
+                          options={[
+                            { value: 'daily', label: i18n.language === 'az' ? 'Günlük' : 'Ежедневно' },
+                            { value: 'weekly', label: i18n.language === 'az' ? 'Həftəlik' : 'Еженедельно' },
+                            { value: 'monthly', label: i18n.language === 'az' ? 'Aylıq' : 'Ежемесячно' }
+                          ]}
+                          buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold w-full"
+                        />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer group px-1">
+                      <div className="relative">
+                        <input 
+                          type="checkbox" 
+                          checked={autoSalary}
+                          onChange={(e) => setAutoSalary(e.target.checked)}
+                          className="sr-only" 
+                        />
+                        <div className={`w-10 h-5 rounded-full transition-colors ${autoSalary ? 'bg-merkez-blue' : 'bg-gray-200'}`}></div>
+                        <div className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform ${autoSalary ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                      </div>
+                      <span className="text-xs font-bold text-gray-700 group-hover:text-gray-900 transition-colors">
+                        {i18n.language === 'az' ? 'Avtomatik hesablansın' : 'Автоматически начислять'}
+                      </span>
+                    </label>
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-3 pt-2">
                   <button 
                     type="button" 
@@ -398,6 +542,17 @@ const WarehouseStaffManager = () => {
           </div>
         </ModalPortal>
       )}
+
+      {/* Salary Management Modal */}
+      <StaffSalaryModal 
+        isOpen={isSalaryModalOpen}
+        onClose={() => {
+          setIsSalaryModalOpen(false);
+          setSelectedStaffForSalary(null);
+        }}
+        staff={selectedStaffForSalary}
+        onUpdate={fetchStaff}
+      />
     </div>
   );
 };
