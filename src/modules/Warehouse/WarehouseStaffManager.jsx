@@ -36,6 +36,7 @@ const WarehouseStaffManager = () => {
   const [autoSalary, setAutoSalary] = useState(false);
   const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
   const [selectedStaffForSalary, setSelectedStaffForSalary] = useState(null);
+  const [activeSubTab, setActiveSubTab] = useState('staff'); // 'staff' or 'salaries'
   
   const isAdmin = !currentStaff;
   
@@ -231,7 +232,23 @@ const WarehouseStaffManager = () => {
   );
 
   const topBarContent = (
-    <>
+    <div className="flex flex-col sm:flex-row gap-4 w-full">
+      {isAdmin && (
+        <div className="flex bg-gray-100 p-1 rounded-lg w-max shrink-0">
+          <button 
+            onClick={() => setActiveSubTab('staff')}
+            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSubTab === 'staff' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            {i18n.language === 'az' ? 'İşçilər' : 'Сотрудники'}
+          </button>
+          <button 
+            onClick={() => setActiveSubTab('salaries')}
+            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${activeSubTab === 'salaries' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+          >
+            {i18n.language === 'az' ? 'Məvaciblər' : 'Зарплаты'}
+          </button>
+        </div>
+      )}
       <div className="relative flex-1 w-full max-w-md">
         <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input 
@@ -242,7 +259,7 @@ const WarehouseStaffManager = () => {
           className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors outline-none"
         />
       </div>
-    </>
+    </div>
   );
 
   const actionContent = (
@@ -278,10 +295,10 @@ const WarehouseStaffManager = () => {
               <thead className="bg-gray-50/50 border-b border-gray-100 sticky top-0 z-10">
                 <tr>
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'AD SOYAD' : 'ФИО'}</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'TELEFON' : 'ТЕЛЕФОН'}</th>
+                  {activeSubTab === 'staff' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'TELEFON' : 'ТЕЛЕФОН'}</th>}
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'VƏZİFƏ' : 'ДОЛЖНОСТЬ'}</th>
-                  <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'STATUS' : 'СТАТУС'}</th>
-                  {isAdmin && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'BALANS' : 'БАЛАНС'}</th>}
+                  {activeSubTab === 'staff' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'STATUS' : 'СТАТУС'}</th>}
+                  {(isAdmin && activeSubTab === 'salaries') && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'BALANS' : 'БАЛАНС'}</th>}
                   <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'ƏMƏLİYYATLAR' : 'ДЕЙСТВИЯ'}</th>
                 </tr>
               </thead>
@@ -291,9 +308,11 @@ const WarehouseStaffManager = () => {
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-gray-900">{staff.name}</span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-gray-500">{staff.phone || '—'}</span>
-                    </td>
+                    {activeSubTab === 'staff' && (
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-bold text-gray-500">{staff.phone || '—'}</span>
+                      </td>
+                    )}
                     <td className="px-6 py-4">
                       <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
                         {staff.role === 'Manager' ? (i18n.language === 'az' ? 'Menecer' : 'Менеджер') :
@@ -304,14 +323,16 @@ const WarehouseStaffManager = () => {
                          staff.role}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                        staff.status === 'Active' ? 'bg-green-50 text-merkez-green' : 'bg-red-50 text-red-500'
-                      }`}>
-                        {staff.status === 'Active' ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
-                      </span>
-                    </td>
-                    {isAdmin && (
+                    {activeSubTab === 'staff' && (
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          staff.status === 'Active' ? 'bg-green-50 text-merkez-green' : 'bg-red-50 text-red-500'
+                        }`}>
+                          {staff.status === 'Active' ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
+                        </span>
+                      </td>
+                    )}
+                    {(isAdmin && activeSubTab === 'salaries') && (
                       <td className="px-6 py-4 text-right">
                         <span className={`text-sm font-black ${staff.balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
                           {staff.balance ? parseFloat(staff.balance).toFixed(2) : '0.00'} ₼
@@ -320,7 +341,7 @@ const WarehouseStaffManager = () => {
                     )}
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                        {isAdmin && (
+                        {(isAdmin && activeSubTab === 'salaries') && (
                           <button 
                             onClick={() => { setSelectedStaffForSalary(staff); setIsSalaryModalOpen(true); }}
                             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors flex items-center justify-center"
@@ -329,18 +350,22 @@ const WarehouseStaffManager = () => {
                             <span className="text-[14px] leading-none">💰</span>
                           </button>
                         )}
-                        <button 
-                          onClick={() => handleOpenEdit(staff)} 
-                          className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => setConfirmDelete(staff)} 
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {activeSubTab === 'staff' && (
+                          <>
+                            <button 
+                              onClick={() => handleOpenEdit(staff)} 
+                              className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => setConfirmDelete(staff)} 
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
