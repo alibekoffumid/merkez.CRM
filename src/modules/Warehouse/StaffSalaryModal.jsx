@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
-import { X, Loader2, Plus, Minus, DollarSign, History } from 'lucide-react';
+import { X, Loader2, Plus, Minus, DollarSign, History, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
@@ -11,6 +11,7 @@ const StaffSalaryModal = ({ isOpen, onClose, staff, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmDeleteTrx, setConfirmDeleteTrx] = useState(null);
   
   // Transaction form states
   const [type, setType] = useState('salary');
@@ -80,19 +81,20 @@ const StaffSalaryModal = ({ isOpen, onClose, staff, onUpdate }) => {
     }
   };
 
-  const handleDeleteTransaction = async (id) => {
-    if (!window.confirm(i18n.language === 'az' ? 'Bu əməliyyatı silmək istədiyinizdən əminsiniz?' : 'Вы уверены, что хотите удалить эту операцию?')) return;
+  const executeDeleteTransaction = async () => {
+    if (!confirmDeleteTrx) return;
     
     setLoading(true);
     try {
       const { error } = await supabase
         .from('staff_transactions')
         .delete()
-        .eq('id', id);
+        .eq('id', confirmDeleteTrx.id);
 
       if (error) throw error;
       
       toast.success(i18n.language === 'az' ? 'Əməliyyat silindi' : 'Операция удалена');
+      setConfirmDeleteTrx(null);
       fetchTransactions();
       if (onUpdate) onUpdate();
       
@@ -260,7 +262,7 @@ const StaffSalaryModal = ({ isOpen, onClose, staff, onUpdate }) => {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <button
-                              onClick={() => handleDeleteTransaction(trx.id)}
+                              onClick={() => setConfirmDeleteTrx(trx)}
                               className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                               title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
                             >
@@ -278,6 +280,45 @@ const StaffSalaryModal = ({ isOpen, onClose, staff, onUpdate }) => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteTrx && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[99999] flex items-center justify-center p-4" onClick={() => setConfirmDeleteTrx(null)}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm overflow-hidden p-6 animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+              <div className="p-4 flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mb-4">
+                  <Trash2 className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  {i18n.language === 'az' ? 'Əməliyyatı silmək' : 'Удалить операцию'}
+                </h3>
+                <p className="text-xs text-gray-500 mb-6 leading-relaxed">
+                  {i18n.language === 'az' 
+                    ? `Bu əməliyyatı silmək istədiyinizdən əminsiniz?`
+                    : `Вы уверены, что хотите удалить эту операцию?`}
+                </p>
+                <div className="flex gap-3 w-full">
+                  <button 
+                    onClick={() => setConfirmDeleteTrx(null)}
+                    className="flex-1 py-2.5 border border-gray-150 rounded-lg text-xs font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button 
+                    onClick={executeDeleteTransaction}
+                    disabled={loading}
+                    className="flex-1 py-2.5 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 transition-colors flex items-center justify-center"
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trash2 className="w-4 h-4 mr-2" />}
+                    {i18n.language === 'az' ? 'Sil' : 'Удалить'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </ModalPortal>
   );
 };
