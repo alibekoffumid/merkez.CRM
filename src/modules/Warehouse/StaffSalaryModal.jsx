@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Loader2, Plus, Minus, DollarSign, History } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import Dropdown from '../../components/Common/Dropdown';
 
 const StaffSalaryModal = ({ isOpen, onClose, staff, onUpdate }) => {
   const { t, i18n } = useTranslation();
@@ -147,22 +148,23 @@ const StaffSalaryModal = ({ isOpen, onClose, staff, onUpdate }) => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">{i18n.language === 'az' ? 'Növ' : 'Тип'}</label>
-                  <select 
+                  <Dropdown 
                     value={type}
-                    onChange={(e) => {
-                      setType(e.target.value);
-                      if (e.target.value === 'salary' && staff.salary_amount) {
+                    onChange={(val) => {
+                      setType(val);
+                      if (val === 'salary' && staff.salary_amount) {
                         setAmount(staff.salary_amount.toString());
                       } else {
                         setAmount('');
                       }
                     }}
-                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold focus:outline-none focus:border-merkez-blue transition-colors cursor-pointer"
-                  >
-                    <option value="salary">{i18n.language === 'az' ? 'Maaş əlavə et (+)' : 'Начислить зарплату (+)'}</option>
-                    <option value="bonus">{i18n.language === 'az' ? 'Mükafat / Premya (+)' : 'Бонус / Премия (+)'}</option>
-                    <option value="withdrawal">{i18n.language === 'az' ? 'Ödəniş / Götürdü (-)' : 'Выплата / Взял (-)'}</option>
-                  </select>
+                    options={[
+                      { value: 'salary', label: i18n.language === 'az' ? 'Maaş əlavə et (+)' : 'Начислить зарплату (+)' },
+                      { value: 'bonus', label: i18n.language === 'az' ? 'Mükafat / Premya (+)' : 'Бонус / Премия (+)' },
+                      { value: 'withdrawal', label: i18n.language === 'az' ? 'Ödəniş / Götürdü (-)' : 'Выплата / Взял (-)' }
+                    ]}
+                    buttonClassName="w-full px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-lg text-sm font-bold focus:outline-none focus:border-merkez-blue transition-colors cursor-pointer text-left flex justify-between items-center"
+                  />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">{i18n.language === 'az' ? 'Məbləğ' : 'Сумма'} (₼)</label>
