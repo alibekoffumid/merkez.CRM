@@ -404,13 +404,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         .from('products')
         .update({ is_deleted: true })
         .eq('id', confirmDelete.id);
-      if (!error) setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
+      if (!error) {
+        setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
+        toast.success(i18n.language === 'az' ? 'Silindi' : 'Удалено');
+      } else {
+        toast.error(error.message);
+      }
     } else if (confirmDelete.type === 'ingredient') {
       const { error } = await supabase.from('ingredients').delete().eq('id', confirmDelete.id);
-      if (!error) setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
+      if (!error) {
+        setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
+        toast.success(i18n.language === 'az' ? 'Silindi' : 'Удалено');
+      } else {
+        toast.error(error.message);
+      }
     } else if (confirmDelete.type === 'supplier') {
       const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
-      if (!error) fetchAll();
+      if (!error) {
+        fetchAll();
+        toast.success(i18n.language === 'az' ? 'Silindi' : 'Удалено');
+      } else {
+        toast.error(error.message);
+      }
     }
     setConfirmDelete(null);
   };
@@ -428,6 +443,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       setProducts(prev => prev.filter(p => !selectedItems.includes(p.id)));
       setSelectedItems([]);
       setConfirmDelete(null);
+      toast.success(i18n.language === 'az' ? 'Seçilmiş məhsullar silindi' : 'Выбранные продукты удалены');
     } else {
       toast.error(error.message);
     }
