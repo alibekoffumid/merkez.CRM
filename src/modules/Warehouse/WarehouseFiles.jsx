@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
-import { Upload, File, FileText, Image as ImageIcon, Download, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, ArrowLeft, MoveRight } from 'lucide-react';
+import { Search, Upload, File, FileText, Image as ImageIcon, Download, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, ArrowLeft, MoveRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
@@ -27,24 +27,32 @@ const WarehouseFiles = () => {
   const [movingFile, setMovingFile] = useState(false);
   const [selectedMoveFolder, setSelectedMoveFolder] = useState(null); // null for root, string for folder_id
   const [allFolders, setAllFolders] = useState([]);
+  const [allFiles, setAllFiles] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
 
   useEffect(() => {
     if (profile?.id) {
       fetchData();
-      fetchAllFolders();
+      fetchAllFoldersAndFiles();
     }
   }, [profile, currentFolder]);
 
-  const fetchAllFolders = async () => {
+  const fetchAllFoldersAndFiles = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: folderData, error: folderError } = await supabase
         .from('warehouse_folders')
         .select('*')
         .eq('user_id', profile.id)
         .order('name');
-      if (!error) {
-        setAllFolders(data || []);
-      }
+      if (!folderError) setAllFolders(folderData || []);
+
+      const { data: fileData, error: fileError } = await supabase
+        .from('warehouse_files')
+        .select('*')
+        .eq('user_id', profile.id)
+        .order('name');
+      if (!fileError) setAllFiles(fileData || []);
     } catch (err) {
       console.error(err);
     }
@@ -153,7 +161,7 @@ const WarehouseFiles = () => {
       setNewFolderName('');
       setShowNewFolderModal(false);
       fetchData();
-      fetchAllFolders();
+      fetchAllFoldersAndFiles();
     } catch (err) {
       toast.error('Error creating folder: ' + err.message);
     } finally {
@@ -190,7 +198,7 @@ const WarehouseFiles = () => {
 
       setConfirmDelete(null);
       fetchData();
-      if (confirmDelete.type === 'folder') fetchAllFolders();
+      if (confirmDelete.type === 'folder') fetchAllFoldersAndFiles();
     } catch (err) {
       toast.error('Error deleting: ' + err.message);
     } finally {
@@ -242,8 +250,79 @@ const WarehouseFiles = () => {
     setPortalTarget(document.getElementById('warehouse-files-actions-portal'));
   }, []);
 
+  const searchResults = searchQuery.trim() ? [
+    ...allFolders.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())).map(f => ({ ...f, type: 'folder' })),
+    ...allFiles.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())).map(f => ({ ...f, type: 'file' }))
+  ] : [];
+
   const headerActions = (
-    <div className="flex flex-col sm:flex-row gap-2">
+    <div className="flex flex-col sm:flex-row items-center gap-2">
+      {/* Search Bar */}
+      <div className="relative z-50">
+        <div className="flex items-center px-3 py-2 bg-white border border-gray-200 rounded-lg focus-within:border-merkez-blue focus-within:ring-2 focus-within:ring-blue-100 transition-all w-full sm:w-64 shadow-sm">
+          <Search className="w-4 h-4 text-gray-400 mr-2" />
+          <input
+            type="text"
+            placeholder={i18n.language === 'az' ? 'Axtarış...' : 'Поиск...'}
+            className="w-full text-sm outline-none bg-transparent"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSearchResults(true);
+            }}
+            onFocus={() => setShowSearchResults(true)}
+          />
+          {searchQuery && (
+            <button onClick={() => { setSearchQuery(''); setShowSearchResults(false); }} className="text-gray-400 hover:text-gray-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Dropdown Results */}
+        {showSearchResults && searchQuery.trim() && (
+          <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-xl max-h-72 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+            {searchResults.length > 0 ? (
+              searchResults.map(item => (
+                <button
+                  key={`${item.type}-${item.id}`}
+                  onClick={() => {
+                    if (item.type === 'folder') {
+                      setCurrentFolder(item);
+                    } else {
+                      if (item.folder_id) {
+                        const parent = allFolders.find(f => f.id === item.folder_id);
+                        setCurrentFolder(parent || null);
+                      } else {
+                        setCurrentFolder(null);
+                      }
+                    }
+                    setSearchQuery('');
+                    setShowSearchResults(false);
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-50 last:border-0 transition-colors"
+                >
+                  {item.type === 'folder' ? <Folder className="w-5 h-5 text-merkez-blue shrink-0" /> : <File className="w-5 h-5 text-gray-400 shrink-0" />}
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-sm font-bold text-gray-800 truncate">{item.name}</span>
+                    <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5 truncate">
+                      {item.type === 'folder' 
+                        ? (i18n.language === 'az' ? 'Qovluq' : 'Папка') 
+                        : (i18n.language === 'az' ? 'Fayl' : 'Файл')}
+                    </span>
+                  </div>
+                </button>
+              ))
+            ) : (
+              <div className="px-4 py-6 flex flex-col items-center justify-center text-gray-400">
+                <Search className="w-6 h-6 mb-2 opacity-50" />
+                <span className="text-xs font-bold">{i18n.language === 'az' ? 'Nəticə tapılmadı' : 'Ничего не найдено'}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       <button
         onClick={() => setShowNewFolderModal(true)}
         className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
