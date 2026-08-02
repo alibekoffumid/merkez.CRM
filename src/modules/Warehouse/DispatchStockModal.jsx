@@ -227,7 +227,8 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
             reason: headerData.reason,
             notes: headerData.notes,
             user_id: profile?.id,
-            warehouse_id: warehouseId
+            warehouse_id: warehouseId,
+            tenant_id: profile?.tenant_id || profile?.id
           }]);
 
         if (dispatchError) throw dispatchError;

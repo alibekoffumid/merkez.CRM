@@ -43,7 +43,8 @@ const QuickAddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
         relatives_info: formData.relativesInfo.trim() || null,
         status: 'Active',
         type: 'Client',
-        user_id: profile?.id
+        user_id: profile?.id,
+        tenant_id: profile?.tenant_id || profile?.id
       };
 
       const { data, error } = await supabase

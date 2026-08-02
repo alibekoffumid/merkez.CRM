@@ -442,7 +442,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               name: staffObj.originalStaffName,
               type: 'Client',
               status: 'Active',
-              user_id: profile.id
+              user_id: profile.id,
+              tenant_id: profile?.tenant_id || profile?.id
             }])
             .select('id')
             .single();
@@ -496,7 +497,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             reason: 'sale',
             notes: dispatchNote,
             user_id: profile?.id,
-            warehouse_id: warehouseId
+            warehouse_id: warehouseId,
+            tenant_id: profile?.tenant_id || profile?.id
           }]);
 
         if (dispatchError) throw dispatchError;
@@ -534,7 +536,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             customer_id: finalCustomerId,
             type: 'debt',
             amount: amountToLog,
-            description: descriptionText
+            description: descriptionText,
+            tenant_id: profile?.tenant_id || profile?.id
           }]);
 
         if (debtLogError) throw debtLogError;
@@ -561,7 +564,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               notes: notes || (isFerrum 
                 ? `Məhsul(lar): ${productNames} | Bank: ${selectedBank}, Müqavilə: ₼${contractTotal}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
                 : `Məhsul(lar): ${productNames} | Bank: ${selectedBank}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`),
-              status: 'active'
+              status: 'active',
+              tenant_id: profile?.tenant_id || profile?.id
             }])
             .select()
             .single();
@@ -577,7 +581,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               month_number: i,
               amount: monthlyPayment,
               due_date: dueDate.toISOString().split('T')[0],
-              status: 'unpaid'
+              status: 'unpaid',
+              tenant_id: profile?.tenant_id || profile?.id
             });
           }
 
