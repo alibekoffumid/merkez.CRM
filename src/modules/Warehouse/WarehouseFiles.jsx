@@ -283,7 +283,7 @@ const WarehouseFiles = () => {
   }, [showSearchResults]);
 
   const headerActions = (
-    <div className="flex flex-col sm:flex-row items-center gap-2">
+    <div className="flex flex-col sm:flex-row items-center gap-2 ml-auto w-full sm:w-auto sm:justify-end">
       {/* Search Bar */}
       <div className="relative z-50" ref={searchContainerRef}>
         <div className="flex items-center px-3 py-2 bg-white border border-gray-200 rounded-lg focus-within:border-merkez-blue focus-within:ring-2 focus-within:ring-blue-100 transition-all w-full sm:w-64 shadow-sm">
