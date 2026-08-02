@@ -493,42 +493,6 @@ const WarehouseAppContent = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-2">
-          {/* Language Dropdown Selector */}
-          <div className="relative" ref={langRef}>
-            <button
-              onClick={() => setShowLangMenu(!showLangMenu)}
-              className="flex items-center gap-1.5 bg-white/5 border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg px-3 h-9 text-xs font-bold transition-all"
-            >
-              <div className="flex items-center gap-1.5">
-                {i18n.language === 'az' ? <FlagAZ /> : i18n.language === 'ru' ? <FlagRU /> : <FlagGB />}
-                <span>{i18n.language.toUpperCase()}</span>
-              </div>
-              <span className="text-[9px] opacity-75">▼</span>
-            </button>
-
-            {showLangMenu && (
-              <div className="absolute right-0 top-full mt-1.5 z-50 bg-[#0c0c28] border border-white/10 rounded-lg shadow-2xl py-1.5 w-full animate-in fade-in zoom-in-95">
-                {[
-                  { value: 'az', Flag: FlagAZ, label: 'AZ' },
-                  { value: 'ru', Flag: FlagRU, label: 'RU' },
-                  { value: 'en', Flag: FlagGB, label: 'EN' }
-                ].map(item => (
-                  <button
-                    key={item.value}
-                    onClick={() => {
-                      i18n.changeLanguage(item.value);
-                      setShowLangMenu(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-white/5 transition-colors flex items-center gap-2 ${i18n.language === item.value ? 'text-blue-400 bg-white/5' : 'text-gray-400 hover:text-white'}`}
-                  >
-                    <item.Flag />
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           <button
             onClick={toggleFullscreen}
             className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg transition-all"

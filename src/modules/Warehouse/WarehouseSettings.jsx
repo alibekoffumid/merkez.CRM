@@ -8,7 +8,7 @@ import Papa from 'papaparse';
 import { useUser } from '../../core/UserContext';
 
 const WarehouseSettings = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -390,6 +390,36 @@ const WarehouseSettings = () => {
                     {t('warehouse.addCustomUnit') || 'Добавить единицу'}
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* System Settings (Language) */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.system') || 'Система'}</h3>
+            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                    <Settings2 className="w-4 h-4 text-merkez-blue" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900">{i18n.language === 'az' ? 'Dil' : 'Язык'}</h4>
+                    <p className="text-[11px] text-gray-500 mt-0.5">{i18n.language === 'az' ? 'Sistemin interfeys dili' : 'Язык интерфейса системы'}</p>
+                  </div>
+                </div>
+                <div className="w-40">
+                  <Dropdown
+                    value={i18n.language}
+                    onChange={(val) => i18n.changeLanguage(val)}
+                    options={[
+                      { value: 'az', label: 'Azərbaycan (AZ)' },
+                      { value: 'ru', label: 'Русский (RU)' },
+                      { value: 'en', label: 'English (EN)' }
+                    ]}
+                    buttonClassName="w-full text-sm font-bold"
+                  />
+                </div>
               </div>
             </div>
           </div>

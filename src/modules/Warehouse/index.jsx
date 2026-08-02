@@ -33,6 +33,7 @@ import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
 import LabelPrintModal from './LabelPrintModal';
+import WarehouseFiles from './WarehouseFiles';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -699,6 +700,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     >
                       <Truck className="w-3.5 h-3.5" />
                       {t('warehouse.suppliers') || 'Tədarükçülər'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setActiveTab('files')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                        activeTab === 'files'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                      }`}
+                    >
+                      <Folder className="w-3.5 h-3.5" />
+                      {i18n.language === 'az' ? 'Fayllar' : 'Файлы'}
                     </button>
                     
                     <button
@@ -1555,6 +1568,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           <WarehouseStocktake warehouseId={currentWarehouseId} warehouses={warehouses} isRestaurantActive={isRestaurantActive} />
         ) : activeTab === 'reports' ? (
           <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} />
+        ) : activeTab === 'files' ? (
+          <WarehouseFiles />
         ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
