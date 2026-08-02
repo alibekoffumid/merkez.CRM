@@ -417,7 +417,7 @@ const WarehouseSettings = () => {
                       { value: 'ru', label: 'Русский (RU)' },
                       { value: 'en', label: 'English (EN)' }
                     ]}
-                    buttonClassName="w-full text-sm font-bold"
+                    buttonClassName="w-full text-sm font-bold rounded-lg px-4 py-2.5"
                   />
                 </div>
               </div>
