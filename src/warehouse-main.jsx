@@ -7,7 +7,7 @@ import PinGuard from './components/PinGuard';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer, Maximize, Minimize } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer, Maximize, Minimize, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
@@ -324,6 +324,7 @@ const WarehouseAppContent = () => {
     ...(!isMaster ? [{ id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' }] : []),
     ...(false && activeModules?.includes('restaurant') && !isMaster ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
     ...(currentStaff?.role !== 'Cashier' && !isMaster ? [{ id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' }] : []),
+    ...(!currentStaff && !isMaster ? [{ id: 'files', icon: Folder, label: i18n.language === 'az' ? 'Fayllar' : 'Файлы' }] : []),
     ...(currentStaff?.role !== 'Storeman' ? [{ id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : i18n.language === 'ru' ? 'Ремонт' : 'Repairs' }] : []),
     ...(!isMaster ? [{ id: 'history', icon: Search, label: t('warehouse.history') || 'История' }] : []),
     ...(!isMaster ? [{ id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' }] : []),

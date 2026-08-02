@@ -702,20 +702,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       {t('warehouse.suppliers') || 'Tədarükçülər'}
                     </button>
                     
-                    {!currentStaff && (
-                      <button
-                        onClick={() => setActiveTab('files')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                          activeTab === 'files'
-                            ? 'bg-white text-merkez-blue shadow-sm'
-                            : 'text-gray-500 hover:text-gray-850'
-                        }`}
-                      >
-                        <Folder className="w-3.5 h-3.5" />
-                        {i18n.language === 'az' ? 'Fayllar' : 'Файлы'}
-                      </button>
-                    )}
-                    
                     <button
                       onClick={() => setActiveTab('history')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
