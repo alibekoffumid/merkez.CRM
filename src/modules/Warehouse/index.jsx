@@ -795,16 +795,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </button>
                   </>
                 )}
-              </div>
-            )}
-            
-            {activeTab === 'files' && (
-              <div id="warehouse-files-actions-portal" className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
-              </div>
-            )}
-
-            {activeTab === 'finished' && (
-              <>
                 <div className="relative shrink-0 lg:hidden" ref={mobileFilterRef}>
                   <button 
                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
@@ -886,6 +876,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 >
                   <Menu className="w-4 h-4" />
                 </button>
+              </div>
+            )}
+
+            {activeTab === 'files' && (
+              <div id="warehouse-files-actions-portal" className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
               </div>
             )}
 
