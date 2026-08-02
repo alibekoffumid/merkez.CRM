@@ -1557,7 +1557,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'reports' ? (
           <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} />
         ) : activeTab === 'files' ? (
-          <WarehouseFiles />
+          <div className="flex-1 min-h-0">
+            <WarehouseFiles />
+          </div>
         ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
