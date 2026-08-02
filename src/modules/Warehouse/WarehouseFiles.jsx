@@ -325,7 +325,7 @@ const WarehouseFiles = () => {
 
       <button
         onClick={() => setShowNewFolderModal(true)}
-        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
+        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
       >
         <FolderPlus className="w-4 h-4" />
         <span className="hidden sm:inline">{i18n.language === 'az' ? 'Qovluq yarat' : 'Создать папку'}</span>
@@ -340,7 +340,7 @@ const WarehouseFiles = () => {
       />
       <label
         htmlFor="file-upload"
-        className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white transition-all shadow-md ${
+        className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-all shadow-md ${
           uploading ? 'bg-blue-400 cursor-not-allowed' : 'bg-merkez-blue hover:bg-blue-600 shadow-blue-600/20 cursor-pointer'
         }`}
       >
