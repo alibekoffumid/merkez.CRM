@@ -247,7 +247,7 @@ const WarehouseFiles = () => {
 
   const [portalTarget, setPortalTarget] = useState(null);
   useEffect(() => {
-    setPortalTarget(document.getElementById('warehouse-files-actions-portal'));
+    setPortalTarget(document.getElementById('warehouse-actions-portal-target'));
   }, []);
 
   const searchResults = searchQuery.trim() ? [
