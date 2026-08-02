@@ -879,16 +879,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </div>
             )}
 
-            {activeTab === 'files' && (
-              <div id="warehouse-files-actions-portal" className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
-              </div>
-            )}
-
             {activeTab === 'raw' && isRestaurantActive && (
               <div className="flex items-center gap-2">
               </div>
             )}
           </div>
+
+          {activeTab === 'files' && (
+            <div id="warehouse-files-actions-portal" className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0 lg:justify-end flex-1">
+            </div>
+          )}
 
           {/* Moved Search Bar (relocated to filter bar) */}
 
