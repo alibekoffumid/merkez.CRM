@@ -43,11 +43,7 @@ const WarehouseFiles = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Check size limit (e.g., 50MB)
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error(i18n.language === 'az' ? 'Fayl həcmi 50MB-dan az olmalıdır' : 'Размер файла должен быть меньше 50МБ');
-      return;
-    }
+
 
     setUploading(true);
     try {
