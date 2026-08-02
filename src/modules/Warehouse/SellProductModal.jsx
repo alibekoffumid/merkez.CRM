@@ -430,6 +430,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
     setLoading(true);
 
+    const isFerrum = selectedBank?.toLowerCase().includes('ferrum');
+
     try {
       let finalCustomerId = selectedCustomerId;
 
