@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
@@ -255,10 +255,37 @@ const WarehouseFiles = () => {
     ...allFiles.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase())).map(f => ({ ...f, type: 'file' }))
   ] : [];
 
+  const searchContainerRef = useRef(null);
+  const [searchCoords, setSearchCoords] = useState({ top: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    if (showSearchResults) {
+      const updateCoords = () => {
+        if (searchContainerRef.current) {
+          const rect = searchContainerRef.current.getBoundingClientRect();
+          setSearchCoords({
+            top: rect.bottom + 8,
+            left: rect.left,
+            width: Math.max(rect.width, 288) // w-72 = 288px
+          });
+        }
+      };
+      
+      updateCoords();
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+      
+      return () => {
+        window.removeEventListener('scroll', updateCoords, true);
+        window.removeEventListener('resize', updateCoords);
+      };
+    }
+  }, [showSearchResults]);
+
   const headerActions = (
     <div className="flex flex-col sm:flex-row items-center gap-2">
       {/* Search Bar */}
-      <div className="relative z-50">
+      <div className="relative z-50" ref={searchContainerRef}>
         <div className="flex items-center px-3 py-2 bg-white border border-gray-200 rounded-lg focus-within:border-merkez-blue focus-within:ring-2 focus-within:ring-blue-100 transition-all w-full sm:w-64 shadow-sm">
           <Search className="w-4 h-4 text-gray-400 mr-2" />
           <input
@@ -279,9 +306,16 @@ const WarehouseFiles = () => {
           )}
         </div>
 
-        {/* Dropdown Results */}
-        {showSearchResults && searchQuery.trim() && (
-          <div className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-xl max-h-72 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+        {/* Dropdown Results (Portaled to avoid overflow-hidden) */}
+        {showSearchResults && searchQuery.trim() && searchCoords.top > 0 && ReactDOM.createPortal(
+          <div 
+            className="fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-xl max-h-72 overflow-y-auto animate-in fade-in slide-in-from-top-2"
+            style={{
+              top: `${searchCoords.top}px`,
+              left: `${searchCoords.left}px`,
+              width: `${searchCoords.width}px`
+            }}
+          >
             {searchResults.length > 0 ? (
               searchResults.map(item => (
                 <button
@@ -319,7 +353,8 @@ const WarehouseFiles = () => {
                 <span className="text-xs font-bold">{i18n.language === 'az' ? 'Nəticə tapılmadı' : 'Ничего не найдено'}</span>
               </div>
             )}
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
