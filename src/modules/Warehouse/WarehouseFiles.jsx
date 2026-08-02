@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
 import { Upload, File, FileText, Image as ImageIcon, Download, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, ArrowLeft, MoveRight } from 'lucide-react';
@@ -236,37 +237,48 @@ const WarehouseFiles = () => {
     return <File className="w-5 h-5 text-gray-500" />;
   };
 
+  const [portalTarget, setPortalTarget] = useState(null);
+  useEffect(() => {
+    setPortalTarget(document.getElementById('warehouse-files-actions-portal'));
+  }, []);
+
+  const headerActions = (
+    <div className="flex flex-col sm:flex-row gap-2">
+      <button
+        onClick={() => setShowNewFolderModal(true)}
+        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
+      >
+        <FolderPlus className="w-4 h-4" />
+        <span className="hidden sm:inline">{i18n.language === 'az' ? 'Qovluq yarat' : 'Создать папку'}</span>
+      </button>
+      
+      <input
+        type="file"
+        id="file-upload"
+        className="hidden"
+        onChange={handleFileUpload}
+        disabled={uploading}
+      />
+      <label
+        htmlFor="file-upload"
+        className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white transition-all shadow-md ${
+          uploading ? 'bg-blue-400 cursor-not-allowed' : 'bg-merkez-blue hover:bg-blue-600 shadow-blue-600/20 cursor-pointer'
+        }`}
+      >
+        {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+        {uploading ? (i18n.language === 'az' ? 'Yüklənir...' : 'Загрузка...') : (i18n.language === 'az' ? 'Fayl yüklə' : 'Загрузить файл')}
+      </label>
+    </div>
+  );
+
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-      {/* Header */}
-      <div className="flex justify-end p-4 bg-white border-b border-gray-100">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => setShowNewFolderModal(true)}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
-          >
-            <FolderPlus className="w-4 h-4" />
-            <span className="hidden sm:inline">{i18n.language === 'az' ? 'Qovluq yarat' : 'Создать папку'}</span>
-          </button>
-          
-          <input
-            type="file"
-            id="file-upload"
-            className="hidden"
-            onChange={handleFileUpload}
-            disabled={uploading}
-          />
-          <label
-            htmlFor="file-upload"
-            className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white transition-all shadow-md ${
-              uploading ? 'bg-blue-400 cursor-not-allowed' : 'bg-merkez-blue hover:bg-blue-600 shadow-blue-600/20 cursor-pointer'
-            }`}
-          >
-            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {uploading ? (i18n.language === 'az' ? 'Yüklənir...' : 'Загрузка...') : (i18n.language === 'az' ? 'Fayl yüklə' : 'Загрузить файл')}
-          </label>
+      {/* Header Actions (Portaled) */}
+      {portalTarget ? ReactDOM.createPortal(headerActions, portalTarget) : (
+        <div className="flex justify-end p-4 bg-white border-b border-gray-100 hidden">
+           {headerActions}
         </div>
-      </div>
+      )}
 
       {/* Content List */}
       <div className="flex-1 overflow-auto bg-white p-6">
