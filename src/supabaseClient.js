@@ -3,8 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 const isProd = import.meta.env.PROD;
 
 // Support dynamic overrides from localStorage (useful for local offline installations)
-const localUrl = typeof window !== 'undefined' ? localStorage.getItem('merkez_supabase_url') : null;
-const localKey = typeof window !== 'undefined' ? localStorage.getItem('merkez_supabase_key') : null;
+// SECURITY FIX: Disable localStorage overrides in Production to prevent XSS hijacking
+const localUrl = (!isProd && typeof window !== 'undefined') ? localStorage.getItem('merkez_supabase_url') : null;
+const localKey = (!isProd && typeof window !== 'undefined') ? localStorage.getItem('merkez_supabase_key') : null;
 
 // Environment separation logic with robust fallbacks
 // 1. Try specific PROD/DEV keys
