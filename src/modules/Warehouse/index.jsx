@@ -1797,7 +1797,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                   <FolderTree className="w-12 h-12 text-gray-200" />
                   <p className="font-medium">{t('warehouse.noProductsFound')}</p>
-                  {currentStaff?.role !== 'Cashier' && (
+                  {currentStaff?.role !== 'Cashier' && products.length === 0 && (
                     <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
                       <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
                     </button>
@@ -2054,9 +2054,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                   <FolderTree className="w-12 h-12 text-gray-200" />
                   <p className="font-medium">{t('warehouse.noIngredientsFound')}</p>
-                  <button onClick={() => setShowAddIngredient(true)} className="px-4 py-2 bg-merkez-green text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors shadow-sm">
-                    <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
-                  </button>
+                  {ingredients.length === 0 && (
+                    <button onClick={() => setShowAddIngredient(true)} className="px-4 py-2 bg-merkez-green text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors shadow-sm">
+                      <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <>
