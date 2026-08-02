@@ -548,7 +548,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <HashRouter>
       <UserProvider>
         <WarehouseAppContent />
-        <Toaster position="top-right" />
+        <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
       </UserProvider>
     </HashRouter>
   </React.StrictMode>

@@ -307,7 +307,7 @@ function App() {
           } />
         </Route>
       </Routes>
-      <Toaster position="top-right" />
+      <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
       <ConditionalAirMouse 
         sessionCode={localStorage.getItem('merkez_airmouse_session')}
         enabled={airMouseEnabled}
