@@ -265,7 +265,7 @@ const WarehouseStaffManager = () => {
   const actionContent = (
     <button
       onClick={handleOpenAdd}
-      className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent"
+      className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent uppercase"
     >
       <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
       {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
