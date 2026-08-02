@@ -239,17 +239,7 @@ const WarehouseFiles = () => {
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50 gap-4">
-        <div>
-          <h2 className="text-lg font-black text-gray-900 tracking-wide flex items-center gap-2">
-            <Folder className="w-5 h-5 text-merkez-blue" />
-            {currentFolder ? currentFolder.name : (i18n.language === 'az' ? 'Fayllar və Sənədlər' : 'Файлы и Документы')}
-          </h2>
-          <p className="text-xs font-bold text-gray-500 mt-1">
-            {i18n.language === 'az' ? 'Faktura, müqavilə və digər sənədlərinizi burada saxlayın.' : 'Храните ваши фактуры, договоры и другие документы здесь.'}
-          </p>
-        </div>
-        
+      <div className="flex justify-end p-4 bg-white border-b border-gray-100">
         <div className="flex flex-col sm:flex-row gap-2">
           <button
             onClick={() => setShowNewFolderModal(true)}
