@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
-import { Upload, File, FileText, Image as ImageIcon, Download, Trash2, Loader2, X, FileSpreadsheet, FileArchive } from 'lucide-react';
+import { Upload, File, FileText, Image as ImageIcon, Download, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
