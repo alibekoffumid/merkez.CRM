@@ -905,6 +905,7 @@ const WarehouseFiles = () => {
                     <p className="font-bold text-sm">{i18n.language === 'az' ? 'Məlumat oxuna bilmədi' : 'Не удалось прочитать данные'}</p>
                   </div>
                 )}
+                </div>
               </div>
             </div>
           </div>
