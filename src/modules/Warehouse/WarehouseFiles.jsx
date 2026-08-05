@@ -33,6 +33,7 @@ const WarehouseFiles = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   const [previewFile, setPreviewFile] = useState(null);
+  const [previewWorkbook, setPreviewWorkbook] = useState(null);
   const [previewData, setPreviewData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewSearch, setPreviewSearch] = useState('');
@@ -249,14 +250,26 @@ const WarehouseFiles = () => {
     try {
       const response = await fetch(file.file_url);
       const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true, cellStyles: true });
+      setPreviewWorkbook(workbook);
+      
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      const filteredData = jsonData.filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== ''));
       
-      setPreviewData(filteredData);
+      const dataWithFormulas = jsonData.map((row, rIdx) => {
+        return row.map((cellValue, cIdx) => {
+          const cellAddress = XLSX.utils.encode_cell({ r: rIdx, c: cIdx });
+          const cell = worksheet[cellAddress];
+          if (cell && cell.f) {
+            return '=' + cell.f;
+          }
+          return cellValue;
+        });
+      });
+      
+      setPreviewData(dataWithFormulas);
     } catch (err) {
       toast.error('Error previewing file: ' + err.message);
       setPreviewFile(null);
@@ -266,23 +279,43 @@ const WarehouseFiles = () => {
   };
 
   const handleCellEdit = (rowIndex, colIndex, value) => {
+    // 1. Update UI state
     const newData = [...previewData];
     if (!newData[rowIndex]) newData[rowIndex] = [];
     newData[rowIndex][colIndex] = value;
     setPreviewData(newData);
+
+    // 2. Update Workbook state to preserve formatting and original structure
+    if (previewWorkbook) {
+      const wb = { ...previewWorkbook };
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+      
+      if (!ws[cellAddress]) ws[cellAddress] = {};
+      
+      if (typeof value === 'string' && value.startsWith('=')) {
+        ws[cellAddress].f = value.substring(1);
+        delete ws[cellAddress].v;
+      } else if (!isNaN(Number(value)) && value.trim() !== '') {
+        ws[cellAddress].v = Number(value);
+        ws[cellAddress].t = 'n';
+        delete ws[cellAddress].f;
+      } else {
+        ws[cellAddress].v = value;
+        ws[cellAddress].t = 's';
+        delete ws[cellAddress].f;
+      }
+      setPreviewWorkbook(wb);
+    }
   };
 
   const handleDownloadEdited = () => {
-    if (!previewData || !previewFile) return;
+    if (!previewWorkbook || !previewFile) return;
     try {
-      const worksheet = XLSX.utils.aoa_to_sheet(previewData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-      // Append "_edited" to filename before extension
       const fileNameParts = previewFile.name.split('.');
       const ext = fileNameParts.pop();
       const newName = `${fileNameParts.join('.')}_edited.${ext}`;
-      XLSX.writeFile(workbook, newName);
+      XLSX.writeFile(previewWorkbook, newName);
       toast.success(i18n.language === 'az' ? 'Fayl yükləndi' : 'Файл скачан');
     } catch (err) {
       toast.error('Error downloading file: ' + err.message);
