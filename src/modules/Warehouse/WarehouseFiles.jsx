@@ -35,6 +35,7 @@ const WarehouseFiles = () => {
   const [previewFile, setPreviewFile] = useState(null);
   const [previewData, setPreviewData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewSearch, setPreviewSearch] = useState('');
 
   useEffect(() => {
     if (profile?.id) {
@@ -243,6 +244,7 @@ const WarehouseFiles = () => {
 
   const handlePreview = async (file) => {
     setPreviewFile(file);
+    setPreviewSearch('');
     setPreviewLoading(true);
     try {
       const response = await fetch(file.file_url);
@@ -674,6 +676,23 @@ const WarehouseFiles = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {previewData && (
+                    <div className="relative hidden sm:block">
+                      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder={i18n.language === 'az' ? 'Faylın daxilində axtar...' : 'Поиск внутри файла...'}
+                        value={previewSearch}
+                        onChange={(e) => setPreviewSearch(e.target.value)}
+                        className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-xs font-bold w-64 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                      />
+                      {previewSearch && (
+                        <button onClick={() => setPreviewSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <a
                     href={previewFile.file_url}
                     target="_blank"
@@ -710,12 +729,22 @@ const WarehouseFiles = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {previewData.map((row, rowIndex) => (
-                          <tr key={rowIndex} className="hover:bg-green-50/30 transition-colors">
-                            <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{rowIndex + 1}</td>
+                        {previewData
+                          .map((row, originalIndex) => ({ row, originalIndex }))
+                          .filter(item => {
+                            if (!previewSearch.trim()) return true;
+                            const searchLower = previewSearch.toLowerCase();
+                            return item.row.some(cell => 
+                              cell !== undefined && cell !== null && 
+                              String(cell).toLowerCase().includes(searchLower)
+                            );
+                          })
+                          .map((item, mapIndex) => (
+                          <tr key={item.originalIndex} className="hover:bg-green-50/30 transition-colors">
+                            <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{item.originalIndex + 1}</td>
                             {Array.from({ length: Math.max(...previewData.map(r => r.length)) }).map((_, colIndex) => (
-                              <td key={colIndex} className="px-4 py-2 text-gray-700 border-r border-gray-50 truncate max-w-[300px]">
-                                {row[colIndex] !== undefined && row[colIndex] !== null ? String(row[colIndex]) : ''}
+                              <td key={colIndex} className="px-4 py-2 text-gray-700 border-r border-gray-50 truncate max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}>
+                                {item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}
                               </td>
                             ))}
                           </tr>
