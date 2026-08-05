@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
-import { Search, Upload, File, FileText, Image as ImageIcon, Download, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, ArrowLeft, MoveRight } from 'lucide-react';
+import { Search, Upload, File, FileText, Image as ImageIcon, Download, Eye, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, ArrowLeft, MoveRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
+import * as XLSX from 'xlsx';
 
 const WarehouseFiles = () => {
   const { t, i18n } = useTranslation();
@@ -30,6 +31,10 @@ const WarehouseFiles = () => {
   const [allFiles, setAllFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
+
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewData, setPreviewData] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     if (profile?.id) {
@@ -234,6 +239,28 @@ const WarehouseFiles = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handlePreview = async (file) => {
+    setPreviewFile(file);
+    setPreviewLoading(true);
+    try {
+      const response = await fetch(file.file_url);
+      const arrayBuffer = await response.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const filteredData = jsonData.filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== ''));
+      
+      setPreviewData(filteredData);
+    } catch (err) {
+      toast.error('Error previewing file: ' + err.message);
+      setPreviewFile(null);
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const getFileIcon = (type) => {
@@ -476,12 +503,21 @@ const WarehouseFiles = () => {
                       >
                         <MoveRight className="w-4 h-4" />
                       </button>
+                      {(file.type?.includes('spreadsheet') || file.type?.includes('excel') || file.type?.includes('csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) && (
+                        <button
+                          onClick={() => handlePreview(file)}
+                          className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                          title={i18n.language === 'az' ? 'Bax' : 'Просмотр'}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
                       <a
                         href={file.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
-                        title={i18n.language === 'az' ? 'Yüklə / Bax' : 'Скачать / Посмотреть'}
+                        title={i18n.language === 'az' ? 'Yüklə' : 'Скачать'}
                       >
                         <Download className="w-4 h-4" />
                       </a>
@@ -616,6 +652,83 @@ const WarehouseFiles = () => {
                     {i18n.language === 'az' ? 'Sil' : 'Удалить'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Excel Preview Modal */}
+      {previewFile && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[99999] flex items-center justify-center p-4" onClick={() => setPreviewFile(null)}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                    <FileSpreadsheet className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">{previewFile.name}</h3>
+                    <p className="text-xs font-bold text-gray-500">{formatFileSize(previewFile.size)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={previewFile.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">{i18n.language === 'az' ? 'Yüklə' : 'Скачать'}</span>
+                  </a>
+                  <button onClick={() => setPreviewFile(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-auto p-0 bg-white">
+                {previewLoading ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <Loader2 className="w-8 h-8 animate-spin mb-4 text-green-500" />
+                    <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
+                  </div>
+                ) : previewData ? (
+                  <div className="w-full overflow-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                          {/* Render column headers (A, B, C...) based on the max length of rows */}
+                          <th className="px-4 py-3 font-bold text-gray-500 bg-gray-100 border-r border-gray-200 w-12 text-center sticky left-0 z-20">#</th>
+                          {Array.from({ length: Math.max(...previewData.map(row => row.length)) }).map((_, i) => (
+                            <th key={i} className="px-4 py-3 font-bold text-gray-700 border-r border-gray-200 min-w-[120px]">
+                              {String.fromCharCode(65 + i)}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {previewData.map((row, rowIndex) => (
+                          <tr key={rowIndex} className="hover:bg-green-50/30 transition-colors">
+                            <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{rowIndex + 1}</td>
+                            {Array.from({ length: Math.max(...previewData.map(r => r.length)) }).map((_, colIndex) => (
+                              <td key={colIndex} className="px-4 py-2 text-gray-700 border-r border-gray-50 truncate max-w-[300px]">
+                                {row[colIndex] !== undefined && row[colIndex] !== null ? String(row[colIndex]) : ''}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <FileSpreadsheet className="w-12 h-12 mb-4 opacity-20" />
+                    <p className="font-bold text-sm">{i18n.language === 'az' ? 'Məlumat oxuna bilmədi' : 'Не удалось прочитать данные'}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
