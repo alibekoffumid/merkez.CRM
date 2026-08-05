@@ -866,14 +866,10 @@ const WarehouseFiles = () => {
                           <tr key={item.originalIndex} className="hover:bg-green-50/30 transition-colors focus-within:bg-green-50/30">
                             <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{item.originalIndex + 1}</td>
                             {Array.from({ length: Math.max(...previewData.map(r => r.length)) }).map((_, colIndex) => (
-                              <td key={colIndex} className="p-0 border-r border-gray-100 max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}>
+                              <td key={colIndex} className="p-0 border-r border-gray-100 max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null && String(item.row[colIndex]).startsWith('=') ? `Формула: ${item.row[colIndex]}` : ''}>
                                 <input
                                   type="text"
-                                  value={
-                                    focusedCell?.r === item.originalIndex && focusedCell?.c === colIndex
-                                      ? (item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : '')
-                                      : getDisplayValue(item.row[colIndex], item.originalIndex, colIndex)
-                                  }
+                                  value={getDisplayValue(item.row[colIndex], item.originalIndex, colIndex)}
                                   onFocus={() => setFocusedCell({ r: item.originalIndex, c: colIndex })}
                                   onBlur={() => setFocusedCell(null)}
                                   onChange={(e) => handleCellEdit(item.originalIndex, colIndex, e.target.value)}
