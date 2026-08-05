@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
 import * as XLSX from 'xlsx';
+import { Parser } from 'hot-formula-parser';
 
 const WarehouseFiles = () => {
   const { t, i18n } = useTranslation();
@@ -37,6 +38,59 @@ const WarehouseFiles = () => {
   const [previewData, setPreviewData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewSearch, setPreviewSearch] = useState('');
+  const [focusedCell, setFocusedCell] = useState(null);
+
+  const previewDataRef = useRef(null);
+  useEffect(() => {
+    previewDataRef.current = previewData;
+  }, [previewData]);
+
+  const parser = useMemo(() => {
+    const p = new Parser();
+    p.on('callCellValue', (cellCoord, done) => {
+      const { row, column } = cellCoord;
+      let val = previewDataRef.current?.[row.index]?.[column.index];
+      
+      if (typeof val === 'string' && val.startsWith('=')) {
+        const res = p.parse(val.substring(1));
+        done(res.result);
+      } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
+        done(Number(val));
+      } else {
+        done(val);
+      }
+    });
+    
+    p.on('callRangeValue', (startCellCoord, endCellCoord, done) => {
+      const fragment = [];
+      for (let r = startCellCoord.row.index; r <= endCellCoord.row.index; r++) {
+        const rowData = [];
+        for (let c = startCellCoord.column.index; c <= endCellCoord.column.index; c++) {
+          let val = previewDataRef.current?.[r]?.[c];
+          if (typeof val === 'string' && val.startsWith('=')) {
+            const res = p.parse(val.substring(1));
+            val = res.result;
+          } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
+            val = Number(val);
+          }
+          rowData.push(val);
+        }
+        fragment.push(rowData);
+      }
+      done(fragment);
+    });
+    return p;
+  }, []);
+
+  const getDisplayValue = (rawValue) => {
+    if (rawValue === undefined || rawValue === null) return '';
+    if (typeof rawValue === 'string' && rawValue.startsWith('=')) {
+      const res = parser.parse(rawValue.substring(1));
+      if (res.error) return `#${res.error}!`;
+      return res.result !== null && res.result !== undefined ? String(res.result) : '';
+    }
+    return String(rawValue);
+  };
 
   useEffect(() => {
     if (profile?.id) {
@@ -801,7 +855,13 @@ const WarehouseFiles = () => {
                               <td key={colIndex} className="p-0 border-r border-gray-100 max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}>
                                 <input
                                   type="text"
-                                  value={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}
+                                  value={
+                                    focusedCell?.r === item.originalIndex && focusedCell?.c === colIndex
+                                      ? (item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : '')
+                                      : getDisplayValue(item.row[colIndex])
+                                  }
+                                  onFocus={() => setFocusedCell({ r: item.originalIndex, c: colIndex })}
+                                  onBlur={() => setFocusedCell(null)}
                                   onChange={(e) => handleCellEdit(item.originalIndex, colIndex, e.target.value)}
                                   className="w-full h-full min-h-[36px] px-4 py-2 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-inset focus:ring-green-500 text-gray-700 text-sm truncate"
                                 />
