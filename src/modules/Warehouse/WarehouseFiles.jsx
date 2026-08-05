@@ -265,6 +265,30 @@ const WarehouseFiles = () => {
     }
   };
 
+  const handleCellEdit = (rowIndex, colIndex, value) => {
+    const newData = [...previewData];
+    if (!newData[rowIndex]) newData[rowIndex] = [];
+    newData[rowIndex][colIndex] = value;
+    setPreviewData(newData);
+  };
+
+  const handleDownloadEdited = () => {
+    if (!previewData || !previewFile) return;
+    try {
+      const worksheet = XLSX.utils.aoa_to_sheet(previewData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+      // Append "_edited" to filename before extension
+      const fileNameParts = previewFile.name.split('.');
+      const ext = fileNameParts.pop();
+      const newName = `${fileNameParts.join('.')}_edited.${ext}`;
+      XLSX.writeFile(workbook, newName);
+      toast.success(i18n.language === 'az' ? 'Fayl yükləndi' : 'Файл скачан');
+    } catch (err) {
+      toast.error('Error downloading file: ' + err.message);
+    }
+  };
+
   const getFileIcon = (type) => {
     if (!type) return <File className="w-5 h-5 text-gray-400" />;
     if (type.includes('image')) return <ImageIcon className="w-5 h-5 text-blue-500" />;
@@ -693,15 +717,13 @@ const WarehouseFiles = () => {
                       )}
                     </div>
                   )}
-                  <a
-                    href={previewFile.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
+                  <button
+                    onClick={handleDownloadEdited}
+                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-green-50 hover:border-green-200 hover:text-green-600 transition-all shadow-sm"
                   >
                     <Download className="w-4 h-4" />
                     <span className="hidden sm:inline">{i18n.language === 'az' ? 'Yüklə' : 'Скачать'}</span>
-                  </a>
+                  </button>
                   <button onClick={() => setPreviewFile(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                     <X className="w-5 h-5" />
                   </button>
@@ -740,11 +762,16 @@ const WarehouseFiles = () => {
                             );
                           })
                           .map((item, mapIndex) => (
-                          <tr key={item.originalIndex} className="hover:bg-green-50/30 transition-colors">
+                          <tr key={item.originalIndex} className="hover:bg-green-50/30 transition-colors focus-within:bg-green-50/30">
                             <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{item.originalIndex + 1}</td>
                             {Array.from({ length: Math.max(...previewData.map(r => r.length)) }).map((_, colIndex) => (
-                              <td key={colIndex} className="px-4 py-2 text-gray-700 border-r border-gray-50 truncate max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}>
-                                {item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}
+                              <td key={colIndex} className="p-0 border-r border-gray-100 max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}>
+                                <input
+                                  type="text"
+                                  value={item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : ''}
+                                  onChange={(e) => handleCellEdit(item.originalIndex, colIndex, e.target.value)}
+                                  className="w-full h-full min-h-[36px] px-4 py-2 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-inset focus:ring-green-500 text-gray-700 text-sm truncate"
+                                />
                               </td>
                             ))}
                           </tr>
