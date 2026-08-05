@@ -51,9 +51,11 @@ const WarehouseFiles = () => {
       const { row, column } = cellCoord;
       let val = previewDataRef.current?.[row.index]?.[column.index];
       
-      if (typeof val === 'string' && val.startsWith('=')) {
+      if (val === undefined || val === null || val === '') {
+        done(0);
+      } else if (typeof val === 'string' && val.startsWith('=')) {
         const res = p.parse(val.substring(1));
-        done(res.result);
+        done(res.error ? 0 : res.result);
       } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
         done(Number(val));
       } else {
@@ -67,13 +69,16 @@ const WarehouseFiles = () => {
         const rowData = [];
         for (let c = startCellCoord.column.index; c <= endCellCoord.column.index; c++) {
           let val = previewDataRef.current?.[r]?.[c];
-          if (typeof val === 'string' && val.startsWith('=')) {
+          if (val === undefined || val === null || val === '') {
+            rowData.push(0);
+          } else if (typeof val === 'string' && val.startsWith('=')) {
             const res = p.parse(val.substring(1));
-            val = res.result;
+            rowData.push(res.error ? 0 : res.result);
           } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
-            val = Number(val);
+            rowData.push(Number(val));
+          } else {
+            rowData.push(val);
           }
-          rowData.push(val);
         }
         fragment.push(rowData);
       }
@@ -82,11 +87,20 @@ const WarehouseFiles = () => {
     return p;
   }, []);
 
-  const getDisplayValue = (rawValue) => {
+  const getDisplayValue = (rawValue, rowIndex, colIndex) => {
     if (rawValue === undefined || rawValue === null) return '';
     if (typeof rawValue === 'string' && rawValue.startsWith('=')) {
       const res = parser.parse(rawValue.substring(1));
-      if (res.error) return `#${res.error}!`;
+      if (res.error) {
+        if (previewWorkbook) {
+          const ws = previewWorkbook.Sheets[previewWorkbook.SheetNames[0]];
+          const cell = ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex })];
+          if (cell && cell.v !== undefined) {
+            return String(cell.v);
+          }
+        }
+        return `#${res.error}!`;
+      }
       return res.result !== null && res.result !== undefined ? String(res.result) : '';
     }
     return String(rawValue);
@@ -858,7 +872,7 @@ const WarehouseFiles = () => {
                                   value={
                                     focusedCell?.r === item.originalIndex && focusedCell?.c === colIndex
                                       ? (item.row[colIndex] !== undefined && item.row[colIndex] !== null ? String(item.row[colIndex]) : '')
-                                      : getDisplayValue(item.row[colIndex])
+                                      : getDisplayValue(item.row[colIndex], item.originalIndex, colIndex)
                                   }
                                   onFocus={() => setFocusedCell({ r: item.originalIndex, c: colIndex })}
                                   onBlur={() => setFocusedCell(null)}
