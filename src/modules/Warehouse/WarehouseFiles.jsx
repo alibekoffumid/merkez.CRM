@@ -830,16 +830,33 @@ const WarehouseFiles = () => {
                   </button>
                 </div>
               </div>
-              
-              <div className="flex-1 overflow-auto p-0 bg-white">
-                {previewLoading ? (
-                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                    <Loader2 className="w-8 h-8 animate-spin mb-4 text-green-500" />
-                    <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
+              <div className="flex-1 flex flex-col overflow-hidden bg-white">
+                {previewData && !previewLoading && (
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-gray-50/80 shrink-0">
+                    <div className="font-mono text-xs font-bold text-gray-500 bg-white px-2 py-1 rounded border border-gray-200 min-w-[3rem] text-center shadow-sm">
+                      {focusedCell ? `${String.fromCharCode(65 + focusedCell.c)}${focusedCell.r + 1}` : ''}
+                    </div>
+                    <div className="font-serif italic text-gray-400 font-bold px-1 text-sm select-none">fx</div>
+                    <input
+                      type="text"
+                      className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 bg-white shadow-sm font-mono text-gray-700 transition-colors"
+                      value={focusedCell ? (previewData[focusedCell.r][focusedCell.c] !== undefined && previewData[focusedCell.r][focusedCell.c] !== null ? String(previewData[focusedCell.r][focusedCell.c]) : '') : ''}
+                      onChange={(e) => focusedCell && handleCellEdit(focusedCell.r, focusedCell.c, e.target.value)}
+                      disabled={!focusedCell}
+                      placeholder={i18n.language === 'az' ? 'Xananı seçin və düstur və ya dəyər daxil edin...' : 'Выберите ячейку и введите формулу или значение...'}
+                    />
                   </div>
-                ) : previewData ? (
-                  <div className="w-full overflow-auto">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
+                )}
+                
+                <div className="flex-1 overflow-auto p-0 relative">
+                  {previewLoading ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 absolute inset-0">
+                      <Loader2 className="w-8 h-8 animate-spin mb-4 text-green-500" />
+                      <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
+                    </div>
+                  ) : previewData ? (
+                    <div className="w-full h-full overflow-auto">
+                      <table className="w-full text-left text-sm whitespace-nowrap min-w-max">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                           {/* Render column headers (A, B, C...) based on the max length of rows */}
