@@ -1838,10 +1838,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Rəng' : 'Цвет'}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">ZAVOD QİYMƏTİ</th>
                         {(!currentStaff || currentStaff?.role === 'Manager') && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
                         )}
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">ƏLAVƏ MƏLUMAT</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
                         {currentStaff?.role !== 'Cashier' && (
@@ -1850,7 +1852,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {filteredProducts.map((item, index) => (
+                      {filteredProducts.map((item, index) => {
+                        const desc = item.description || '';
+                        let factoryPrice = '';
+                        let additionalInfo = '';
+                        if (desc.includes('Zavod qiyməti:')) {
+                          factoryPrice = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
+                        }
+                        if (desc.includes('Əlavə məlumat:')) {
+                          additionalInfo = desc.split('Əlavə məlumat:')[1].split('\n')[0].trim();
+                        }
+
+                        return (
                         <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
                           <td className="pl-8 pr-2 py-4">
                             <button 
@@ -1887,10 +1900,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {item.categories?.name ? (t(`categories.${item.categories.name}`, { defaultValue: item.categories.name })) : '—'}
                             </span>
                           </td>
+                          <td className="px-2 py-4 text-sm font-bold text-gray-900">{factoryPrice ? factoryPrice : '—'}</td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                           )}
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
+                          <td className="px-2 py-4 text-sm text-gray-600 truncate max-w-[150px]" title={additionalInfo}>{additionalInfo || '—'}</td>
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">
                             {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
                           </td>
@@ -1950,7 +1965,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                           )}
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
 
