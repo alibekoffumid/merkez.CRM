@@ -360,14 +360,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const fetchProducts = async () => {
     if (!profile?.id || !currentWarehouseId) return;
-    const { data } = await supabase
-      .from('products')
-      .select('*, categories(name), suppliers(name)')
-      .eq('is_deleted', false)
-      .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
-      .order('name', { ascending: true });
-    if (data) setProducts(data);
+    let allProducts = [];
+    let from = 0;
+    const step = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name), suppliers(name)')
+        .eq('is_deleted', false)
+        .eq('user_id', profile.id)
+        .eq('warehouse_id', currentWarehouseId)
+        .order('name', { ascending: true })
+        .range(from, from + step - 1);
+      if (error || !data || data.length === 0) break;
+      allProducts.push(...data);
+      if (data.length < step) break;
+      from += step;
+    }
+    setProducts(allProducts);
   };
 
   const fetchIngredients = async () => {
