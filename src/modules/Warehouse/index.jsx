@@ -89,6 +89,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [printingItems, setPrintingItems] = useState(null);
   const [printingFormat, setPrintingFormat] = useState('a4');
   const [labelModalItems, setLabelModalItems] = useState(null);
+  const isFirstMount = useRef(true);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
   const mobileFilterRef = useRef(null);
@@ -100,13 +101,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   }, [profile?.id]);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     if (currentWarehouseId) {
       setLoading(true);
       Promise.all([
-        fetchProducts(),
-        fetchIngredients(),
-        fetchReceipts(),
-        fetchDispatches()
+        fetchProducts(currentWarehouseId),
+        fetchIngredients(currentWarehouseId),
+        fetchReceipts(currentWarehouseId),
+        fetchDispatches(currentWarehouseId)
       ]).finally(() => {
         setLoading(false);
       });
@@ -168,22 +173,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const fetchAll = async () => {
     setLoading(true);
     // Fetch warehouses first to get the current context
-    await fetchWarehouses();
-    await Promise.all([
-      fetchCategories(), 
-      fetchProducts(), 
-      fetchIngredients(), 
-      fetchSuppliers(),
-      fetchReceipts(),
-      fetchDispatches(),
-      fetchTransfers(),
-      fetchActiveRepairs()
-    ]);
+    const activeWId = await fetchWarehouses();
+    if (activeWId) {
+      await Promise.all([
+        fetchCategories(), 
+        fetchProducts(activeWId), 
+        fetchIngredients(activeWId), 
+        fetchSuppliers(),
+        fetchReceipts(activeWId),
+        fetchDispatches(activeWId),
+        fetchTransfers(),
+        fetchActiveRepairs()
+      ]);
+    }
     setLoading(false);
   };
 
   const fetchWarehouses = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) return null;
     const { data, error } = await supabase
       .from('warehouses')
       .select('*')
@@ -200,14 +207,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         if (newW) {
           setWarehouses([newW]);
           setCurrentWarehouseId(newW.id);
+          return newW.id;
         }
       } else {
         setWarehouses(data);
+        const wId = currentWarehouseId || data[0].id;
         if (!currentWarehouseId) {
           setCurrentWarehouseId(data[0].id);
         }
+        return wId;
       }
     }
+    return null;
   };
 
   const fetchActiveRepairs = async () => {
@@ -232,24 +243,26 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   };
 
-  const fetchReceipts = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchReceipts = async (wId) => {
+    const targetWId = wId || currentWarehouseId;
+    if (!profile?.id || !targetWId) return;
     const { data } = await supabase
       .from('stock_receipts')
       .select('*, products(name, barcode), suppliers(name)')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
+      .eq('warehouse_id', targetWId)
       .order('received_at', { ascending: false });
     if (data) setReceipts(data);
   };
 
-  const fetchDispatches = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchDispatches = async (wId) => {
+    const targetWId = wId || currentWarehouseId;
+    if (!profile?.id || !targetWId) return;
     const { data } = await supabase
       .from('stock_dispatches')
       .select('*, products(name, barcode, category_id)')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
+      .eq('warehouse_id', targetWId)
       .order('issued_at', { ascending: false });
     if (data) setDispatches(data);
   };
@@ -365,8 +378,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (data) setCategories(data);
   };
 
-  const fetchProducts = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchProducts = async (wId) => {
+    const targetWId = wId || currentWarehouseId;
+    if (!profile?.id || !targetWId) return;
     let allProducts = [];
     let from = 0;
     const step = 1000;
@@ -376,7 +390,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         .select('*, categories(name), suppliers(name)')
         .eq('is_deleted', false)
         .eq('user_id', profile.id)
-        .eq('warehouse_id', currentWarehouseId)
+        .eq('warehouse_id', targetWId)
         .order('name', { ascending: true })
         .range(from, from + step - 1);
       if (error || !data || data.length === 0) break;
@@ -387,13 +401,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     setProducts(allProducts);
   };
 
-  const fetchIngredients = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchIngredients = async (wId) => {
+    const targetWId = wId || currentWarehouseId;
+    if (!profile?.id || !targetWId) return;
     const { data } = await supabase
       .from('ingredients')
       .select('*')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
+      .eq('warehouse_id', targetWId)
       .order('name', { ascending: true });
     if (data) setIngredients(data);
   };
