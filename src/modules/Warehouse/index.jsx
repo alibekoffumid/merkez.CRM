@@ -1912,9 +1912,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">{factoryPrice ? factoryPrice : '—'}</td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
-                            <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
+                            <td className="px-2 py-4 text-sm text-gray-500">{parseFloat(item.purchase_price || 0).toFixed(2)} ₼</td>
                           )}
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
+                          <td className="px-2 py-4 text-sm font-bold text-gray-900">{parseFloat(item.price).toFixed(2)} ₼</td>
                           <td className="px-2 py-4 text-sm text-gray-600 truncate max-w-[150px]" title={additionalInfo}>{additionalInfo || '—'}</td>
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">
                             {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
@@ -2070,12 +2070,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
-                              <span className="text-xs font-bold text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</span>
+                              <span className="text-xs font-bold text-gray-500">{parseFloat(item.purchase_price || 0).toFixed(2)} ₼</span>
                             </div>
                           )}
                           <div className="text-center">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPrice') || 'Satış'}</span>
-                            <span className="text-xs font-black text-gray-900">${parseFloat(item.price).toFixed(2)}</span>
+                            <span className="text-xs font-black text-gray-900">{parseFloat(item.price).toFixed(2)} ₼</span>
                           </div>
                           <div className="text-right">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
