@@ -72,6 +72,8 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
+}
+
 .print-area-wrapper {
   display: none;
 }
