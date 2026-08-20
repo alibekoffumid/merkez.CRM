@@ -31,12 +31,15 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
     name: '', 
     price: '', 
     purchase_price: '',
+    factory_price: '',
+    additional_info: '',
     barcode: '',
     category_id: '',
     stock_quantity: '',
     critical_stock: '',
     supplier_id: '',
-    unit: 'pcs'
+    unit: 'pcs',
+    color: ''
   });
 
   useEffect(() => {
@@ -50,10 +53,27 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
           }
         } catch (e) {}
       }
+
+      const desc = product.description || '';
+      let factoryPrice = '';
+      let additionalInfo = '';
+      if (desc.includes('Zavod qiyməti:')) {
+        factoryPrice = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
+      } else if (desc.includes('Zavod qiym?ti:')) {
+        factoryPrice = desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
+      }
+      if (desc.includes('Əlavə məlumat:')) {
+        additionalInfo = desc.split('Əlavə məlumat:')[1].split('\n')[0].trim();
+      } else if (desc.includes('?lav? m?lumat:')) {
+        additionalInfo = desc.split('?lav? m?lumat:')[1].split('\n')[0].trim();
+      }
+
       setFormData({
         name: product.name || '',
         price: product.price || '',
         purchase_price: product.purchase_price || '',
+        factory_price: factoryPrice,
+        additional_info: additionalInfo,
         barcode: product.barcode || '',
         category_id: product.category_id || '',
         stock_quantity: product.stock_quantity?.toString() || '0',
@@ -125,6 +145,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
         if (uploadedUrl) finalImageUrl = uploadedUrl;
     }
 
+    let desc = '';
+    if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
+    if (formData.additional_info) desc += 'Əlavə məlumat: ' + formData.additional_info.trim();
+
     let updatePayload = {
         name: formData.name,
         price: parseFloat(formData.price),
@@ -133,6 +157,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
         category_id: formData.category_id || null,
         stock_quantity: parseFloat(formData.stock_quantity || 0),
         critical_stock: parseFloat(formData.critical_stock || 5),
+        description: desc.trim() || null,
         image_url: finalImageUrl,
         supplier_id: formData.supplier_id || null,
         unit: formData.unit,
@@ -178,9 +203,9 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
         <div 
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+          className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col my-8 max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
@@ -195,7 +220,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 gap-5">
             <div>
               <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
@@ -210,37 +235,50 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
             <div className="grid grid-cols-2 gap-5">
               <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
+                <Dropdown 
+                  value={formData.supplier_id}
+                  onChange={val => setFormData({ ...formData, supplier_id: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
+                  options={[
+                    { value: '', label: t('warehouse.selectSupplier') || 'Tədarükçü seçin' },
+                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                  ]}
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
                 <Dropdown 
                   value={formData.category_id}
                   onChange={val => setFormData({ ...formData, category_id: val })}
                   buttonClassName="rounded-xl px-5 py-3"
                   options={[
-                    { value: '', label: t('warehouse.selectCategory') },
+                    { value: '', label: t('warehouse.selectCategory') || 'Kateqoriya seçin' },
                     ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
                   ]}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Ед. измерения'}</label>
-                <Dropdown 
-                  value={formData.unit}
-                  onChange={val => setFormData({ ...formData, unit: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
-                />
-              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-3 gap-5">
+              <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ZAVOD QİYMƏTİ</label>
+                <input
+                  type="text"
+                  placeholder="məs. $15.00 / 12 ₼"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
+                  value={formData.factory_price}
+                  onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                />
+              </div>
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
                 <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₼</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                     value={formData.purchase_price}
                     onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                   />
@@ -249,12 +287,12 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
                 <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
                   <input
                     type="number"
                     step="0.01"
                     required
-                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
+                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   />
@@ -262,13 +300,13 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-3 gap-5">
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thStock')}</label>
                 <input
                   type="number"
                   step="0.001"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
                   value={formData.stock_quantity}
                   onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
                 />
@@ -281,6 +319,15 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                   className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                   value={formData.critical_stock}
                   onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Vahid'}</label>
+                <Dropdown 
+                  value={formData.unit}
+                  onChange={val => setFormData({ ...formData, unit: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
+                  options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
                 />
               </div>
             </div>
@@ -296,51 +343,50 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                 />
               </div>
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
-                <Dropdown 
-                  value={formData.supplier_id}
-                  onChange={val => setFormData({ ...formData, supplier_id: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={[
-                    { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
-                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                  ]}
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{i18n.language === 'az' ? 'Rəng / Ölçü' : 'Цвет / Размер'}</label>
+                <input 
+                  type="text"
+                  list="color-suggestions"
+                  placeholder="məs. 4/4, BLACK, 40 CM, SILVER..."
+                  value={formData.color}
+                  onChange={e => setFormData({ ...formData, color: e.target.value })}
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                 />
+                <datalist id="color-suggestions">
+                  <option value="4/4" />
+                  <option value="3/4" />
+                  <option value="1/2" />
+                  <option value="1/4" />
+                  <option value="1/8" />
+                  <option value="WHITE" />
+                  <option value="BLACK" />
+                  <option value="BROWN" />
+                  <option value="BEIGE" />
+                  <option value="SILVER" />
+                  <option value="GOLD" />
+                  <option value="RED" />
+                  <option value="BLUE" />
+                  <option value="STANDARD" />
+                </datalist>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{i18n.language === 'az' ? 'Rəng' : 'Цвет'}</label>
-                <Dropdown 
-                  value={formData.color}
-                  onChange={val => setFormData({ ...formData, color: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={[
-                    { value: '', label: '-' },
-                    { value: 'WH', label: 'WH (White)' },
-                    { value: 'BL', label: 'BL (Black)' },
-                    { value: 'NT', label: 'NT (Natural)' },
-                    { value: 'SB', label: 'SB (Sunburst)' },
-                    { value: 'RD', label: 'RD (Red)' },
-                    { value: 'BLU', label: 'BLU (Blue)' },
-                    { value: 'GR', label: 'GR (Green)' },
-                    { value: 'SL', label: 'SL (Silver)' },
-                    { value: 'GD', label: 'GD (Gold)' },
-                    { value: 'YL', label: 'YL (Yellow)' },
-                    { value: 'PK', label: 'PK (Pink)' },
-                    { value: 'BR', label: 'BR (Brown)' },
-                    { value: 'GRY', label: 'GRY (Gray)' }
-                  ]}
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ƏLAVƏ MƏLUMAT</label>
+              <textarea
+                rows={2}
+                placeholder="məs. CƏLAL, Hədiyyə: MİZRAB, xüsusi qeydlər..."
+                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm resize-none"
+                value={formData.additional_info}
+                onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
+              />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4"
+            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4 shrink-0"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
             {t('common.saveChanges')}
