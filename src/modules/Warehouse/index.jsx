@@ -821,7 +821,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       <>
                         <button
                           onClick={() => setShowSellProduct(true)}
-                          className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
+                          className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10 border border-transparent"
                         >
                           <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Seçilənləri Sat' : 'Продать'} ({selectedItems.length})
                         </button>
@@ -1070,7 +1070,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0 order-4 lg:order-none">
             {/* Main Warehouse Actions */}
-            {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && (
+            {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && selectedItems.length === 0 && (
               <button 
                 onClick={() => setShowSellProduct(true)} 
                 className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
@@ -1947,9 +1947,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {item.suppliers?.name || '—'}
                             </span>
                           </td>
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900">{factoryPrice ? factoryPrice : '—'}</td>
+                          <td className="px-2 py-4">
+                            <div className="w-14 h-4 rounded-md shimmer-element"></div>
+                          </td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
-                            <td className="px-2 py-4 text-sm text-gray-500">{parseFloat(item.purchase_price || 0).toFixed(2)} ₼</td>
+                            <td className="px-2 py-4">
+                              <div className="w-14 h-4 rounded-md shimmer-element"></div>
+                            </td>
                           )}
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">{parseFloat(item.price).toFixed(2)} ₼</td>
                           <td className="px-2 py-4 text-sm text-gray-600 truncate max-w-[150px]" title={additionalInfo}>{additionalInfo || '—'}</td>
@@ -2131,7 +2135,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
-                              <span className="text-xs font-bold text-gray-500">{parseFloat(item.purchase_price || 0).toFixed(2)} ₼</span>
+                              <div className="w-12 h-3.5 rounded-md shimmer-element"></div>
                             </div>
                           )}
                           <div className="text-center">
