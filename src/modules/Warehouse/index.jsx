@@ -362,7 +362,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('products')
-      .select('*, categories(name)')
+      .select('*, categories(name), suppliers(name)')
       .eq('is_deleted', false)
       .eq('user_id', profile.id)
       .eq('warehouse_id', currentWarehouseId)
