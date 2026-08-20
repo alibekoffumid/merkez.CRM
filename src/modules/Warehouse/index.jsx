@@ -86,6 +86,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [printingItems, setPrintingItems] = useState(null);
+  const [printingFormat, setPrintingFormat] = useState('a4');
   const [labelModalItems, setLabelModalItems] = useState(null);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
@@ -2347,14 +2348,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         isOpen={!!labelModalItems}
         onClose={() => setLabelModalItems(null)}
         selectedProducts={labelModalItems}
-        onPrint={(expandedItems) => {
+        onPrint={(expandedItems, format) => {
           setLabelModalItems(null);
+          setPrintingFormat(format || 'a4');
           setPrintingItems(expandedItems);
         }}
       />
 
       {printingItems && (
-        <ProductStickerTemplate items={printingItems} onPrintComplete={() => setPrintingItems(null)} />
+        <ProductStickerTemplate items={printingItems} format={printingFormat} onPrintComplete={() => setPrintingItems(null)} />
       )}
     </div>
   );
