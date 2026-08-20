@@ -1845,7 +1845,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </button>
                         </th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Rəng' : 'Цвет'}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Rəng / Ölçü' : 'Цвет / Размер'}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">ZAVOD QİYMƏTİ</th>
