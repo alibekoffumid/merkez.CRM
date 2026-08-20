@@ -20,7 +20,7 @@ const BANK_RATES = {
   'Ferrum DTI': { 3: 0.08, 6: 0.12, 9: 0.16, 12: 0.19 }
 };
 
-const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, activeRepairsMap = {} }) => {
+const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, activeRepairsMap = {}, initialProducts = [] }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -83,8 +83,37 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       fetchProducts();
       fetchCustomers();
       fetchBankSettings();
-      setCart([]);
-      setSelectedCategoryId('');
+
+      // Auto-populate cart with initially selected products
+      if (initialProducts && initialProducts.length > 0) {
+        const initialCart = initialProducts.map(p => ({
+          product_id: p.id,
+          quantity: 1,
+          productName: p.name,
+          price: Number(p.price || p.sale_price || 0),
+          currentStock: p.stock_quantity
+        }));
+        setCart(initialCart);
+        if (initialProducts.length === 1) {
+          setCurrentItem({
+            product_id: initialProducts[0].id,
+            quantity: '1'
+          });
+          if (initialProducts[0].category_id) {
+            setSelectedCategoryId(initialProducts[0].category_id);
+          }
+        } else {
+          setCurrentItem({ product_id: '', quantity: '1' });
+        }
+      } else {
+        setCart([]);
+        setSelectedCategoryId('');
+        setCurrentItem({
+          product_id: '',
+          quantity: '1'
+        });
+      }
+
       setBarcodeMode(false);
       setBarcodeBuffer('');
       setSaleDate(new Date().toISOString().split('T')[0]);
@@ -94,12 +123,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       setDiscount(0);
       setBirmarketCategory('Alətlər');
       setSalesChannel('Mağaza');
-      setCurrentItem({
-        product_id: '',
-        quantity: '1'
-      });
     }
-  }, [isOpen, warehouseId]);
+  }, [isOpen, warehouseId, initialProducts]);
 
   useEffect(() => {
     if (isOpen) {

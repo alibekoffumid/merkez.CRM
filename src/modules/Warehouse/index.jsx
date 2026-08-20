@@ -820,6 +820,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     {selectedItems.length > 0 && (
                       <>
                         <button
+                          onClick={() => setShowSellProduct(true)}
+                          className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
+                        >
+                          <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Seçilənləri Sat' : 'Продать'} ({selectedItems.length})
+                        </button>
+                        <button
                           onClick={() => {
                             const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
                             setLabelModalItems(itemsToPrint);
@@ -1970,6 +1976,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 {openMenuId === item.id && (
                                   <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
                                     <button
+                                      onClick={() => {
+                                        setSelectedItems([item.id]);
+                                        setShowSellProduct(true);
+                                        setOpenMenuId(null);
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors font-bold whitespace-nowrap"
+                                    >
+                                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                                      {i18n.language === 'az' ? 'Məhsul Sat' : 'Продать товар'}
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
                                       onClick={() => handleEdit(item)}
                                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                     >
@@ -2058,6 +2076,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               </button>
                               {openMenuId === item.id && (
                                 <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedItems([item.id]);
+                                      setShowSellProduct(true);
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-emerald-600 hover:bg-emerald-50 transition-colors font-bold"
+                                  >
+                                    <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                                    {i18n.language === 'az' ? 'Məhsul Sat' : 'Продать'}
+                                  </button>
+                                  <div className="mx-3 my-1 border-t border-gray-100" />
                                   <button
                                     onClick={() => handleEdit(item)}
                                     className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
@@ -2313,10 +2343,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       <ModalPortal>
         <SellProductModal
           isOpen={showSellProduct}
-          onClose={() => setShowSellProduct(false)}
-          onSaleComplete={fetchAll}
+          onClose={() => {
+            setShowSellProduct(false);
+            setSelectedItems([]);
+          }}
+          onSaleComplete={() => {
+            fetchAll();
+            setSelectedItems([]);
+          }}
           warehouseId={currentWarehouseId}
           activeRepairsMap={activeRepairsMap}
+          initialProducts={products.filter(p => selectedItems.includes(p.id))}
         />
       </ModalPortal>
       {confirmDelete && (
