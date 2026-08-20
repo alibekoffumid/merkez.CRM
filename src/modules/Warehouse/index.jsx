@@ -1748,17 +1748,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
 
             {activeTab === 'finished' && (
-              <div className="hidden lg:flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
-                <div className="w-full sm:w-56 shrink-0">
-                  <Dropdown
-                    value={selectedCategory || 'all'}
-                    onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
-                    options={[
-                      { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
-                      ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
-                    ]}
-                    buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
-                  />
+              <div className="hidden lg:flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto items-center">
+                <div className="flex items-center gap-1.5 w-full sm:w-60 shrink-0">
+                  <div className="flex-1">
+                    <Dropdown
+                      value={selectedCategory || 'all'}
+                      onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
+                      options={[
+                        { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
+                        ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
+                      ]}
+                      buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
+                    />
+                  </div>
+                  {currentStaff?.role !== 'Cashier' && (
+                    <button
+                      onClick={() => setShowAddCategory(true)}
+                      className="p-2 bg-gray-50 border border-gray-200 text-gray-700 hover:text-merkez-blue hover:border-merkez-blue hover:bg-blue-50 rounded-lg transition-all shadow-sm shrink-0"
+                      title={t('warehouse.addCategory') || 'Kateqoriya əlavə et'}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="w-full sm:w-56 shrink-0">
