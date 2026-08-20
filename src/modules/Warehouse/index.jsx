@@ -34,6 +34,7 @@ import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
 import LabelPrintModal from './LabelPrintModal';
 import WarehouseFiles from './WarehouseFiles';
+import WarehouseSkeleton from './WarehouseSkeleton';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -100,10 +101,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   useEffect(() => {
     if (currentWarehouseId) {
-      fetchProducts();
-      fetchIngredients();
-      fetchReceipts();
-      fetchDispatches();
+      setLoading(true);
+      Promise.all([
+        fetchProducts(),
+        fetchIngredients(),
+        fetchReceipts(),
+        fetchDispatches()
+      ]).finally(() => {
+        setLoading(false);
+      });
     }
   }, [currentWarehouseId]);
 
@@ -1823,9 +1829,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="flex-1 overflow-auto" ref={menuRef}>
             {loading ? (
-              <div className="flex items-center justify-center h-full text-gray-400">
-                <Loader2 className="w-8 h-8 animate-spin mr-3" /><span>{t('warehouse.loadingInventory')}</span>
-              </div>
+              <WarehouseSkeleton />
             ) : activeTab === 'finished' ? (
               // Finished Goods Table
               filteredProducts.length === 0 ? (
