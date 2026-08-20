@@ -5,7 +5,14 @@ import { useTranslation } from 'react-i18next';
 const LabelPrintModal = ({ isOpen, onClose, selectedProducts, onPrint }) => {
   const { t, i18n } = useTranslation();
   const [printItems, setPrintItems] = useState([]);
-  const [printFormat, setPrintFormat] = useState('a4'); // 'a4' | 'thermal'
+  const [printFormat, setPrintFormat] = useState(() => {
+    return localStorage.getItem('merkez_label_print_format') || 'thermal';
+  });
+
+  const handleFormatChange = (format) => {
+    setPrintFormat(format);
+    localStorage.setItem('merkez_label_print_format', format);
+  };
 
   // Initialize quantities when modal opens or selected products change
   useEffect(() => {
@@ -75,19 +82,19 @@ const LabelPrintModal = ({ isOpen, onClose, selectedProducts, onPrint }) => {
           <div className="grid grid-cols-2 gap-2 flex-1 sm:max-w-md">
             <button
               type="button"
-              onClick={() => setPrintFormat('a4')}
-              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border ${printFormat === 'a4' ? 'bg-merkez-blue text-white border-merkez-blue shadow-md shadow-blue-500/20' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'}`}
-            >
-              <FileText className="w-4 h-4" />
-              <span>A4 Vərəq (Epson / HP)</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPrintFormat('thermal')}
+              onClick={() => handleFormatChange('thermal')}
               className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border ${printFormat === 'thermal' ? 'bg-merkez-blue text-white border-merkez-blue shadow-md shadow-blue-500/20' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'}`}
             >
               <Tag className="w-4 h-4" />
               <span>Termo (58×40 mm)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFormatChange('a4')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border ${printFormat === 'a4' ? 'bg-merkez-blue text-white border-merkez-blue shadow-md shadow-blue-500/20' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'}`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>A4 Vərəq (Epson / HP)</span>
             </button>
           </div>
         </div>
