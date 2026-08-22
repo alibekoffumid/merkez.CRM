@@ -94,7 +94,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
     const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
     const { data } = await supabase
       .from(table)
-      .select(`id, name, barcode, purchase_price, supplier_id, category_id, ${qtyField}`)
+      .select(`id, name, barcode, purchase_price, price, supplier_id, category_id, ${qtyField}`)
       .eq('user_id', profile.id)
       .eq('warehouse_id', warehouseId)
       .eq('is_deleted', false)
@@ -143,7 +143,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
           return [...prevItems, {
             product_id: product.id,
             quantity: '1',
-            unit_price: product.purchase_price ? product.purchase_price.toString() : '0',
+            unit_price: (product.purchase_price ?? product.price ?? 0).toString(),
             productName: product.name,
             barcode: product.barcode
           }];
