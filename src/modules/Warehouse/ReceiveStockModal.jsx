@@ -228,19 +228,24 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
       // Process each item
       for (const item of items) {
         // 1. Record the receipt
+        const receiptPayload = { 
+          supplier_id: headerData.supplier_id || null,
+          quantity: parseFloat(item.quantity),
+          unit_price: item.unit_price ? parseFloat(item.unit_price) : null,
+          received_at: headerData.received_at,
+          notes: headerData.notes,
+          user_id: profile?.id,
+          warehouse_id: warehouseId
+        };
+        if (type === 'product') {
+          receiptPayload.product_id = item.product_id;
+        } else {
+          receiptPayload.ingredient_id = item.product_id;
+        }
+
         const { error: receiptError } = await supabase
           .from('stock_receipts')
-          .insert([{ 
-            product_id: type === 'product' ? item.product_id : null,
-            ingredient_id: type === 'ingredient' ? item.product_id : null,
-            supplier_id: headerData.supplier_id || null,
-            quantity: parseFloat(item.quantity),
-            unit_price: item.unit_price ? parseFloat(item.unit_price) : null,
-            received_at: headerData.received_at,
-            notes: headerData.notes,
-            user_id: profile?.id,
-            warehouse_id: warehouseId
-          }]);
+          .insert([receiptPayload]);
 
         if (receiptError) throw receiptError;
 

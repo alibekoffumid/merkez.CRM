@@ -217,18 +217,23 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
     try {
       for (const item of items) {
         // 1. Record the dispatch
+        const dispatchPayload = { 
+          quantity: parseFloat(item.quantity),
+          issued_at: headerData.issued_at,
+          reason: headerData.reason,
+          notes: headerData.notes,
+          user_id: profile?.id,
+          warehouse_id: warehouseId
+        };
+        if (type === 'product') {
+          dispatchPayload.product_id = item.product_id;
+        } else {
+          dispatchPayload.ingredient_id = item.product_id;
+        }
+
         const { error: dispatchError } = await supabase
           .from('stock_dispatches')
-          .insert([{ 
-            product_id: type === 'product' ? item.product_id : null,
-            ingredient_id: type === 'ingredient' ? item.product_id : null,
-            quantity: parseFloat(item.quantity),
-            issued_at: headerData.issued_at,
-            reason: headerData.reason,
-            notes: headerData.notes,
-            user_id: profile?.id,
-            warehouse_id: warehouseId
-          }]);
+          .insert([dispatchPayload]);
 
         if (dispatchError) throw dispatchError;
 
