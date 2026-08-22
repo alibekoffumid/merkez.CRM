@@ -329,6 +329,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   };
 
+  const handleQuickSupplierChange = async (productId, supplierId) => {
+    const targetSupId = supplierId || null;
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ supplier_id: targetSupId })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, supplier_id: targetSupId } : p));
+      toast.success(i18n.language === 'az' ? 'Tədarükçü güncelləndi' : 'Поставщик обновлен');
+    } catch (err) {
+      console.error('Error updating supplier:', err);
+      toast.error(err.message || 'Ошибка обновления поставщика');
+    }
+  };
+
   const handleBulkCategoryAssign = async (categoryId) => {
     if (selectedItems.length === 0) return;
     const targetCatId = categoryId || null;
@@ -1848,6 +1866,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
+                        <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
                         {(!currentStaff || currentStaff?.role === 'Manager') && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
                         )}
@@ -1903,6 +1922,25 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 <option value="">— {i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —</option>
                                 {categories.map(c => (
                                   <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-3 h-3 text-current absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
+                            </div>
+                          </td>
+                          <td className="px-2 py-4">
+                            <div className="relative group/sup inline-block">
+                              <select
+                                value={item.supplier_id || ''}
+                                onChange={(e) => handleQuickSupplierChange(item.id, e.target.value)}
+                                className={`text-xs font-bold px-2.5 py-1 rounded-full border outline-none cursor-pointer transition-all appearance-none pr-6 ${
+                                  item.supplier_id 
+                                    ? 'bg-purple-50 text-purple-700 border-purple-100 hover:border-purple-300' 
+                                    : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
+                                }`}
+                              >
+                                <option value="">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</option>
+                                {suppliers.map(s => (
+                                  <option key={s.id} value={s.id}>{s.name || s.company_name}</option>
                                 ))}
                               </select>
                               <ChevronDown className="w-3 h-3 text-current absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
@@ -2034,6 +2072,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             {(() => {
                               const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
                               return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
+                            })()}
+                          </span>
+                          <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-bold">
+                            {(() => {
+                              const sup = (suppliers || []).find(s => s.id === item.supplier_id);
+                              return sup ? (sup.name || sup.company_name) : '—';
                             })()}
                           </span>
                           <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
