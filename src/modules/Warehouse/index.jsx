@@ -1734,7 +1734,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           const isChecked = e.target.checked;
                           setMainBarcodeMode(isChecked);
                           if (isChecked) {
-                            setShowCameraScanner(true);
+                            const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
+                            if (isMobile) {
+                              setShowCameraScanner(true);
+                            }
                             setTimeout(() => mainBarcodeInputRef.current?.focus(), 100);
                           }
                         }}

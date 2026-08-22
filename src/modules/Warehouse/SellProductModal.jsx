@@ -1034,7 +1034,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               const isChecked = e.target.checked;
                               setBarcodeMode(isChecked);
                               if (isChecked) {
-                                setShowCameraScanner(true);
+                                const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
+                                if (isMobile) {
+                                  setShowCameraScanner(true);
+                                }
                                 setTimeout(() => barcodeInputRef.current?.focus(), 100);
                               }
                             }}
