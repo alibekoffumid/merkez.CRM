@@ -293,8 +293,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     const term = searchTerm.trim();
     if (!term) return;
 
-    const matchedProduct = (products || []).find(p => p.barcode === term);
+    const matchedProduct = (products || []).find(p => 
+      p.barcode === term || (p.barcode && p.barcode.toLowerCase() === term.toLowerCase())
+    );
+
     if (matchedProduct) {
+      if (supplierFilter !== 'all' && matchedProduct.supplier_id !== supplierFilter) {
+        setSupplierFilter('all');
+      }
+      if (selectedCategory && matchedProduct.category_id !== selectedCategory) {
+        setSelectedCategory(null);
+      }
+      if (statusFilter !== 'all') {
+        setStatusFilter('all');
+      }
+
       playBeep(true);
       toast.success(`${matchedProduct.name} (${matchedProduct.barcode})`);
     } else {
@@ -303,6 +316,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         (p.barcode || '').toLowerCase().includes(term.toLowerCase())
       );
       if (matched.length > 0) {
+        setSupplierFilter('all');
+        setSelectedCategory(null);
+        setStatusFilter('all');
         playBeep(true);
       } else {
         playBeep(false);
@@ -630,7 +646,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       const allSubIds = getAllDescendantIds(selectedCategory);
       return allSubIds.includes(p.category_id);
     })
-    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(p => {
+      if (!searchTerm) return true;
+      const term = searchTerm.trim().toLowerCase();
+      return (p.name || '').toLowerCase().includes(term) || 
+             (p.barcode || '').toLowerCase().includes(term);
+    })
     .filter(p => {
       if (statusFilter === 'all') return true;
       const stock = parseFloat(p.stock_quantity || 0);
