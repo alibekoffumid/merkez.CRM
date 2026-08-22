@@ -13,7 +13,7 @@ import CameraScannerModal from '../../components/Common/CameraScannerModal';
 const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product', warehouseId }) => {
   if (!isOpen) return null;
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
   const [suppliers, setSuppliers] = useState([]);
