@@ -30,36 +30,44 @@ const CameraScannerModal = ({ isOpen, onClose, onScan, title = 'Kamera ilə Skan
     setErrorMsg(null);
     setIsScanning(true);
 
-    const scannerId = 'reader-video-container';
-    const html5Qrcode = new Html5Qrcode(scannerId);
-    html5QrcodeRef.current = html5Qrcode;
+    let timer = null;
+    timer = setTimeout(() => {
+      const scannerId = 'reader-video-container';
+      const element = document.getElementById(scannerId);
+      if (!element) return;
 
-    const config = {
-      fps: 15,
-      qrbox: { width: 280, height: 180 },
-      aspectRatio: 1.333333
-    };
+      try {
+        const html5Qrcode = new Html5Qrcode(scannerId);
+        html5QrcodeRef.current = html5Qrcode;
 
-    html5Qrcode.start(
-      { facingMode: facingMode },
-      config,
-      (decodedText) => {
-        playBeep();
-        onScan(decodedText);
-        // Stop scanning after successful detection
-        stopScanner();
-        onClose();
-      },
-      (errorMessage) => {
-        // Ignore frame read errors
+        const config = {
+          fps: 15,
+          qrbox: { width: 280, height: 180 },
+          aspectRatio: 1.333333
+        };
+
+        html5Qrcode.start(
+          { facingMode: facingMode },
+          config,
+          (decodedText) => {
+            playBeep();
+            onScan(decodedText);
+            stopScanner();
+            onClose();
+          },
+          (errorMessage) => {}
+        ).catch(err => {
+          console.error('Camera start error:', err);
+          setErrorMsg('Kameraya giriş icazəsi verilmədi və ya kamera tapılmadı.');
+          setIsScanning(false);
+        });
+      } catch (e) {
+        console.error('Html5Qrcode init error:', e);
       }
-    ).catch(err => {
-      console.error('Camera start error:', err);
-      setErrorMsg('Kameraya giriş icazəsi verilmədi və ya kamera tapılmadı.');
-      setIsScanning(false);
-    });
+    }, 150);
 
     return () => {
+      if (timer) clearTimeout(timer);
       stopScanner();
     };
   }, [isOpen, facingMode]);

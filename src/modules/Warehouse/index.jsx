@@ -1731,8 +1731,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         type="checkbox"
                         checked={mainBarcodeMode}
                         onChange={(e) => {
-                          setMainBarcodeMode(e.target.checked);
-                          if (e.target.checked) {
+                          const isChecked = e.target.checked;
+                          setMainBarcodeMode(isChecked);
+                          if (isChecked) {
+                            setShowCameraScanner(true);
                             setTimeout(() => mainBarcodeInputRef.current?.focus(), 100);
                           }
                         }}

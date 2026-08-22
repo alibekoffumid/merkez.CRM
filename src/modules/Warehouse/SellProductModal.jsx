@@ -1031,8 +1031,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                             type="checkbox"
                             checked={barcodeMode}
                             onChange={(e) => {
-                              setBarcodeMode(e.target.checked);
-                              if (e.target.checked) {
+                              const isChecked = e.target.checked;
+                              setBarcodeMode(isChecked);
+                              if (isChecked) {
+                                setShowCameraScanner(true);
                                 setTimeout(() => barcodeInputRef.current?.focus(), 100);
                               }
                             }}
