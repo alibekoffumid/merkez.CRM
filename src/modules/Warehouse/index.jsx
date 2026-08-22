@@ -30,6 +30,8 @@ import { formatCategoriesHierarchically } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
+import ConfirmModal from '../../components/Common/ConfirmModal';
+import { toast } from 'react-hot-toast';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -75,6 +77,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [supplierFilter, setSupplierFilter] = useState('all');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [receiptToDelete, setReceiptToDelete] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -228,35 +231,40 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (data) setReceipts(data);
   };
 
-  const handleDeleteReceipt = async (receipt) => {
-    if (!window.confirm(t('warehouse.confirmDeleteReceipt') || 'Bu qəbul yazısını silmək və stok miqdarını geri qaytarmaq istədiyinizdən əminsiniz?')) {
-      return;
-    }
+  const handleDeleteReceipt = (receipt) => {
+    setReceiptToDelete(receipt);
+  };
 
+  const confirmDeleteReceipt = async () => {
+    if (!receiptToDelete) return;
     try {
       const { error: delErr } = await supabase
         .from('stock_receipts')
         .delete()
-        .eq('id', receipt.id);
+        .eq('id', receiptToDelete.id);
 
       if (delErr) throw delErr;
 
-      if (receipt.product_id && receipt.quantity) {
-        const product = (products || []).find(p => p.id === receipt.product_id);
+      if (receiptToDelete.product_id && receiptToDelete.quantity) {
+        const product = (products || []).find(p => p.id === receiptToDelete.product_id);
         if (product) {
           const currentQty = product.stock_quantity || 0;
-          const newQty = Math.max(0, currentQty - receipt.quantity);
+          const newQty = Math.max(0, currentQty - receiptToDelete.quantity);
           await supabase
             .from('products')
             .update({ stock_quantity: newQty })
-            .eq('id', receipt.product_id);
+            .eq('id', receiptToDelete.product_id);
         }
       }
 
+      toast.success(t('common.deletedSuccessfully') || 'Uğurla silindi');
       fetchReceipts();
       fetchProducts();
     } catch (err) {
       console.error('Error deleting receipt:', err);
+      toast.error(err.message || 'Ошибка при удалении');
+    } finally {
+      setReceiptToDelete(null);
     }
   };
 
@@ -2147,6 +2155,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           </div>
         </ModalPortal>
       )}
+
+      <ConfirmModal
+        isOpen={!!receiptToDelete}
+        onClose={() => setReceiptToDelete(null)}
+        onConfirm={confirmDeleteReceipt}
+        title={i18n.language === 'az' ? 'Qəbul yazısını sil' : 'Удалить запись приёмки'}
+        message={i18n.language === 'az' ? 'Bu qəbul yazısını silmək və stok miqdarını geri qaytarmaq istədiyinizdən əminsiniz?' : 'Вы уверены, что хотите удалить эту запись приёмки и вернуть количество товара на складе?'}
+        confirmText={i18n.language === 'az' ? 'Sil' : 'Удалить'}
+        cancelText={i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
+        isDanger={true}
+      />
 
       <WarehouseTour 
         isOpen={showTour}
