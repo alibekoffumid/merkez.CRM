@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'react-hot-toast';
 import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
@@ -26,15 +24,12 @@ import TransferStockModal from './TransferStockModal';
 import WarehouseTour from './WarehouseTour';
 import WarehouseStocktake from './WarehouseStocktake';
 import WarehouseReports from './WarehouseReports';
-import DebtBook from '../CRM/DebtBook';
+
 import SellProductModal from './SellProductModal';
 import { formatCategoriesHierarchically } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
-import LabelPrintModal from './LabelPrintModal';
-import WarehouseFiles from './WarehouseFiles';
-import WarehouseSkeleton from './WarehouseSkeleton';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
@@ -87,12 +82,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [printingItems, setPrintingItems] = useState(null);
-  const [printingFormat, setPrintingFormat] = useState('a4');
-  const [labelModalItems, setLabelModalItems] = useState(null);
-  const isFirstMount = useRef(true);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
-  const mobileFilterRef = useRef(null);
 
   useEffect(() => {
     if (profile?.id) {
@@ -101,20 +92,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   }, [profile?.id]);
 
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
     if (currentWarehouseId) {
-      setLoading(true);
-      Promise.all([
-        fetchProducts(currentWarehouseId),
-        fetchIngredients(currentWarehouseId),
-        fetchReceipts(currentWarehouseId),
-        fetchDispatches(currentWarehouseId)
-      ]).finally(() => {
-        setLoading(false);
-      });
+      fetchProducts();
+      fetchIngredients();
+      fetchReceipts();
+      fetchDispatches();
     }
   }, [currentWarehouseId]);
 
@@ -130,9 +112,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpenMenuId(null);
       }
-      const isOutsideDesktop = filterRef.current ? !filterRef.current.contains(e.target) : true;
-      const isOutsideMobile = mobileFilterRef.current ? !mobileFilterRef.current.contains(e.target) : true;
-      if (isOutsideDesktop && isOutsideMobile) {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
         setShowFilterDropdown(false);
       }
     };
@@ -173,24 +153,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const fetchAll = async () => {
     setLoading(true);
     // Fetch warehouses first to get the current context
-    const activeWId = await fetchWarehouses();
-    if (activeWId) {
-      await Promise.all([
-        fetchCategories(), 
-        fetchProducts(activeWId), 
-        fetchIngredients(activeWId), 
-        fetchSuppliers(),
-        fetchReceipts(activeWId),
-        fetchDispatches(activeWId),
-        fetchTransfers(),
-        fetchActiveRepairs()
-      ]);
-    }
+    await fetchWarehouses();
+    await Promise.all([
+      fetchCategories(), 
+      fetchProducts(), 
+      fetchIngredients(), 
+      fetchSuppliers(),
+      fetchReceipts(),
+      fetchDispatches(),
+      fetchTransfers(),
+      fetchActiveRepairs()
+    ]);
     setLoading(false);
   };
 
   const fetchWarehouses = async () => {
-    if (!profile?.id) return null;
+    if (!profile?.id) return;
     const { data, error } = await supabase
       .from('warehouses')
       .select('*')
@@ -207,18 +185,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         if (newW) {
           setWarehouses([newW]);
           setCurrentWarehouseId(newW.id);
-          return newW.id;
         }
       } else {
         setWarehouses(data);
-        const wId = currentWarehouseId || data[0].id;
         if (!currentWarehouseId) {
           setCurrentWarehouseId(data[0].id);
         }
-        return wId;
       }
     }
-    return null;
   };
 
   const fetchActiveRepairs = async () => {
@@ -243,26 +217,56 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   };
 
-  const fetchReceipts = async (wId) => {
-    const targetWId = wId || currentWarehouseId;
-    if (!profile?.id || !targetWId) return;
+  const fetchReceipts = async () => {
+    if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('stock_receipts')
       .select('*, products(name, barcode), suppliers(name)')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', targetWId)
+      .eq('warehouse_id', currentWarehouseId)
       .order('received_at', { ascending: false });
     if (data) setReceipts(data);
   };
 
-  const fetchDispatches = async (wId) => {
-    const targetWId = wId || currentWarehouseId;
-    if (!profile?.id || !targetWId) return;
+  const handleDeleteReceipt = async (receipt) => {
+    if (!window.confirm(t('warehouse.confirmDeleteReceipt') || 'Bu qəbul yazısını silmək və stok miqdarını geri qaytarmaq istədiyinizdən əminsiniz?')) {
+      return;
+    }
+
+    try {
+      const { error: delErr } = await supabase
+        .from('stock_receipts')
+        .delete()
+        .eq('id', receipt.id);
+
+      if (delErr) throw delErr;
+
+      if (receipt.product_id && receipt.quantity) {
+        const product = (products || []).find(p => p.id === receipt.product_id);
+        if (product) {
+          const currentQty = product.stock_quantity || 0;
+          const newQty = Math.max(0, currentQty - receipt.quantity);
+          await supabase
+            .from('products')
+            .update({ stock_quantity: newQty })
+            .eq('id', receipt.product_id);
+        }
+      }
+
+      fetchReceipts();
+      fetchProducts();
+    } catch (err) {
+      console.error('Error deleting receipt:', err);
+    }
+  };
+
+  const fetchDispatches = async () => {
+    if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('stock_dispatches')
       .select('*, products(name, barcode, category_id)')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', targetWId)
+      .eq('warehouse_id', currentWarehouseId)
       .order('issued_at', { ascending: false });
     if (data) setDispatches(data);
   };
@@ -378,37 +382,25 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (data) setCategories(data);
   };
 
-  const fetchProducts = async (wId) => {
-    const targetWId = wId || currentWarehouseId;
-    if (!profile?.id || !targetWId) return;
-    let allProducts = [];
-    let from = 0;
-    const step = 1000;
-    while (true) {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*, categories(name), suppliers(name)')
-        .eq('is_deleted', false)
-        .eq('user_id', profile.id)
-        .eq('warehouse_id', targetWId)
-        .order('name', { ascending: true })
-        .range(from, from + step - 1);
-      if (error || !data || data.length === 0) break;
-      allProducts.push(...data);
-      if (data.length < step) break;
-      from += step;
-    }
-    setProducts(allProducts);
+  const fetchProducts = async () => {
+    if (!profile?.id || !currentWarehouseId) return;
+    const { data } = await supabase
+      .from('products')
+      .select('*, categories(name)')
+      .eq('is_deleted', false)
+      .eq('user_id', profile.id)
+      .eq('warehouse_id', currentWarehouseId)
+      .order('name', { ascending: true });
+    if (data) setProducts(data);
   };
 
-  const fetchIngredients = async (wId) => {
-    const targetWId = wId || currentWarehouseId;
-    if (!profile?.id || !targetWId) return;
+  const fetchIngredients = async () => {
+    if (!profile?.id || !currentWarehouseId) return;
     const { data } = await supabase
       .from('ingredients')
       .select('*')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', targetWId)
+      .eq('warehouse_id', currentWarehouseId)
       .order('name', { ascending: true });
     if (data) setIngredients(data);
   };
@@ -436,28 +428,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         .from('products')
         .update({ is_deleted: true })
         .eq('id', confirmDelete.id);
-      if (!error) {
-        setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
-        toast.success(i18n.language === 'az' ? 'Silindi' : 'Удалено');
-      } else {
-        toast.error(error.message);
-      }
+      if (!error) setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
     } else if (confirmDelete.type === 'ingredient') {
       const { error } = await supabase.from('ingredients').delete().eq('id', confirmDelete.id);
-      if (!error) {
-        setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
-        toast.success(i18n.language === 'az' ? 'Silindi' : 'Удалено');
-      } else {
-        toast.error(error.message);
-      }
+      if (!error) setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
     } else if (confirmDelete.type === 'supplier') {
       const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
-      if (!error) {
-        fetchAll();
-        toast.success(i18n.language === 'az' ? 'Silindi' : 'Удалено');
-      } else {
-        toast.error(error.message);
-      }
+      if (!error) fetchAll();
     }
     setConfirmDelete(null);
   };
@@ -475,7 +452,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       setProducts(prev => prev.filter(p => !selectedItems.includes(p.id)));
       setSelectedItems([]);
       setConfirmDelete(null);
-      toast.success(i18n.language === 'az' ? 'Seçilmiş məhsullar silindi' : 'Выбранные продукты удалены');
     } else {
       toast.error(error.message);
     }
@@ -499,79 +475,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const handleEdit = (product) => {
     setEditingProduct(product);
     setOpenMenuId(null);
-  };
-
-  const handleDuplicate = async (product) => {
-    setOpenMenuId(null);
-    let finalBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    
-    let settings = null;
-    try {
-      const saved = localStorage.getItem('merkez_warehouse_settings');
-      if (saved) settings = JSON.parse(saved);
-    } catch (e) {}
-
-    if (settings?.autoGenerateBarcode) {
-      finalBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    }
-    
-    try {
-      // Create a copy without ID, with new barcode, zero stock
-      const newProduct = {
-        name: product.name,
-        category_id: product.category_id,
-        supplier_id: product.supplier_id,
-        price: product.price,
-        purchase_price: product.purchase_price,
-        barcode: finalBarcode, // User can change it in edit modal
-        stock_quantity: 0,
-        critical_stock: product.critical_stock,
-        color: product.color,
-        image_url: product.image_url,
-        unit: product.unit,
-        user_id: profile.id,
-        warehouse_id: currentWarehouseId
-      };
-      
-      let data, error;
-      const res = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
-      data = res.data;
-      error = res.error;
-      
-      if (error && (error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
-        // Fallback if the user hasn't created the color or unit columns yet in Supabase
-        delete newProduct.color;
-        delete newProduct.unit;
-        const fallbackRes = await supabase.from('products').insert([newProduct]).select('*, categories(name)').single();
-        data = fallbackRes.data;
-        error = fallbackRes.error;
-        if (!error) {
-          toast.success('Товар скопирован, но новые колонки (Цвет / Unit) отсутствуют в БД. Выполните SQL-запрос!', { duration: 6000, icon: '⚠️' });
-        }
-      }
-
-      if (error) throw error;
-      
-      if (!error && newProduct.color !== undefined) {
-          toast.success(i18n.language === 'az' ? 'Məhsul kopyalandı' : 'Товар продублирован');
-      }
-      
-      // Update local state to insert right below the original product
-      setProducts(prev => {
-        const index = prev.findIndex(p => p.id === product.id);
-        if (index !== -1) {
-          const newArr = [...prev];
-          newArr.splice(index + 1, 0, data);
-          return newArr;
-        }
-        return [...prev, data];
-      });
-      
-      setEditingProduct(data); // Open edit modal for the newly duplicated product
-    } catch(err) {
-      console.error("Duplicate Error Details:", err);
-      toast.error(`Ошибка дублирования: ${err.message || 'Неизвестная ошибка'}. Посмотрите консоль (F12) для деталей.`, { duration: 10000 });
-    }
   };
 
   const handleEditIngredient = (ingredient) => {
@@ -722,20 +625,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {t('warehouse.finishedGoods') || 'Məhsullar'}
                 </button>
                 
-                {false && isRestaurantActive && (
-                  <button
-                    onClick={() => setActiveTab('raw')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                      activeTab === 'raw'
-                        ? 'bg-white text-merkez-green shadow-sm'
-                        : 'text-gray-500 hover:text-gray-850'
-                    }`}
-                  >
-                    <FolderTree className="w-3.5 h-3.5" />
-                    {t('warehouse.ingredients') || 'İnqrediyentlər'}
-                  </button>
-                )}
-                
                 {currentStaff?.role !== 'Cashier' && (
                   <>
                     <button
@@ -815,20 +704,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {/* Tab-specific actions (Shifted to Left) */}
             {activeTab === 'finished' && (
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
+                <button 
+                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                  className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
+                  title={t('warehouse.categories')}
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
                 {currentStaff?.role !== 'Cashier' && (
                   <>
                     {selectedItems.length > 0 && (
                       <>
                         <button
-                          onClick={() => setShowSellProduct(true)}
-                          className="bg-merkez-green text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center shadow-md shadow-green-600/10 border border-transparent"
-                        >
-                          <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Seçilənləri Sat' : 'Продать'} ({selectedItems.length})
-                        </button>
-                        <button
                           onClick={() => {
                             const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
-                            setLabelModalItems(itemsToPrint);
+                            setPrintingItems(itemsToPrint);
                           }}
                           className="bg-gray-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-900 transition-colors flex items-center shadow-sm"
                         >
@@ -844,92 +734,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </>
                     )}
 
-                    <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 p-2 md:px-3.5 md:py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm" title={t('warehouse.import')}>
-                      <Upload className="w-4 h-4 md:w-3.5 md:h-3.5 md:mr-1.5" /> <span className="hidden md:inline">{t('warehouse.import')}</span>
+                    <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                      <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
                     </button>
                   </>
                 )}
-                <div className="relative shrink-0 lg:hidden" ref={mobileFilterRef}>
-                  <button 
-                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                    className={`p-2 rounded-lg border transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-white border-gray-200 text-gray-500 hover:text-gray-700'}`}
-                    title={t('retail.filters')}
-                  >
-                    <Filter className="w-4 h-4" />
-                  </button>
-                  
-                  {showFilterDropdown && (
-                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-64 py-1.5 animate-in fade-in zoom-in-95">
-                      <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
-                      
-                      {activeTab === 'finished' && (
-                        <div className="px-4 py-2 space-y-3">
-                          <div className="space-y-1">
-                            <Dropdown
-                              value={selectedCategory || 'all'}
-                              onChange={(val) => { setSelectedCategory(val === 'all' ? null : val); }}
-                              options={[
-                                { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
-                                ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
-                              ]}
-                              buttonClassName="rounded-md px-3 py-2 text-sm w-full border border-gray-200"
-                            />
-                          </div>
-
-                          <div className="space-y-1">
-                            <Dropdown
-                              value={supplierFilter}
-                              onChange={(val) => { setSupplierFilter(val); }}
-                              options={[
-                                { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
-                                ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                              ]}
-                              buttonClassName="rounded-md px-3 py-2 text-sm w-full border border-gray-200"
-                            />
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-y border-gray-50 mt-1 mb-1">{t('warehouse.thStatus') || 'Статус'}</p>
-                      {[
-                        { id: 'all', label: t('common.all') },
-                        { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
-                        { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
-                        { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
-                      ].map(item => (
-                        <button
-                          key={item.id}
-                          onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
-                          className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
-                            {item.label}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {activeTab === 'finished' && (
-                  <button onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addProduct')}>
-                    <Plus className="w-4 h-4" />
-                  </button>
-                )}
-                
-                {activeTab === 'raw' && isRestaurantActive && (
-                  <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white p-2 rounded-lg transition-colors shadow-sm shrink-0 lg:hidden" title={t('warehouse.addIngredient')}>
-                    <Plus className="w-4 h-4" />
-                  </button>
-                )}
-                <button 
-                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
-                  className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
-                  title={t('warehouse.categories')}
-                >
-                  <Menu className="w-4 h-4" />
-                </button>
               </div>
             )}
 
@@ -938,8 +747,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </div>
             )}
           </div>
-
-
 
           {/* Moved Search Bar (relocated to filter bar) */}
 
@@ -1039,38 +846,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
 
 
-          {(activeTab === 'finished' || activeTab === 'raw') && (
-            <>
-              <div id="tour-search-desktop" className="hidden md:block relative w-full lg:flex-1 lg:max-w-md shrink-0 order-3 lg:order-none">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-                />
-              </div>
-              
-              {document.getElementById('mobile-header-search-portal') && ReactDOM.createPortal(
-                <div id="tour-search-mobile" className="relative w-full transition-all">
-                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="text" 
-                    placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    className="w-full pl-8 pr-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-white/30 focus:bg-white/10 transition-colors placeholder-gray-500" 
-                  />
-                </div>,
-                document.getElementById('mobile-header-search-portal')
-              )}
-            </>
-          )}
-
-          <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0 order-4 lg:order-none">
+          <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
-            {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && selectedItems.length === 0 && (
+            {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && (
               <button 
                 onClick={() => setShowSellProduct(true)} 
                 className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
@@ -1145,8 +923,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       <div className={`flex flex-1 ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
         {activeTab === 'debts' ? (
-          <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 overflow-y-auto">
-            <DebtBook />
+          <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 overflow-y-auto flex items-center justify-center">
+            <p className="text-gray-500 font-medium text-center">
+              Модуль "Долговая книга" (DebtBook) недоступен в автономной версии склада.<br/>
+              Он является частью модуля CRM.
+            </p>
           </div>
         ) : activeTab === 'clients' ? (
           <WarehouseClientManager />
@@ -1165,7 +946,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               setHistoryFilter(id);
               setActiveTab('history');
             }}
-            warehouseId={currentWarehouseId}
           />
         ) : activeTab === 'settings' ? (
           <WarehouseSettings />
@@ -1230,6 +1010,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>}
+                    {historyTab === 'receipts' && (!currentStaff || currentStaff?.role === 'Manager') && <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -1253,7 +1034,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="px-6 py-20 text-center">
+                        <td colSpan="7" className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noReceiptsFound') || 'История приёмок пуста'}</p>
@@ -1309,6 +1090,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               ₼{(receipt.quantity * (receipt.unit_price || 0)).toFixed(2)}
                             </span>
                           </td>
+                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                            <td className="px-4 py-4 text-right">
+                              <button
+                                onClick={() => handleDeleteReceipt(receipt)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title={t('common.delete') || 'Sil'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))
                     )
@@ -1612,10 +1404,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           <WarehouseStocktake warehouseId={currentWarehouseId} warehouses={warehouses} isRestaurantActive={isRestaurantActive} />
         ) : activeTab === 'reports' ? (
           <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} />
-        ) : activeTab === 'files' ? (
-          <div className="flex-1 min-h-0">
-            <WarehouseFiles />
-          </div>
         ) : (
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
@@ -1757,47 +1545,85 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <div className="flex-1 flex flex-col bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
           <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20 items-center justify-between">
             <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
+              {activeTab === 'finished' && (
+                <button
+                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
+                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              )}
 
-
+              {(activeTab === 'finished' || activeTab === 'raw') && (
+                <div id="tour-search" className="relative w-full flex-1 min-w-[200px]">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
+                  />
+                </div>
+              )}
 
               {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="hidden lg:flex bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors items-center justify-center shadow-sm shrink-0">
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
                 </button>
               )}
 
               {activeTab === 'raw' && isRestaurantActive && currentStaff?.role !== 'Cashier' && (
-                <button onClick={() => setShowAddIngredient(true)} className="hidden lg:flex bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors items-center justify-center shadow-sm shrink-0">
+                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
                 </button>
               )}
 
-
+              <div className="relative shrink-0 xl:hidden" ref={filterRef}>
+                <button 
+                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
+                >
+                  <Filter className="w-5 h-5" />
+                </button>
+                
+                {showFilterDropdown && (
+                  <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                    <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                    {[
+                      { id: 'all', label: t('common.all') },
+                      { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
+                      { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
+                      { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
+                    ].map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
+                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
+                          {item.label}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {activeTab === 'finished' && (
-              <div className="hidden lg:flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto items-center">
-                <div className="flex items-center gap-1.5 w-full sm:w-60 shrink-0">
-                  <div className="flex-1">
-                    <Dropdown
-                      value={selectedCategory || 'all'}
-                      onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
-                      options={[
-                        { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
-                        ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
-                      ]}
-                      buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
-                    />
-                  </div>
-                  {currentStaff?.role !== 'Cashier' && (
-                    <button
-                      onClick={() => setShowAddCategory(true)}
-                      className="p-2 bg-gray-50 border border-gray-200 text-gray-700 hover:text-merkez-blue hover:border-merkez-blue hover:bg-blue-50 rounded-lg transition-all shadow-sm shrink-0"
-                      title={t('warehouse.addCategory') || 'Kateqoriya əlavə et'}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  )}
+              <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
+                <div className="w-full sm:w-56 shrink-0">
+                  <Dropdown
+                    value={selectedCategory || 'all'}
+                    onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
+                    options={[
+                      { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
+                      ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
+                    ]}
+                    buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
+                  />
                 </div>
 
                 <div className="w-full sm:w-56 shrink-0">
@@ -1850,14 +1676,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="flex-1 overflow-auto" ref={menuRef}>
             {loading ? (
-              <WarehouseSkeleton />
+              <div className="flex items-center justify-center h-full text-gray-400">
+                <Loader2 className="w-8 h-8 animate-spin mr-3" /><span>{t('warehouse.loadingInventory')}</span>
+              </div>
             ) : activeTab === 'finished' ? (
               // Finished Goods Table
               filteredProducts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                   <FolderTree className="w-12 h-12 text-gray-200" />
                   <p className="font-medium">{t('warehouse.noProductsFound')}</p>
-                  {currentStaff?.role !== 'Cashier' && products.length === 0 && (
+                  {currentStaff?.role !== 'Cashier' && (
                     <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
                       <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
                     </button>
@@ -1882,15 +1710,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </button>
                         </th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Rəng / Ölçü' : 'Цвет / Размер'}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">ZAVOD QİYMƏTİ</th>
                         {(!currentStaff || currentStaff?.role === 'Manager') && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
                         )}
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">ƏLAVƏ MƏLUMAT</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
                         {currentStaff?.role !== 'Cashier' && (
@@ -1899,18 +1724,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {filteredProducts.map((item, index) => {
-                        const desc = item.description || '';
-                        let factoryPrice = '';
-                        let additionalInfo = '';
-                        if (desc.includes('Zavod qiyməti:')) {
-                          factoryPrice = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
-                        }
-                        if (desc.includes('Əlavə məlumat:')) {
-                          additionalInfo = desc.split('Əlavə məlumat:')[1].split('\n')[0].trim();
-                        }
-
-                        return (
+                      {filteredProducts.map((item, index) => (
                         <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
                           <td className="pl-8 pr-2 py-4">
                             <button 
@@ -1935,28 +1749,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </div>
                           </td>
                           <td className="px-2 py-4">
-                            <span className="text-sm text-gray-600 font-medium">{item.color || '—'}</span>
-                          </td>
-                          <td className="px-2 py-4">
                             <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
                               {item.barcode || '—'}
                             </span>
                           </td>
                           <td className="px-2 py-4">
                             <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                              {item.suppliers?.name || '—'}
+                              {item.categories?.name ? (t(`categories.${item.categories.name}`, { defaultValue: item.categories.name })) : '—'}
                             </span>
                           </td>
-                          <td className="px-2 py-4">
-                            <div className="w-14 h-4 rounded-md shimmer-element"></div>
-                          </td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
-                            <td className="px-2 py-4">
-                              <div className="w-14 h-4 rounded-md shimmer-element"></div>
-                            </td>
+                            <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                           )}
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900">{parseFloat(item.price).toFixed(2)} ₼</td>
-                          <td className="px-2 py-4 text-sm text-gray-600 truncate max-w-[150px]" title={additionalInfo}>{additionalInfo || '—'}</td>
+                          <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">
                             {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
                           </td>
@@ -1980,18 +1785,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 {openMenuId === item.id && (
                                   <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
                                     <button
-                                      onClick={() => {
-                                        setSelectedItems([item.id]);
-                                        setShowSellProduct(true);
-                                        setOpenMenuId(null);
-                                      }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-emerald-600 hover:bg-emerald-50 transition-colors font-bold whitespace-nowrap"
-                                    >
-                                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                                      {i18n.language === 'az' ? 'Məhsul Sat' : 'Продать товар'}
-                                    </button>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button
                                       onClick={() => handleEdit(item)}
                                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                     >
@@ -2000,15 +1793,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                     </button>
                                     <div className="mx-3 my-1 border-t border-gray-100" />
                                     <button
-                                      onClick={() => handleDuplicate(item)}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                    >
-                                      <Plus className="w-4 h-4 text-merkez-green" />
-                                      {i18n.language === 'az' ? 'Məhsulu kopyala' : 'Дублировать товар'}
-                                    </button>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button
-                                      onClick={() => { setLabelModalItems([item]); setOpenMenuId(null); }}
+                                      onClick={() => { setPrintingItems([item]); setOpenMenuId(null); }}
                                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                     >
                                       <Printer className="w-4 h-4 text-gray-500" />
@@ -2028,8 +1813,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                           )}
                         </tr>
-                        );
-                      })}
+                      ))}
                     </tbody>
                   </table>
 
@@ -2058,15 +1842,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   </span>
                                 )}
                               </p>
-                              <div className="flex items-center gap-2 flex-wrap mt-1.5">
-                                <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
-                                  {item.suppliers?.name || '—'}
-                                </span>
-                                <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
-                                  {getStatusIcon(item.stock_quantity, item.critical_stock)}
-                                  <span className="ml-1">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
-                                </div>
-                              </div>
+                              <span className="text-[10px] font-mono text-gray-400 mt-1 block">
+                                {item.barcode || '—'}
+                              </span>
                             </div>
                           </div>
 
@@ -2081,39 +1859,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {openMenuId === item.id && (
                                 <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
                                   <button
-                                    onClick={() => {
-                                      setSelectedItems([item.id]);
-                                      setShowSellProduct(true);
-                                      setOpenMenuId(null);
-                                    }}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-emerald-600 hover:bg-emerald-50 transition-colors font-bold"
-                                  >
-                                    <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
-                                    {i18n.language === 'az' ? 'Məhsul Sat' : 'Продать'}
-                                  </button>
-                                  <div className="mx-3 my-1 border-t border-gray-100" />
-                                  <button
                                     onClick={() => handleEdit(item)}
                                     className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
                                   >
                                     <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
                                     {t('warehouse.editProduct') || 'Düzəliş et'}
-                                  </button>
-                                  <div className="mx-3 my-1 border-t border-gray-100" />
-                                  <button
-                                    onClick={() => handleDuplicate(item)}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
-                                  >
-                                    <Plus className="w-3.5 h-3.5 text-merkez-green" />
-                                    {i18n.language === 'az' ? 'Məhsulu kopyala' : 'Дублировать товар'}
-                                  </button>
-                                  <div className="mx-3 my-1 border-t border-gray-100" />
-                                  <button
-                                    onClick={() => { setLabelModalItems([item]); setOpenMenuId(null); }}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
-                                  >
-                                    <Printer className="w-3.5 h-3.5 text-gray-500" />
-                                    Etiket Çap Et
                                   </button>
                                   <div className="mx-3 my-1 border-t border-gray-100" />
                                   <button
@@ -2129,18 +1879,26 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           )}
                         </div>
 
-
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
+                            {item.categories?.name || '—'}
+                          </span>
+                          <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
+                            {getStatusIcon(item.stock_quantity, item.critical_stock)}
+                            <span className="ml-1">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
+                          </div>
+                        </div>
 
                         <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
-                              <div className="w-12 h-3.5 rounded-md shimmer-element"></div>
+                              <span className="text-xs font-bold text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</span>
                             </div>
                           )}
                           <div className="text-center">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPrice') || 'Satış'}</span>
-                            <span className="text-xs font-black text-gray-900">{parseFloat(item.price).toFixed(2)} ₼</span>
+                            <span className="text-xs font-black text-gray-900">${parseFloat(item.price).toFixed(2)}</span>
                           </div>
                           <div className="text-right">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
@@ -2158,11 +1916,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                   <FolderTree className="w-12 h-12 text-gray-200" />
                   <p className="font-medium">{t('warehouse.noIngredientsFound')}</p>
-                  {ingredients.length === 0 && (
-                    <button onClick={() => setShowAddIngredient(true)} className="px-4 py-2 bg-merkez-green text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors shadow-sm">
-                      <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
-                    </button>
-                  )}
+                  <button onClick={() => setShowAddIngredient(true)} className="px-4 py-2 bg-merkez-green text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors shadow-sm">
+                    <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
+                  </button>
                 </div>
               ) : (
                 <>
@@ -2347,17 +2103,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       <ModalPortal>
         <SellProductModal
           isOpen={showSellProduct}
-          onClose={() => {
-            setShowSellProduct(false);
-            setSelectedItems([]);
-          }}
-          onSaleComplete={() => {
-            fetchAll();
-            setSelectedItems([]);
-          }}
+          onClose={() => setShowSellProduct(false)}
+          onSaleComplete={fetchAll}
           warehouseId={currentWarehouseId}
           activeRepairsMap={activeRepairsMap}
-          initialProducts={products.filter(p => selectedItems.includes(p.id))}
         />
       </ModalPortal>
       {confirmDelete && (
@@ -2404,19 +2153,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         onClose={() => setShowTour(false)}
       />
 
-      <LabelPrintModal 
-        isOpen={!!labelModalItems}
-        onClose={() => setLabelModalItems(null)}
-        selectedProducts={labelModalItems}
-        onPrint={(expandedItems, format) => {
-          setLabelModalItems(null);
-          setPrintingFormat(format || 'a4');
-          setPrintingItems(expandedItems);
-        }}
-      />
-
       {printingItems && (
-        <ProductStickerTemplate items={printingItems} format={printingFormat} onPrintComplete={() => setPrintingItems(null)} />
+        <ProductStickerTemplate items={printingItems} onPrintComplete={() => setPrintingItems(null)} />
       )}
     </div>
   );
