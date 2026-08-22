@@ -1017,7 +1017,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       <button
                         type="button"
                         onClick={() => setShowCameraScanner(true)}
-                        className="flex items-center gap-1 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                        className="md:hidden flex items-center gap-1 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
                         title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
                       >
                         <Camera className="w-3.5 h-3.5" />

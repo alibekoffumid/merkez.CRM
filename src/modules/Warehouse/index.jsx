@@ -1750,7 +1750,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button 
                     type="button"
                     onClick={() => setShowCameraScanner(true)}
-                    className="flex items-center gap-1.5 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-2 rounded-lg shrink-0 font-bold text-xs transition-colors shadow-sm"
+                    className="md:hidden flex items-center gap-1.5 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-2 rounded-lg shrink-0 font-bold text-xs transition-colors shadow-sm"
                     title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
                   >
                     <Camera className="w-4 h-4" />
