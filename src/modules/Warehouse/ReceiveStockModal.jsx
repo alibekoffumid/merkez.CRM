@@ -11,6 +11,8 @@ import { formatCategoriesHierarchically } from './categoryUtils';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 
 const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product', warehouseId }) => {
+  if (!isOpen) return null;
+
   const { t } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -57,7 +59,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   });
 
   useEffect(() => {
-    if (isOpen && warehouseId) {
+    if (isOpen) {
       fetchCategories();
       fetchSuppliers();
       fetchProducts();
@@ -80,32 +82,65 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
 
   const fetchCategories = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase.from('categories').select('id, name, parent_id').eq('user_id', profile.id).order('name');
-    if (data) setCategories(data);
+    try {
+      const { data } = await supabase.from('categories').select('id, name, parent_id').eq('user_id', profile.id).order('name');
+      if (data) setCategories(data);
+    } catch (e) {}
   };
 
   const fetchSuppliers = async () => {
     if (!profile?.id) return;
-    const { data } = await supabase.from('suppliers').select('id, name').eq('user_id', profile.id).order('name');
-    if (data) setSuppliers(data);
+    try {
+      const { data } = await supabase.from('suppliers').select('id, name').eq('user_id', profile.id).order('name');
+      if (data) setSuppliers(data);
+    } catch (e) {}
   };
 
   const fetchProducts = async () => {
-    if (!profile?.id || !warehouseId) return;
-    const table = type === 'product' ? 'products' : 'ingredients';
-    const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
-    const { data } = await supabase
-      .from(table)
-      .select(`id, name, barcode, purchase_price, price, supplier_id, category_id, ${qtyField}`)
-      .eq('user_id', profile.id)
-      .eq('warehouse_id', warehouseId)
-      .eq('is_deleted', false)
-      .order('name');
-    if (data) {
-      setProducts(data.map(p => ({
-        ...p,
-        stock_quantity: p[qtyField]
-      })));
+    if (!profile?.id) return;
+    try {
+      if (type === 'product') {
+        if (!warehouseId) return;
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name, barcode, purchase_price, price, supplier_id, category_id, stock_quantity')
+          .eq('user_id', profile.id)
+          .eq('warehouse_id', warehouseId)
+          .eq('is_deleted', false)
+          .order('name');
+
+        if (error) {
+          console.error('fetchProducts error:', error);
+          return;
+        }
+        if (data) {
+          setProducts(data.map(p => ({ ...p, stock_quantity: p.stock_quantity || 0 })));
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('ingredients')
+          .select('id, name, cost_price, quantity, category_id')
+          .eq('user_id', profile.id)
+          .order('name');
+
+        if (error) {
+          console.error('fetchIngredients error:', error);
+          return;
+        }
+        if (data) {
+          setProducts(data.map(i => ({
+            id: i.id,
+            name: i.name,
+            barcode: '',
+            purchase_price: i.cost_price || 0,
+            price: i.cost_price || 0,
+            category_id: i.category_id,
+            stock_quantity: i.quantity || 0
+          })));
+        }
+      }
+    } catch (e) {
+      console.error('fetchProducts exception:', e);
     }
   };
 
