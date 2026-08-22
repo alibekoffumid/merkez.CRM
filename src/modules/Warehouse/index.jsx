@@ -1838,7 +1838,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           <td className="px-2 py-4">
                             <span className="text-sm bg-blue-50 text-merkez-blue px-2.5 py-1 rounded-full font-medium whitespace-nowrap">
-                              {item.categories?.name ? (t(`categories.${item.categories.name}`, { defaultValue: item.categories.name })) : '—'}
+                              {(() => {
+                                const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
+                                return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
+                              })()}
                             </span>
                           </td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
@@ -1962,9 +1965,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-1 flex-wrap">
                           <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
-                            {item.categories?.name || '—'}
+                            {(() => {
+                              const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
+                              return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
+                            })()}
                           </span>
                           <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
                             {getStatusIcon(item.stock_quantity, item.critical_stock)}
