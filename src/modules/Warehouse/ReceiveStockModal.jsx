@@ -114,10 +114,11 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
 
   const handleProductChange = (productId) => {
     const product = (products || []).find(p => p.id === productId);
+    const salePrice = product?.price ?? product?.sale_price ?? product?.sell_price ?? product?.purchase_price ?? 0;
     setCurrentItem(prev => ({
       ...prev,
       product_id: productId,
-      unit_price: product?.purchase_price !== undefined && product?.purchase_price !== null ? product.purchase_price.toString() : ''
+      unit_price: salePrice ? salePrice.toString() : '0'
     }));
 
     // Auto-fill supplier if not set
@@ -140,10 +141,11 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
           newItems[existingIndex].quantity = (parseFloat(newItems[existingIndex].quantity) + 1).toString();
           return newItems;
         } else {
+          const salePrice = product.price ?? product.sale_price ?? product.sell_price ?? product.purchase_price ?? 0;
           return [...prevItems, {
             product_id: product.id,
             quantity: '1',
-            unit_price: (product.purchase_price ?? product.price ?? 0).toString(),
+            unit_price: salePrice ? salePrice.toString() : '0',
             productName: product.name,
             barcode: product.barcode
           }];
