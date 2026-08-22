@@ -22,43 +22,43 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
         const qrUrl = `https://rastmusicshop.com/product/${item.id}`;
         // Ensure barcode has a value, fallback to short ID if empty
         const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 10) || '00000000';
-        
+        const displayPrice = item.sale_price ?? item.price ?? item.sell_price ?? 0;
+
         return (
           <div key={`${item.id}-${index}`} className="sticker-page">
-            {/* Top: Branding */}
-            <div className="sticker-brand">RAST MUSIC SHOP</div>
-            
-            {/* Product Title */}
-            <div className="sticker-title">
-              {item.name}
-            </div>
-            
-            {/* Middle Row: Barcode & QR */}
-            <div className="sticker-middle-row">
-              <div className="sticker-barcode-wrapper">
-                <Barcode 
-                  value={barcodeValue} 
-                  format="CODE128" 
-                  width={1.1} 
-                  height={20} 
-                  fontSize={9}
-                  margin={0}
-                  displayValue={true}
-                  background="transparent"
-                />
+            <div className="sticker-layout">
+              {/* Left Side: Branding, Title, Sale Price, Barcode */}
+              <div className="sticker-left">
+                <div className="sticker-brand">RAST MUSIC SHOP</div>
+                <div className="sticker-title" title={item.name}>
+                  {item.name}
+                </div>
+                <div className="sticker-price">
+                  <span className="sticker-price-label">SATIŞ QİYMƏTİ: </span>
+                  <span className="sticker-price-value">{displayPrice} ₼</span>
+                </div>
+                <div className="sticker-barcode-wrapper">
+                  <Barcode 
+                    value={barcodeValue} 
+                    format="CODE128" 
+                    width={1.0} 
+                    height={18} 
+                    fontSize={8}
+                    margin={0}
+                    displayValue={true}
+                    background="transparent"
+                  />
+                </div>
               </div>
-              <div className="sticker-qr-wrapper">
-                <QRCodeSVG value={qrUrl} size={34} level="M" includeMargin={false} />
-              </div>
-            </div>
-            
-            {/* Bottom Row: Price & Call to action */}
-            <div className="sticker-bottom-row">
-              <div className="sticker-price">
-                Nağd: {item.price || item.sale_price || 0} ₼
-              </div>
-              <div className="sticker-cta">
-                Kredit kalkulyatoru<br />üçün skan edin
+
+              {/* Right Side: Large QR Code */}
+              <div className="sticker-right">
+                <div className="sticker-qr-wrapper">
+                  <QRCodeSVG value={qrUrl} size={54} level="M" includeMargin={false} />
+                </div>
+                <div className="sticker-cta">
+                  Kredit kalkulyatoru<br />üçün skan edin
+                </div>
               </div>
             </div>
           </div>

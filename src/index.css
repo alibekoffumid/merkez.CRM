@@ -99,89 +99,113 @@
     page-break-after: always;
     page-break-inside: avoid;
     overflow: hidden;
-    padding: 1.5mm 2mm;
+    padding: 2mm 2.5mm;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
     background: white;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 
+  .sticker-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+  }
+
+  .sticker-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    text-align: left;
+    padding-right: 2mm;
+    overflow: hidden;
+  }
+
   .sticker-brand {
-    font-size: 7px;
+    font-size: 7.5px;
     font-weight: 900;
-    text-align: center;
+    text-align: left;
     text-transform: uppercase;
     color: #000;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1;
   }
 
   .sticker-title {
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 800;
-    text-align: center;
-    white-space: nowrap;
+    text-align: left;
+    color: #000;
+    line-height: 1.1;
+    margin: 1px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-    margin: 2px 0 4px 0;
+    word-break: break-word;
+  }
+
+  .sticker-price {
+    font-size: 11px;
+    font-weight: 900;
+    color: #000;
+    line-height: 1.1;
+    margin-bottom: 1px;
+  }
+
+  .sticker-price-label {
+    font-size: 7.5px;
+    font-weight: 700;
     color: #000;
   }
 
-  .sticker-middle-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 4px;
-    flex: 1;
+  .sticker-price-value {
+    font-size: 12px;
+    font-weight: 900;
+    color: #000;
   }
 
   .sticker-barcode-wrapper {
-    flex: 1;
+    width: 100%;
     display: flex;
     justify-content: flex-start;
     align-items: center;
     overflow: hidden;
   }
-  
+
   .sticker-barcode-wrapper svg {
     max-width: 100%;
-    height: 20px !important;
+    height: 18px !important;
+  }
+
+  .sticker-right {
+    width: 56px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
   .sticker-qr-wrapper {
-    width: 34px;
-    height: 34px;
+    width: 54px;
+    height: 54px;
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-shrink: 0;
-  }
-
-  .sticker-bottom-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    width: 100%;
-    margin-top: 2px;
-  }
-
-  .sticker-price {
-    font-size: 13px;
-    font-weight: 900;
-    color: #000;
-    line-height: 1;
   }
 
   .sticker-cta {
-    font-size: 6px;
-    font-weight: 800;
-    text-align: right;
-    line-height: 1.1;
+    font-size: 5.5px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.0;
     color: #000;
-    max-width: 50%;
+    margin-top: 1px;
   }
 }
