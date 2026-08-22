@@ -78,6 +78,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [receiptToDelete, setReceiptToDelete] = useState(null);
+  const [mainBarcodeMode, setMainBarcodeMode] = useState(false);
+  const mainBarcodeInputRef = useRef(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
@@ -265,6 +267,45 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       toast.error(err.message || 'Ошибка при удалении');
     } finally {
       setReceiptToDelete(null);
+    }
+  };
+
+  const playBeep = (success = true) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = success ? 880 : 220;
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {}
+  };
+
+  const handleMainSearchSubmit = (e) => {
+    e.preventDefault();
+    const term = searchTerm.trim();
+    if (!term) return;
+
+    const matchedProduct = (products || []).find(p => p.barcode === term);
+    if (matchedProduct) {
+      playBeep(true);
+      toast.success(`${matchedProduct.name} (${matchedProduct.barcode})`);
+    } else {
+      const matched = (products || []).filter(p => 
+        (p.name || '').toLowerCase().includes(term.toLowerCase()) || 
+        (p.barcode || '').toLowerCase().includes(term.toLowerCase())
+      );
+      if (matched.length > 0) {
+        playBeep(true);
+      } else {
+        playBeep(false);
+        toast.error(i18n.language === 'az' ? 'Məhsul tapılmadı' : 'Товар не найден');
+      }
     }
   };
 
@@ -1563,16 +1604,50 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               )}
 
               {(activeTab === 'finished' || activeTab === 'raw') && (
-                <div id="tour-search" className="relative w-full flex-1 min-w-[200px]">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="text" 
-                    placeholder={activeTab === 'finished' ? t('warehouse.searchPlaceholder') : t('warehouse.searchIngredients')} 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors" 
-                  />
-                </div>
+                <form onSubmit={handleMainSearchSubmit} id="tour-search" className="relative w-full flex-1 min-w-[240px] flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${mainBarcodeMode ? 'text-merkez-blue font-bold' : 'text-gray-400'}`} />
+                    <input 
+                      ref={mainBarcodeInputRef}
+                      type="text" 
+                      placeholder={mainBarcodeMode ? (i18n.language === 'az' ? 'Skaner rejimi: Skan edin...' : 'Режим сканера: Сканируйте...') : (activeTab === 'finished' ? (t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...') : t('warehouse.searchIngredients'))} 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                      className={`w-full pl-10 pr-9 py-2 rounded-lg text-sm transition-all outline-none ${
+                        mainBarcodeMode 
+                          ? 'bg-blue-50/60 border-2 border-merkez-blue text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-merkez-blue/20' 
+                          : 'bg-gray-50 border border-gray-100 focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue'
+                      }`} 
+                    />
+                    {searchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-50 border border-gray-100 hover:bg-gray-100 px-3 py-2 rounded-lg shrink-0 transition-colors" title={t('warehouse.barcodeMode') || 'Skaner rejimi'}>
+                    <span className="text-xs font-bold text-gray-600 whitespace-nowrap">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                    <div className="relative">
+                      <input 
+                        type="checkbox"
+                        checked={mainBarcodeMode}
+                        onChange={(e) => {
+                          setMainBarcodeMode(e.target.checked);
+                          if (e.target.checked) {
+                            setTimeout(() => mainBarcodeInputRef.current?.focus(), 100);
+                          }
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                    </div>
+                  </label>
+                </form>
               )}
 
               {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
