@@ -120,11 +120,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       setSelectedCustomerId('');
       setPaymentMethod('cash');
       setNotes('');
-      setDiscount(0);
+      setDiscount('0');
       setBirmarketCategory('Alətlər');
       setSalesChannel('Mağaza');
     }
-  }, [isOpen, warehouseId, initialProducts]);
+  }, [isOpen, warehouseId]);
 
   useEffect(() => {
     if (isOpen) {
