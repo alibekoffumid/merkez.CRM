@@ -75,10 +75,15 @@
   }
   
   html, body {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 60mm !important;
+    height: auto !important;
   }
 
   body > *:not(.print-only-container) {
@@ -92,9 +97,11 @@
     left: 0 !important;
     top: 0 !important;
     width: 60mm !important;
+    height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
     background: white !important;
+    overflow: visible !important;
   }
 
   .print-only-container * {

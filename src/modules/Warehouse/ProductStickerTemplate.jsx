@@ -9,8 +9,13 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
       // Dynamic delay to ensure full SVG/Barcode rendering before window.print()
       const delay = Math.max(800, Math.min(items.length * 8, 2500));
       const timer = setTimeout(() => {
+        const handleAfterPrint = () => {
+          window.removeEventListener('afterprint', handleAfterPrint);
+          if (onPrintComplete) onPrintComplete();
+        };
+        window.addEventListener('afterprint', handleAfterPrint);
+
         window.print();
-        if (onPrintComplete) onPrintComplete();
       }, delay);
       return () => clearTimeout(timer);
     }
