@@ -99,7 +99,7 @@
     page-break-after: always;
     page-break-inside: avoid;
     overflow: hidden;
-    padding: 1.5mm 2.5mm;
+    padding: 1.5mm 2.5mm 3.5mm 2.5mm;
     box-sizing: border-box;
     background: white;
     print-color-adjust: exact;
@@ -109,7 +109,7 @@
   .sticker-layout {
     display: flex;
     justify-content: space-between;
-    align-items: stretch;
+    align-items: flex-start;
     width: 100%;
     height: 100%;
   }
@@ -118,25 +118,26 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
     text-align: left;
+    gap: 1.5px;
     padding-right: 2mm;
     overflow: visible;
   }
 
   .sticker-brand {
-    font-size: 8.5px;
+    font-size: 7.5px;
     font-weight: 900;
     text-align: left;
     text-transform: uppercase;
     color: #000;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
     line-height: 1;
   }
 
   .sticker-title {
-    font-size: 11.5px;
+    font-size: 10px;
     font-weight: 800;
     text-align: left;
     color: #000;
@@ -146,24 +147,26 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     word-break: break-word;
-    max-height: 27px;
+    max-height: 23px;
+    margin: 0.5px 0;
   }
 
   .sticker-price {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
     color: #000;
     line-height: 1.1;
+    margin-bottom: 1px;
   }
 
   .sticker-price-label {
-    font-size: 8.5px;
+    font-size: 7.5px;
     font-weight: 700;
     color: #000;
   }
 
   .sticker-price-value {
-    font-size: 15px;
+    font-size: 12.5px;
     font-weight: 900;
     color: #000;
   }
@@ -172,8 +175,9 @@
     width: 100%;
     display: flex;
     justify-content: flex-start;
-    align-items: flex-end;
+    align-items: flex-start;
     overflow: visible;
+    margin-top: 1px;
   }
 
   .sticker-barcode-wrapper svg {
@@ -182,28 +186,29 @@
   }
 
   .sticker-right {
-    width: 54px;
+    width: 46px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 2px;
     text-align: center;
   }
 
   .sticker-qr-wrapper {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .sticker-cta {
-    font-size: 6.5px;
-    font-weight: 800;
+    font-size: 5.5px;
+    font-weight: 700;
     text-align: center;
-    line-height: 1.1;
+    line-height: 1.0;
     color: #000;
   }
 }
