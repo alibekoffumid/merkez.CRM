@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, Save, Package, User, Calendar, DollarSign, Loader2, Trash2, ShoppingCart, Search, ChevronRight } from 'lucide-react'; 
+import { X, Plus, Save, Package, User, Calendar, DollarSign, Loader2, Trash2, ShoppingCart, Search, ChevronRight, Camera } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import Dropdown from '../../components/Common/Dropdown';
 import DatePicker from '../../components/Common/DatePicker';
 import { formatCategoriesHierarchically } from './categoryUtils';
+import CameraScannerModal from '../../components/Common/CameraScannerModal';
 
 const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product', warehouseId }) => {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [barcodeMode, setBarcodeMode] = useState(false);
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeInputRef = React.useRef(null);
   
@@ -164,6 +166,37 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
     setTimeout(() => {
       barcodeInputRef.current?.focus();
     }, 50);
+  };
+
+  const handleCameraScan = (barcodeText) => {
+    const product = (products || []).find(p => p.barcode === barcodeText);
+    if (product) {
+      const salePrice = product.price ?? product.sale_price ?? product.sell_price ?? product.purchase_price ?? 0;
+      setItems(prevItems => {
+        const existingIndex = prevItems.findIndex(item => item.product_id === product.id);
+        if (existingIndex > -1) {
+          const newItems = [...prevItems];
+          newItems[existingIndex].quantity += 1;
+          return newItems;
+        } else {
+          return [...prevItems, {
+            product_id: product.id,
+            quantity: 1,
+            unit_price: salePrice ? salePrice.toString() : '0',
+            productName: product.name,
+            barcode: product.barcode
+          }];
+        }
+      });
+      playBeep(true);
+      toast.success(`${product.name} (+1 qəbul)`);
+      if (product.supplier_id && !headerData.supplier_id) {
+        setHeaderData(prev => ({ ...prev, supplier_id: product.supplier_id }));
+      }
+    } else {
+      playBeep(false);
+      toast.error(t('warehouse.productNotFoundByBarcode') || 'Məhsul tapılmadı');
+    }
   };
 
   const filteredProducts = (products || []).filter(p => {
@@ -369,23 +402,37 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                 <div className="bg-white border-2 border-dashed border-gray-200 rounded-[2rem] p-6">
                   <div className="flex justify-between items-center mb-6 border-b border-gray-50 pb-3">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('warehouse.addItem') || 'Məhsul əlavə et'}</span>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                      <span className="text-xs font-bold text-gray-500">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
-                      <div className="relative">
-                        <input 
-                          type="checkbox"
-                          checked={barcodeMode}
-                          onChange={(e) => {
-                            setBarcodeMode(e.target.checked);
-                            if (e.target.checked) {
-                              setTimeout(() => barcodeInputRef.current?.focus(), 100);
-                            }
-                          }}
-                          className="sr-only peer"
-                        />
-                        <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-                      </div>
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowCameraScanner(true)}
+                        className="flex items-center gap-1 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                        title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>{i18n.language === 'az' ? 'Kamera' : 'Камера'}</span>
+                      </button>
+
+                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <span className="text-xs font-bold text-gray-500">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                        <div className="relative">
+                          <input 
+                            type="checkbox"
+                            checked={barcodeMode}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              setBarcodeMode(isChecked);
+                              if (isChecked) {
+                                setShowCameraScanner(true);
+                                setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                              }
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                        </div>
+                      </label>
+                    </div>
                   </div>
                   
                   {barcodeMode ? (
@@ -566,6 +613,13 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
           </div>
         </div>
       </div>
+
+      <CameraScannerModal
+        isOpen={showCameraScanner}
+        onClose={() => setShowCameraScanner(false)}
+        onScan={handleCameraScan}
+        title={i18n.language === 'az' ? 'Məhsul Qəbulu — Kamera Skanı' : 'Приёмка — Сканирование камерой'}
+      />
     </ModalPortal>
   );
 };
