@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import Barcode from 'react-barcode';
+import ModalPortal from '../../components/Common/ModalPortal';
 
 const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   useEffect(() => {
@@ -18,7 +19,8 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   if (!items || items.length === 0) return null;
 
   return (
-    <div className="print-only-container">
+    <ModalPortal>
+      <div className="print-only-container">
       {items.map((item, index) => {
         const qrUrl = `https://rastmusicshop.com/product/${item.id}`;
         // Ensure barcode has a value, fallback to short ID if empty
@@ -66,7 +68,8 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
         );
       })}
     </div>
-  );
+  </ModalPortal>
+);
 };
 
 export default ProductStickerTemplate;
