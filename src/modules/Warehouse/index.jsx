@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -31,6 +31,7 @@ import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
 import ConfirmModal from '../../components/Common/ConfirmModal';
+import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { toast } from 'react-hot-toast';
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
@@ -80,6 +81,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [receiptToDelete, setReceiptToDelete] = useState(null);
   const [mainBarcodeMode, setMainBarcodeMode] = useState(false);
   const mainBarcodeInputRef = useRef(null);
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [showBulkCategoryModal, setShowBulkCategoryModal] = useState(false);
   const [bulkSelectedCategoryId, setBulkSelectedCategoryId] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
@@ -1739,6 +1741,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
                     </div>
                   </label>
+
+                  <button 
+                    type="button"
+                    onClick={() => setShowCameraScanner(true)}
+                    className="flex items-center gap-1.5 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-2 rounded-lg shrink-0 font-bold text-xs transition-colors shadow-sm"
+                    title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span className="hidden sm:inline">{i18n.language === 'az' ? 'Kamera' : 'Камера'}</span>
+                  </button>
                 </form>
               )}
 
@@ -2385,6 +2397,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       {printingItems && (
         <ProductStickerTemplate items={printingItems} onPrintComplete={() => setPrintingItems(null)} />
       )}
+
+      <CameraScannerModal
+        isOpen={showCameraScanner}
+        onClose={() => setShowCameraScanner(false)}
+        onScan={(scannedBarcode) => {
+          setSearchTerm(scannedBarcode);
+          const matchedProduct = (products || []).find(p => 
+            p.barcode === scannedBarcode || (p.barcode && p.barcode.toLowerCase() === scannedBarcode.toLowerCase())
+          );
+          if (matchedProduct) {
+            setSupplierFilter('all');
+            setSelectedCategory(null);
+            setStatusFilter('all');
+            playBeep(true);
+            toast.success(`${matchedProduct.name} (${matchedProduct.barcode})`);
+          } else {
+            playBeep(false);
+            toast.error(i18n.language === 'az' ? 'Məhsul tapılmadı' : 'Товар не найден');
+          }
+        }}
+        title={i18n.language === 'az' ? 'Məhsul Ştrixkodunu Skan Et' : 'Сканировать штрихкод товара'}
+      />
 
       {showBulkCategoryModal && (
         <ModalPortal>
