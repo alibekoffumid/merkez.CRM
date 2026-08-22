@@ -5,11 +5,12 @@ import Barcode from 'react-barcode';
 const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   useEffect(() => {
     if (items && items.length > 0) {
-      // Small delay to ensure rendering is complete before printing
+      // Dynamic delay to ensure full SVG/Barcode rendering before window.print()
+      const delay = Math.max(800, Math.min(items.length * 8, 2500));
       const timer = setTimeout(() => {
         window.print();
         if (onPrintComplete) onPrintComplete();
-      }, 500);
+      }, delay);
       return () => clearTimeout(timer);
     }
   }, [items, onPrintComplete]);
