@@ -41,8 +41,8 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
                   <Barcode 
                     value={barcodeValue} 
                     format="CODE128" 
-                    width={1.0} 
-                    height={18} 
+                    width={0.95} 
+                    height={14} 
                     fontSize={8}
                     margin={0}
                     displayValue={true}
@@ -54,7 +54,7 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
               {/* Right Side: Large QR Code */}
               <div className="sticker-right">
                 <div className="sticker-qr-wrapper">
-                  <QRCodeSVG value={qrUrl} size={54} level="M" includeMargin={false} />
+                  <QRCodeSVG value={qrUrl} size={44} level="M" includeMargin={false} />
                 </div>
                 <div className="sticker-cta">
                   Kredit kalkulyatoru<br />üçün skan edin
