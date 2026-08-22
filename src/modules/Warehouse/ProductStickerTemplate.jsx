@@ -2,14 +2,14 @@ import React, { useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import Barcode from 'react-barcode';
 
-const ProductStickerTemplate = ({ items, format = 'a4', onPrintComplete }) => {
+const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   useEffect(() => {
     if (items && items.length > 0) {
-      // Small delay to ensure rendering and barcodes are drawn before printing
+      // Small delay to ensure rendering is complete before printing
       const timer = setTimeout(() => {
         window.print();
         if (onPrintComplete) onPrintComplete();
-      }, 400);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [items, onPrintComplete]);
@@ -17,82 +17,53 @@ const ProductStickerTemplate = ({ items, format = 'a4', onPrintComplete }) => {
   if (!items || items.length === 0) return null;
 
   return (
-    <div id="merkez-sticker-print-area" className={`print-area-wrapper print-format-${format}`}>
-      {format === 'a4' ? (
-        <div className="a4-sticker-grid">
-          {items.map((item, index) => {
-            const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 12) || '00000000';
-            const encodedName = encodeURIComponent((item.name || '').trim());
-            const qrUrl = `https://rastmusicshop.com/mahsul/name::${encodedName}`;
-
-            return (
-              <div key={`${item.id}-${index}`} className="a4-sticker-card">
-                <div className="sticker-header-row">
-                  <div className="sticker-title-text">{item.name}</div>
-                  {item.color && <div className="sticker-badge-color">{item.color}</div>}
-                </div>
-
-                <div className="sticker-content-row">
-                  <div className="sticker-price-barcode-box">
-                    <div className="sticker-price-val">{parseFloat(item.price || 0).toFixed(2)} ₼</div>
-                    <div className="sticker-barcode-box">
-                      <Barcode 
-                        value={barcodeValue} 
-                        width={1.0} 
-                        height={22} 
-                        fontSize={8} 
-                        margin={0} 
-                        displayValue={true} 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="sticker-qr-box">
-                    <QRCodeSVG value={qrUrl} size={42} level="M" includeMargin={false} />
-                  </div>
-                </div>
+    <div className="print-only-container">
+      {items.map((item, index) => {
+        const qrUrl = `https://rastmusicshop.com/product/${item.id}`;
+        // Ensure barcode has a value, fallback to short ID if empty
+        const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 10) || '00000000';
+        
+        return (
+          <div key={`${item.id}-${index}`} className="sticker-page">
+            {/* Top: Branding */}
+            <div className="sticker-brand">RAST MUSIC SHOP</div>
+            
+            {/* Product Title */}
+            <div className="sticker-title">
+              {item.name}
+            </div>
+            
+            {/* Middle Row: Barcode & QR */}
+            <div className="sticker-middle-row">
+              <div className="sticker-barcode-wrapper">
+                <Barcode 
+                  value={barcodeValue} 
+                  format="CODE128" 
+                  width={1.1} 
+                  height={20} 
+                  fontSize={9}
+                  margin={0}
+                  displayValue={true}
+                  background="transparent"
+                />
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="thermal-sticker-container">
-          {items.map((item, index) => {
-            const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 12) || '00000000';
-            const encodedName = encodeURIComponent((item.name || '').trim());
-            const qrUrl = `https://rastmusicshop.com/mahsul/name::${encodedName}`;
-
-            return (
-              <div key={`${item.id}-${index}`} className="thermal-sticker-page">
-                <div className="thermal-header-row">
-                  <div className="thermal-title-text">{item.name}</div>
-                  {item.color && <div className="thermal-badge-color">{item.color}</div>}
-                </div>
-
-                <div className="thermal-content-row">
-                  <div className="thermal-price-barcode-box">
-                    <div className="thermal-price-val">{parseFloat(item.price || 0).toFixed(2)} ₼</div>
-                    <div className="thermal-barcode-box">
-                      <Barcode 
-                        value={barcodeValue} 
-                        width={1.0} 
-                        height={20} 
-                        fontSize={8} 
-                        margin={0} 
-                        displayValue={true} 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="thermal-qr-box">
-                    <QRCodeSVG value={qrUrl} size={38} level="M" includeMargin={false} />
-                  </div>
-                </div>
+              <div className="sticker-qr-wrapper">
+                <QRCodeSVG value={qrUrl} size={34} level="M" includeMargin={false} />
               </div>
-            );
-          })}
-        </div>
-      )}
+            </div>
+            
+            {/* Bottom Row: Price & Call to action */}
+            <div className="sticker-bottom-row">
+              <div className="sticker-price">
+                Nağd: {item.price || item.sale_price || 0} ₼
+              </div>
+              <div className="sticker-cta">
+                Kredit kalkulyatoru<br />üçün skan edin
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

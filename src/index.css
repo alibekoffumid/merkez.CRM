@@ -11,16 +11,6 @@
   body {
     @apply bg-gray-50 text-gray-900 font-sans antialiased;
   }
-
-  /* Hide number input arrows globally */
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  input[type="number"] {
-    -moz-appearance: textfield; /* Firefox */
-  }
 }
 
 @layer utilities {
@@ -72,236 +62,121 @@
     -moz-appearance: textfield;
     appearance: textfield;
   }
-
-  @keyframes shimmerWave {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  .shimmer-element {
-    background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-    background-size: 200% 100%;
-    animation: shimmerWave 1.6s ease-in-out infinite;
-  }
-}
-
-.print-area-wrapper {
-  display: none;
 }
 
 @media print {
   @page {
-    size: auto;
-    margin: 5mm;
+    size: 60mm 30mm;
+    margin: 0;
   }
   
-  html, body {
-    background: #fff !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    height: auto !important;
-    width: 100% !important;
-  }
-
   body * {
     visibility: hidden;
   }
-
-  .no-print, nav, header, aside, .modal, .portal {
-    display: none !important;
+  
+  .print-only-container, .print-only-container * {
+    visibility: visible;
   }
 
-  #merkez-sticker-print-area,
-  #merkez-sticker-print-area * {
-    visibility: visible !important;
+  .print-only-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 60mm;
+    padding: 0;
+    margin: 0;
+    background: white;
   }
 
-  #merkez-sticker-print-area {
-    display: block !important;
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #fff !important;
-    color: #000 !important;
+  .sticker-page {
+    width: 60mm;
+    height: 30mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+    overflow: hidden;
+    padding: 1.5mm 2mm;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
-  /* ------------------- A4 GRID FORMAT ------------------- */
-  .a4-sticker-grid {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 4mm !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
+  .sticker-brand {
+    font-size: 7px;
+    font-weight: 900;
+    text-align: center;
+    text-transform: uppercase;
+    color: #000;
+    letter-spacing: 0.5px;
   }
 
-  .a4-sticker-card {
-    border: 1px dashed #999 !important;
-    padding: 3mm !important;
-    border-radius: 4px !important;
-    box-sizing: border-box !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    min-height: 38mm !important;
-    background: #fff !important;
+  .sticker-title {
+    font-size: 9px;
+    font-weight: 800;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin: 2px 0 4px 0;
+    color: #000;
   }
 
-  .sticker-header-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: flex-start !important;
-    gap: 2mm !important;
-    margin-bottom: 2mm !important;
+  .sticker-middle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+    flex: 1;
   }
 
-  .sticker-title-text {
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    line-height: 1.2 !important;
-    color: #000 !important;
-    max-height: 24px !important;
-    overflow: hidden !important;
-    text-transform: uppercase !important;
+  .sticker-barcode-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    overflow: hidden;
+  }
+  
+  .sticker-barcode-wrapper svg {
+    max-width: 100%;
+    height: 20px !important;
   }
 
-  .sticker-badge-color {
-    font-size: 8px !important;
-    font-weight: 800 !important;
-    background: #f0f0f0 !important;
-    border: 1px solid #ddd !important;
-    padding: 1px 4px !important;
-    border-radius: 3px !important;
-    white-space: nowrap !important;
-    color: #111 !important;
+  .sticker-qr-wrapper {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
   }
 
-  .sticker-content-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 2mm !important;
+  .sticker-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    margin-top: 2px;
   }
 
-  .sticker-price-barcode-box {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    flex: 1 !important;
-    overflow: hidden !important;
+  .sticker-price {
+    font-size: 13px;
+    font-weight: 900;
+    color: #000;
+    line-height: 1;
   }
 
-  .sticker-price-val {
-    font-size: 15px !important;
-    font-weight: 900 !important;
-    color: #000 !important;
-    margin-bottom: 1.5mm !important;
-    line-height: 1 !important;
-  }
-
-  .sticker-barcode-box {
-    display: block !important;
-    max-width: 100% !important;
-  }
-
-  .sticker-barcode-box svg {
-    max-width: 38mm !important;
-    height: 22px !important;
-    display: block !important;
-  }
-
-  .sticker-qr-box {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* ------------------- THERMAL 58x40 FORMAT ------------------- */
-  .print-format-thermal {
-    width: 58mm !important;
-  }
-
-  .thermal-sticker-page {
-    width: 58mm !important;
-    height: 40mm !important;
-    page-break-after: always !important;
-    break-after: page !important;
-    padding: 2.5mm 3mm !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    background: #fff !important;
-    overflow: hidden !important;
-  }
-
-  .thermal-header-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: flex-start !important;
-    gap: 1.5mm !important;
-  }
-
-  .thermal-title-text {
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    line-height: 1.1 !important;
-    color: #000 !important;
-    max-height: 22px !important;
-    overflow: hidden !important;
-    text-transform: uppercase !important;
-  }
-
-  .thermal-badge-color {
-    font-size: 8px !important;
-    font-weight: 800 !important;
-    background: #eee !important;
-    padding: 1px 3px !important;
-    border-radius: 2px !important;
-    white-space: nowrap !important;
-  }
-
-  .thermal-content-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 1.5mm !important;
-  }
-
-  .thermal-price-barcode-box {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    flex: 1 !important;
-  }
-
-  .thermal-price-val {
-    font-size: 14px !important;
-    font-weight: 900 !important;
-    color: #000 !important;
-    line-height: 1 !important;
-    margin-bottom: 1mm !important;
-  }
-
-  .thermal-barcode-box svg {
-    max-width: 32mm !important;
-    height: 18px !important;
-  }
-
-  .thermal-qr-box {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-shrink: 0 !important;
+  .sticker-cta {
+    font-size: 6px;
+    font-weight: 800;
+    text-align: right;
+    line-height: 1.1;
+    color: #000;
+    max-width: 50%;
   }
 }
