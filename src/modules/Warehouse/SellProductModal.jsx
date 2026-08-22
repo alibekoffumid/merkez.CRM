@@ -336,11 +336,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     setCart(cart.filter((_, i) => i !== index));
   };
 
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState('0');
 
   const calculateTotal = () => {
-    const sum = cart.reduce((acc, item) => acc + (item.quantity * item.price), 0);
-    return Math.max(0, sum - (Number(discount) || 0));
+    const sum = cart.reduce((acc, item) => acc + ((parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0)), 0);
+    const disc = parseFloat(discount) || 0;
+    return Math.max(0, sum - disc);
   };
 
   useEffect(() => {
@@ -734,8 +735,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                           </label>
                           <input
                             type="number"
+                            step="any"
                             value={basePriceInput}
-                            onChange={(e) => setBasePriceInput(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) => setBasePriceInput(e.target.value)}
+                            onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setBasePriceInput(''); }}
                             className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
                           />
                         </div>
@@ -746,8 +749,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                           </label>
                           <input
                             type="number"
+                            step="any"
                             value={extraMarkup}
-                            onChange={(e) => setExtraMarkup(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) => setExtraMarkup(e.target.value)}
+                            onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setExtraMarkup(''); }}
                             className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
                           />
                         </div>
@@ -854,8 +859,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                           </label>
                           <input
                             type="number"
+                            step="any"
                             value={basePriceInput}
-                            onChange={(e) => setBasePriceInput(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) => setBasePriceInput(e.target.value)}
+                            onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setBasePriceInput(''); }}
                             className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
                           />
                         </div>
@@ -866,8 +873,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                           </label>
                           <input
                             type="number"
+                            step="any"
                             value={extraMarkup}
-                            onChange={(e) => setExtraMarkup(e.target.value === '' ? '' : Number(e.target.value))}
+                            onChange={(e) => setExtraMarkup(e.target.value)}
+                            onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setExtraMarkup(''); }}
                             className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
                           />
                         </div>
@@ -925,8 +934,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                     <input 
                       type="number"
                       min="0"
+                      step="any"
                       value={discount}
-                      onChange={e => setDiscount(e.target.value === '' ? '' : Number(e.target.value))}
+                      onChange={e => setDiscount(e.target.value)}
+                      onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setDiscount(''); }}
+                      onBlur={e => { if (e.target.value === '') setDiscount('0'); }}
                       className="w-full bg-white border border-gray-100 rounded-xl px-4 py-2.5 outline-none transition-all font-bold text-sm focus:border-merkez-blue shadow-sm"
                       placeholder="0.00"
                     />
@@ -1102,13 +1114,43 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               <span className="text-sm font-bold text-gray-900">{item.productName}</span>
                             </td>
                             <td className="px-6 py-4 text-center">
-                              <span className="text-sm font-medium text-gray-600">₼{item.price.toFixed(2)}</span>
+                              <div className="relative inline-flex items-center justify-center">
+                                <span className="absolute left-2 text-[10px] font-bold text-gray-400">₼</span>
+                                <input 
+                                  type="number"
+                                  step="any"
+                                  value={item.price}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    setCart(prev => {
+                                      const newCart = [...prev];
+                                      newCart[idx].price = val === '' ? '' : (parseFloat(val) || 0);
+                                      return newCart;
+                                    });
+                                  }}
+                                  onFocus={(e) => e.target.select()}
+                                  className="w-24 bg-gray-50 border border-gray-200 rounded-lg pl-5 pr-2 py-1 text-xs font-bold text-right outline-none focus:border-merkez-blue focus:bg-white"
+                                />
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-center">
-                              <span className="text-sm font-black text-gray-950">{item.quantity}</span>
+                              <input 
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 1;
+                                  setCart(prev => {
+                                    const newCart = [...prev];
+                                    newCart[idx].quantity = val;
+                                    return newCart;
+                                  });
+                                }}
+                                className="w-16 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-center outline-none focus:border-merkez-blue focus:bg-white"
+                              />
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className="text-sm font-black text-gray-900">₼{(item.price * item.quantity).toFixed(2)}</span>
+                              <span className="text-sm font-black text-gray-900">₼{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toFixed(2)}</span>
                             </td>
                             <td className="px-6 py-4 text-right">
                               <button onClick={() => removeFromCart(idx)} className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-all">
