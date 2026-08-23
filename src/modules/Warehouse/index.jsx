@@ -674,7 +674,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
       {/* Modals */}
-      <AddProductModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} categories={categories} suppliers={suppliers} onProductAdded={fetchProducts} initialCategoryId={selectedCategory} warehouseId={currentWarehouseId} />
+      <AddProductModal 
+        isOpen={showAddProduct} 
+        onClose={() => setShowAddProduct(false)} 
+        categories={categories} 
+        suppliers={suppliers} 
+        onProductAdded={() => {
+          setSupplierFilter('all');
+          setSelectedCategory(null);
+          setStatusFilter('all');
+          fetchProducts();
+        }} 
+        initialCategoryId={selectedCategory} 
+        warehouseId={currentWarehouseId} 
+      />
       <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} warehouseId={currentWarehouseId} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
       <EditProductModal 
