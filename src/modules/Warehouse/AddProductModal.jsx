@@ -9,7 +9,7 @@ import ModalPortal from '../../components/Common/ModalPortal';
 
 import { formatCategoriesHierarchically } from './categoryUtils';
 
-const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
+const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
   const { t } = useTranslation();
   
   // Format categories for hierarchical dropdown
@@ -121,7 +121,10 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.price || !formData.category_id) return;
+    if (!formData.name || !formData.price) {
+      toast.error(t('warehouse.fillRequiredFields') || 'Məhsul adı və qiyməti mütləqdir');
+      return;
+    }
     
     setLoading(true);
     

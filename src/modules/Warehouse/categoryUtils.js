@@ -1,9 +1,10 @@
-export const formatCategoriesHierarchically = (categories, excludeId = null, t = (k, opts) => opts?.defaultValue || k.split('.').pop()) => {
+export const formatCategoriesHierarchically = (categories = [], excludeId = null, t = (k, opts) => opts?.defaultValue || k.split('.').pop()) => {
+  if (!Array.isArray(categories) || categories.length === 0) return [];
   const result = [];
   
   // Find all descendants of excludeId to avoid circular references
   const getDescendants = (id) => {
-    const children = categories.filter(c => c.parent_id === id);
+    const children = categories.filter(c => c && c.parent_id === id);
     let descendants = [...children.map(c => c.id)];
     children.forEach(child => {
       descendants = [...descendants, ...getDescendants(child.id)];
@@ -14,12 +15,13 @@ export const formatCategoriesHierarchically = (categories, excludeId = null, t =
   const excludedIds = excludeId ? [excludeId, ...getDescendants(excludeId)] : [];
   
   const findChildren = (parentId, level = 0) => {
-    const children = categories.filter(c => c.parent_id === parentId && !excludedIds.includes(c.id));
-    // Sort children by name
-    children.sort((a, b) => a.name.localeCompare(b.name));
+    const children = categories.filter(c => c && c.parent_id === parentId && !excludedIds.includes(c.id));
+    // Sort children safely by name
+    children.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     
     children.forEach(child => {
-      const translatedName = t(`categories.${child.name}`, { defaultValue: child.name });
+      const nameStr = child.name || '';
+      const translatedName = t(`categories.${nameStr}`, { defaultValue: nameStr });
       result.push({
         ...child,
         label: level > 0 ? `${'\u00A0\u00A0'.repeat(level)}↳ ${translatedName}` : translatedName,
@@ -30,11 +32,12 @@ export const formatCategoriesHierarchically = (categories, excludeId = null, t =
   };
 
   // Start with top-level categories (no parent_id)
-  const topLevel = categories.filter(c => !c.parent_id && !excludedIds.includes(c.id));
-  topLevel.sort((a, b) => a.name.localeCompare(b.name));
+  const topLevel = categories.filter(c => c && !c.parent_id && !excludedIds.includes(c.id));
+  topLevel.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   
   topLevel.forEach(cat => {
-    const translatedName = t(`categories.${cat.name}`, { defaultValue: cat.name });
+    const nameStr = cat.name || '';
+    const translatedName = t(`categories.${nameStr}`, { defaultValue: nameStr });
     result.push({
       ...cat,
       label: translatedName,
@@ -45,4 +48,3 @@ export const formatCategoriesHierarchically = (categories, excludeId = null, t =
 
   return result;
 };
-
