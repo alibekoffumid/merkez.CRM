@@ -365,6 +365,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   };
 
+  const handleGenerateBarcodeForProduct = async (productId) => {
+    try {
+      const prefix = '20';
+      const timestamp = Date.now().toString().slice(-7);
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const newBarcode = `${prefix}${timestamp}${randomNum}`;
+
+      const { error } = await supabase
+        .from('products')
+        .update({ barcode: newBarcode })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, barcode: newBarcode } : p));
+      toast.success(i18n.language === 'az' ? `Barkod yaradıldı: ${newBarcode}` : `Штрихкод создан: ${newBarcode}`);
+    } catch (err) {
+      console.error('Error generating barcode:', err);
+      toast.error(err.message || 'Ошибка генерации штрихкода');
+    }
+  };
+
   const handleBulkCategoryAssign = async (categoryId) => {
     if (selectedItems.length === 0) return;
     const targetCatId = categoryId || null;
@@ -1966,9 +1988,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </div>
                           </td>
                           <td className="px-2 py-4">
-                            <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                              {item.barcode || '—'}
-                            </span>
+                            {item.barcode && item.barcode.trim() !== '' ? (
+                              <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                                {item.barcode}
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleGenerateBarcodeForProduct(item.id)}
+                                className="text-[11px] font-bold text-merkez-blue bg-blue-50/80 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 flex items-center gap-1 transition-colors whitespace-nowrap"
+                                title={i18n.language === 'az' ? 'Barkod yarat' : 'Сгенерировать штрихкод'}
+                              >
+                                <Sparkles className="w-3 h-3 text-merkez-blue" />
+                                {i18n.language === 'az' ? 'Barkod yarat' : 'Создать штрихкод'}
+                              </button>
+                            )}
                           </td>
                           <td className="px-2 py-4">
                             <div className="relative group/cat inline-block">

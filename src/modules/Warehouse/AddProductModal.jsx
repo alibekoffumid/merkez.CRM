@@ -30,35 +30,27 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
   React.useEffect(() => {
     if (isOpen) {
       const saved = localStorage.getItem('merkez_warehouse_settings');
+      let parsed = null;
       if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setSettings(parsed);
-          let initialBarcode = '';
-          if (parsed.autoGenerateBarcode) {
-            const prefix = parsed.barcodePrefix || '';
-            const randomNum = Math.floor(100000 + Math.random() * 900000);
-            initialBarcode = `${prefix}${randomNum}`;
-          }
-
-          if (parsed.availableUnits && parsed.availableUnits.length > 0) {
-            setAvailableUnits(parsed.availableUnits);
-          }
-
-          setFormData(prev => ({ 
-            ...prev, 
-            critical_stock: parsed.lowStockThreshold || '5',
-            barcode: prev.barcode || initialBarcode,
-            category_id: initialCategoryId || '',
-            unit: parsed.defaultUnit || (parsed.availableUnits && parsed.availableUnits[0]) || 'pcs'
-          }));
-        } catch (e) {}
-      } else {
-        setFormData(prev => ({ 
-          ...prev, 
-          category_id: initialCategoryId || ''
-        }));
+        try { parsed = JSON.parse(saved); setSettings(parsed); } catch (e) {}
       }
+
+      const prefix = parsed?.barcodePrefix || '20';
+      const timestamp = Date.now().toString().slice(-7);
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const autoBarcode = `${prefix}${timestamp}${randomNum}`;
+
+      if (parsed?.availableUnits && parsed.availableUnits.length > 0) {
+        setAvailableUnits(parsed.availableUnits);
+      }
+
+      setFormData(prev => ({ 
+        ...prev, 
+        critical_stock: parsed?.lowStockThreshold || '5',
+        barcode: prev.barcode || autoBarcode,
+        category_id: initialCategoryId || '',
+        unit: parsed?.defaultUnit || (parsed?.availableUnits && parsed.availableUnits[0]) || 'pcs'
+      }));
     } else {
       setFormData({
         name: '', price: '', purchase_price: '', barcode: '',
@@ -134,10 +126,11 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
     }
 
     let finalBarcode = formData.barcode?.trim();
-    if (!finalBarcode && settings?.autoGenerateBarcode) {
-      const prefix = settings.barcodePrefix || '';
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      finalBarcode = `${prefix}${randomNum}`;
+    if (!finalBarcode) {
+      const prefix = settings?.barcodePrefix || '20';
+      const timestamp = Date.now().toString().slice(-7);
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      finalBarcode = `${prefix}${timestamp}${randomNum}`;
     }
 
      const { data, error } = await supabase
