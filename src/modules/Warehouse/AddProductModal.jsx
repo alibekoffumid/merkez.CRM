@@ -9,8 +9,8 @@ import ModalPortal from '../../components/Common/ModalPortal';
 
 import { formatCategoriesHierarchically } from './categoryUtils';
 
-const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId = null, warehouseId }) => {
-  const { t, i18n } = useTranslation();
+const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
+  const { t } = useTranslation();
   
   // Format categories for hierarchical dropdown
   const hierarchicalCategories = React.useMemo(() => 
@@ -36,7 +36,9 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
           setSettings(parsed);
           let initialBarcode = '';
           if (parsed.autoGenerateBarcode) {
-            initialBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
+            const prefix = parsed.barcodePrefix || '';
+            const randomNum = Math.floor(100000 + Math.random() * 900000);
+            initialBarcode = `${prefix}${randomNum}`;
           }
 
           if (parsed.availableUnits && parsed.availableUnits.length > 0) {
@@ -59,8 +61,8 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
       }
     } else {
       setFormData({
-        name: '', price: '', purchase_price: '', factory_price: '', additional_info: '', barcode: '',
-        category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: '', unit: 'pcs', color: ''
+        name: '', price: '', purchase_price: '', barcode: '',
+        category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: '', unit: 'pcs'
       });
     }
   }, [isOpen, initialCategoryId]);
@@ -69,15 +71,12 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
     name: '',
     price: '',
     purchase_price: '',
-    factory_price: '',
-    additional_info: '',
     barcode: '',
     category_id: '',
     stock_quantity: '0',
     critical_stock: '5',
     supplier_id: '',
-    unit: 'pcs',
-    color: ''
+    unit: 'pcs'
   });
 
   if (!isOpen) return null;
@@ -122,7 +121,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.price) return;
+    if (!formData.name || !formData.price || !formData.category_id) return;
     
     setLoading(true);
     
@@ -133,20 +132,17 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
 
     let finalBarcode = formData.barcode?.trim();
     if (!finalBarcode && settings?.autoGenerateBarcode) {
-      finalBarcode = '200' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    } else if (!finalBarcode) {
-      finalBarcode = Math.floor(1000000000000 + Math.random() * 9000000000000).toString();
+      const prefix = settings.barcodePrefix || '';
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      finalBarcode = `${prefix}${randomNum}`;
     }
 
-    let desc = '';
-    if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
-    if (formData.additional_info) desc += 'Əlavə məlumat: ' + formData.additional_info.trim();
-
-    let newProduct = { 
+     const { data, error } = await supabase
+       .from('products')
+       .insert([{ 
          name: formData.name, 
          price: parseFloat(formData.price), 
          purchase_price: parseFloat(formData.purchase_price || 0),
-         description: desc.trim() || null,
          barcode: finalBarcode,
          category_id: formData.category_id || null,
          stock_quantity: parseFloat(formData.stock_quantity || 0),
@@ -155,25 +151,9 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
          supplier_id: formData.supplier_id || null,
          user_id: profile?.id,
          warehouse_id: warehouseId,
-         unit: formData.unit,
-         color: formData.color
-    };
-
-    let res = await supabase.from('products').insert([newProduct]).select('*, categories(name)');
-    let data = res.data;
-    let error = res.error;
-
-    if (error && (error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
-      delete newProduct.unit;
-      delete newProduct.color;
-      let fallbackRes = await supabase.from('products').insert([newProduct]).select('*, categories(name)');
-      data = fallbackRes.data;
-      error = fallbackRes.error;
-      if (!error) {
-        toast.success(t('warehouse.productAdded') || 'Товар добавлен', { icon: '⚠️' });
-        toast('Новые колонки (Цвет / Unit) отсутствуют в БД. Выполните SQL-запрос!', { duration: 6000, icon: '💡' });
-      }
-    }
+         unit: formData.unit
+       }])
+      .select('*, categories(name)');
 
     if (error) {
       toast.error(error.message);
@@ -181,22 +161,13 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
       return;
     }
 
-    if (!data || data.length === 0) {
-      toast.error(t('warehouse.noPermission') || 'У вас нет прав для добавления товаров на этот склад');
-      setLoading(false);
-      return;
-    }
-
-    if (!error && newProduct.unit !== undefined) {
-      toast.success(t('warehouse.productAdded') || 'Товар успешно добавлен');
-    }
+    setLoading(false);
     if (!error && data) {
       onProductAdded();
       onClose();
       setImageFile(null);
       setImagePreview(null);
     }
-    setLoading(false);
   };
 
   return (
@@ -218,7 +189,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 gap-5">
             <div>
               <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
@@ -226,7 +197,7 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 type="text"
                 required
                 className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                placeholder={t('warehouse.productNamePlaceholder') || 'Məhsul adı və ya seriya...'}
+                placeholder={t('warehouse.productNamePlaceholder')}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
@@ -234,50 +205,37 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
 
             <div className="grid grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
-                <Dropdown 
-                  value={formData.supplier_id}
-                  onChange={val => setFormData({ ...formData, supplier_id: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={[
-                    { value: '', label: t('warehouse.selectSupplier') || 'Tədarükçü seçin' },
-                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                  ]}
-                />
-              </div>
-              <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
                 <Dropdown 
                   value={formData.category_id}
                   onChange={val => setFormData({ ...formData, category_id: val })}
                   buttonClassName="rounded-xl px-5 py-3"
                   options={[
-                    { value: '', label: t('warehouse.selectCategory') || 'Kateqoriya seçin' },
+                    { value: '', label: t('warehouse.selectCategory') },
                     ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
                   ]}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-5">
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ZAVOD QİYMƏTİ</label>
-                <input
-                  type="text"
-                  placeholder="məs. $15.00 / 12 ₼"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
-                  value={formData.factory_price}
-                  onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Ед. измерения'}</label>
+                <Dropdown 
+                  value={formData.unit}
+                  onChange={val => setFormData({ ...formData, unit: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
+                  options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₼</span>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                     value={formData.purchase_price}
                     onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                   />
@@ -286,12 +244,12 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
                   <input
                     type="number"
                     step="0.01"
                     required
-                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
+                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   />
@@ -299,13 +257,13 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.initialStock') || 'İlkin Stok'}</label>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.initialStock')}</label>
                 <input
                   type="number"
                   step="0.001"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                   value={formData.stock_quantity}
                   onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
                 />
@@ -320,15 +278,6 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                   onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Vahid'}</label>
-                <Dropdown 
-                  value={formData.unit}
-                  onChange={val => setFormData({ ...formData, unit: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
-                />
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-5">
@@ -337,56 +286,30 @@ const AddProductModal = ({ isOpen, onClose, categories, suppliers = [], onProduc
                 <input
                   type="text"
                   className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-sm"
-                  placeholder={settings?.autoGenerateBarcode ? "200... (Avto)" : "000000000"}
+                  placeholder={settings?.autoGenerateBarcode ? `${settings.barcodePrefix || ''}XXXXXX (Авто)` : "000000000"}
                   value={formData.barcode}
                   onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                 />
               </div>
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{i18n.language === 'az' ? 'Rəng / Ölçü' : 'Цвет / Размер'}</label>
-                <input 
-                  type="text"
-                  list="add-color-suggestions"
-                  placeholder="məs. 4/4, BLACK, 40 CM, SILVER..."
-                  value={formData.color}
-                  onChange={e => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
+                <Dropdown 
+                  value={formData.supplier_id}
+                  onChange={val => setFormData({ ...formData, supplier_id: val })}
+                  buttonClassName="rounded-xl px-5 py-3"
+                  options={[
+                    { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
+                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                  ]}
                 />
-                <datalist id="add-color-suggestions">
-                  <option value="4/4" />
-                  <option value="3/4" />
-                  <option value="1/2" />
-                  <option value="1/4" />
-                  <option value="1/8" />
-                  <option value="WHITE" />
-                  <option value="BLACK" />
-                  <option value="BROWN" />
-                  <option value="BEIGE" />
-                  <option value="SILVER" />
-                  <option value="GOLD" />
-                  <option value="RED" />
-                  <option value="BLUE" />
-                  <option value="STANDARD" />
-                </datalist>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ƏLAVƏ MƏLUMAT</label>
-              <textarea
-                rows={2}
-                placeholder="məs. CƏLAL, Hədiyyə: MİZRAB, xüsusi qeydlər..."
-                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm resize-none"
-                value={formData.additional_info}
-                onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
-              />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4 shrink-0"
+            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin mr-2" />

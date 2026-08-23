@@ -631,6 +631,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const filteredProducts = products
     .filter(p => {
+      // Global search: when typing in search box, search across all categories
+      if (searchTerm.trim()) return true;
       if (!selectedCategory) return true;
       if (p.category_id === selectedCategory) return true;
       
@@ -664,6 +666,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       return true;
     })
     .filter(p => {
+      // Global search: when typing in search box, search across all suppliers
+      if (searchTerm.trim()) return true;
       if (supplierFilter === 'all') return true;
       return p.supplier_id === supplierFilter;
     });
