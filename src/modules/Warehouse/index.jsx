@@ -519,7 +519,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       .eq('is_deleted', false)
       .eq('user_id', profile.id)
       .eq('warehouse_id', currentWarehouseId)
-      .order('name', { ascending: true });
+      .order('created_at', { ascending: false });
     if (data) setProducts(data);
   };
 
@@ -683,11 +683,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         onClose={() => setShowAddProduct(false)} 
         categories={categories} 
         suppliers={suppliers} 
-        onProductAdded={() => {
+        onProductAdded={(newProd) => {
           setSupplierFilter('all');
           setSelectedCategory(null);
           setStatusFilter('all');
           fetchProducts();
+          if (newProd?.name) {
+            toast.success(
+              i18n.language === 'az'
+                ? `Məhsul uğurla əlavə edildi: ${newProd.name}`
+                : `Товар успешно добавлен: ${newProd.name}`
+            );
+          }
         }} 
         initialCategoryId={selectedCategory} 
         warehouseId={currentWarehouseId} 

@@ -166,7 +166,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
     setLoading(false);
     if (!error && data) {
-      onProductAdded();
+      onProductAdded(data[0]);
       onClose();
       setImageFile(null);
       setImagePreview(null);
