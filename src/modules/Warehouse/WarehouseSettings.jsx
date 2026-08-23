@@ -8,7 +8,7 @@ import Papa from 'papaparse';
 import { useUser } from '../../core/UserContext';
 
 const WarehouseSettings = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { profile } = useUser();
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -252,7 +252,7 @@ const WarehouseSettings = () => {
         {/* Left Column: Core Settings */}
         <div className="space-y-10">
           <div className="space-y-6">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{i18n.language === 'az' ? 'ƏSAS PARAMETRLƏR' : i18n.language === 'ru' ? 'ОСНОВНЫЕ ПАРАМЕТРЫ' : 'CORE SETTINGS'}</h3>
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.coreSettings') || 'Основные параметры'}</h3>
             
             {/* Currency */}
             <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-4">
@@ -260,14 +260,14 @@ const WarehouseSettings = () => {
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                   <DollarSign className="w-4 h-4 text-merkez-blue" />
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">{i18n.language === 'az' ? 'Valyuta' : i18n.language === 'ru' ? 'Валюта' : 'Currency'}</h4>
+                <h4 className="text-sm font-bold text-gray-900">{t('warehouse.currency') || 'Валюта'}</h4>
               </div>
               <Dropdown 
                 value={settings.currency}
                 onChange={(val) => setSettings({ ...settings, currency: val })}
                 options={currencies}
               />
-              <p className="text-[11px] text-gray-500 leading-relaxed">{i18n.language === 'az' ? 'Ehtiyatların və maya dəyərinin hesablanması üçün əsas valyuta.' : 'Базовая валюта для расчета стоимости запасов и себестоимости.'}</p>
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.currencyDesc') || 'Базовая валюта для расчета стоимости запасов и себестоимости.'}</p>
             </div>
 
             {/* Default Unit */}
@@ -276,14 +276,14 @@ const WarehouseSettings = () => {
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                   <Scale className="w-4 h-4 text-merkez-blue" />
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">{i18n.language === 'az' ? 'Standart ölçü vahidi' : i18n.language === 'ru' ? 'Ед. измерения по умолчанию' : 'Default Unit'}</h4>
+                <h4 className="text-sm font-bold text-gray-900">{t('warehouse.defaultUnit') || 'Ед. измерения по умолчанию'}</h4>
               </div>
               <Dropdown 
                 value={settings.defaultUnit}
                 onChange={(val) => setSettings({ ...settings, defaultUnit: val })}
                 options={units.filter(u => settings.availableUnits?.includes(u.value))}
               />
-              <p className="text-[11px] text-gray-500 leading-relaxed">{i18n.language === 'az' ? 'Yeni mallar və inqrediyentlər əlavə edərkən avtomatik olaraq tətbiq olunacaq.' : 'Автоматически подставляется при добавлении новых товаров.'}</p>
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.defaultUnitDesc') || 'Автоматически подставляется при добавлении новых товаров.'}</p>
             </div>
 
             {/* Critical Stock */}
@@ -292,7 +292,7 @@ const WarehouseSettings = () => {
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                   <BellRing className="w-4 h-4 text-merkez-blue" />
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">{i18n.language === 'az' ? 'Standart kritik qalıq' : i18n.language === 'ru' ? 'Критический остаток' : 'Low Stock Threshold'}</h4>
+                <h4 className="text-sm font-bold text-gray-900">{t('warehouse.lowStockThreshold') || 'Критический остаток'}</h4>
               </div>
               <input 
                 type="number" 
@@ -300,7 +300,7 @@ const WarehouseSettings = () => {
                 onChange={(e) => setSettings({ ...settings, lowStockThreshold: e.target.value })}
                 className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
               />
-              <p className="text-[11px] text-gray-500 leading-relaxed">{i18n.language === 'az' ? 'Malın qalığı bu miqdardan az olduqda xəbərdarlıq bildirişi veriləcək.' : 'Порог уведомления о низком запасе товара.'}</p>
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.lowStockThresholdDesc') || 'Порог уведомления о низком запасе товара.'}</p>
             </div>
           </div>
         </div>
@@ -309,9 +309,9 @@ const WarehouseSettings = () => {
         <div className="space-y-10">
           {/* Units Selection */}
           <div className="space-y-6">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{i18n.language === 'az' ? 'ÖLÇÜ VAHİDLƏRİ' : i18n.language === 'ru' ? 'ЕДИНИЦЫ ИЗМЕРЕНИЯ' : 'UNIT SETTINGS'}</h3>
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.unitSettings') || 'Единицы измерения'}</h3>
             <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
-              <p className="text-xs text-gray-500 font-medium">{i18n.language === 'az' ? 'İstifadə etdiyiniz ölçü vahidlərini seçin (onlar mal əlavə edərkən siyahıda görünəcək):' : 'Отметьте те единицы, которые вы используете:'}</p>
+              <p className="text-xs text-gray-500 font-medium">{t('warehouse.availableUnitsDesc') || 'Отметьте те единицы, которые вы используете:'}</p>
                <div className="flex flex-wrap gap-2 items-center">
                 {units.map(unit => {
                   const isSelected = settings.availableUnits?.includes(unit.value);
@@ -353,7 +353,7 @@ const WarehouseSettings = () => {
                   <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 bg-white p-1 border border-gray-200 rounded-lg shadow-sm">
                     <input
                       type="text"
-                      placeholder={i18n.language === 'az' ? 'Ad...' : 'Название...'}
+                      placeholder={t('warehouse.unitName') || 'Название...'}
                       value={customUnitName}
                       onChange={(e) => setCustomUnitName(e.target.value)}
                       className="px-3 py-1.5 bg-gray-50 border border-transparent rounded-lg text-xs outline-none focus:bg-white focus:border-merkez-blue font-bold w-28"
@@ -387,53 +387,23 @@ const WarehouseSettings = () => {
                     className="px-4 py-2.5 rounded-lg text-xs font-bold transition-all border border-dashed border-gray-300 text-gray-500 hover:border-merkez-blue hover:text-merkez-blue flex items-center gap-1.5 shadow-sm bg-white"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    {i18n.language === 'az' ? 'Ölçü vahidi əlavə et' : 'Добавить единицу'}
+                    {t('warehouse.addCustomUnit') || 'Добавить единицу'}
                   </button>
                 )}
               </div>
             </div>
           </div>
 
-          {/* System Settings (Language) */}
-          <div className="space-y-6">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{i18n.language === 'az' ? 'SİSTEM' : i18n.language === 'ru' ? 'СИСТЕМА' : 'SYSTEM'}</h3>
-            <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                    <Settings2 className="w-4 h-4 text-merkez-blue" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900">{i18n.language === 'az' ? 'Dil' : 'Язык'}</h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">{i18n.language === 'az' ? 'Sistemin interfeys dili' : 'Язык интерфейса системы'}</p>
-                  </div>
-                </div>
-                <div className="w-40">
-                  <Dropdown
-                    value={i18n.language}
-                    onChange={(val) => i18n.changeLanguage(val)}
-                    options={[
-                      { value: 'az', label: 'Azərbaycan (AZ)' },
-                      { value: 'ru', label: 'Русский (RU)' },
-                      { value: 'en', label: 'English (EN)' }
-                    ]}
-                    buttonClassName="w-full text-sm font-bold rounded-lg px-4 py-2.5"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Barcode Automation */}
           <div className="space-y-6">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{i18n.language === 'az' ? 'AVTOMATLAŞDIRMA' : i18n.language === 'ru' ? 'АВТОМАТИЗАЦИЯ' : 'AUTOMATION'}</h3>
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.automation') || 'Автоматизация'}</h3>
             <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
                     <Barcode className="w-4 h-4 text-merkez-blue" />
                   </div>
-                  <h4 className="text-sm font-bold text-gray-900">{i18n.language === 'az' ? 'Avtomatik barkod generasiyası' : 'Автоматическая генерация штрихкодов'}</h4>
+                  <h4 className="text-sm font-bold text-gray-900">{t('warehouse.autoGenerateBarcode') || 'Автоштрихкоды'}</h4>
                 </div>
                 <label className="flex items-center cursor-pointer">
                   <div className="relative">
@@ -449,13 +419,26 @@ const WarehouseSettings = () => {
                 </label>
               </div>
 
-
-              <p className="text-[11px] text-gray-500 leading-relaxed">{i18n.language === 'az' ? 'Mal əlavə edilərkən sistem tərəfindən unikal barkod yaradılacaq.' : 'Система сама придумает штрихкод при добавлении товара.'}</p>
+              {settings.autoGenerateBarcode && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                    {t('warehouse.barcodePrefix') || 'Префикс'}
+                  </label>
+                  <input 
+                    type="text" 
+                    value={settings.barcodePrefix}
+                    onChange={(e) => setSettings({ ...settings, barcodePrefix: e.target.value })}
+                    placeholder="MRKZ-"
+                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
+                  />
+                </div>
+              )}
+              <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара.'}</p>
             </div>
           </div>
           {/* Warehouse Management */}
           <div className="space-y-6">
-            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{i18n.language === 'az' ? 'ANBARLARIN İDARƏ EDİLMƏSİ' : i18n.language === 'ru' ? 'УПРАВЛЕНИЕ СКЛАДАМИ' : 'WAREHOUSE MANAGEMENT'}</h3>
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.management') || 'Управление складами'}</h3>
             <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-6">
               <div className="space-y-3">
                 {warehouses.map(w => (

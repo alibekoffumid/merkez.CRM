@@ -35,10 +35,11 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
         try { parsed = JSON.parse(saved); setSettings(parsed); } catch (e) {}
       }
 
-      const prefix = parsed?.barcodePrefix || '20';
+      const rawPrefix = parsed?.barcodePrefix || '20';
+      const cleanPrefix = rawPrefix.replace(/\D/g, '') || '20';
       const timestamp = Date.now().toString().slice(-7);
       const randomNum = Math.floor(1000 + Math.random() * 9000);
-      const autoBarcode = `${prefix}${timestamp}${randomNum}`;
+      const autoBarcode = `${cleanPrefix}${timestamp}${randomNum}`;
 
       if (parsed?.availableUnits && parsed.availableUnits.length > 0) {
         setAvailableUnits(parsed.availableUnits);
@@ -127,10 +128,11 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
     let finalBarcode = formData.barcode?.trim();
     if (!finalBarcode) {
-      const prefix = settings?.barcodePrefix || '20';
+      const rawPrefix = settings?.barcodePrefix || '20';
+      const cleanPrefix = rawPrefix.replace(/\D/g, '') || '20';
       const timestamp = Date.now().toString().slice(-7);
       const randomNum = Math.floor(1000 + Math.random() * 9000);
-      finalBarcode = `${prefix}${timestamp}${randomNum}`;
+      finalBarcode = `${cleanPrefix}${timestamp}${randomNum}`;
     }
 
      const { data, error } = await supabase
