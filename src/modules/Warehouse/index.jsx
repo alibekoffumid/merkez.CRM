@@ -670,39 +670,61 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const executeDelete = async () => {
     if (!confirmDelete) return;
     
-    if (confirmDelete.type === 'product') {
-      const { error } = await supabase
-        .from('products')
-        .update({ is_deleted: true })
-        .eq('id', confirmDelete.id);
-      if (!error) setProducts(prev => prev.filter(p => p.id !== confirmDelete.id));
-    } else if (confirmDelete.type === 'ingredient') {
-      const { error } = await supabase.from('ingredients').delete().eq('id', confirmDelete.id);
-      if (!error) setIngredients(prev => prev.filter(i => i.id !== confirmDelete.id));
-    } else if (confirmDelete.type === 'supplier') {
-      const { error } = await supabase.from('suppliers').delete().eq('id', confirmDelete.id);
-      if (!error) fetchAll();
+    const { type, id } = confirmDelete;
+    try {
+      if (type === 'product') {
+        const { error } = await supabase
+          .from('products')
+          .update({ is_deleted: true })
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setProducts(prev => prev.filter(p => p.id !== id));
+        setServerSearchResults(prev => prev.filter(p => p.id !== id));
+        toast.success(i18n.language === 'az' ? 'Məhsul silindi' : 'Товар успешно удален');
+      } else if (type === 'ingredient') {
+        const { error } = await supabase.from('ingredients').delete().eq('id', id);
+        if (error) throw error;
+        setIngredients(prev => prev.filter(i => i.id !== id));
+        toast.success(i18n.language === 'az' ? 'İnqredient silindi' : 'Ингредиент удален');
+      } else if (type === 'supplier') {
+        const { error } = await supabase.from('suppliers').delete().eq('id', id);
+        if (error) throw error;
+        fetchAll();
+        toast.success(i18n.language === 'az' ? 'Tədarükçü silindi' : 'Поставщик удален');
+      }
+    } catch (err) {
+      console.error('Error executing delete:', err);
+      toast.error(err.message || (i18n.language === 'az' ? 'Silinərkən xəta baş verdi' : 'Ошибка при удалении'));
+    } finally {
+      setConfirmDelete(null);
     }
-    setConfirmDelete(null);
   };
 
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) return;
     
     setLoading(true);
-    const { error } = await supabase
-      .from('products')
-      .update({ is_deleted: true })
-      .in('id', selectedItems);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ is_deleted: true })
+        .in('id', selectedItems);
 
-    if (!error) {
+      if (error) throw error;
+
       setProducts(prev => prev.filter(p => !selectedItems.includes(p.id)));
+      setServerSearchResults(prev => prev.filter(p => !selectedItems.includes(p.id)));
       setSelectedItems([]);
+      toast.success(i18n.language === 'az' ? `${selectedItems.length} məhsul silindi` : `Удалено товаров: ${selectedItems.length}`);
+    } catch (err) {
+      console.error('Error in handleBulkDelete:', err);
+      toast.error(err.message || (i18n.language === 'az' ? 'Silinərkən xəta baş verdi' : 'Ошибка при удалении'));
+    } finally {
       setConfirmDelete(null);
-    } else {
-      toast.error(error.message);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const toggleSelectAll = () => {
