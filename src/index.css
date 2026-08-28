@@ -70,7 +70,7 @@
 
 @media print {
   @page {
-    size: 60mm 30mm;
+    size: 60mm 30mm !important;
     margin: 0mm !important;
   }
   
@@ -111,8 +111,9 @@
   .sticker-page {
     width: 60mm !important;
     height: 30mm !important;
-    page-break-after: always !important;
-    break-after: page !important;
+    max-height: 30mm !important;
+    page-break-after: always;
+    break-after: page;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     overflow: hidden !important;
@@ -121,6 +122,11 @@
     background: white !important;
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
+  }
+
+  .sticker-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
 
   .sticker-layout {
