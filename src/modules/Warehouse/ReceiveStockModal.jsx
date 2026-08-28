@@ -101,21 +101,39 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
     try {
       if (type === 'product') {
         if (!warehouseId) return;
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, name, barcode, purchase_price, price, supplier_id, category_id, stock_quantity')
-          .eq('user_id', profile.id)
-          .eq('warehouse_id', warehouseId)
-          .eq('is_deleted', false)
-          .order('name');
+        let allProducts = [];
+        let from = 0;
+        const step = 1000;
+        let hasMore = true;
 
-        if (error) {
-          console.error('fetchProducts error:', error);
-          return;
+        while (hasMore) {
+          const { data, error } = await supabase
+            .from('products')
+            .select('id, name, barcode, purchase_price, price, supplier_id, category_id, stock_quantity')
+            .eq('user_id', profile.id)
+            .eq('warehouse_id', warehouseId)
+            .eq('is_deleted', false)
+            .order('name')
+            .range(from, from + step - 1);
+
+          if (error) {
+            console.error('fetchProducts error:', error);
+            break;
+          }
+
+          if (data && data.length > 0) {
+            allProducts = [...allProducts, ...data.map(p => ({ ...p, stock_quantity: p.stock_quantity || 0 }))];
+            if (data.length < step) {
+              hasMore = false;
+            } else {
+              from += step;
+            }
+          } else {
+            hasMore = false;
+          }
         }
-        if (data) {
-          setProducts(data.map(p => ({ ...p, stock_quantity: p.stock_quantity || 0 })));
-        }
+
+        setProducts(allProducts);
       } else {
         const { data, error } = await supabase
           .from('ingredients')

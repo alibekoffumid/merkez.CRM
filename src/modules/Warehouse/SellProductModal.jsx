@@ -156,14 +156,43 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   const fetchProducts = async () => {
     if (!profile?.id || !warehouseId) return;
-    const { data } = await supabase
-      .from('products')
-      .select('id, name, barcode, stock_quantity, price, category_id')
-      .eq('user_id', profile.id)
-      .eq('warehouse_id', warehouseId)
-      .eq('is_deleted', false)
-      .order('name');
-    if (data) setProducts(data);
+    try {
+      let allProducts = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name, barcode, stock_quantity, price, category_id')
+          .eq('user_id', profile.id)
+          .eq('warehouse_id', warehouseId)
+          .eq('is_deleted', false)
+          .order('name')
+          .range(from, from + step - 1);
+
+        if (error) {
+          console.error('Error fetching products in SellProductModal:', error);
+          break;
+        }
+
+        if (data && data.length > 0) {
+          allProducts = [...allProducts, ...data];
+          if (data.length < step) {
+            hasMore = false;
+          } else {
+            from += step;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      setProducts(allProducts);
+    } catch (err) {
+      console.error('Error in fetchProducts SellProductModal:', err);
+    }
   };
 
   const fetchCustomers = async () => {

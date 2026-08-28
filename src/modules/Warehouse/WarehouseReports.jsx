@@ -60,14 +60,35 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         .eq('user_id', profile.id);
       setSuppliers(sups || []);
 
-      // Fetch products
-      const { data: prods } = await supabase
-        .from('products')
-        .select('id, name, barcode, stock_quantity, critical_stock, purchase_price, price, category_id, supplier_id')
-        .eq('user_id', profile.id)
-        .eq('warehouse_id', warehouseId)
-        .eq('is_deleted', false);
-      setProducts(prods || []);
+      // Fetch products with range pagination batching
+      let allProducts = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: prods, error: prodErr } = await supabase
+          .from('products')
+          .select('id, name, barcode, stock_quantity, critical_stock, purchase_price, price, category_id, supplier_id')
+          .eq('user_id', profile.id)
+          .eq('warehouse_id', warehouseId)
+          .eq('is_deleted', false)
+          .range(from, from + step - 1);
+
+        if (prodErr) break;
+
+        if (prods && prods.length > 0) {
+          allProducts = [...allProducts, ...prods];
+          if (prods.length < step) {
+            hasMore = false;
+          } else {
+            from += step;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+      setProducts(allProducts);
 
       // Fetch ingredients
       const { data: ings } = await supabase

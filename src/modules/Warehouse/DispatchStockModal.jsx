@@ -83,20 +83,45 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
     const table = type === 'product' ? 'products' : 'ingredients';
     const qtyField = type === 'product' ? 'stock_quantity' : 'quantity';
     
-    const { data } = await supabase
-      .from(table)
-      .select(`id, name, barcode, ${qtyField}, category_id`)
-      .eq('user_id', profile.id)
-      .eq('warehouse_id', warehouseId)
-      .eq('is_deleted', false)
-      .order('name');
-    
-    if (data) {
-      // Map the qty field to a common name for internal use
-      setProducts(data.map(p => ({
-        ...p,
-        stock_quantity: p[qtyField]
-      })));
+    try {
+      let allItems = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from(table)
+          .select(`id, name, barcode, ${qtyField}, category_id`)
+          .eq('user_id', profile.id)
+          .eq('warehouse_id', warehouseId)
+          .eq('is_deleted', false)
+          .order('name')
+          .range(from, from + step - 1);
+
+        if (error) {
+          console.error('fetchProducts in DispatchStockModal error:', error);
+          break;
+        }
+
+        if (data && data.length > 0) {
+          allItems = [...allItems, ...data.map(p => ({
+            ...p,
+            stock_quantity: p[qtyField]
+          }))];
+          if (data.length < step) {
+            hasMore = false;
+          } else {
+            from += step;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      setProducts(allItems);
+    } catch (err) {
+      console.error('Error in fetchProducts DispatchStockModal:', err);
     }
   };
 

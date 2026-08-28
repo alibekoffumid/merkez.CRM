@@ -91,8 +91,44 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [printingItems, setPrintingItems] = useState(null);
+  const [serverSearchResults, setServerSearchResults] = useState([]);
+  const [isSearchingServer, setIsSearchingServer] = useState(false);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
+
+  // Debounced server-side product search across all active products globally
+  useEffect(() => {
+    const term = searchTerm.trim();
+    if (!term || !profile?.id) {
+      setServerSearchResults([]);
+      setIsSearchingServer(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearchingServer(true);
+      try {
+        const safeTerm = term.replace(/[%_,()]/g, ' ');
+        const { data, error } = await supabase
+          .from('products')
+          .select('*, categories(name), warehouses(name)')
+          .eq('is_deleted', false)
+          .eq('user_id', profile.id)
+          .or(`barcode.ilike.%${safeTerm}%,name.ilike.%${safeTerm}%`)
+          .limit(100);
+
+        if (!error && data) {
+          setServerSearchResults(data);
+        }
+      } catch (err) {
+        console.error('Error in server search:', err);
+      } finally {
+        setIsSearchingServer(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, profile?.id]);
 
   useEffect(() => {
     if (profile?.id) {
@@ -290,14 +326,35 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     } catch (e) {}
   };
 
-  const handleMainSearchSubmit = (e) => {
+  const handleMainSearchSubmit = async (e) => {
     e.preventDefault();
     const term = searchTerm.trim();
     if (!term) return;
 
-    const matchedProduct = (products || []).find(p => 
+    let matchedProduct = (products || []).find(p => 
       p.barcode === term || (p.barcode && p.barcode.toLowerCase() === term.toLowerCase())
     );
+
+    if (!matchedProduct && profile?.id) {
+      try {
+        const safeTerm = term.replace(/[%_,()]/g, ' ');
+        const { data } = await supabase
+          .from('products')
+          .select('*, categories(name), warehouses(name)')
+          .eq('is_deleted', false)
+          .eq('user_id', profile.id)
+          .or(`barcode.eq.${term},name.ilike.%${safeTerm}%`)
+          .limit(5);
+
+        if (data && data.length > 0) {
+          const exactBarcodeMatch = data.find(p => p.barcode === term || (p.barcode && p.barcode.toLowerCase() === term.toLowerCase()));
+          matchedProduct = exactBarcodeMatch || data[0];
+          setServerSearchResults(data);
+        }
+      } catch (err) {
+        console.error('Error searching product on server:', err);
+      }
+    }
 
     if (matchedProduct) {
       if (supplierFilter !== 'all' && matchedProduct.supplier_id !== supplierFilter) {
@@ -311,9 +368,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       }
 
       playBeep(true);
-      toast.success(`${matchedProduct.name} (${matchedProduct.barcode})`);
+      const wName = matchedProduct.warehouses?.name || warehouses.find(w => w.id === matchedProduct.warehouse_id)?.name;
+      if (matchedProduct.warehouse_id && matchedProduct.warehouse_id !== currentWarehouseId) {
+        toast.success(
+          i18n.language === 'az' 
+            ? `${matchedProduct.name} (${matchedProduct.barcode || '—'}) — [Anbar: ${wName || 'Başqa anbar'}]` 
+            : `${matchedProduct.name} (${matchedProduct.barcode || '—'}) — [Склад: ${wName || 'Другой склад'}]`,
+          { duration: 4000 }
+        );
+      } else {
+        toast.success(`${matchedProduct.name} (${matchedProduct.barcode || '—'})`);
+      }
     } else {
-      const matched = (products || []).filter(p => 
+      const matched = (filteredProducts || []).filter(p => 
         (p.name || '').toLowerCase().includes(term.toLowerCase()) || 
         (p.barcode || '').toLowerCase().includes(term.toLowerCase())
       );
@@ -535,14 +602,43 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const fetchProducts = async () => {
     if (!profile?.id || !currentWarehouseId) return;
-    const { data } = await supabase
-      .from('products')
-      .select('*, categories(name)')
-      .eq('is_deleted', false)
-      .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
-      .order('created_at', { ascending: false });
-    if (data) setProducts(data);
+    try {
+      let allProducts = [];
+      let from = 0;
+      const step = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*, categories(name)')
+          .eq('is_deleted', false)
+          .eq('user_id', profile.id)
+          .eq('warehouse_id', currentWarehouseId)
+          .order('created_at', { ascending: false })
+          .range(from, from + step - 1);
+
+        if (error) {
+          console.error('Error fetching products batch:', error);
+          break;
+        }
+
+        if (data && data.length > 0) {
+          allProducts = [...allProducts, ...data];
+          if (data.length < step) {
+            hasMore = false;
+          } else {
+            from += step;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      setProducts(allProducts);
+    } catch (err) {
+      console.error('Error in fetchProducts:', err);
+    }
   };
 
   const fetchIngredients = async () => {
@@ -651,48 +747,67 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return 'text-merkez-green';
   };
 
-  const filteredProducts = products
-    .filter(p => {
-      // Global search: when typing in search box, search across all categories
-      if (searchTerm.trim()) return true;
-      if (!selectedCategory) return true;
-      if (p.category_id === selectedCategory) return true;
-      
-      // Recursive check for subcategories
-      const getAllDescendantIds = (catId) => {
-        let ids = [];
-        const children = categories.filter(c => c.parent_id === catId);
-        ids = [...children.map(c => c.id)];
-        children.forEach(child => {
-          ids = [...ids, ...getAllDescendantIds(child.id)];
-        });
-        return ids;
-      };
+  const filteredProducts = (() => {
+    let list = products;
 
-      const allSubIds = getAllDescendantIds(selectedCategory);
-      return allSubIds.includes(p.category_id);
-    })
-    .filter(p => {
-      if (!searchTerm) return true;
-      const term = searchTerm.trim().toLowerCase();
-      return (p.name || '').toLowerCase().includes(term) || 
-             (p.barcode || '').toLowerCase().includes(term);
-    })
-    .filter(p => {
-      if (statusFilter === 'all') return true;
-      const stock = parseFloat(p.stock_quantity || 0);
-      const min = parseFloat(p.critical_stock || 15);
-      if (statusFilter === 'in') return stock >= min;
-      if (statusFilter === 'low') return stock > 0 && stock < min;
-      if (statusFilter === 'out') return stock === 0;
-      return true;
-    })
-    .filter(p => {
-      // Global search: when typing in search box, search across all suppliers
-      if (searchTerm.trim()) return true;
-      if (supplierFilter === 'all') return true;
-      return p.supplier_id === supplierFilter;
-    });
+    if (searchTerm.trim() && serverSearchResults.length > 0) {
+      const localIds = new Set(products.map(p => p.id));
+      const additionalServerItems = serverSearchResults
+        .filter(sp => !localIds.has(sp.id))
+        .map(sp => {
+          const wName = sp.warehouses?.name || warehouses.find(w => w.id === sp.warehouse_id)?.name;
+          return {
+            ...sp,
+            isOtherWarehouse: sp.warehouse_id !== currentWarehouseId,
+            warehouseName: wName
+          };
+        });
+      list = [...products, ...additionalServerItems];
+    }
+
+    return list
+      .filter(p => {
+        // Global search: when typing in search box, search across all categories
+        if (searchTerm.trim()) return true;
+        if (!selectedCategory) return true;
+        if (p.category_id === selectedCategory) return true;
+        
+        // Recursive check for subcategories
+        const getAllDescendantIds = (catId) => {
+          let ids = [];
+          const children = categories.filter(c => c.parent_id === catId);
+          ids = [...children.map(c => c.id)];
+          children.forEach(child => {
+            ids = [...ids, ...getAllDescendantIds(child.id)];
+          });
+          return ids;
+        };
+
+        const allSubIds = getAllDescendantIds(selectedCategory);
+        return allSubIds.includes(p.category_id);
+      })
+      .filter(p => {
+        if (!searchTerm) return true;
+        const term = searchTerm.trim().toLowerCase();
+        return (p.name || '').toLowerCase().includes(term) || 
+               (p.barcode || '').toLowerCase().includes(term);
+      })
+      .filter(p => {
+        if (statusFilter === 'all') return true;
+        const stock = parseFloat(p.stock_quantity || 0);
+        const min = parseFloat(p.critical_stock || 15);
+        if (statusFilter === 'in') return stock >= min;
+        if (statusFilter === 'low') return stock > 0 && stock < min;
+        if (statusFilter === 'out') return stock === 0;
+        return true;
+      })
+      .filter(p => {
+        // Global search: when typing in search box, search across all suppliers
+        if (searchTerm.trim()) return true;
+        if (supplierFilter === 'all') return true;
+        return p.supplier_id === supplierFilter;
+      });
+  })();
 
   const filteredIngredients = ingredients
     .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -1978,8 +2093,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </button>
                           </td>
                           <td className="px-2 py-4">
-                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                            <div className="font-medium text-gray-900 flex items-center gap-2 flex-wrap">
                               {item.name}
+                              {(item.isOtherWarehouse || (item.warehouse_id && item.warehouse_id !== currentWarehouseId)) && (
+                                <span className="inline-flex items-center bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap" title={i18n.language === 'az' ? 'Məhsul başqa anbarda yerləşir' : 'Товар на другом складе'}>
+                                  📍 {item.warehouseName || warehouses.find(w => w.id === item.warehouse_id)?.name || (i18n.language === 'az' ? 'Başqa anbar' : 'Другой склад')}
+                                </span>
+                              )}
                               {activeRepairsMap[item.id] && (
                                 <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2 whitespace-nowrap">
                                   {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
@@ -2119,6 +2239,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             <div>
                               <p className="font-bold text-gray-900 text-sm flex items-center gap-2 flex-wrap">
                                 {item.name}
+                                {(item.isOtherWarehouse || (item.warehouse_id && item.warehouse_id !== currentWarehouseId)) && (
+                                  <span className="inline-flex items-center bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
+                                    📍 {item.warehouseName || warehouses.find(w => w.id === item.warehouse_id)?.name || (i18n.language === 'az' ? 'Başqa anbar' : 'Другой склад')}
+                                  </span>
+                                )}
                                 {activeRepairsMap[item.id] && (
                                   <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
                                     {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
