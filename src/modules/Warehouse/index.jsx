@@ -97,6 +97,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [isSearchingServer, setIsSearchingServer] = useState(false);
   const menuRef = useRef(null);
   const filterRef = useRef(null);
+  const currentWarehouseIdRef = useRef(currentWarehouseId);
+  currentWarehouseIdRef.current = currentWarehouseId;
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+
+  // Auto-recover data when returning to tab/window if products are empty
+  useEffect(() => {
+    const handleFocus = () => {
+      if (products.length === 0 && profileRef.current?.id && currentWarehouseIdRef.current) {
+        fetchProducts(currentWarehouseIdRef.current);
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [products.length]);
 
   // Debounced server-side product search across all active products globally
   useEffect(() => {
@@ -270,12 +285,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const fetchReceipts = async (overrideWarehouseId) => {
-    const wId = overrideWarehouseId || currentWarehouseId;
-    if (!profile?.id || !wId) return;
+    const wId = overrideWarehouseId || currentWarehouseIdRef.current || currentWarehouseId;
+    const pId = profileRef.current?.id || profile?.id;
+    if (!pId || !wId) return;
     const { data } = await supabase
       .from('stock_receipts')
       .select('*, products(name, barcode), suppliers(name)')
-      .eq('user_id', profile.id)
+      .eq('user_id', pId)
       .eq('warehouse_id', wId)
       .order('received_at', { ascending: false });
     if (data) setReceipts(data);
@@ -487,12 +503,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const fetchDispatches = async (overrideWarehouseId) => {
-    const wId = overrideWarehouseId || currentWarehouseId;
-    if (!profile?.id || !wId) return;
+    const wId = overrideWarehouseId || currentWarehouseIdRef.current || currentWarehouseId;
+    const pId = profileRef.current?.id || profile?.id;
+    if (!pId || !wId) return;
     const { data } = await supabase
       .from('stock_dispatches')
       .select('*, products(name, barcode, category_id)')
-      .eq('user_id', profile.id)
+      .eq('user_id', pId)
       .eq('warehouse_id', wId)
       .order('issued_at', { ascending: false });
     if (data) setDispatches(data);
@@ -610,8 +627,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const fetchProducts = async (overrideWarehouseId) => {
-    const wId = overrideWarehouseId || currentWarehouseId;
-    if (!profile?.id || !wId) return;
+    const wId = overrideWarehouseId || currentWarehouseIdRef.current || currentWarehouseId;
+    const pId = profileRef.current?.id || profile?.id;
+    if (!pId || !wId) return;
     setLoadingProducts(true);
     try {
       let allProducts = [];
@@ -624,7 +642,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           .from('products')
           .select('*, categories(name)')
           .eq('is_deleted', false)
-          .eq('user_id', profile.id)
+          .eq('user_id', pId)
           .eq('warehouse_id', wId)
           .order('created_at', { ascending: false })
           .range(from, from + step - 1);
@@ -655,12 +673,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const fetchIngredients = async (overrideWarehouseId) => {
-    const wId = overrideWarehouseId || currentWarehouseId;
-    if (!profile?.id || !wId) return;
+    const wId = overrideWarehouseId || currentWarehouseIdRef.current || currentWarehouseId;
+    const pId = profileRef.current?.id || profile?.id;
+    if (!pId || !wId) return;
     const { data } = await supabase
       .from('ingredients')
       .select('*')
-      .eq('user_id', profile.id)
+      .eq('user_id', pId)
       .eq('warehouse_id', wId)
       .order('name', { ascending: true });
     if (data) setIngredients(data);
@@ -789,36 +808,55 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   // Pre-calculate category descendants & product counts in O(N) using useMemo
   const { descendantMap, categoryProductCounts } = useMemo(() => {
     const descMap = {};
+
+    // Build children mapping by string ID
+    const childrenByParent = {};
+    (categories || []).forEach(c => {
+      if (c.parent_id != null && c.parent_id !== '') {
+        const pId = String(c.parent_id);
+        if (!childrenByParent[pId]) childrenByParent[pId] = [];
+        childrenByParent[pId].push(String(c.id));
+      }
+    });
+
     const getDescendantIds = (catId) => {
-      if (descMap[catId]) return descMap[catId];
-      const children = (categories || []).filter(c => c.parent_id === catId);
-      let ids = [...children.map(c => c.id)];
-      children.forEach(child => {
-        ids = [...ids, ...getDescendantIds(child.id)];
+      const sId = String(catId);
+      if (descMap[sId]) return descMap[sId];
+      const directChildren = childrenByParent[sId] || [];
+      let allDesc = [...directChildren];
+      directChildren.forEach(childId => {
+        allDesc = [...allDesc, ...getDescendantIds(childId)];
       });
-      descMap[catId] = ids;
-      return ids;
+      descMap[sId] = allDesc;
+      return allDesc;
     };
 
-    // Pre-aggregate product count per category
-    const directCounts = {};
-    for (let i = 0; i < (products || []).length; i++) {
-      const cid = products[i].category_id;
-      if (cid) {
-        directCounts[cid] = (directCounts[cid] || 0) + 1;
-      }
-    }
+    // Populate descMap for ALL categories
+    (categories || []).forEach(c => {
+      getDescendantIds(c.id);
+    });
 
-    const counts = {};
-    for (let i = 0; i < (categories || []).length; i++) {
-      const catId = categories[i].id;
-      const descIds = getDescendantIds(catId);
-      let total = directCounts[catId] || 0;
-      for (let j = 0; j < descIds.length; j++) {
-        total += (directCounts[descIds[j]] || 0);
+    // Count direct products by string category ID
+    const directCounts = {};
+    (products || []).forEach(p => {
+      if (p.category_id != null && p.category_id !== '') {
+        const cId = String(p.category_id);
+        directCounts[cId] = (directCounts[cId] || 0) + 1;
       }
-      counts[catId] = total;
-    }
+    });
+
+    // Sum totals including subcategories
+    const counts = {};
+    (categories || []).forEach(c => {
+      const sId = String(c.id);
+      const descIds = descMap[sId] || [];
+      let total = directCounts[sId] || 0;
+      descIds.forEach(subId => {
+        total += (directCounts[subId] || 0);
+      });
+      counts[c.id] = total;
+      counts[sId] = total;
+    });
 
     return { descendantMap: descMap, categoryProductCounts: counts };
   }, [categories, products]);
@@ -848,14 +886,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
 
     const term = searchTerm.trim().toLowerCase();
-    const validCategoryIds = selectedCategory 
-      ? new Set([selectedCategory, ...(descendantMap[selectedCategory] || [])])
+    const validCategoryIds = selectedCategory != null && selectedCategory !== '' && selectedCategory !== 'all'
+      ? new Set([
+          String(selectedCategory),
+          ...((descendantMap[String(selectedCategory)] || []).map(id => String(id)))
+        ])
       : null;
 
     return list.filter(p => {
       // Category filter (if search term is active, search globally)
-      if (!term && validCategoryIds && !validCategoryIds.has(p.category_id)) {
-        return false;
+      if (!term && validCategoryIds) {
+        if (p.category_id == null || p.category_id === '') return false;
+        if (!validCategoryIds.has(String(p.category_id))) return false;
       }
 
       // Search term filter
