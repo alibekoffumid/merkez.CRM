@@ -52,15 +52,27 @@
     animation: pulse-gentle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  /* Hide number input arrows */
-  .no-spinner::-webkit-outer-spin-button,
-  .no-spinner::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  /* Shimmer Loading Animation */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
   }
-  .no-spinner {
-    -moz-appearance: textfield;
-    appearance: textfield;
+
+  .shimmer-element {
+    background: linear-gradient(
+      90deg,
+      #f1f5f9 0%,
+      #e2e8f0 25%,
+      #f8fafc 50%,
+      #e2e8f0 75%,
+      #f1f5f9 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
   }
 }
 

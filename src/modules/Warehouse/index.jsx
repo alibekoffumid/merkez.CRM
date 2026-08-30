@@ -24,6 +24,7 @@ import TransferStockModal from './TransferStockModal';
 import WarehouseTour from './WarehouseTour';
 import WarehouseStocktake from './WarehouseStocktake';
 import WarehouseReports from './WarehouseReports';
+import WarehouseSkeleton from './WarehouseSkeleton';
 
 import SellProductModal from './SellProductModal';
 import { formatCategoriesHierarchically } from './categoryUtils';
@@ -2093,9 +2094,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="flex-1 overflow-auto" ref={menuRef}>
             {loading ? (
-              <div className="flex items-center justify-center h-full text-gray-400">
-                <Loader2 className="w-8 h-8 animate-spin mr-3" /><span>{t('warehouse.loadingInventory')}</span>
-              </div>
+              <WarehouseSkeleton />
             ) : activeTab === 'finished' ? (
               // Finished Goods Table
               filteredProducts.length === 0 ? (
