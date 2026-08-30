@@ -1734,7 +1734,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
           {activeTab === 'finished' && (
               <div id="tour-categories" className={`
-                fixed inset-y-0 left-0 z-50 w-72 bg-white/95 backdrop-blur-md shadow-2xl p-6 flex flex-col 
+                fixed inset-y-0 left-0 z-50 w-80 lg:w-80 xl:w-[320px] 2xl:w-[340px] shrink-0 bg-white/95 backdrop-blur-md shadow-2xl p-5 lg:p-4 xl:p-5 flex flex-col 
                 lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-lg
                 transition-transform duration-300 border-r border-gray-100 lg:border-r-0
                 ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
