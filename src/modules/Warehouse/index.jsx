@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -783,11 +783,57 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return 'text-merkez-green';
   };
 
-  const filteredProducts = (() => {
-    let list = products;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  // Pre-calculate category descendants & product counts in O(N) using useMemo
+  const { descendantMap, categoryProductCounts } = useMemo(() => {
+    const descMap = {};
+    const getDescendantIds = (catId) => {
+      if (descMap[catId]) return descMap[catId];
+      const children = (categories || []).filter(c => c.parent_id === catId);
+      let ids = [...children.map(c => c.id)];
+      children.forEach(child => {
+        ids = [...ids, ...getDescendantIds(child.id)];
+      });
+      descMap[catId] = ids;
+      return ids;
+    };
+
+    // Pre-aggregate product count per category
+    const directCounts = {};
+    for (let i = 0; i < (products || []).length; i++) {
+      const cid = products[i].category_id;
+      if (cid) {
+        directCounts[cid] = (directCounts[cid] || 0) + 1;
+      }
+    }
+
+    const counts = {};
+    for (let i = 0; i < (categories || []).length; i++) {
+      const catId = categories[i].id;
+      const descIds = getDescendantIds(catId);
+      let total = directCounts[catId] || 0;
+      for (let j = 0; j < descIds.length; j++) {
+        total += (directCounts[descIds[j]] || 0);
+      }
+      counts[catId] = total;
+    }
+
+    return { descendantMap: descMap, categoryProductCounts: counts };
+  }, [categories, products]);
+
+  // Reset page to 1 when filters or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, statusFilter, supplierFilter]);
+
+  // Ultra-fast single-pass memoized product filter
+  const filteredProducts = useMemo(() => {
+    let list = products || [];
 
     if (searchTerm.trim() && serverSearchResults.length > 0) {
-      const localIds = new Set(products.map(p => p.id));
+      const localIds = new Set(list.map(p => p.id));
       const additionalServerItems = serverSearchResults
         .filter(sp => !localIds.has(sp.id))
         .map(sp => {
@@ -798,55 +844,59 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             warehouseName: wName
           };
         });
-      list = [...products, ...additionalServerItems];
+      list = [...list, ...additionalServerItems];
     }
 
-    return list
-      .filter(p => {
-        // Global search: when typing in search box, search across all categories
-        if (searchTerm.trim()) return true;
-        if (!selectedCategory) return true;
-        if (p.category_id === selectedCategory) return true;
-        
-        // Recursive check for subcategories
-        const getAllDescendantIds = (catId) => {
-          let ids = [];
-          const children = categories.filter(c => c.parent_id === catId);
-          ids = [...children.map(c => c.id)];
-          children.forEach(child => {
-            ids = [...ids, ...getAllDescendantIds(child.id)];
-          });
-          return ids;
-        };
+    const term = searchTerm.trim().toLowerCase();
+    const validCategoryIds = selectedCategory 
+      ? new Set([selectedCategory, ...(descendantMap[selectedCategory] || [])])
+      : null;
 
-        const allSubIds = getAllDescendantIds(selectedCategory);
-        return allSubIds.includes(p.category_id);
-      })
-      .filter(p => {
-        if (!searchTerm) return true;
-        const term = searchTerm.trim().toLowerCase();
-        return (p.name || '').toLowerCase().includes(term) || 
-               (p.barcode || '').toLowerCase().includes(term);
-      })
-      .filter(p => {
-        if (statusFilter === 'all') return true;
+    return list.filter(p => {
+      // Category filter (if search term is active, search globally)
+      if (!term && validCategoryIds && !validCategoryIds.has(p.category_id)) {
+        return false;
+      }
+
+      // Search term filter
+      if (term) {
+        const nameMatch = (p.name || '').toLowerCase().includes(term);
+        const barcodeMatch = (p.barcode || '').toLowerCase().includes(term);
+        if (!nameMatch && !barcodeMatch) return false;
+      }
+
+      // Status filter
+      if (statusFilter !== 'all') {
         const stock = parseFloat(p.stock_quantity || 0);
         const min = parseFloat(p.critical_stock || 15);
-        if (statusFilter === 'in') return stock >= min;
-        if (statusFilter === 'low') return stock > 0 && stock < min;
-        if (statusFilter === 'out') return stock === 0;
-        return true;
-      })
-      .filter(p => {
-        // Global search: when typing in search box, search across all suppliers
-        if (searchTerm.trim()) return true;
-        if (supplierFilter === 'all') return true;
-        return p.supplier_id === supplierFilter;
-      });
-  })();
+        if (statusFilter === 'in' && stock < min) return false;
+        if (statusFilter === 'low' && (stock <= 0 || stock >= min)) return false;
+        if (statusFilter === 'out' && stock !== 0) return false;
+      }
 
-  const filteredIngredients = ingredients
-    .filter(i => i.name.toLowerCase().includes(searchTerm.toLowerCase()));
+      // Supplier filter
+      if (!term && supplierFilter !== 'all' && p.supplier_id !== supplierFilter) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [products, serverSearchResults, searchTerm, selectedCategory, descendantMap, statusFilter, supplierFilter, currentWarehouseId, warehouses]);
+
+  // Windowed / paginated items for 60 FPS rendering
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / (pageSize === 'all' ? filteredProducts.length || 1 : pageSize)));
+  
+  const paginatedProducts = useMemo(() => {
+    if (pageSize === 'all') return filteredProducts;
+    const start = (currentPage - 1) * pageSize;
+    return filteredProducts.slice(start, start + pageSize);
+  }, [filteredProducts, currentPage, pageSize]);
+
+  const filteredIngredients = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return ingredients || [];
+    return (ingredients || []).filter(i => (i.name || '').toLowerCase().includes(term));
+  }, [ingredients, searchTerm]);
 
   return (
     <div className="space-y-6 flex flex-col h-full w-full">
@@ -1807,24 +1857,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return NEON_COLORS[idx];
                     };
 
-                    const getDescendantIds = (catId) => {
-                      let ids = [];
-                      const children = categories.filter(c => c.parent_id === catId);
-                      ids = [...children.map(c => c.id)];
-                      children.forEach(child => {
-                        ids = [...ids, ...getDescendantIds(child.id)];
-                      });
-                      return ids;
-                    };
-
                     const renderCategory = (cat, level = 0, catIdx = 0) => {
                       const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
                       const isExpanded = expandedCategories.includes(cat.id);
                       const isActive = selectedCategory === cat.id;
                       const catColor = getCategoryColor(cat.id, catIdx);
-                      
-                      const descendantIds = getDescendantIds(cat.id);
-                      const count = products.filter(p => p.category_id === cat.id || descendantIds.includes(p.category_id)).length;
+                      const count = categoryProductCounts[cat.id] || 0;
                       
                       return (
                         <React.Fragment key={cat.id}>
@@ -2154,7 +2192,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {filteredProducts.map((item, index) => (
+                      {paginatedProducts.map((item, index) => (
                         <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
                           <td className="pl-8 pr-2 py-4">
                             <button 
@@ -2253,37 +2291,35 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           {currentStaff?.role !== 'Cashier' && (
                             <td className="px-2 py-4 pr-6 text-right">
                               <div className="relative inline-block">
-                                <button
-                                  id={index === 0 ? "tour-actions" : undefined}
+                                <button 
                                   onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                  className="text-gray-400 hover:text-merkez-blue transition-colors p-1.5 rounded-md hover:bg-blue-50"
+                                  className="text-gray-400 hover:text-merkez-blue p-1 rounded-lg hover:bg-gray-100 transition-colors"
                                 >
-                                  <MoreVertical className="w-5 h-5" />
+                                  <MoreVertical className="w-4 h-4" />
                                 </button>
-
                                 {openMenuId === item.id && (
-                                  <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
-                                    <button
-                                      onClick={() => handleEdit(item)}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                  <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                    <button 
+                                      onClick={() => handlePrintProduct(item)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
                                     >
-                                      <Pencil className="w-4 h-4 text-merkez-blue" />
+                                      <Printer className="w-3.5 h-3.5 text-gray-500" />
+                                      {i18n.language === 'az' ? 'Çap et' : 'Печать'}
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button 
+                                      onClick={() => handleEdit(item)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
                                       {t('warehouse.editProduct')}
                                     </button>
                                     <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button
-                                      onClick={() => { setPrintingItems([item]); setOpenMenuId(null); }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                    >
-                                      <Printer className="w-4 h-4 text-gray-500" />
-                                      Etiket Çap Et
-                                    </button>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button
+                                    <button 
                                       onClick={() => requestDeleteProduct(item.id)}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
                                     >
-                                      <Trash2 className="w-4 h-4" />
+                                      <Trash2 className="w-3.5 h-3.5" />
                                       {t('warehouse.deleteProduct')}
                                     </button>
                                   </div>
@@ -2298,7 +2334,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                   {/* Mobile Products Cards Grid */}
                   <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
-                    {filteredProducts.map((item, index) => (
+                    {paginatedProducts.map((item, index) => (
                       <div key={item.id} className={`p-4 flex flex-col gap-2.5 ${selectedItems.includes(item.id) ? 'bg-blue-50/20' : ''}`}>
                         <div className="flex justify-between items-start">
                           <div className="flex gap-2">
@@ -2401,6 +2437,105 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </div>
                     ))}
                   </div>
+
+                  {/* Fast Pagination Toolbar */}
+                  {filteredProducts.length > 0 && (
+                    <div className="p-3.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-0 z-10 shadow-sm">
+                      <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                        <span>
+                          {i18n.language === 'az' ? 'Göstərilir:' : 'Показано:'}{' '}
+                          <strong className="text-gray-900 font-bold">
+                            {pageSize === 'all' ? `1 - ${filteredProducts.length}` : `${Math.min((currentPage - 1) * pageSize + 1, filteredProducts.length)} - ${Math.min(currentPage * pageSize, filteredProducts.length)}`}
+                          </strong>{' '}
+                          / <strong className="text-gray-900 font-bold">{filteredProducts.length}</strong> {i18n.language === 'az' ? 'məhsul' : 'товаров'}
+                        </span>
+                        <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-3">
+                          <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
+                          <select
+                            value={pageSize}
+                            onChange={(e) => {
+                              setPageSize(e.target.value === 'all' ? 'all' : Number(e.target.value));
+                              setCurrentPage(1);
+                            }}
+                            className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-700 hover:border-merkez-blue cursor-pointer"
+                          >
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                            <option value={200}>200</option>
+                            <option value="all">{i18n.language === 'az' ? 'Hamısı' : 'Все'}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {pageSize !== 'all' && totalPages > 1 && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1}
+                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                            title={i18n.language === 'az' ? 'İlk səhifə' : 'Первая страница'}
+                          >
+                            <ChevronsLeft className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                            title={i18n.language === 'az' ? 'Əvvəlki' : 'Предыдущая'}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+
+                          <div className="flex items-center gap-1 px-1">
+                            {(() => {
+                              const pages = [];
+                              const maxVisiblePages = 5;
+                              let startPage = Math.max(1, currentPage - 2);
+                              let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                              if (endPage - startPage < maxVisiblePages - 1) {
+                                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                              }
+
+                              for (let p = startPage; p <= endPage; p++) {
+                                pages.push(
+                                  <button
+                                    key={p}
+                                    onClick={() => setCurrentPage(p)}
+                                    className={`min-w-[30px] h-7 px-2 rounded-md text-xs font-bold transition-all ${
+                                      currentPage === p
+                                        ? 'bg-merkez-blue text-white shadow-sm shadow-blue-500/30'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                );
+                              }
+                              return pages;
+                            })()}
+                          </div>
+
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                            title={i18n.language === 'az' ? 'Növbəti' : 'Следующая'}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages}
+                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                            title={i18n.language === 'az' ? 'Son səhifə' : 'Последняя страница'}
+                          >
+                            <ChevronsRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )
             ) : (
