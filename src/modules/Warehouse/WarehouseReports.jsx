@@ -229,64 +229,64 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         </button>
       </div>
 
-      {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Dashboard Cards in One Line */}
+      <div className={`grid gap-3.5 sm:gap-4 ${reportType === 'product' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
         {/* Cost */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center">
-            <DollarSign className="w-6 h-6" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+            <DollarSign className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Məhsul Mayası</p>
-            <h4 className="text-xl font-black text-gray-900">₼{stats.totalCost.toFixed(2)}</h4>
+          <div className="min-w-0 overflow-hidden">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Məhsul Mayası</p>
+            <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{stats.totalCost.toFixed(2)}</h4>
           </div>
         </div>
 
         {/* Retail */}
         {reportType === 'product' && (
           <>
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6" />
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                <TrendingUp className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Satış Dəyəri</p>
-                <h4 className="text-xl font-black text-gray-900">₼{stats.totalRetail.toFixed(2)}</h4>
+              <div className="min-w-0 overflow-hidden">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Satış Dəyəri</p>
+                <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{stats.totalRetail.toFixed(2)}</h4>
               </div>
             </div>
 
             {/* Profit */}
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-lg bg-blue-50 text-merkez-blue flex items-center justify-center">
-                <DollarSign className="w-6 h-6" />
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 text-merkez-blue flex items-center justify-center shrink-0">
+                <DollarSign className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Gözlənilən Qazanc</p>
-                <h4 className="text-xl font-black text-gray-900">₼{stats.potentialProfit.toFixed(2)}</h4>
+              <div className="min-w-0 overflow-hidden">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Gözlənilən Qazanc</p>
+                <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{stats.potentialProfit.toFixed(2)}</h4>
               </div>
             </div>
           </>
         )}
 
         {/* Total Items */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className="w-12 h-12 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center">
-            <Package className="w-6 h-6" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+          <div className="w-11 h-11 rounded-xl bg-gray-50 text-gray-500 flex items-center justify-center shrink-0">
+            <Package className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Cəmi Çeşid</p>
-            <h4 className="text-xl font-black text-gray-900">{stats.totalItems}</h4>
+          <div className="min-w-0 overflow-hidden">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Cəmi Çeşid</p>
+            <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">{stats.totalItems}</h4>
           </div>
         </div>
 
         {/* Low Stock count */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-shadow">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${stats.lowStockItemsCount > 0 ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-green-50 text-green-500'}`}>
-            <AlertTriangle className="w-6 h-6" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${stats.lowStockItemsCount > 0 ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-green-50 text-green-500'}`}>
+            <AlertTriangle className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Kritik Həddə Olanlar</p>
-            <h4 className="text-xl font-black text-gray-900">{stats.lowStockItemsCount}</h4>
+          <div className="min-w-0 overflow-hidden">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Kritik Həddə Olanlar</p>
+            <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">{stats.lowStockItemsCount}</h4>
           </div>
         </div>
       </div>
