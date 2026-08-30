@@ -60,6 +60,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -198,15 +199,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const fetchAll = async () => {
     setLoading(true);
+    setLoadingProducts(true);
     // Fetch warehouses first to get the current context
-    await fetchWarehouses();
+    const activeWId = await fetchWarehouses();
     await Promise.all([
       fetchCategories(), 
-      fetchProducts(), 
-      fetchIngredients(), 
+      fetchProducts(activeWId), 
+      fetchIngredients(activeWId), 
       fetchSuppliers(),
-      fetchReceipts(),
-      fetchDispatches(),
+      fetchReceipts(activeWId),
+      fetchDispatches(activeWId),
       fetchTransfers(),
       fetchActiveRepairs()
     ]);
@@ -214,7 +216,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const fetchWarehouses = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) return null;
     const { data, error } = await supabase
       .from('warehouses')
       .select('*')
@@ -231,14 +233,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         if (newW) {
           setWarehouses([newW]);
           setCurrentWarehouseId(newW.id);
+          return newW.id;
         }
       } else {
         setWarehouses(data);
+        const activeId = currentWarehouseId || data[0].id;
         if (!currentWarehouseId) {
           setCurrentWarehouseId(data[0].id);
         }
+        return activeId;
       }
     }
+    return null;
   };
 
   const fetchActiveRepairs = async () => {
@@ -263,13 +269,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   };
 
-  const fetchReceipts = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchReceipts = async (overrideWarehouseId) => {
+    const wId = overrideWarehouseId || currentWarehouseId;
+    if (!profile?.id || !wId) return;
     const { data } = await supabase
       .from('stock_receipts')
       .select('*, products(name, barcode), suppliers(name)')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
+      .eq('warehouse_id', wId)
       .order('received_at', { ascending: false });
     if (data) setReceipts(data);
   };
@@ -479,13 +486,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   };
 
-  const fetchDispatches = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchDispatches = async (overrideWarehouseId) => {
+    const wId = overrideWarehouseId || currentWarehouseId;
+    if (!profile?.id || !wId) return;
     const { data } = await supabase
       .from('stock_dispatches')
       .select('*, products(name, barcode, category_id)')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
+      .eq('warehouse_id', wId)
       .order('issued_at', { ascending: false });
     if (data) setDispatches(data);
   };
@@ -601,8 +609,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (data) setCategories(data);
   };
 
-  const fetchProducts = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchProducts = async (overrideWarehouseId) => {
+    const wId = overrideWarehouseId || currentWarehouseId;
+    if (!profile?.id || !wId) return;
+    setLoadingProducts(true);
     try {
       let allProducts = [];
       let from = 0;
@@ -615,7 +625,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           .select('*, categories(name)')
           .eq('is_deleted', false)
           .eq('user_id', profile.id)
-          .eq('warehouse_id', currentWarehouseId)
+          .eq('warehouse_id', wId)
           .order('created_at', { ascending: false })
           .range(from, from + step - 1);
 
@@ -639,16 +649,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       setProducts(allProducts);
     } catch (err) {
       console.error('Error in fetchProducts:', err);
+    } finally {
+      setLoadingProducts(false);
     }
   };
 
-  const fetchIngredients = async () => {
-    if (!profile?.id || !currentWarehouseId) return;
+  const fetchIngredients = async (overrideWarehouseId) => {
+    const wId = overrideWarehouseId || currentWarehouseId;
+    if (!profile?.id || !wId) return;
     const { data } = await supabase
       .from('ingredients')
       .select('*')
       .eq('user_id', profile.id)
-      .eq('warehouse_id', currentWarehouseId)
+      .eq('warehouse_id', wId)
       .order('name', { ascending: true });
     if (data) setIngredients(data);
   };
@@ -2093,7 +2106,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           </div>
 
           <div className="flex-1 overflow-auto" ref={menuRef}>
-            {loading ? (
+            {(loading || loadingProducts || isSearchingServer) ? (
               <WarehouseSkeleton />
             ) : activeTab === 'finished' ? (
               // Finished Goods Table
