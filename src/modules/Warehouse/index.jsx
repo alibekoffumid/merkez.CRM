@@ -810,6 +810,44 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return t('restaurant.' + unit, { defaultValue: unit });
   };
 
+  const SUPPLIER_PALETTES = [
+    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200/80', hover: 'hover:border-purple-400', dot: 'bg-purple-500' },
+    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/80', hover: 'hover:border-emerald-400', dot: 'bg-emerald-500' },
+    { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200/80', hover: 'hover:border-amber-400', dot: 'bg-amber-500' },
+    { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/80', hover: 'hover:border-rose-400', dot: 'bg-rose-500' },
+    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200/80', hover: 'hover:border-indigo-400', dot: 'bg-indigo-500' },
+    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200/80', hover: 'hover:border-teal-400', dot: 'bg-teal-500' },
+    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200/80', hover: 'hover:border-orange-400', dot: 'bg-orange-500' },
+    { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200/80', hover: 'hover:border-cyan-400', dot: 'bg-cyan-500' },
+    { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', border: 'border-fuchsia-200/80', hover: 'hover:border-fuchsia-400', dot: 'bg-fuchsia-500' },
+    { bg: 'bg-lime-50', text: 'text-lime-800', border: 'border-lime-200/80', hover: 'hover:border-lime-400', dot: 'bg-lime-500' },
+    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200/80', hover: 'hover:border-pink-400', dot: 'bg-pink-500' },
+    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200/80', hover: 'hover:border-violet-400', dot: 'bg-violet-500' },
+    { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200/80', hover: 'hover:border-sky-400', dot: 'bg-sky-500' },
+    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200/80', hover: 'hover:border-red-400', dot: 'bg-red-500' },
+    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200/80', hover: 'hover:border-blue-400', dot: 'bg-blue-500' },
+    { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200/80', hover: 'hover:border-yellow-400', dot: 'bg-yellow-500' },
+  ];
+
+  const getSupplierStyle = (supplierIdOrName) => {
+    if (!supplierIdOrName) {
+      return {
+        bg: 'bg-gray-50',
+        text: 'text-gray-400',
+        border: 'border-dashed border-gray-200',
+        hover: 'hover:border-gray-400 hover:text-gray-600',
+        dot: 'bg-gray-300'
+      };
+    }
+    let hash = 0;
+    const str = String(supplierIdOrName);
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const idx = Math.abs(hash) % SUPPLIER_PALETTES.length;
+    return SUPPLIER_PALETTES[idx];
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
@@ -2315,24 +2353,29 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           <td className="px-2 py-4">
                             <div className="inline-block min-w-[130px]">
-                              <Dropdown
-                                value={item.supplier_id || ''}
-                                onChange={(val) => handleQuickSupplierChange(item.id, val)}
-                                searchable
-                                position="auto"
-                                options={[
-                                  { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
-                                  ...suppliers.map(s => ({
-                                    value: s.id,
-                                    label: s.name || s.company_name
-                                  }))
-                                ]}
-                                buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
-                                  item.supplier_id 
-                                    ? 'bg-purple-50 text-purple-700 border-purple-100 hover:border-purple-300' 
-                                    : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
-                                }`}
-                              />
+                              {(() => {
+                                const supStyle = getSupplierStyle(item.supplier_id);
+                                return (
+                                  <Dropdown
+                                    value={item.supplier_id || ''}
+                                    onChange={(val) => handleQuickSupplierChange(item.id, val)}
+                                    searchable
+                                    position="auto"
+                                    options={[
+                                      { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
+                                      ...suppliers.map(s => ({
+                                        value: s.id,
+                                        label: s.name || s.company_name
+                                      }))
+                                    ]}
+                                    buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
+                                      item.supplier_id 
+                                        ? `${supStyle.bg} ${supStyle.text} ${supStyle.border} ${supStyle.hover}` 
+                                        : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
+                                    }`}
+                                  />
+                                );
+                              })()}
                             </div>
                           </td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
@@ -2465,12 +2508,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
                             })()}
                           </span>
-                          <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-bold">
-                            {(() => {
-                              const sup = (suppliers || []).find(s => s.id === item.supplier_id);
-                              return sup ? (sup.name || sup.company_name) : '—';
-                            })()}
-                          </span>
+                          {(() => {
+                            const sup = (suppliers || []).find(s => s.id === item.supplier_id);
+                            const supStyle = getSupplierStyle(item.supplier_id);
+                            return sup ? (
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${supStyle.bg} ${supStyle.text} ${supStyle.border}`}>
+                                {sup.name || sup.company_name}
+                              </span>
+                            ) : null;
+                          })()}
                           <div className="flex items-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
                             {getStatusIcon(item.stock_quantity, item.critical_stock)}
                           </div>
