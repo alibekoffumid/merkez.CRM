@@ -22,7 +22,7 @@ const WarehouseSkeleton = () => {
             <th className="font-medium px-2 py-4">{t('warehouse.thPrice') || 'SATIŞ QİYMƏTİ'}</th>
             <th className="font-medium px-2 py-4">{t('warehouse.thStock') || 'STOK'}</th>
             <th className="font-medium px-2 py-4">{t('warehouse.thStatus') || 'STATUS'}</th>
-            <th className="font-medium px-2 py-4 pr-6 text-right">{t('warehouse.thActions') || 'ƏMƏLİYYATLAR'}</th>
+            <th className="font-medium px-2 py-4 pr-6 text-right"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">

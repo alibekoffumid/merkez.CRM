@@ -2241,7 +2241,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
                         {currentStaff?.role !== 'Cashier' && (
-                          <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap">{t('warehouse.thActions')}</th>
+                          <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap"></th>
                         )}
                       </tr>
                     </thead>
