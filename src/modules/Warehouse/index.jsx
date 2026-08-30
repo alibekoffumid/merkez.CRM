@@ -1741,16 +1741,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               `}>
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-                      style={{
-                        backgroundColor: 'rgba(0, 243, 255, 0.15)',
-                        color: '#00f3ff',
-                        boxShadow: '0 0 12px rgba(0, 243, 255, 0.5)',
-                        border: '1px solid rgba(0, 243, 255, 0.4)'
-                      }}
-                    >
-                      <FolderTree className="w-4 h-4" style={{ filter: 'drop-shadow(0 0 4px #00f3ff)' }} />
+                    <div className="w-8 h-8 rounded-lg bg-merkez-blue/10 flex items-center justify-center">
+                      <FolderTree className="w-4 h-4 text-merkez-blue" />
                     </div>
                     <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.categories')}</h3>
                   </div>
@@ -1759,57 +1751,46 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </button>
                 </div>
 
-                <div className="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                   <div 
-                    className={`group p-2.5 rounded-xl cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${selectedCategory === null ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/25 border border-blue-400/30' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                    className={`group p-3 rounded-lg cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${selectedCategory === null ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
                     onClick={() => setSelectedCategory(null)}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div 
-                        className="w-6.5 h-6.5 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
-                        style={{
-                          backgroundColor: 'rgba(0, 210, 255, 0.18)',
-                          color: '#00d2ff',
-                          boxShadow: '0 0 10px rgba(0, 210, 255, 0.55)',
-                          border: '1px solid rgba(0, 210, 255, 0.45)'
-                        }}
-                      >
-                        <FolderTree className="w-3.5 h-3.5" style={{ filter: 'drop-shadow(0 0 3px #00d2ff)' }} />
-                      </div>
-                      <span>{t('warehouse.allCategories')}</span>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-1.5 h-1.5 rounded-full ${selectedCategory === null ? 'bg-white' : 'bg-gray-300 group-hover:bg-merkez-blue'}`} />
+                      {t('warehouse.allCategories')}
                     </div>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${selectedCategory === null ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                      {products.length}
-                    </span>
                   </div>
 
                   <div className="my-4 border-t border-gray-100/50" />
 
                   {(() => {
-                    const NEON_PALETTE = [
-                      { color: '#00f3ff', bg: 'rgba(0, 243, 255, 0.16)', border: 'rgba(0, 243, 255, 0.5)', glow: '0 0 10px rgba(0, 243, 255, 0.5)' }, // Neon Cyan
-                      { color: '#0066ff', bg: 'rgba(0, 102, 255, 0.16)', border: 'rgba(0, 102, 255, 0.5)', glow: '0 0 10px rgba(0, 102, 255, 0.5)' }, // Electric Blue
-                      { color: '#00d2ff', bg: 'rgba(0, 210, 255, 0.16)', border: 'rgba(0, 210, 255, 0.5)', glow: '0 0 10px rgba(0, 210, 255, 0.5)' }, // Sky Neon
-                      { color: '#00f5d4', bg: 'rgba(0, 245, 212, 0.16)', border: 'rgba(0, 245, 212, 0.5)', glow: '0 0 10px rgba(0, 245, 212, 0.5)' }, // Neon Teal
-                      { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.16)', border: 'rgba(56, 189, 248, 0.5)', glow: '0 0 10px rgba(56, 189, 248, 0.5)' }, // Ice Blue
-                      { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.16)', border: 'rgba(99, 102, 241, 0.5)', glow: '0 0 10px rgba(99, 102, 241, 0.5)' }, // Neon Indigo
-                      { color: '#00ffc4', bg: 'rgba(0, 255, 196, 0.16)', border: 'rgba(0, 255, 196, 0.5)', glow: '0 0 10px rgba(0, 255, 196, 0.5)' }, // Neon Aqua
-                      { color: '#2563eb', bg: 'rgba(37, 99, 235, 0.16)', border: 'rgba(37, 99, 235, 0.5)', glow: '0 0 10px rgba(37, 99, 235, 0.5)' }, // Cobalt Neon
-                      { color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.16)', border: 'rgba(139, 92, 246, 0.5)', glow: '0 0 10px rgba(139, 92, 246, 0.5)' }, // Neon Violet Blue
-                      { color: '#06b6d4', bg: 'rgba(6, 182, 212, 0.16)', border: 'rgba(6, 182, 212, 0.5)', glow: '0 0 10px rgba(6, 182, 212, 0.5)' }, // Deep Cyan
-                      { color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.16)', border: 'rgba(59, 130, 246, 0.5)', glow: '0 0 10px rgba(59, 130, 246, 0.5)' }, // Royal Neon
-                      { color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.16)', border: 'rgba(96, 165, 250, 0.5)', glow: '0 0 10px rgba(96, 165, 250, 0.5)' }  // Bright Blue
+                    const NEON_COLORS = [
+                      '#00f0ff', // Neon Cyan
+                      '#2563eb', // Royal Blue
+                      '#00d2ff', // Electric Sky
+                      '#00f5d4', // Neon Turquoise
+                      '#3b82f6', // Bright Blue
+                      '#06b6d4', // Deep Cyan
+                      '#6366f1', // Neon Indigo
+                      '#38bdf8', // Ice Blue
+                      '#00e5ff', // Aqua Neon
+                      '#1d4ed8', // Vivid Cobalt
+                      '#0ea5e9', // Sky Blue
+                      '#8b5cf6', // Electric Purple-Blue
+                      '#00c49f', // Neon Teal
+                      '#4f46e5'  // Ultramarine
                     ];
 
-                    const getCategoryNeonStyle = (catId, fallbackIdx = 0) => {
-                      if (!catId) return NEON_PALETTE[0];
+                    const getCategoryColor = (catId, fallbackIdx = 0) => {
+                      if (!catId) return NEON_COLORS[0];
                       let hash = 0;
                       const str = String(catId);
                       for (let i = 0; i < str.length; i++) {
                         hash = str.charCodeAt(i) + ((hash << 5) - hash);
                       }
-                      const idx = Math.abs(hash + fallbackIdx) % NEON_PALETTE.length;
-                      return NEON_PALETTE[idx];
+                      const idx = Math.abs(hash + fallbackIdx) % NEON_COLORS.length;
+                      return NEON_COLORS[idx];
                     };
 
                     const getDescendantIds = (catId) => {
@@ -1826,7 +1807,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
                       const isExpanded = expandedCategories.includes(cat.id);
                       const isActive = selectedCategory === cat.id;
-                      const neonStyle = getCategoryNeonStyle(cat.id, catIdx);
+                      const catColor = getCategoryColor(cat.id, catIdx);
                       
                       const descendantIds = getDescendantIds(cat.id);
                       const count = products.filter(p => p.category_id === cat.id || descendantIds.includes(p.category_id)).length;
@@ -1834,8 +1815,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return (
                         <React.Fragment key={cat.id}>
                           <div 
-                            className={`group p-2.5 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-100 ring-2 ring-blue-500/20' : 'text-gray-700 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
-                            style={{ marginLeft: level > 0 ? `${level * 14}px` : '0' }}
+                            className={`group p-3 rounded-lg cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                            style={{ marginLeft: level > 0 ? `${level * 12}px` : '0' }}
                             onClick={() => {
                               setSelectedCategory(isActive ? null : cat.id);
                               if (hasSubcategories && !isExpanded) {
@@ -1843,7 +1824,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               }
                             }}
                           >
-                            <div className="flex items-center flex-1 truncate gap-2">
+                            <div className="flex items-center flex-1 truncate gap-2.5">
                               {hasSubcategories ? (
                                 <button 
                                   onClick={(e) => {
@@ -1860,35 +1841,31 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 level > 0 && <div className="w-5 h-5 shrink-0" />
                               )}
 
-                              <div 
-                                className="w-6.5 h-6.5 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
-                                style={{
-                                  backgroundColor: neonStyle.bg,
-                                  color: neonStyle.color,
-                                  boxShadow: neonStyle.glow,
-                                  border: `1px solid ${neonStyle.border}`
-                                }}
-                              >
-                                {hasSubcategories && isExpanded ? (
-                                  <FolderOpen className="w-3.5 h-3.5" style={{ filter: `drop-shadow(0 0 3px ${neonStyle.color})` }} />
-                                ) : (
-                                  <Folder className="w-3.5 h-3.5" style={{ filter: `drop-shadow(0 0 3px ${neonStyle.color})` }} />
-                                )}
-                              </div>
+                              {hasSubcategories && isExpanded ? (
+                                <FolderOpen 
+                                  className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" 
+                                  style={{ color: catColor }} 
+                                />
+                              ) : (
+                                <Folder 
+                                  className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" 
+                                  style={{ color: catColor }} 
+                                />
+                              )}
 
-                              <span className="truncate ml-0.5" title={t(`categories.${cat.name}`, { defaultValue: cat.name })}>
+                              <span className="truncate" title={t(`categories.${cat.name}`, { defaultValue: cat.name })}>
                                 {t(`categories.${cat.name}`, { defaultValue: cat.name })}
                               </span>
                             </div>
                             
-                            <div className="flex items-center gap-1.5 ml-2">
+                            <div className="flex items-center gap-2">
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
                                 className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
                               >
-                                <Pencil className="w-3 h-3" />
+                                <Pencil className="w-3.5 h-3.5" />
                               </button>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white shadow-sm' : 'bg-gray-100 text-gray-500'}`}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}>
                                 {count}
                               </span>
                             </div>

@@ -117,20 +117,7 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
-              style={{
-                backgroundColor: 'rgba(0, 243, 255, 0.15)',
-                color: '#00f3ff',
-                boxShadow: '0 0 12px rgba(0, 243, 255, 0.5)',
-                border: '1px solid rgba(0, 243, 255, 0.4)'
-              }}
-            >
-              <FolderTree className="w-4 h-4" style={{ filter: 'drop-shadow(0 0 4px #00f3ff)' }} />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900">{showConfirmDelete ? t('common.confirmDelete') : t('warehouse.editCategory')}</h3>
-          </div>
+          <h3 className="text-lg font-bold text-gray-900">{showConfirmDelete ? t('common.confirmDelete') : t('warehouse.editCategory')}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
