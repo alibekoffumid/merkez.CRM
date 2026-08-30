@@ -991,6 +991,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       />
 
       {/* Header & Tabs */}
+      {activeTab !== 'files' && activeTab !== 'settings' && activeTab !== 'clients' && activeTab !== 'staff' && activeTab !== 'debts' && activeTab !== 'repairs' && (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
         {/* Top Row: Title & Navigation */}
         <div className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-nowrap overflow-x-auto no-scrollbar w-full">
@@ -1353,6 +1354,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           </div>
         </div>
       </div>
+      )}
 
       <div className={`flex flex-1 ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
         {activeTab === 'debts' ? (

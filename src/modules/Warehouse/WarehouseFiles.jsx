@@ -540,49 +540,79 @@ const WarehouseFiles = () => {
   );
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-      {/* Header Actions (Portaled) */}
-      {portalTarget ? ReactDOM.createPortal(headerActions, portalTarget) : (
-        <div className="flex justify-end p-4 bg-white border-b border-gray-100 hidden">
-           {headerActions}
+    <div className="flex flex-col h-full w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+      {/* Full-width header toolbar */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 md:px-6 md:py-4 bg-white border-b border-gray-100 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-merkez-blue shrink-0">
+            <Folder className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-black text-gray-900 tracking-tight">
+                {currentFolder ? currentFolder.name : (i18n.language === 'az' ? 'Fayllar və Qovluqlar' : 'Файлы и папки')}
+              </h2>
+              {currentFolder && (
+                <span className="text-[10px] font-black uppercase tracking-wider text-merkez-blue bg-blue-50 px-2 py-0.5 rounded-md">
+                  {i18n.language === 'az' ? 'Qovluq' : 'Папка'}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">
+              {folders.length} {i18n.language === 'az' ? 'qovluq' : 'папок'} • {files.length} {i18n.language === 'az' ? 'fayl' : 'файлов'}
+            </p>
+          </div>
         </div>
-      )}
+
+        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
+          {headerActions}
+        </div>
+      </div>
 
       {/* Content List */}
-      <div className="flex-1 overflow-auto bg-white p-6">
+      <div className="flex-1 overflow-auto bg-gray-50/30 p-4 md:p-6 custom-scrollbar">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
             <Loader2 className="w-8 h-8 animate-spin mb-4 text-merkez-blue" />
             <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 max-w-full">
             {currentFolder && (
-               <button
-                 onClick={() => setCurrentFolder(null)} // If nested, we'd find parent. But here we just go to root for simplicity or track hierarchy.
-                 className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-merkez-blue transition-colors self-start mb-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100"
-               >
-                 <ArrowLeft className="w-4 h-4" /> {i18n.language === 'az' ? 'Geriyə (Əsas Qovluq)' : 'Назад (Корень)'}
-               </button>
+              <button
+                onClick={() => setCurrentFolder(null)}
+                className="flex items-center gap-2 text-xs font-bold text-gray-600 hover:text-merkez-blue transition-colors self-start bg-white px-3.5 py-2 rounded-lg border border-gray-200 shadow-sm"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> {i18n.language === 'az' ? 'Əsas qovluğa qayıt' : 'Назад в корень'}
+              </button>
             )}
             
             {folders.length === 0 && files.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[300px] text-gray-400 gap-4 p-10 border-2 border-dashed border-gray-100 rounded-xl w-full">
-                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">
-                  <Folder className="w-8 h-8 text-gray-300" />
+              <div className="flex flex-col items-center justify-center min-h-[350px] text-gray-400 gap-4 p-10 border-2 border-dashed border-gray-200 rounded-2xl bg-white w-full">
+                <div className="w-16 h-16 rounded-2xl bg-blue-50/50 flex items-center justify-center text-merkez-blue">
+                  <FolderPlus className="w-8 h-8 opacity-70" />
                 </div>
-                <p className="text-sm font-bold text-gray-500 text-center">
-                  {i18n.language === 'az' ? 'Bu qovluq boşdur.' : 'Эта папка пуста.'}
-                </p>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-gray-700">
+                    {i18n.language === 'az' ? 'Bu qovluqda heç bir fayl və ya alt qovluq yoxdur' : 'В этой папке нет файлов или вложенных папок'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {i18n.language === 'az' ? 'Yuxarıdakı düymələrdən istifadə edərək yeni qovluq yaradın və ya fayl yükləyin' : 'Используйте кнопки выше, чтобы создать папку или загрузить файл'}
+                  </p>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
                 {/* Render Folders First */}
                 {folders.map(folder => (
-                  <div key={folder.id} onClick={() => setCurrentFolder(folder)} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-merkez-blue hover:shadow-md transition-all group bg-white cursor-pointer">
+                  <div 
+                    key={folder.id} 
+                    onClick={() => setCurrentFolder(folder)} 
+                    className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-merkez-blue hover:shadow-md transition-all group bg-white cursor-pointer hover:-translate-y-0.5"
+                  >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                        <Folder className="w-5 h-5 text-merkez-blue" />
+                      <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 text-merkez-blue group-hover:scale-110 transition-transform">
+                        <Folder className="w-6 h-6" />
                       </div>
                       <div className="overflow-hidden">
                         <h4 className="text-sm font-bold text-gray-900 truncate" title={folder.name}>
@@ -596,7 +626,7 @@ const WarehouseFiles = () => {
                     <div className="flex items-center pl-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'folder', item: folder }); }}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -607,9 +637,9 @@ const WarehouseFiles = () => {
 
                 {/* Render Files */}
                 {files.map(file => (
-                  <div key={file.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-merkez-blue hover:shadow-md transition-all group bg-white">
+                  <div key={file.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-merkez-blue hover:shadow-md transition-all group bg-white hover:-translate-y-0.5">
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 text-gray-500 group-hover:scale-110 transition-transform">
                         {getFileIcon(file.type)}
                       </div>
                       <div className="overflow-hidden">
@@ -622,10 +652,10 @@ const WarehouseFiles = () => {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1 pl-2 opacity-0 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 pl-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => { setFileToMove(file); setShowMoveModal(true); setSelectedMoveFolder('root'); }}
-                        className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
                         title={i18n.language === 'az' ? 'Köçür' : 'Переместить'}
                       >
                         <MoveRight className="w-4 h-4" />
@@ -633,7 +663,7 @@ const WarehouseFiles = () => {
                       {(file.type?.includes('spreadsheet') || file.type?.includes('excel') || file.type?.includes('csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) && (
                         <button
                           onClick={() => handlePreview(file)}
-                          className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors"
                           title={i18n.language === 'az' ? 'Bax' : 'Просмотр'}
                         >
                           <Eye className="w-4 h-4" />
@@ -643,14 +673,14 @@ const WarehouseFiles = () => {
                         href={file.file_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
                         title={i18n.language === 'az' ? 'Yüklə' : 'Скачать'}
                       >
                         <Download className="w-4 h-4" />
                       </a>
                       <button
                         onClick={() => setConfirmDelete({ type: 'file', item: file })}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
                       >
                         <Trash2 className="w-4 h-4" />
