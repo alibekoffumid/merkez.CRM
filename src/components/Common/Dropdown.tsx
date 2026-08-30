@@ -109,47 +109,63 @@ const Dropdown: React.FC<DropdownProps> = ({
   const dropdownMenu = isOpen && createPortal(
     <div 
       ref={menuRef}
-      className={`fixed z-[9999] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 animate-in fade-in duration-200 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95 flex flex-col`}
+      className={`fixed z-[99999] bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_16px_48px_-8px_rgba(0,0,0,0.18)] border border-gray-100/90 p-1.5 animate-in fade-in duration-150 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95 flex flex-col`}
       style={{
-        top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
-        bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
+        top: coords.isTop ? 'auto' : `${coords.top + 6}px`,
+        bottom: coords.isTop ? `${window.innerHeight - coords.top + 6}px` : 'auto',
         left: `${coords.left}px`,
-        minWidth: `${coords.width}px`,
+        minWidth: `${Math.max(coords.width, 180)}px`,
         width: 'max-content',
-        maxWidth: '480px',
+        maxWidth: '380px',
       }}
     >
       {searchable && (
-        <div className="px-3 py-1.5 border-b border-gray-100/60 sticky top-0 bg-white z-10 shrink-0">
+        <div className="px-2 py-1.5 border-b border-gray-100/70 sticky top-0 bg-white/95 backdrop-blur-md z-10 shrink-0 mb-1">
           <input
             type="text"
-            placeholder={t('common.search') || 'Поиск...'}
+            placeholder={t('common.search') || 'Axtarış...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors font-bold"
+            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue/20 transition-all font-bold text-gray-800 placeholder-gray-400"
             autoFocus
             onKeyDown={(e) => e.stopPropagation()}
           />
         </div>
       )}
-      <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+      <div className="max-h-[280px] overflow-y-auto custom-scrollbar flex flex-col gap-0.5 pr-0.5">
         {filteredOptions ? (
-          filteredOptions.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onChange?.(opt.value);
-                setIsOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${value === opt.value ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
-            >
-              {opt.icon && <opt.icon className={`w-4 h-4 ${value === opt.value ? 'text-blue-600' : 'text-gray-400'}`} />}
-              <span className="text-sm font-bold whitespace-nowrap">{opt.label}</span>
-            </button>
-          ))
+          filteredOptions.length === 0 ? (
+            <div className="py-4 text-center text-xs font-bold text-gray-400">
+              {i18n.language === 'az' ? 'Nəticə tapılmadı' : 'Ничего не найдено'}
+            </div>
+          ) : (
+            filteredOptions.map((opt) => {
+              const isSelected = value === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onChange?.(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl text-left text-xs font-bold transition-all ${
+                    isSelected
+                      ? 'bg-blue-50 text-merkez-blue font-black'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    {opt.icon && <opt.icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-merkez-blue' : 'text-gray-400'}`} />}
+                    <span className="truncate">{opt.label}</span>
+                  </div>
+                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-merkez-blue shrink-0"></span>}
+                </button>
+              );
+            })
+          )
         ) : (
           items?.map((item) => (
             <button
@@ -161,9 +177,14 @@ const Dropdown: React.FC<DropdownProps> = ({
                 item.onClick();
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-colors text-left ${item.active ? 'bg-blue-50 text-blue-600' : 'text-gray-600'} ${item.className || ''}`}
+              className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl text-left text-xs font-bold transition-all ${
+                item.active 
+                  ? 'bg-blue-50 text-merkez-blue font-black' 
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              } ${item.className || ''}`}
             >
-              <span className="text-sm font-bold whitespace-nowrap">{item.label}</span>
+              <span className="truncate">{item.label}</span>
+              {item.active && <span className="w-1.5 h-1.5 rounded-full bg-merkez-blue shrink-0"></span>}
             </button>
           ))
         )}

@@ -2285,41 +2285,47 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             )}
                           </td>
                           <td className="px-2 py-4">
-                            <div className="relative group/cat inline-block">
-                              <select
+                            <div className="inline-block min-w-[130px]">
+                              <Dropdown
                                 value={item.category_id || ''}
-                                onChange={(e) => handleQuickCategoryChange(item.id, e.target.value)}
-                                className={`text-xs font-bold px-2.5 py-1 rounded-full border outline-none cursor-pointer transition-all appearance-none pr-6 ${
+                                onChange={(val) => handleQuickCategoryChange(item.id, val)}
+                                searchable
+                                position="auto"
+                                options={[
+                                  { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
+                                  ...categories.map(c => ({
+                                    value: c.id,
+                                    label: c.name
+                                  }))
+                                ]}
+                                buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
                                   item.category_id 
                                     ? 'bg-blue-50 text-merkez-blue border-blue-100 hover:border-merkez-blue' 
                                     : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
                                 }`}
-                              >
-                                <option value="">— {i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —</option>
-                                {categories.map(c => (
-                                  <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="w-3 h-3 text-current absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
+                              />
                             </div>
                           </td>
                           <td className="px-2 py-4">
-                            <div className="relative group/sup inline-block">
-                              <select
+                            <div className="inline-block min-w-[130px]">
+                              <Dropdown
                                 value={item.supplier_id || ''}
-                                onChange={(e) => handleQuickSupplierChange(item.id, e.target.value)}
-                                className={`text-xs font-bold px-2.5 py-1 rounded-full border outline-none cursor-pointer transition-all appearance-none pr-6 ${
+                                onChange={(val) => handleQuickSupplierChange(item.id, val)}
+                                searchable
+                                position="auto"
+                                options={[
+                                  { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
+                                  ...suppliers.map(s => ({
+                                    value: s.id,
+                                    label: s.name || s.company_name
+                                  }))
+                                ]}
+                                buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
                                   item.supplier_id 
                                     ? 'bg-purple-50 text-purple-700 border-purple-100 hover:border-purple-300' 
                                     : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
                                 }`}
-                              >
-                                <option value="">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</option>
-                                {suppliers.map(s => (
-                                  <option key={s.id} value={s.id}>{s.name || s.company_name}</option>
-                                ))}
-                              </select>
-                              <ChevronDown className="w-3 h-3 text-current absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-60" />
+                              />
                             </div>
                           </td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
@@ -2636,20 +2642,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </span>
                 <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-3">
                   <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(e.target.value === 'all' ? 'all' : Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-700 hover:border-merkez-blue cursor-pointer"
-                  >
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                    <option value={200}>200</option>
-                    <option value="all">{i18n.language === 'az' ? 'Hamısı' : 'Все'}</option>
-                  </select>
+                  <div className="w-[85px]">
+                    <Dropdown
+                      value={String(pageSize)}
+                      onChange={(val) => {
+                        setPageSize(val === 'all' ? 'all' : Number(val));
+                        setCurrentPage(1);
+                      }}
+                      position="top"
+                      options={[
+                        { value: '25', label: '25' },
+                        { value: '50', label: '50' },
+                        { value: '100', label: '100' },
+                        { value: '200', label: '200' },
+                        { value: 'all', label: i18n.language === 'az' ? 'Hamısı' : 'Все' }
+                      ]}
+                      buttonClassName="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 h-[28px] text-gray-700 hover:border-merkez-blue"
+                    />
+                  </div>
                 </div>
               </div>
 
