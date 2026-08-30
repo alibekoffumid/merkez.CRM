@@ -25,6 +25,7 @@ import WarehouseTour from './WarehouseTour';
 import WarehouseStocktake from './WarehouseStocktake';
 import WarehouseReports from './WarehouseReports';
 import WarehouseSkeleton from './WarehouseSkeleton';
+import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
 import { formatCategoriesHierarchically } from './categoryUtils';
@@ -1832,6 +1833,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </table>
             </div>
           </div>
+        ) : activeTab === 'files' ? (
+          <WarehouseFiles />
         ) : activeTab === 'stocktake' ? (
           <WarehouseStocktake warehouseId={currentWarehouseId} warehouses={warehouses} isRestaurantActive={isRestaurantActive} />
         ) : activeTab === 'reports' ? (
