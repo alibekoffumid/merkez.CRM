@@ -803,6 +803,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return 'text-merkez-green';
   };
 
+  const formatUnit = (unit) => {
+    if (!unit || unit === 'pcs' || unit === 'ədəd' || unit === 'əd.' || unit === 'шт' || unit === 'шт.') {
+      return i18n.language === 'az' ? 'əd.' : i18n.language === 'ru' ? 'шт.' : 'pcs';
+    }
+    return t('restaurant.' + unit, { defaultValue: unit });
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
@@ -2331,14 +2338,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <td className="px-2 py-4 text-sm text-gray-500">${parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                           )}
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900">${parseFloat(item.price).toFixed(2)}</td>
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900">
-                            {parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}
+                          <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                            {parseFloat(item.stock_quantity || 0).toFixed(2)} {formatUnit(item.unit)}
                           </td>
                           <td className="px-2 py-4">
-                            <div className={`flex items-center text-sm font-medium ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
+                            <div className="flex items-center justify-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
                               {getStatusIcon(item.stock_quantity, item.critical_stock)}
-                              <span className="ml-2">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
                             </div>
                           </td>
                           {currentStaff?.role !== 'Cashier' && (
@@ -2465,9 +2470,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               return sup ? (sup.name || sup.company_name) : '—';
                             })()}
                           </span>
-                          <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.stock_quantity, item.critical_stock)}`}>
+                          <div className="flex items-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
                             {getStatusIcon(item.stock_quantity, item.critical_stock)}
-                            <span className="ml-1">{getStatusText(item.stock_quantity, item.critical_stock)}</span>
                           </div>
                         </div>
 
@@ -2484,7 +2488,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </div>
                           <div className="text-right">
                             <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
-                            <span className="text-xs font-black text-gray-900">{parseFloat(item.stock_quantity || 0).toFixed(2)} {t('restaurant.' + (item.unit || 'pcs')) || item.unit || 'шт'}</span>
+                            <span className="text-xs font-black text-gray-900">{parseFloat(item.stock_quantity || 0).toFixed(2)} {formatUnit(item.unit)}</span>
                           </div>
                         </div>
                       </div>
