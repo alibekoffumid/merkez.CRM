@@ -2484,105 +2484,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </div>
                     ))}
                   </div>
-
-                  {/* Fast Pagination Toolbar */}
-                  {filteredProducts.length > 0 && (
-                    <div className="p-3.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-0 z-10 shadow-sm">
-                      <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                        <span>
-                          {i18n.language === 'az' ? 'Göstərilir:' : 'Показано:'}{' '}
-                          <strong className="text-gray-900 font-bold">
-                            {pageSize === 'all' ? `1 - ${filteredProducts.length}` : `${Math.min((currentPage - 1) * pageSize + 1, filteredProducts.length)} - ${Math.min(currentPage * pageSize, filteredProducts.length)}`}
-                          </strong>{' '}
-                          / <strong className="text-gray-900 font-bold">{filteredProducts.length}</strong> {i18n.language === 'az' ? 'məhsul' : 'товаров'}
-                        </span>
-                        <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-3">
-                          <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
-                          <select
-                            value={pageSize}
-                            onChange={(e) => {
-                              setPageSize(e.target.value === 'all' ? 'all' : Number(e.target.value));
-                              setCurrentPage(1);
-                            }}
-                            className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-700 hover:border-merkez-blue cursor-pointer"
-                          >
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                            <option value={200}>200</option>
-                            <option value="all">{i18n.language === 'az' ? 'Hamısı' : 'Все'}</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {pageSize !== 'all' && totalPages > 1 && (
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => setCurrentPage(1)}
-                            disabled={currentPage === 1}
-                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                            title={i18n.language === 'az' ? 'İlk səhifə' : 'Первая страница'}
-                          >
-                            <ChevronsLeft className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                            disabled={currentPage === 1}
-                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                            title={i18n.language === 'az' ? 'Əvvəlki' : 'Предыдущая'}
-                          >
-                            <ChevronLeft className="w-4 h-4" />
-                          </button>
-
-                          <div className="flex items-center gap-1 px-1">
-                            {(() => {
-                              const pages = [];
-                              const maxVisiblePages = 5;
-                              let startPage = Math.max(1, currentPage - 2);
-                              let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                              if (endPage - startPage < maxVisiblePages - 1) {
-                                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                              }
-
-                              for (let p = startPage; p <= endPage; p++) {
-                                pages.push(
-                                  <button
-                                    key={p}
-                                    onClick={() => setCurrentPage(p)}
-                                    className={`min-w-[30px] h-7 px-2 rounded-md text-xs font-bold transition-all ${
-                                      currentPage === p
-                                        ? 'bg-merkez-blue text-white shadow-sm shadow-blue-500/30'
-                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
-                                    }`}
-                                  >
-                                    {p}
-                                  </button>
-                                );
-                              }
-                              return pages;
-                            })()}
-                          </div>
-
-                          <button
-                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                            disabled={currentPage === totalPages}
-                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                            title={i18n.language === 'az' ? 'Növbəti' : 'Следующая'}
-                          >
-                            <ChevronRight className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setCurrentPage(totalPages)}
-                            disabled={currentPage === totalPages}
-                            className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                            title={i18n.language === 'az' ? 'Son səhifə' : 'Последняя страница'}
-                          >
-                            <ChevronsRight className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </>
               )
             ) : (
@@ -2721,6 +2622,105 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               )
             )}
           </div>
+
+          {/* Fixed Non-Scrolling Pagination Bar at the bottom of the card */}
+          {activeTab === 'finished' && !loading && !loadingProducts && !isSearchingServer && filteredProducts.length > 0 && (
+            <div className="p-3.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 z-20 shadow-sm">
+              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                <span>
+                  {i18n.language === 'az' ? 'Göstərilir:' : 'Показано:'}{' '}
+                  <strong className="text-gray-900 font-bold">
+                    {pageSize === 'all' ? `1 - ${filteredProducts.length}` : `${Math.min((currentPage - 1) * pageSize + 1, filteredProducts.length)} - ${Math.min(currentPage * pageSize, filteredProducts.length)}`}
+                  </strong>{' '}
+                  / <strong className="text-gray-900 font-bold">{filteredProducts.length}</strong> {i18n.language === 'az' ? 'məhsul' : 'товаров'}
+                </span>
+                <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-3">
+                  <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(e.target.value === 'all' ? 'all' : Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 outline-none font-bold text-gray-700 hover:border-merkez-blue cursor-pointer"
+                  >
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
+                    <option value="all">{i18n.language === 'az' ? 'Hamısı' : 'Все'}</option>
+                  </select>
+                </div>
+              </div>
+
+              {pageSize !== 'all' && totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    title={i18n.language === 'az' ? 'İlk səhifə' : 'Первая страница'}
+                  >
+                    <ChevronsLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    title={i18n.language === 'az' ? 'Əvvəlki' : 'Предыдущая'}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {(() => {
+                      const pages = [];
+                      const maxVisiblePages = 5;
+                      let startPage = Math.max(1, currentPage - 2);
+                      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                      if (endPage - startPage < maxVisiblePages - 1) {
+                        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                      }
+
+                      for (let p = startPage; p <= endPage; p++) {
+                        pages.push(
+                          <button
+                            key={p}
+                            onClick={() => setCurrentPage(p)}
+                            className={`min-w-[30px] h-7 px-2 rounded-md text-xs font-bold transition-all ${
+                              currentPage === p
+                                ? 'bg-merkez-blue text-white shadow-sm shadow-blue-500/30'
+                                : 'border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        );
+                      }
+                      return pages;
+                    })()}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    title={i18n.language === 'az' ? 'Növbəti' : 'Следующая'}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    title={i18n.language === 'az' ? 'Son səhifə' : 'Последняя страница'}
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     )}
