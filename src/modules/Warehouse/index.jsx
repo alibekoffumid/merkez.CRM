@@ -28,7 +28,7 @@ import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
-import { formatCategoriesHierarchically } from './categoryUtils';
+import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
@@ -36,21 +36,41 @@ import ConfirmModal from '../../components/Common/ConfirmModal';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { toast } from 'react-hot-toast';
 
-export const getFactoryPrice = (item) => {
+export const getFactoryPrice = (item, suppliers = []) => {
   if (!item) return '';
-  if (item.factory_price) return String(item.factory_price).trim();
+  let rawVal = '';
+  if (item.factory_price) rawVal = String(item.factory_price).trim();
   const desc = item.description || '';
-  if (desc.includes('Zavod qiyməti:')) {
-    return desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
+  if (!rawVal) {
+    if (desc.includes('Zavod qiyməti:')) {
+      rawVal = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
+    } else if (desc.includes('Zavod qiym?ti:')) {
+      rawVal = desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
+    } else {
+      const match = desc.match(/zavod(?:\s*qiym[əe\?]ti)?\s*:\s*([^\n\r]+)/i);
+      if (match && match[1]) {
+        rawVal = match[1].trim();
+      }
+    }
   }
-  if (desc.includes('Zavod qiym?ti:')) {
-    return desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
+
+  if (!rawVal) return '';
+
+  const sup = (suppliers || []).find(s => s.id === item.supplier_id);
+  const supName = sup?.name || sup?.company_name || item.suppliers?.name || '';
+  const currency = getSupplierCurrency(supName);
+
+  const cleanNumber = rawVal.replace(/[₼$￥¥€\s]/g, '').trim();
+
+  if (currency) {
+    const num = parseFloat(cleanNumber);
+    if (!isNaN(num) && !cleanNumber.includes('-')) {
+      return `${currency}${num.toFixed(2)}`;
+    }
+    return `${currency}${cleanNumber || rawVal}`;
   }
-  const match = desc.match(/zavod(?:\s*qiym[əe\?]ti)?\s*:\s*([^\n\r]+)/i);
-  if (match && match[1]) {
-    return match[1].trim();
-  }
-  return '';
+
+  return rawVal;
 };
 
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
@@ -2416,7 +2436,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
-                              {getFactoryPrice(item) || '—'}
+                              {getFactoryPrice(item, suppliers) || '—'}
                             </td>
                           )}
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
@@ -2565,10 +2585,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         </div>
 
                         <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
-                          {(!currentStaff || currentStaff?.role === 'Manager') && getFactoryPrice(item) && (
+                          {(!currentStaff || currentStaff?.role === 'Manager') && getFactoryPrice(item, suppliers) && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">Zavod</span>
-                              <span className="text-xs font-bold text-gray-900">{getFactoryPrice(item)}</span>
+                              <span className="text-xs font-bold text-gray-900">{getFactoryPrice(item, suppliers)}</span>
                             </div>
                           )}
                           {(!currentStaff || currentStaff?.role === 'Manager') && (

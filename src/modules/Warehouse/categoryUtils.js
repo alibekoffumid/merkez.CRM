@@ -68,3 +68,21 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
 
   return result;
 };
+
+export const getSupplierCurrency = (supplierName) => {
+  if (!supplierName) return '';
+  const norm = String(supplierName)
+    .toLowerCase()
+    .replace(/i̇/g, 'i')
+    .replace(/ı/g, 'i')
+    .replace(/ə/g, 'e');
+
+  if (norm.includes('yerli')) return '₼';
+  if (norm.includes('lade')) return '￥';
+  if (norm.includes('gidoo') || norm.includes('gido')) return '$';
+  if (norm.includes('iran')) return '₼';
+  if (norm.includes('aroma')) return '$';
+  if (norm.includes('miles')) return '$';
+  if (norm.includes('vivaldi')) return '$';
+  return '';
+};

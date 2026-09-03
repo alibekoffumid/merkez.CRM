@@ -7,7 +7,7 @@ import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
-import { formatCategoriesHierarchically } from './categoryUtils';
+import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
 
 const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
   const { t } = useTranslation();
@@ -239,14 +239,31 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
             <div className="grid grid-cols-3 gap-5">
               <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ZAVOD QİYMƏTİ</label>
-                <input
-                  type="text"
-                  placeholder="məs. $15.00 / 12 ₼"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
-                  value={formData.factory_price}
-                  onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
-                />
+                {(() => {
+                  const currentSup = (suppliers || []).find(s => s.id === formData.supplier_id);
+                  const curr = getSupplierCurrency(currentSup?.name || currentSup?.company_name);
+                  return (
+                    <>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                        ZAVOD QİYMƏTİ {curr ? `(${curr})` : ''}
+                      </label>
+                      <div className="relative">
+                        {curr && (
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">
+                            {curr}
+                          </span>
+                        )}
+                        <input
+                          type="text"
+                          placeholder={curr ? `${curr} 0.00` : 'məs. $15.00 / 12 ₼ / ￥100'}
+                          className={`w-full ${curr ? 'pl-9' : 'px-5'} pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold`}
+                          value={formData.factory_price}
+                          onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>

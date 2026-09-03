@@ -7,14 +7,17 @@ import { supabase } from '../../supabaseClient';
 import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
-import { formatCategoriesHierarchically } from './categoryUtils';
+import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
 
 const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = [], onProductUpdated }) => {
   const { t, i18n } = useTranslation();
 
+  const selectedSupplier = (suppliers || []).find(s => s.id === (product?.supplier_id || ''));
+  const supplierCurrency = getSupplierCurrency(selectedSupplier?.name || selectedSupplier?.company_name);
+
   // Format categories for hierarchical dropdown
-  const hierarchicalCategories = React.useMemo(() => 
-    formatCategoriesHierarchically(categories, null, t), 
+  const hierarchicalCategories = React.useMemo(() =>
+    formatCategoriesHierarchically(categories, null, t),
     [categories, t]
   );
 
@@ -26,10 +29,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
   const [deleteImage, setDeleteImage] = useState(false);
   const { profile } = useUser();
   const [availableUnits, setAvailableUnits] = useState(['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2']);
-  
-  const [formData, setFormData] = useState({ 
-    name: '', 
-    price: '', 
+
+  const [formData, setFormData] = useState({
+    name: '',
+    price: '',
     purchase_price: '',
     factory_price: '',
     additional_info: '',
@@ -51,7 +54,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
           if (parsed.availableUnits && parsed.availableUnits.length > 0) {
             setAvailableUnits(parsed.availableUnits);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const desc = product.description || '';
@@ -137,12 +140,12 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
     setLoading(true);
 
     let finalImageUrl = product.image_url;
-    
+
     if (deleteImage) {
-        finalImageUrl = '';
+      finalImageUrl = '';
     } else if (imageFile) {
-        const uploadedUrl = await uploadImage(imageFile);
-        if (uploadedUrl) finalImageUrl = uploadedUrl;
+      const uploadedUrl = await uploadImage(imageFile);
+      if (uploadedUrl) finalImageUrl = uploadedUrl;
     }
 
     let desc = '';
@@ -150,18 +153,18 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
     if (formData.additional_info) desc += 'Əlavə məlumat: ' + formData.additional_info.trim();
 
     let updatePayload = {
-        name: formData.name,
-        price: parseFloat(formData.price),
-        purchase_price: parseFloat(formData.purchase_price || 0),
-        barcode: formData.barcode,
-        category_id: formData.category_id || null,
-        stock_quantity: parseFloat(formData.stock_quantity || 0),
-        critical_stock: parseFloat(formData.critical_stock || 5),
-        description: desc.trim() || null,
-        image_url: finalImageUrl,
-        supplier_id: formData.supplier_id || null,
-        unit: formData.unit,
-        color: formData.color
+      name: formData.name,
+      price: parseFloat(formData.price),
+      purchase_price: parseFloat(formData.purchase_price || 0),
+      barcode: formData.barcode,
+      category_id: formData.category_id || null,
+      stock_quantity: parseFloat(formData.stock_quantity || 0),
+      critical_stock: parseFloat(formData.critical_stock || 5),
+      description: desc.trim() || null,
+      image_url: finalImageUrl,
+      supplier_id: formData.supplier_id || null,
+      unit: formData.unit,
+      color: formData.color
     };
 
     let res = await supabase.from('products').update(updatePayload).eq('id', product.id).select();
@@ -181,21 +184,21 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
     }
 
     if (error) {
-        toast.error(error.message);
-        setLoading(false);
-        return;
+      toast.error(error.message);
+      setLoading(false);
+      return;
     }
 
     if (!data || data.length === 0) {
-        toast.error(t('warehouse.noProductEditPermission'));
-        setLoading(false);
-        return;
+      toast.error(t('warehouse.noProductEditPermission'));
+      setLoading(false);
+      return;
     }
 
     if (!error && updatePayload.unit !== undefined) {
-        toast.success(t('warehouse.productUpdated') || 'Товар обновлен');
+      toast.success(t('warehouse.productUpdated') || 'Товар обновлен');
     }
-    
+
     setLoading(false);
     onProductUpdated();
     onClose();
@@ -204,203 +207,220 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
-        <div 
+        <div
           className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col my-8 max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
-        <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
-              <Pencil className="w-6 h-6 text-merkez-blue" />
+          <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
+                <Pencil className="w-6 h-6 text-merkez-blue" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">{t('warehouse.editProduct')}</h3>
             </div>
-            <h3 className="text-xl font-bold text-gray-900">{t('warehouse.editProduct')}</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
+              <X className="w-6 h-6" />
+            </button>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
-            <X className="w-6 h-6" />
-          </button>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+            <div className="grid grid-cols-1 gap-5">
+              <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
+                  <Dropdown
+                    value={formData.supplier_id}
+                    onChange={val => setFormData({ ...formData, supplier_id: val })}
+                    buttonClassName="rounded-xl px-5 py-3"
+                    options={[
+                      { value: '', label: t('warehouse.selectSupplier') || 'Tədarükçü seçin' },
+                      ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
+                  <Dropdown
+                    value={formData.category_id}
+                    onChange={val => setFormData({ ...formData, category_id: val })}
+                    buttonClassName="rounded-xl px-5 py-3"
+                    searchable
+                    options={[
+                      { value: '', label: t('warehouse.selectCategory') || 'Kateqoriya seçin' },
+                      ...hierarchicalCategories.map(cat => ({
+                        value: cat.id,
+                        label: cat.label,
+                        rawName: cat.rawName,
+                        parentName: cat.parentName,
+                        level: cat.level
+                      }))
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-5">
+                <div>
+                  {(() => {
+                    const currentSup = (suppliers || []).find(s => s.id === formData.supplier_id);
+                    const curr = getSupplierCurrency(currentSup?.name || currentSup?.company_name);
+                    return (
+                      <>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                          ZAVOD QİYMƏTİ {curr ? `(${curr})` : ''}
+                        </label>
+                        <div className="relative">
+                          {curr && (
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">
+                              {curr}
+                            </span>
+                          )}
+                          <input
+                            type="text"
+                            placeholder={curr ? `${curr} 0.00` : 'məs. $15.00 / 12 ₼ / ￥100'}
+                            className={`w-full ${curr ? 'pl-9' : 'px-5'} pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold`}
+                            value={formData.factory_price}
+                            onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                          />
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                      value={formData.purchase_price}
+                      onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thStock')}</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
+                    value={formData.stock_quantity}
+                    onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.criticalStock')}</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                    value={formData.critical_stock}
+                    onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Vahid'}</label>
+                  <Dropdown
+                    value={formData.unit}
+                    onChange={val => setFormData({ ...formData, unit: val })}
+                    buttonClassName="rounded-xl px-5 py-3"
+                    options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thBarcode')}</label>
+                  <input
+                    type="text"
+                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-sm"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{i18n.language === 'az' ? 'Rəng / Ölçü' : 'Цвет / Размер'}</label>
+                  <input
+                    type="text"
+                    list="color-suggestions"
+                    placeholder="məs. 4/4, BLACK, 40 CM, SILVER..."
+                    value={formData.color}
+                    onChange={e => setFormData({ ...formData, color: e.target.value })}
+                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                  />
+                  <datalist id="color-suggestions">
+                    <option value="4/4" />
+                    <option value="3/4" />
+                    <option value="1/2" />
+                    <option value="1/4" />
+                    <option value="1/8" />
+                    <option value="WHITE" />
+                    <option value="BLACK" />
+                    <option value="BROWN" />
+                    <option value="BEIGE" />
+                    <option value="SILVER" />
+                    <option value="GOLD" />
+                    <option value="RED" />
+                    <option value="BLUE" />
+                    <option value="STANDARD" />
+                  </datalist>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ƏLAVƏ MƏLUMAT</label>
+                <textarea
+                  rows={2}
+                  placeholder="məs. CƏLAL, Hədiyyə: MİZRAB, xüsusi qeydlər..."
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm resize-none"
+                  value={formData.additional_info}
+                  onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4 shrink-0"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+              {t('common.saveChanges')}
+            </button>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
-          <div className="grid grid-cols-1 gap-5">
-            <div>
-              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
-              <input
-                type="text"
-                required
-                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
-                <Dropdown 
-                  value={formData.supplier_id}
-                  onChange={val => setFormData({ ...formData, supplier_id: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={[
-                    { value: '', label: t('warehouse.selectSupplier') || 'Tədarükçü seçin' },
-                    ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                  ]}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
-                <Dropdown 
-                  value={formData.category_id}
-                  onChange={val => setFormData({ ...formData, category_id: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  searchable
-                  options={[
-                    { value: '', label: t('warehouse.selectCategory') || 'Kateqoriya seçin' },
-                    ...hierarchicalCategories.map(cat => ({ 
-                      value: cat.id, 
-                      label: cat.label,
-                      rawName: cat.rawName,
-                      parentName: cat.parentName,
-                      level: cat.level
-                    }))
-                  ]}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-5">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ZAVOD QİYMƏTİ</label>
-                <input
-                  type="text"
-                  placeholder="məs. $15.00 / 12 ₼"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
-                  value={formData.factory_price}
-                  onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                    value={formData.purchase_price}
-                    onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-5">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thStock')}</label>
-                <input
-                  type="number"
-                  step="0.001"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
-                  value={formData.stock_quantity}
-                  onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.criticalStock')}</label>
-                <input
-                  type="number"
-                  step="0.001"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                  value={formData.critical_stock}
-                  onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Vahid'}</label>
-                <Dropdown 
-                  value={formData.unit}
-                  onChange={val => setFormData({ ...formData, unit: val })}
-                  buttonClassName="rounded-xl px-5 py-3"
-                  options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thBarcode')}</label>
-                <input
-                  type="text"
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-sm"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{i18n.language === 'az' ? 'Rəng / Ölçü' : 'Цвет / Размер'}</label>
-                <input 
-                  type="text"
-                  list="color-suggestions"
-                  placeholder="məs. 4/4, BLACK, 40 CM, SILVER..."
-                  value={formData.color}
-                  onChange={e => setFormData({ ...formData, color: e.target.value })}
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                />
-                <datalist id="color-suggestions">
-                  <option value="4/4" />
-                  <option value="3/4" />
-                  <option value="1/2" />
-                  <option value="1/4" />
-                  <option value="1/8" />
-                  <option value="WHITE" />
-                  <option value="BLACK" />
-                  <option value="BROWN" />
-                  <option value="BEIGE" />
-                  <option value="SILVER" />
-                  <option value="GOLD" />
-                  <option value="RED" />
-                  <option value="BLUE" />
-                  <option value="STANDARD" />
-                </datalist>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ƏLAVƏ MƏLUMAT</label>
-              <textarea
-                rows={2}
-                placeholder="məs. CƏLAL, Hədiyyə: MİZRAB, xüsusi qeydlər..."
-                className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm resize-none"
-                value={formData.additional_info}
-                onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4 shrink-0"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
-            {t('common.saveChanges')}
-          </button>
-        </form>
       </div>
-    </div>
     </ModalPortal>
   );
 };
