@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface DropdownOption {
   value: string;
   label: string;
+  rawName?: string;
   icon?: React.ElementType;
+  level?: number;
+  parentName?: string;
 }
 
 interface DropdownItem {
@@ -102,7 +105,9 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   const filteredOptions = options ? (
     searchable && searchQuery ? options.filter(opt =>
-      opt.label.toLowerCase().includes(searchQuery.toLowerCase())
+      opt.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (opt.rawName && opt.rawName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (opt.parentName && opt.parentName.toLowerCase().includes(searchQuery.toLowerCase()))
     ) : options
   ) : null;
 
@@ -141,6 +146,13 @@ const Dropdown: React.FC<DropdownProps> = ({
           ) : (
             filteredOptions.map((opt) => {
               const isSelected = value === opt.value;
+              const hasArrow = typeof opt.label === 'string' && opt.label.includes('↳');
+              const hasLevel = typeof opt.level === 'number';
+              const isHierarchy = hasLevel || hasArrow;
+              const isSub = isHierarchy && ((hasLevel && opt.level! > 0) || hasArrow);
+              const isMain = isHierarchy && !isSub && opt.value !== '';
+              const indentLevel = hasLevel ? opt.level! : (hasArrow ? 1 : 0);
+
               return (
                 <button
                   key={opt.value}
@@ -151,15 +163,35 @@ const Dropdown: React.FC<DropdownProps> = ({
                     onChange?.(opt.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl text-left text-xs font-bold transition-all ${
+                  style={isSub ? { paddingLeft: `${14 + indentLevel * 14}px` } : undefined}
+                  className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl text-left text-xs transition-all ${
                     isSelected
                       ? 'bg-blue-50 text-merkez-blue font-black'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      : isMain
+                        ? 'text-gray-900 font-black hover:bg-gray-100/70'
+                        : isSub
+                          ? 'text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-gray-700 font-bold hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    {opt.icon && <opt.icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-merkez-blue' : 'text-gray-400'}`} />}
-                    <span className="truncate">{opt.label}</span>
+                  <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                    {opt.icon ? (
+                      <opt.icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-merkez-blue' : isMain ? 'text-orange-500' : 'text-gray-400'}`} />
+                    ) : isHierarchy && opt.value !== '' ? (
+                      isMain ? (
+                        <Folder className="w-3.5 h-3.5 shrink-0 text-orange-500" />
+                      ) : (
+                        <Folder className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+                      )
+                    ) : null}
+                    <span className="truncate">
+                      {opt.rawName || (isSub ? opt.label.replace(/^[\s\u00A0↳]+/, '') : opt.label)}
+                    </span>
+                    {opt.parentName && (searchQuery || isSub) && (
+                      <span className="text-[10px] text-gray-400 font-normal shrink-0 ml-auto mr-1 truncate max-w-[120px] bg-gray-100/80 px-1.5 py-0.5 rounded">
+                        {opt.parentName}
+                      </span>
+                    )}
                   </div>
                   {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-merkez-blue shrink-0"></span>}
                 </button>
@@ -193,6 +225,10 @@ const Dropdown: React.FC<DropdownProps> = ({
     document.body
   );
 
+  const selectedIsHierarchy = typeof selectedOption?.level === 'number' || (typeof selectedOption?.label === 'string' && selectedOption.label.includes('↳'));
+  const selectedIsSub = selectedIsHierarchy && ((typeof selectedOption?.level === 'number' && selectedOption.level > 0) || (typeof selectedOption?.label === 'string' && selectedOption.label.includes('↳')));
+  const selectedIsMain = selectedIsHierarchy && !selectedIsSub && selectedOption?.value !== '';
+
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       {trigger ? (
@@ -224,9 +260,19 @@ const Dropdown: React.FC<DropdownProps> = ({
             }}
             className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'} ${disabled ? 'opacity-75 cursor-not-allowed' : 'hover:border-merkez-blue hover:bg-white'}`}
           >
-            <div className="flex items-center gap-3 overflow-hidden">
-              {selectedOption?.icon && <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" />}
-              <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">{selectedOption?.label}</span>
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              {selectedOption?.icon ? (
+                <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" />
+              ) : selectedIsHierarchy && selectedOption?.value !== '' ? (
+                selectedIsMain ? (
+                  <Folder className="w-3.5 h-3.5 shrink-0 text-orange-500" />
+                ) : (
+                  <Folder className="w-3.5 h-3.5 shrink-0 text-gray-400" />
+                )
+              ) : null}
+              <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">
+                {selectedOption?.rawName || (selectedOption?.label ? selectedOption.label.replace(/^[\s\u00A0↳]+/, '') : '')}
+              </span>
             </div>
             <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-merkez-blue' : ''}`} />
           </button>

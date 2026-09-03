@@ -903,6 +903,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return { descendantMap: descMap, categoryProductCounts: counts };
   }, [categories, products]);
 
+  // Memoized hierarchical category options for all dropdowns (tree structure with parents & subcategories)
+  const hierarchicalCategoryOptions = useMemo(() => {
+    return formatCategoriesHierarchically(categories, null, t).map(c => ({
+      value: c.id,
+      label: c.label,
+      rawName: c.rawName,
+      parentName: c.parentName,
+      level: c.level
+    }));
+  }, [categories, t]);
+
   // Reset page to 1 when filters or search change
   useEffect(() => {
     setCurrentPage(1);
@@ -1279,12 +1290,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <Dropdown 
                       value={categoryFilter} 
                       onChange={(val) => setCategoryFilter(val)}
+                      searchable
                       options={[
                         { value: '', label: t('common.all') || 'Все' },
-                        ...categories.map(c => ({
-                          value: c.id,
-                          label: c.name
-                        }))
+                        ...hierarchicalCategoryOptions
                       ]}
                       className="w-full"
                       buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
@@ -2176,9 +2185,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Dropdown
                     value={selectedCategory || 'all'}
                     onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
+                    searchable
                     options={[
                       { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
-                      ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
+                      ...hierarchicalCategoryOptions
                     ]}
                     buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
                   />
@@ -2335,10 +2345,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 position="auto"
                                 options={[
                                   { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
-                                  ...categories.map(c => ({
-                                    value: c.id,
-                                    label: c.name
-                                  }))
+                                  ...hierarchicalCategoryOptions
                                 ]}
                                 buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
                                   item.category_id 
@@ -2964,9 +2971,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Dropdown
                     value={bulkSelectedCategoryId}
                     onChange={val => setBulkSelectedCategoryId(val)}
+                    searchable
                     options={[
                       { value: '', label: i18n.language === 'az' ? '— Kateqoriya seçin —' : '— Выберите категорию —' },
-                      ...formatCategoriesHierarchically(categories, null, t).map(c => ({ value: c.id, label: c.label }))
+                      ...hierarchicalCategoryOptions
                     ]}
                     buttonClassName="rounded-xl px-4 py-3 text-sm w-full font-bold"
                   />

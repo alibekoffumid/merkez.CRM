@@ -14,7 +14,7 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
 
   const excludedIds = excludeId ? [excludeId, ...getDescendants(excludeId)] : [];
   
-  const findChildren = (parentId, level = 0) => {
+  const findChildren = (parentId, level = 0, parentName = '') => {
     const children = categories.filter(c => c && c.parent_id === parentId && !excludedIds.includes(c.id));
     // Sort children safely by name
     children.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -25,9 +25,11 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
       result.push({
         ...child,
         label: level > 0 ? `${'\u00A0\u00A0'.repeat(level)}↳ ${translatedName}` : translatedName,
+        rawName: translatedName,
+        parentName: parentName,
         level: level
       });
-      findChildren(child.id, level + 1);
+      findChildren(child.id, level + 1, translatedName);
     });
   };
 
@@ -41,9 +43,27 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
     result.push({
       ...cat,
       label: translatedName,
+      rawName: translatedName,
+      parentName: null,
       level: 0
     });
-    findChildren(cat.id, 1);
+    findChildren(cat.id, 1, translatedName);
+  });
+
+  // Handle any orphan categories whose parent doesn't exist
+  const processedIds = new Set(result.map(r => r.id));
+  const orphans = categories.filter(c => c && !excludedIds.includes(c.id) && !processedIds.has(c.id));
+  orphans.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  orphans.forEach(cat => {
+    const nameStr = cat.name || '';
+    const translatedName = t(`categories.${nameStr}`, { defaultValue: nameStr });
+    result.push({
+      ...cat,
+      label: translatedName,
+      rawName: translatedName,
+      parentName: null,
+      level: 0
+    });
   });
 
   return result;

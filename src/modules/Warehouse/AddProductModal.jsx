@@ -208,9 +208,16 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                   value={formData.category_id}
                   onChange={val => setFormData({ ...formData, category_id: val })}
                   buttonClassName="rounded-xl px-5 py-3"
+                  searchable
                   options={[
                     { value: '', label: t('warehouse.selectCategory') },
-                    ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
+                    ...hierarchicalCategories.map(cat => ({ 
+                      value: cat.id, 
+                      label: cat.label,
+                      rawName: cat.rawName,
+                      parentName: cat.parentName,
+                      level: cat.level
+                    }))
                   ]}
                 />
               </div>
