@@ -1954,7 +1954,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       const isExpanded = expandedCategories.includes(cat.id);
                       const isActive = selectedCategory === cat.id;
                       const isMainCategory = level === 0 && !cat.parent_id;
-                      const catColor = isMainCategory ? getCategoryColor(cat.id, catIdx) : '#9ca3af';
+                      const catColor = isMainCategory ? '#f97316' : '#9ca3af';
                       const count = categoryProductCounts[cat.id] || 0;
                       
                       return (
@@ -1988,12 +1988,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                               {hasSubcategories && isExpanded ? (
                                 <FolderOpen 
-                                  className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isMainCategory ? '' : 'text-gray-400'}`} 
+                                  className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isMainCategory ? 'text-orange-500' : 'text-gray-400'}`} 
                                   style={{ color: catColor }} 
                                 />
                               ) : (
                                 <Folder 
-                                  className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isMainCategory ? '' : 'text-gray-400'}`} 
+                                  className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isMainCategory ? 'text-orange-500' : 'text-gray-400'}`} 
                                   style={{ color: catColor }} 
                                 />
                               )}
