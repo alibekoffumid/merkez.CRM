@@ -811,32 +811,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const SUPPLIER_PALETTES = [
-    { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200/80', hover: 'hover:border-purple-400', dot: 'bg-purple-500' },
-    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/80', hover: 'hover:border-emerald-400', dot: 'bg-emerald-500' },
-    { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200/80', hover: 'hover:border-amber-400', dot: 'bg-amber-500' },
-    { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200/80', hover: 'hover:border-rose-400', dot: 'bg-rose-500' },
-    { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200/80', hover: 'hover:border-indigo-400', dot: 'bg-indigo-500' },
-    { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200/80', hover: 'hover:border-teal-400', dot: 'bg-teal-500' },
-    { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200/80', hover: 'hover:border-orange-400', dot: 'bg-orange-500' },
-    { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200/80', hover: 'hover:border-cyan-400', dot: 'bg-cyan-500' },
-    { bg: 'bg-fuchsia-50', text: 'text-fuchsia-700', border: 'border-fuchsia-200/80', hover: 'hover:border-fuchsia-400', dot: 'bg-fuchsia-500' },
-    { bg: 'bg-lime-50', text: 'text-lime-800', border: 'border-lime-200/80', hover: 'hover:border-lime-400', dot: 'bg-lime-500' },
-    { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200/80', hover: 'hover:border-pink-400', dot: 'bg-pink-500' },
-    { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200/80', hover: 'hover:border-violet-400', dot: 'bg-violet-500' },
-    { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200/80', hover: 'hover:border-sky-400', dot: 'bg-sky-500' },
-    { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200/80', hover: 'hover:border-red-400', dot: 'bg-red-500' },
-    { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200/80', hover: 'hover:border-blue-400', dot: 'bg-blue-500' },
-    { bg: 'bg-yellow-50', text: 'text-yellow-800', border: 'border-yellow-200/80', hover: 'hover:border-yellow-400', dot: 'bg-yellow-500' },
+    { border: 'border-purple-300', dot: 'bg-purple-500', hover: 'hover:border-purple-500' },
+    { border: 'border-emerald-300', dot: 'bg-emerald-500', hover: 'hover:border-emerald-500' },
+    { border: 'border-amber-400', dot: 'bg-amber-500', hover: 'hover:border-amber-500' },
+    { border: 'border-rose-300', dot: 'bg-rose-500', hover: 'hover:border-rose-500' },
+    { border: 'border-indigo-300', dot: 'bg-indigo-500', hover: 'hover:border-indigo-500' },
+    { border: 'border-teal-300', dot: 'bg-teal-500', hover: 'hover:border-teal-500' },
+    { border: 'border-orange-300', dot: 'bg-orange-500', hover: 'hover:border-orange-500' },
+    { border: 'border-cyan-300', dot: 'bg-cyan-500', hover: 'hover:border-cyan-500' },
+    { border: 'border-fuchsia-300', dot: 'bg-fuchsia-500', hover: 'hover:border-fuchsia-500' },
+    { border: 'border-blue-300', dot: 'bg-blue-500', hover: 'hover:border-blue-500' },
+    { border: 'border-pink-300', dot: 'bg-pink-500', hover: 'hover:border-pink-500' },
+    { border: 'border-violet-300', dot: 'bg-violet-500', hover: 'hover:border-violet-500' },
+    { border: 'border-sky-300', dot: 'bg-sky-500', hover: 'hover:border-sky-500' },
+    { border: 'border-red-300', dot: 'bg-red-500', hover: 'hover:border-red-500' },
   ];
 
   const getSupplierStyle = (supplierIdOrName) => {
     if (!supplierIdOrName) {
       return {
-        bg: 'bg-gray-50',
-        text: 'text-gray-400',
         border: 'border-dashed border-gray-200',
-        hover: 'hover:border-gray-400 hover:text-gray-600',
-        dot: 'bg-gray-300'
+        dot: 'bg-gray-300',
+        hover: 'hover:border-gray-400 hover:text-gray-600'
       };
     }
     let hash = 0;
@@ -2355,6 +2351,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <td className="px-2 py-4">
                             <div className="inline-block min-w-[130px]">
                               {(() => {
+                                const sup = (suppliers || []).find(s => s.id === item.supplier_id);
                                 const supStyle = getSupplierStyle(item.supplier_id);
                                 return (
                                   <Dropdown
@@ -2369,11 +2366,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                         label: s.name || s.company_name
                                       }))
                                     ]}
-                                    buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
-                                      item.supplier_id 
-                                        ? `${supStyle.bg} ${supStyle.text} ${supStyle.border} ${supStyle.hover}` 
-                                        : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
-                                    }`}
+                                    trigger={
+                                      item.supplier_id ? (
+                                        <div className={`w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} ${supStyle.hover} hover:shadow-sm transition-all text-xs font-bold text-gray-800 shadow-sm`}>
+                                          <div className="flex items-center gap-1.5 truncate">
+                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
+                                            <span className="truncate">{sup?.name || sup?.company_name || '—'}</span>
+                                          </div>
+                                          <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50/70 hover:bg-white hover:border-gray-300 text-gray-400 hover:text-gray-600 transition-all text-xs font-bold shadow-sm">
+                                          <span className="truncate">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</span>
+                                          <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
+                                        </div>
+                                      )
+                                    }
                                   />
                                 );
                               })()}
@@ -2513,7 +2521,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             const sup = (suppliers || []).find(s => s.id === item.supplier_id);
                             const supStyle = getSupplierStyle(item.supplier_id);
                             return sup ? (
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${supStyle.bg} ${supStyle.text} ${supStyle.border}`}>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border bg-white ${supStyle.border} text-gray-800 inline-flex items-center gap-1.5 shadow-sm`}>
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
                                 {sup.name || sup.company_name}
                               </span>
                             ) : null;
