@@ -602,28 +602,28 @@ const WarehouseFiles = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-4">
                 {/* Render Folders First */}
                 {folders.map(folder => (
                   <div 
                     key={folder.id} 
                     onClick={() => setCurrentFolder(folder)} 
-                    className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-merkez-blue hover:shadow-md transition-all group bg-white cursor-pointer hover:-translate-y-0.5"
+                    className="relative flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-merkez-blue hover:shadow-md transition-all group bg-white cursor-pointer hover:-translate-y-0.5"
                   >
-                    <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
                       <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 text-merkez-blue group-hover:scale-110 transition-transform">
                         <Folder className="w-6 h-6" />
                       </div>
-                      <div className="overflow-hidden">
-                        <h4 className="text-sm font-bold text-gray-900 truncate" title={folder.name}>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-gray-900 truncate block w-full whitespace-nowrap" title={folder.name}>
                           {folder.name}
                         </h4>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap block w-full">
                           {new Date(folder.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center pl-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center pl-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'folder', item: folder }); }}
                         className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -637,22 +637,22 @@ const WarehouseFiles = () => {
 
                 {/* Render Files */}
                 {files.map(file => (
-                  <div key={file.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-merkez-blue hover:shadow-md transition-all group bg-white hover:-translate-y-0.5">
-                    <div className="flex items-center gap-3 overflow-hidden">
+                  <div key={file.id} className="relative flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-merkez-blue hover:shadow-md transition-all group bg-white hover:-translate-y-0.5">
+                    <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
                       <div className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center shrink-0 text-gray-500 group-hover:scale-110 transition-transform">
                         {getFileIcon(file.type)}
                       </div>
-                      <div className="overflow-hidden">
-                        <h4 className="text-sm font-bold text-gray-900 truncate" title={file.name}>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-gray-900 truncate block w-full whitespace-nowrap" title={file.name}>
                           {file.name}
                         </h4>
-                        <p className="text-xs font-bold text-gray-400 mt-0.5">
+                        <p className="text-xs font-bold text-gray-400 mt-0.5 truncate whitespace-nowrap block w-full">
                           {formatFileSize(file.size)} • {new Date(file.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-1 pl-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 bg-white/95 backdrop-blur-sm border border-gray-200 shadow-md p-1 rounded-xl opacity-0 group-hover:opacity-100 transition-all z-10">
                       <button
                         onClick={() => { setFileToMove(file); setShowMoveModal(true); setSelectedMoveFolder('root'); }}
                         className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
