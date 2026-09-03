@@ -59,6 +59,13 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
     // Map data to the required format
     const dataToUpload = rawData.map(row => {
       const price = parseFloat(row.sale_price || row.Price || row['Цена'] || row.price) || 0;
+      const purchasePrice = parseFloat(row.purchase_price || row['Maya qiyməti'] || row['MAYA QİYMƏTİ'] || row['Закупочная цена'] || row.cost_price || 0) || 0;
+      const rawFactory = row.factory_price || row['Zavod qiyməti'] || row['ZAVOD QİYMƏTİ'] || row['Заводская цена'] || row['Завод'] || '';
+      let desc = row.description || row['Əlavə məlumat'] || row['Qeyd'] || '';
+      if (rawFactory && !desc.includes('Zavod qiyməti:')) {
+        desc = `Zavod qiyməti: ${String(rawFactory).trim()}\n` + desc;
+      }
+
       return {
         barcode: String(row.barcode || row.Barcode || row['Баркод'] || '').trim(),
         name: String(row.name || row.Name || row['Наименование'] || '').trim(),
@@ -66,6 +73,8 @@ const ProductImportModal = ({ isOpen, onClose, onImportComplete }) => {
         expiry_date: row.expiry_date || row['Срок годности'] || null,
         user_id: profile?.id,
         price: price,
+        purchase_price: purchasePrice,
+        description: desc.trim() || null,
         category_id: row.category_id || defaultCategoryId
       };
     }).filter(item => item.barcode && item.name);

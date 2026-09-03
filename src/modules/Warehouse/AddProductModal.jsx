@@ -54,7 +54,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       }));
     } else {
       setFormData({
-        name: '', price: '', purchase_price: '', barcode: '',
+        name: '', price: '', purchase_price: '', factory_price: '', barcode: '',
         category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: '', unit: 'pcs'
       });
     }
@@ -64,6 +64,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
     name: '',
     price: '',
     purchase_price: '',
+    factory_price: '',
     barcode: '',
     category_id: '',
     stock_quantity: '0',
@@ -135,6 +136,9 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       finalBarcode = `${cleanPrefix}${timestamp}${randomNum}`;
     }
 
+     let desc = '';
+     if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
+
      const { data, error } = await supabase
        .from('products')
        .insert([{ 
@@ -145,6 +149,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
          category_id: formData.category_id || null,
          stock_quantity: parseFloat(formData.stock_quantity || 0),
          critical_stock: parseFloat(formData.critical_stock || 5),
+         description: desc.trim() || null,
          image_url: imageUrl,
          supplier_id: formData.supplier_id || null,
          user_id: profile?.id,
@@ -232,15 +237,25 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-3 gap-5">
+              <div>
+                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">ZAVOD QİYMƏTİ</label>
+                <input
+                  type="text"
+                  placeholder="məs. $15.00 / 12 ₼"
+                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold"
+                  value={formData.factory_price}
+                  onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                />
+              </div>
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
                 <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₼</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
                   <input
                     type="number"
                     step="0.01"
-                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
                     value={formData.purchase_price}
                     onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                   />
@@ -249,12 +264,12 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
                 <div className="relative">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
                   <input
                     type="number"
                     step="0.01"
                     required
-                    className="w-full pl-10 pr-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
+                    className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   />

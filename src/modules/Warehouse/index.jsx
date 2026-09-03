@@ -36,6 +36,23 @@ import ConfirmModal from '../../components/Common/ConfirmModal';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { toast } from 'react-hot-toast';
 
+export const getFactoryPrice = (item) => {
+  if (!item) return '';
+  if (item.factory_price) return String(item.factory_price).trim();
+  const desc = item.description || '';
+  if (desc.includes('Zavod qiyməti:')) {
+    return desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
+  }
+  if (desc.includes('Zavod qiym?ti:')) {
+    return desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
+  }
+  const match = desc.match(/zavod(?:\s*qiym[əe\?]ti)?\s*:\s*([^\n\r]+)/i);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  return '';
+};
+
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules, currentStaff } = useUser();
@@ -2280,6 +2297,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
                         {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}</th>
+                        )}
+                        {(!currentStaff || currentStaff?.role === 'Manager') && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
                         )}
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
@@ -2394,6 +2414,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               })()}
                             </div>
                           </td>
+                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                            <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                              {getFactoryPrice(item) || '—'}
+                            </td>
+                          )}
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <td className="px-2 py-4 text-sm text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                           )}
@@ -2540,6 +2565,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         </div>
 
                         <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
+                          {(!currentStaff || currentStaff?.role === 'Manager') && getFactoryPrice(item) && (
+                            <div>
+                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">Zavod</span>
+                              <span className="text-xs font-bold text-gray-900">{getFactoryPrice(item)}</span>
+                            </div>
+                          )}
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>

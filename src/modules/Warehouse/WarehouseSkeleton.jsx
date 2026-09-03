@@ -18,6 +18,7 @@ const WarehouseSkeleton = () => {
             <th className="font-medium px-2 py-4">{t('warehouse.thBarcode') || 'BARKOD'}</th>
             <th className="font-medium px-2 py-4">{t('warehouse.thCategory') || 'KATEQORİYA'}</th>
             <th className="font-medium px-2 py-4">{i18n.language === 'az' ? 'TƏDARÜKÇÜ' : 'ПОСТАВЩИК'}</th>
+            <th className="font-medium px-2 py-4">{t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}</th>
             <th className="font-medium px-2 py-4">{t('warehouse.thPurchasePrice') || 'MAYA QİYMƏTİ'}</th>
             <th className="font-medium px-2 py-4">{t('warehouse.thPrice') || 'SATIŞ QİYMƏTİ'}</th>
             <th className="font-medium px-2 py-4">{t('warehouse.thStock') || 'STOK'}</th>
@@ -45,6 +46,9 @@ const WarehouseSkeleton = () => {
               </td>
               <td className="px-2 py-4">
                 <div className="w-20 h-5 rounded-full shimmer-element" />
+              </td>
+              <td className="px-2 py-4">
+                <div className="w-14 h-4 rounded shimmer-element" />
               </td>
               <td className="px-2 py-4">
                 <div className="w-14 h-4 rounded shimmer-element" />
