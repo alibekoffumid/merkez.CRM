@@ -10,7 +10,24 @@ interface DropdownOption {
   icon?: React.ElementType;
   level?: number;
   parentName?: string;
+  color?: string;
 }
+
+const CATEGORY_DEPTH_COLORS = [
+  '#4285F4', // Level 0: Main Category (Blue)
+  '#34A853', // Level 1: Subcategory 1 (Green)
+  '#FBBC05', // Level 2: Subcategory 2 (Yellow)
+  '#EA4335', // Level 3: Subcategory 3 (Red)
+  '#00A1F1', // Level 4: Subcategory 4 (Sky Blue)
+  '#7CBB00', // Level 5: Subcategory 5 (Lime Green)
+  '#FFBB00', // Level 6: Subcategory 6 (Amber)
+  '#F65314', // Level 7: Subcategory 7 (Deep Orange)
+];
+
+const getCategoryDepthColor = (level: number = 0) => {
+  const lvl = Math.max(0, level || 0);
+  return CATEGORY_DEPTH_COLORS[lvl % CATEGORY_DEPTH_COLORS.length];
+};
 
 interface DropdownItem {
   id: string;
@@ -206,15 +223,28 @@ const Dropdown: React.FC<DropdownProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                    {opt.icon ? (
-                      <opt.icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-merkez-blue' : isMain ? 'text-orange-500' : 'text-gray-400'}`} />
-                    ) : isHierarchy && opt.value !== '' ? (
-                      isMain ? (
-                        <Folder className="w-3.5 h-3.5 shrink-0 text-orange-500" />
-                      ) : (
-                        <Folder className="w-3.5 h-3.5 shrink-0 text-gray-400" />
-                      )
-                    ) : null}
+                    {(() => {
+                      const optColor = opt.color || (isHierarchy ? getCategoryDepthColor(opt.level ?? (isSub ? 1 : 0)) : undefined);
+                      if (opt.icon) {
+                        return (
+                          <opt.icon 
+                            className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-merkez-blue' : ''}`}
+                            style={!isSelected && optColor ? { color: optColor } : undefined}
+                          />
+                        );
+                      }
+                      if (isHierarchy && opt.value !== '') {
+                        return (
+                          <Folder 
+                            className="w-3.5 h-3.5 shrink-0 transition-transform duration-200" 
+                            style={{ color: optColor }}
+                            fill={optColor}
+                            fillOpacity={0.2}
+                          />
+                        );
+                      }
+                      return null;
+                    })()}
                     <span className="truncate">
                       {opt.rawName || (isSub ? opt.label.replace(/^[\s\u00A0↳]+/, '') : opt.label)}
                     </span>
@@ -292,15 +322,28 @@ const Dropdown: React.FC<DropdownProps> = ({
             className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'} ${disabled ? 'opacity-75 cursor-not-allowed' : 'hover:border-merkez-blue hover:bg-white'}`}
           >
             <div className="flex items-center gap-2.5 overflow-hidden">
-              {selectedOption?.icon ? (
-                <selectedOption.icon className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" />
-              ) : selectedIsHierarchy && selectedOption?.value !== '' ? (
-                selectedIsMain ? (
-                  <Folder className="w-3.5 h-3.5 shrink-0 text-orange-500" />
-                ) : (
-                  <Folder className="w-3.5 h-3.5 shrink-0 text-gray-400" />
-                )
-              ) : null}
+              {(() => {
+                const selectedColor = selectedOption?.color || (selectedIsHierarchy ? getCategoryDepthColor(selectedOption?.level ?? (selectedIsSub ? 1 : 0)) : undefined);
+                if (selectedOption?.icon) {
+                  return (
+                    <selectedOption.icon 
+                      className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" 
+                      style={selectedColor ? { color: selectedColor } : undefined}
+                    />
+                  );
+                }
+                if (selectedIsHierarchy && selectedOption?.value !== '') {
+                  return (
+                    <Folder 
+                      className="w-3.5 h-3.5 shrink-0" 
+                      style={{ color: selectedColor }}
+                      fill={selectedColor}
+                      fillOpacity={0.2}
+                    />
+                  );
+                }
+                return null;
+              })()}
               <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">
                 {selectedOption?.rawName || (selectedOption?.label ? selectedOption.label.replace(/^[\s\u00A0↳]+/, '') : '')}
               </span>

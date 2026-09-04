@@ -184,7 +184,8 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
                     label: cat.label,
                     rawName: cat.rawName,
                     parentName: cat.parentName,
-                    level: cat.level
+                    level: cat.level,
+                    color: cat.color
                   }))
                 ]}
               />

@@ -1114,7 +1114,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                                 label: c.label,
                                 rawName: c.rawName,
                                 parentName: c.parentName,
-                                level: c.level
+                                level: c.level,
+                                color: c.color
                               }))
                             ]}
                           />

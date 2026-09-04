@@ -1,3 +1,34 @@
+export const CATEGORY_DEPTH_COLORS = [
+  '#4285F4', // Level 0: Main Category (Blue)
+  '#34A853', // Level 1: Subcategory 1 (Green)
+  '#FBBC05', // Level 2: Subcategory 2 (Yellow)
+  '#EA4335', // Level 3: Subcategory 3 (Red)
+  '#00A1F1', // Level 4: Subcategory 4 (Sky Blue)
+  '#7CBB00', // Level 5: Subcategory 5 (Lime Green)
+  '#FFBB00', // Level 6: Subcategory 6 (Amber)
+  '#F65314', // Level 7: Subcategory 7 (Deep Orange)
+];
+
+export const getCategoryDepthColor = (level = 0) => {
+  const lvl = Math.max(0, parseInt(level, 10) || 0);
+  return CATEGORY_DEPTH_COLORS[lvl % CATEGORY_DEPTH_COLORS.length];
+};
+
+export const getCategoryLevel = (category, allCategories = []) => {
+  if (!category || !category.parent_id) return 0;
+  let level = 0;
+  let currentParentId = category.parent_id;
+  const visited = new Set([category.id]);
+  
+  while (currentParentId && !visited.has(currentParentId)) {
+    level++;
+    visited.add(currentParentId);
+    const parent = allCategories.find(c => c && c.id === currentParentId);
+    currentParentId = parent ? parent.parent_id : null;
+  }
+  return level;
+};
+
 export const formatCategoriesHierarchically = (categories = [], excludeId = null, t = (k, opts) => opts?.defaultValue || k.split('.').pop()) => {
   if (!Array.isArray(categories) || categories.length === 0) return [];
   const result = [];
@@ -27,7 +58,8 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
         label: level > 0 ? `${'\u00A0\u00A0'.repeat(level)}↳ ${translatedName}` : translatedName,
         rawName: translatedName,
         parentName: parentName,
-        level: level
+        level: level,
+        color: getCategoryDepthColor(level)
       });
       findChildren(child.id, level + 1, translatedName);
     });
@@ -45,7 +77,8 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
       label: translatedName,
       rawName: translatedName,
       parentName: null,
-      level: 0
+      level: 0,
+      color: getCategoryDepthColor(0)
     });
     findChildren(cat.id, 1, translatedName);
   });
@@ -62,7 +95,8 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
       label: translatedName,
       rawName: translatedName,
       parentName: null,
-      level: 0
+      level: 0,
+      color: getCategoryDepthColor(0)
     });
   });
 

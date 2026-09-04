@@ -106,7 +106,8 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
                   label: cat.label,
                   rawName: cat.rawName,
                   parentName: cat.parentName,
-                  level: cat.level
+                  level: cat.level,
+                  color: cat.color
                 }))
               ]}
             />

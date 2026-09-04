@@ -424,7 +424,8 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
                                         label: c.label,
                                         rawName: c.rawName,
                                         parentName: c.parentName,
-                                        level: c.level
+                                        level: c.level,
+                                        color: c.color
                                     }))
                                 ]}
                             />

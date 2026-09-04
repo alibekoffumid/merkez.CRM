@@ -221,7 +221,8 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                       label: cat.label,
                       rawName: cat.rawName,
                       parentName: cat.parentName,
-                      level: cat.level
+                      level: cat.level,
+                      color: cat.color
                     }))
                   ]}
                 />

@@ -28,7 +28,7 @@ import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
-import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
+import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
@@ -948,7 +948,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       label: c.label,
       rawName: c.rawName,
       parentName: c.parentName,
-      level: c.level
+      level: c.level,
+      color: c.color
     }));
   }, [categories, t]);
 
@@ -1989,34 +1990,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     const normSearch = (categorySearchTerm || '').trim().toLowerCase()
                       .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
 
-                    const NEON_COLORS = [
-                      '#00f0ff', // Neon Cyan
-                      '#2563eb', // Royal Blue
-                      '#00d2ff', // Electric Sky
-                      '#00f5d4', // Neon Turquoise
-                      '#3b82f6', // Bright Blue
-                      '#06b6d4', // Deep Cyan
-                      '#6366f1', // Neon Indigo
-                      '#38bdf8', // Ice Blue
-                      '#00e5ff', // Aqua Neon
-                      '#1d4ed8', // Vivid Cobalt
-                      '#0ea5e9', // Sky Blue
-                      '#8b5cf6', // Electric Purple-Blue
-                      '#00c49f', // Neon Teal
-                      '#4f46e5'  // Ultramarine
-                    ];
-
-                    const getCategoryColor = (catId, fallbackIdx = 0) => {
-                      if (!catId) return NEON_COLORS[0];
-                      let hash = 0;
-                      const str = String(catId);
-                      for (let i = 0; i < str.length; i++) {
-                        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                      }
-                      const idx = Math.abs(hash + fallbackIdx) % NEON_COLORS.length;
-                      return NEON_COLORS[idx];
-                    };
-
                     let visibleCategoryIds = null;
                     let autoExpandedCategoryIds = new Set();
 
@@ -2076,15 +2049,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       const hasSubcategories = subcategories.length > 0;
                       const isExpanded = normSearch ? (autoExpandedCategoryIds.has(cat.id) || expandedCategories.includes(cat.id)) : expandedCategories.includes(cat.id);
                       const isActive = selectedCategory === cat.id;
-                      const isMainCategory = level === 0 && !cat.parent_id;
-                      const catColor = isMainCategory ? '#f97316' : '#9ca3af';
+                      const catColor = getCategoryDepthColor(level);
                       const count = categoryProductCounts[cat.id] || 0;
                       
                       return (
                         <React.Fragment key={cat.id}>
                           <div 
-                            className={`group p-3 rounded-lg cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
-                            style={{ marginLeft: level > 0 ? `${level * 12}px` : '0' }}
+                            className={`group p-2.5 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50 ring-1 ring-blue-100' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                            style={{ 
+                              marginLeft: level > 0 ? `${level * 14}px` : '0',
+                              borderLeft: level > 0 ? `3px solid ${catColor}` : undefined
+                            }}
                             onClick={() => {
                               setSelectedCategory(isActive ? null : cat.id);
                               if (hasSubcategories && !isExpanded) {
@@ -2111,13 +2086,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                               {hasSubcategories && isExpanded ? (
                                 <FolderOpen 
-                                  className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isMainCategory ? 'text-orange-500' : 'text-gray-400'}`} 
+                                  className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" 
                                   style={{ color: catColor }} 
+                                  fill={catColor}
+                                  fillOpacity={0.2}
                                 />
                               ) : (
                                 <Folder 
-                                  className={`w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110 ${isMainCategory ? 'text-orange-500' : 'text-gray-400'}`} 
+                                  className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" 
                                   style={{ color: catColor }} 
+                                  fill={catColor}
+                                  fillOpacity={0.2}
                                 />
                               )}
 
