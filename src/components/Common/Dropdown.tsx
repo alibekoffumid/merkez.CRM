@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Folder, Search, X } from 'lucide-react';
+import { ChevronDown, Folder, Search, X, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface DropdownOption {
@@ -38,8 +38,8 @@ interface DropdownItem {
 }
 
 interface DropdownProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: string | string[];
+  onChange?: (value: any) => void;
   options?: DropdownOption[];
   label?: string;
   className?: string;
@@ -49,6 +49,7 @@ interface DropdownProps {
   items?: DropdownItem[];
   searchable?: boolean;
   disabled?: boolean;
+  multiple?: boolean;
 }
 
 const normalizeDropdownStr = (str: string) => {
@@ -78,7 +79,8 @@ const Dropdown: React.FC<DropdownProps> = ({
   trigger,
   items,
   searchable = false,
-  disabled = false
+  disabled = false,
+  multiple = false
 }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -93,7 +95,40 @@ const Dropdown: React.FC<DropdownProps> = ({
     }
   }, [isOpen]);
 
-  const selectedOption = options ? (options.find(opt => opt.value === value) || options[0]) : null;
+  const selectedValues: string[] = React.useMemo(() => {
+    if (!multiple) return [];
+    if (Array.isArray(value)) {
+      return value.filter(v => v !== 'all' && v !== '');
+    }
+    if (typeof value === 'string' && value !== 'all' && value !== '') {
+      return [value];
+    }
+    return [];
+  }, [multiple, value]);
+
+  const selectedCount = selectedValues.length;
+  const isAllSelected = multiple ? selectedCount === 0 : (value === 'all' || value === '' || !value);
+
+  const selectedOption = options ? (
+    multiple
+      ? (selectedCount > 0 ? options.find(opt => opt.value === selectedValues[0]) : options[0])
+      : (options.find(opt => opt.value === value) || options[0])
+  ) : null;
+
+  const handleOptionToggle = (optValue: string) => {
+    if (optValue === 'all' || optValue === '') {
+      onChange?.([]);
+      return;
+    }
+
+    let nextValues: string[];
+    if (selectedValues.includes(optValue)) {
+      nextValues = selectedValues.filter(v => v !== optValue);
+    } else {
+      nextValues = [...selectedValues, optValue];
+    }
+    onChange?.(nextValues);
+  };
 
   const updateCoords = () => {
     if (containerRef.current) {
@@ -193,12 +228,16 @@ const Dropdown: React.FC<DropdownProps> = ({
             </div>
           ) : (
             filteredOptions.map((opt) => {
-              const isSelected = value === opt.value;
+              const isAllOption = opt.value === 'all' || opt.value === '';
+              const isItemChecked = multiple 
+                ? (isAllOption ? isAllSelected : selectedValues.includes(opt.value))
+                : (value === opt.value);
+              const isSelected = isItemChecked;
               const hasArrow = typeof opt.label === 'string' && opt.label.includes('↳');
               const hasLevel = typeof opt.level === 'number';
               const isHierarchy = hasLevel || hasArrow;
               const isSub = isHierarchy && ((hasLevel && opt.level! > 0) || hasArrow);
-              const isMain = isHierarchy && !isSub && opt.value !== '';
+              const isMain = isHierarchy && !isSub && !isAllOption;
               const indentLevel = hasLevel ? opt.level! : (hasArrow ? 1 : 0);
 
               return (
@@ -208,13 +247,17 @@ const Dropdown: React.FC<DropdownProps> = ({
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onChange?.(opt.value);
-                    setIsOpen(false);
+                    if (multiple) {
+                      handleOptionToggle(opt.value);
+                    } else {
+                      onChange?.(opt.value);
+                      setIsOpen(false);
+                    }
                   }}
                   style={isSub ? { paddingLeft: `${14 + indentLevel * 14}px` } : undefined}
-                  className={`w-full flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl text-left text-xs transition-all ${
+                  className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-left text-xs transition-all group ${
                     isSelected
-                      ? 'bg-blue-50 text-merkez-blue font-black'
+                      ? 'bg-blue-50/80 text-merkez-blue font-black'
                       : isMain
                         ? 'text-gray-900 font-black hover:bg-gray-100/70'
                         : isSub
@@ -223,6 +266,15 @@ const Dropdown: React.FC<DropdownProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                    {multiple && (
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
+                        isItemChecked 
+                          ? 'bg-merkez-blue border-merkez-blue text-white shadow-sm' 
+                          : 'border-gray-300 bg-white group-hover:border-gray-400'
+                      }`}>
+                        {isItemChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                    )}
                     {(() => {
                       const optColor = opt.color || (isHierarchy ? getCategoryDepthColor(opt.level ?? (isSub ? 1 : 0)) : undefined);
                       if (opt.icon) {
@@ -233,7 +285,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                           />
                         );
                       }
-                      if (isHierarchy && opt.value !== '') {
+                      if (isHierarchy && !isAllOption) {
                         return (
                           <Folder 
                             className="w-3.5 h-3.5 shrink-0 transition-transform duration-200" 
@@ -254,7 +306,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                       </span>
                     )}
                   </div>
-                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-merkez-blue shrink-0"></span>}
+                  {!multiple && isSelected && <span className="w-1.5 h-1.5 rounded-full bg-merkez-blue shrink-0"></span>}
                 </button>
               );
             })
@@ -282,6 +334,45 @@ const Dropdown: React.FC<DropdownProps> = ({
           ))
         )}
       </div>
+      {multiple && (
+        <div className="pt-2 pb-1 px-2 border-t border-gray-100 flex items-center justify-between gap-2 mt-1 bg-white/95 shrink-0">
+          <div className="text-[11px] font-bold text-gray-500">
+            {isAllSelected ? (
+              <span>{t('warehouse.allCategories') || 'Bütün kateqoriyalar'}</span>
+            ) : (
+              <span>
+                <strong className="text-merkez-blue font-black">{selectedCount}</strong> {i18n?.language === 'az' ? 'seçilib' : 'выбрано'}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5">
+            {!isAllSelected && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange?.([]);
+                }}
+                className="text-[11px] font-bold text-gray-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                {i18n?.language === 'az' ? 'Təmizlə' : 'Сбросить'}
+              </button>
+            )}
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsOpen(false);
+              }}
+              className="text-[11px] font-bold bg-merkez-blue text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
+            >
+              {i18n?.language === 'az' ? 'Bağla' : 'Готово'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>,
     document.body
   );
@@ -319,10 +410,33 @@ const Dropdown: React.FC<DropdownProps> = ({
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className={`w-full flex items-center justify-between gap-3 bg-gray-50 border border-gray-100 transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'} ${disabled ? 'opacity-75 cursor-not-allowed' : 'hover:border-merkez-blue hover:bg-white'}`}
+            className={`w-full flex items-center justify-between gap-2 bg-gray-50 border border-gray-100 transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'} ${disabled ? 'opacity-75 cursor-not-allowed' : 'hover:border-merkez-blue hover:bg-white'}`}
           >
-            <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
               {(() => {
+                if (multiple && !isAllSelected) {
+                  const firstSelected = options?.find(o => o.value === selectedValues[0]);
+                  const firstColor = firstSelected?.color || (firstSelected?.level != null ? getCategoryDepthColor(firstSelected.level) : '#4285F4');
+                  return (
+                    <>
+                      <Folder 
+                        className="w-3.5 h-3.5 shrink-0" 
+                        style={{ color: firstColor }}
+                        fill={firstColor}
+                        fillOpacity={0.2}
+                      />
+                      <span className="text-sm font-bold text-gray-800 truncate">
+                        {firstSelected?.rawName || (firstSelected?.label ? firstSelected.label.replace(/^[\s\u00A0↳]+/, '') : '')}
+                      </span>
+                      {selectedCount > 1 && (
+                        <span className="bg-blue-100 text-merkez-blue text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0">
+                          +{selectedCount - 1}
+                        </span>
+                      )}
+                    </>
+                  );
+                }
+
                 const selectedColor = selectedOption?.color || (selectedIsHierarchy ? getCategoryDepthColor(selectedOption?.level ?? (selectedIsSub ? 1 : 0)) : undefined);
                 if (selectedOption?.icon) {
                   return (
@@ -332,7 +446,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                     />
                   );
                 }
-                if (selectedIsHierarchy && selectedOption?.value !== '') {
+                if (selectedIsHierarchy && selectedOption?.value !== '' && selectedOption?.value !== 'all') {
                   return (
                     <Folder 
                       className="w-3.5 h-3.5 shrink-0" 
@@ -344,11 +458,27 @@ const Dropdown: React.FC<DropdownProps> = ({
                 }
                 return null;
               })()}
-              <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">
-                {selectedOption?.rawName || (selectedOption?.label ? selectedOption.label.replace(/^[\s\u00A0↳]+/, '') : '')}
-              </span>
+              {(multiple ? isAllSelected : true) && (
+                <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">
+                  {selectedOption?.rawName || (selectedOption?.label ? selectedOption.label.replace(/^[\s\u00A0↳]+/, '') : '')}
+                </span>
+              )}
             </div>
-            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-merkez-blue' : ''}`} />
+            <div className="flex items-center gap-1 shrink-0">
+              {multiple && !isAllSelected && (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange?.([]);
+                  }}
+                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 rounded-full transition-colors"
+                  title={i18n?.language === 'az' ? 'Təmizlə' : 'Сбросить'}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </span>
+              )}
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-merkez-blue' : ''}`} />
+            </div>
           </button>
         </>
       )}

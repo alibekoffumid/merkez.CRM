@@ -423,8 +423,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       if (supplierFilter !== 'all' && matchedProduct.supplier_id !== supplierFilter) {
         setSupplierFilter('all');
       }
-      if (selectedCategory && matchedProduct.category_id !== selectedCategory) {
-        setSelectedCategory(null);
+      if (selectedCategory) {
+        const isCatMatch = Array.isArray(selectedCategory)
+          ? selectedCategory.includes(matchedProduct.category_id)
+          : matchedProduct.category_id === selectedCategory;
+        if (!isCatMatch) {
+          setSelectedCategory(null);
+        }
       }
       if (statusFilter !== 'all') {
         setStatusFilter('all');
@@ -978,11 +983,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
 
     const term = searchTerm.trim().toLowerCase();
-    const validCategoryIds = selectedCategory != null && selectedCategory !== '' && selectedCategory !== 'all'
-      ? new Set([
-          String(selectedCategory),
-          ...((descendantMap[String(selectedCategory)] || []).map(id => String(id)))
-        ])
+    const isMulti = Array.isArray(selectedCategory);
+    const selectedList = isMulti
+      ? selectedCategory.filter(c => c != null && c !== '' && c !== 'all')
+      : (selectedCategory != null && selectedCategory !== '' && selectedCategory !== 'all' ? [selectedCategory] : []);
+
+    const validCategoryIds = selectedList.length > 0
+      ? new Set(selectedList.flatMap(catId => [
+          String(catId),
+          ...((descendantMap[String(catId)] || []).map(id => String(id)))
+        ]))
       : null;
 
     return list.filter(p => {
@@ -1053,7 +1063,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             );
           }
         }} 
-        initialCategoryId={selectedCategory} 
+        initialCategoryId={Array.isArray(selectedCategory) ? (selectedCategory[0] || null) : selectedCategory} 
         warehouseId={currentWarehouseId} 
       />
       <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} warehouseId={currentWarehouseId} />
@@ -1975,11 +1985,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                 <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
                   <div 
-                    className={`group p-3 rounded-lg cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${selectedCategory === null ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
+                    className={`group p-3 rounded-lg cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${(!selectedCategory || (Array.isArray(selectedCategory) && selectedCategory.length === 0)) ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
                     onClick={() => setSelectedCategory(null)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-1.5 h-1.5 rounded-full ${selectedCategory === null ? 'bg-white' : 'bg-gray-300 group-hover:bg-merkez-blue'}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full ${(!selectedCategory || (Array.isArray(selectedCategory) && selectedCategory.length === 0)) ? 'bg-white' : 'bg-gray-300 group-hover:bg-merkez-blue'}`} />
                       {t('warehouse.allCategories')}
                     </div>
                   </div>
@@ -2048,7 +2058,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         .filter(sub => !visibleCategoryIds || visibleCategoryIds.has(sub.id));
                       const hasSubcategories = subcategories.length > 0;
                       const isExpanded = normSearch ? (autoExpandedCategoryIds.has(cat.id) || expandedCategories.includes(cat.id)) : expandedCategories.includes(cat.id);
-                      const isActive = selectedCategory === cat.id;
+                      const isActive = Array.isArray(selectedCategory) ? selectedCategory.includes(cat.id) : selectedCategory === cat.id;
                       const catColor = getCategoryDepthColor(level);
                       const count = categoryProductCounts[cat.id] || 0;
                       
@@ -2061,7 +2071,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               borderLeft: level > 0 ? `3px solid ${catColor}` : undefined
                             }}
                             onClick={() => {
-                              setSelectedCategory(isActive ? null : cat.id);
+                              if (Array.isArray(selectedCategory)) {
+                                if (isActive) {
+                                  const next = selectedCategory.filter(id => id !== cat.id);
+                                  setSelectedCategory(next.length > 0 ? next : null);
+                                } else {
+                                  setSelectedCategory([...selectedCategory, cat.id]);
+                                }
+                              } else {
+                                setSelectedCategory(isActive ? null : cat.id);
+                              }
                               if (hasSubcategories && !isExpanded) {
                                 setExpandedCategories(prev => [...prev, cat.id]);
                               }
@@ -2302,10 +2321,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
             {activeTab === 'finished' && (
               <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
-                <div className="w-full sm:w-56 shrink-0">
+                <div className="w-full sm:w-64 shrink-0">
                   <Dropdown
-                    value={selectedCategory || 'all'}
-                    onChange={(val) => setSelectedCategory(val === 'all' ? null : val)}
+                    multiple
+                    value={selectedCategory || []}
+                    onChange={(val) => {
+                      if (Array.isArray(val)) {
+                        setSelectedCategory(val.length > 0 ? val : null);
+                      } else {
+                        setSelectedCategory(val === 'all' || !val ? null : val);
+                      }
+                    }}
                     searchable
                     options={[
                       { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
