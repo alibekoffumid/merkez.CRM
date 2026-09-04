@@ -98,9 +98,16 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
             <Dropdown 
               value={formData.parent_id}
               onChange={val => setFormData({...formData, parent_id: val})}
+              searchable
               options={[
                 { value: '', label: t('warehouse.noParent') || 'No Parent (Main Category)' },
-                ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
+                ...hierarchicalCategories.map(cat => ({ 
+                  value: cat.id, 
+                  label: cat.label,
+                  rawName: cat.rawName,
+                  parentName: cat.parentName,
+                  level: cat.level
+                }))
               ]}
             />
           </div>

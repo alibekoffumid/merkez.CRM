@@ -176,9 +176,16 @@ const EditCategoryModal = ({ isOpen, onClose, category, onCategoryUpdated }) => 
               <Dropdown 
                 value={parentId}
                 onChange={val => setParentId(val)}
+                searchable
                 options={[
                   { value: '', label: t('warehouse.noParent') || 'No Parent (Main Category)' },
-                  ...hierarchicalCategories.map(cat => ({ value: cat.id, label: cat.label }))
+                  ...hierarchicalCategories.map(cat => ({ 
+                    value: cat.id, 
+                    label: cat.label,
+                    rawName: cat.rawName,
+                    parentName: cat.parentName,
+                    level: cat.level
+                  }))
                 ]}
               />
             </div>

@@ -10,6 +10,7 @@ import DatePicker from '../../components/Common/DatePicker';
 import QuickAddCustomerModal from './QuickAddCustomerModal';
 import AnimatedNumber from '../../components/Common/AnimatedNumber';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
+import { formatCategoriesHierarchically } from './categoryUtils';
 
 const BANK_RATES = {
   'ABB Kredit': { 1: 0.0, 2: 0.02, 3: 0.03, 6: 0.055, 9: 0.08, 12: 0.10, 18: 0.17, 24: 0.23 },
@@ -1105,15 +1106,16 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                             value={selectedCategoryId}
                             onChange={handleCategoryChange}
                             buttonClassName="rounded-xl px-5 py-3"
+                            searchable
                             options={[
-                              { value: '', label: t('warehouse.allCategories') },
-                              ...categories.filter(c => !c.parent_id).flatMap(cat => [
-                                { value: cat.id, label: cat.name },
-                                ...categories.filter(sub => sub.parent_id === cat.id).map(sub => ({
-                                  value: sub.id,
-                                  label: `  ↳ ${sub.name}`
-                                }))
-                              ])
+                              { value: '', label: t('warehouse.allCategories') || 'Bütün Kateqoriyalar' },
+                              ...formatCategoriesHierarchically(categories, null, t).map(c => ({
+                                value: c.id,
+                                label: c.label,
+                                rawName: c.rawName,
+                                parentName: c.parentName,
+                                level: c.level
+                              }))
                             ]}
                           />
                         </div>

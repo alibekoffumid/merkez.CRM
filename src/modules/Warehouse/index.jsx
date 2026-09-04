@@ -82,6 +82,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const setActiveTab = propSetActiveTab || localSetActiveTab;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categorySearchTerm, setCategorySearchTerm] = useState('');
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [ingredients, setIngredients] = useState([]);
@@ -1937,7 +1938,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 transition-transform duration-300 border-r border-gray-100 lg:border-r-0
                 ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
               `}>
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-merkez-blue/10 flex items-center justify-center">
                       <FolderTree className="w-4 h-4 text-merkez-blue" />
@@ -1947,6 +1948,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button onClick={() => setShowCategorySidebar(false)} className="lg:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
                     <X className="w-5 h-5" />
                   </button>
+                </div>
+
+                {/* Category Search Input */}
+                <div className="relative mb-3 shrink-0">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={categorySearchTerm}
+                    onChange={(e) => setCategorySearchTerm(e.target.value)}
+                    placeholder={i18n?.language === 'az' ? 'Kateqoriya axtar...' : 'Поиск категорий...'}
+                    className="w-full pl-8 pr-8 py-2 bg-white border border-gray-200/90 hover:border-gray-300 focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/15 rounded-xl text-xs font-semibold text-gray-800 placeholder:text-gray-400 shadow-sm outline-none transition-all"
+                  />
+                  {categorySearchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => setCategorySearchTerm('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                      title={i18n?.language === 'az' ? 'Təmizlə' : 'Очистить'}
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
@@ -1960,9 +1983,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     </div>
                   </div>
 
-                  <div className="my-4 border-t border-gray-100/50" />
+                  <div className="my-3 border-t border-gray-100/60" />
 
                   {(() => {
+                    const normSearch = (categorySearchTerm || '').trim().toLowerCase()
+                      .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
+
                     const NEON_COLORS = [
                       '#00f0ff', // Neon Cyan
                       '#2563eb', // Royal Blue
@@ -1991,9 +2017,64 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return NEON_COLORS[idx];
                     };
 
+                    let visibleCategoryIds = null;
+                    let autoExpandedCategoryIds = new Set();
+
+                    if (normSearch) {
+                      visibleCategoryIds = new Set();
+                      const parentMap = new Map();
+                      const childrenMap = new Map();
+                      categories.forEach(c => {
+                        if (c.parent_id) {
+                          parentMap.set(c.id, c.parent_id);
+                          if (!childrenMap.has(c.parent_id)) childrenMap.set(c.parent_id, []);
+                          childrenMap.get(c.parent_id).push(c.id);
+                        }
+                      });
+
+                      const addAllDescendants = (id) => {
+                        const children = childrenMap.get(id) || [];
+                        children.forEach(childId => {
+                          visibleCategoryIds.add(childId);
+                          addAllDescendants(childId);
+                        });
+                      };
+
+                      const matches = (c) => {
+                        const raw = (c.name || '').toLowerCase()
+                          .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
+                        const trans = (t(`categories.${c.name}`, { defaultValue: c.name }) || '').toLowerCase()
+                          .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
+                        return raw.includes(normSearch) || trans.includes(normSearch);
+                      };
+
+                      categories.forEach(c => {
+                        if (matches(c)) {
+                          visibleCategoryIds.add(c.id);
+                          if (childrenMap.has(c.id)) {
+                            autoExpandedCategoryIds.add(c.id);
+                            addAllDescendants(c.id);
+                          }
+                          let pId = parentMap.get(c.id);
+                          while (pId) {
+                            visibleCategoryIds.add(pId);
+                            autoExpandedCategoryIds.add(pId);
+                            pId = parentMap.get(pId);
+                          }
+                        }
+                      });
+                    }
+
                     const renderCategory = (cat, level = 0, catIdx = 0) => {
-                      const hasSubcategories = categories.some(sub => sub.parent_id === cat.id);
-                      const isExpanded = expandedCategories.includes(cat.id);
+                      if (visibleCategoryIds && !visibleCategoryIds.has(cat.id)) {
+                        return null;
+                      }
+
+                      const subcategories = categories
+                        .filter(sub => sub.parent_id === cat.id)
+                        .filter(sub => !visibleCategoryIds || visibleCategoryIds.has(sub.id));
+                      const hasSubcategories = subcategories.length > 0;
+                      const isExpanded = normSearch ? (autoExpandedCategoryIds.has(cat.id) || expandedCategories.includes(cat.id)) : expandedCategories.includes(cat.id);
                       const isActive = selectedCategory === cat.id;
                       const isMainCategory = level === 0 && !cat.parent_id;
                       const catColor = isMainCategory ? '#f97316' : '#9ca3af';
@@ -2058,8 +2139,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </div>
                           </div>
 
-                          {isExpanded && categories
-                            .filter(sub => sub.parent_id === cat.id)
+                          {isExpanded && subcategories
                             .sort((a, b) => a.name.localeCompare(b.name))
                             .map((subcat, subIdx) => renderCategory(subcat, level + 1, subIdx))
                           }
@@ -2067,10 +2147,35 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       );
                     };
 
-                    return categories
+                    const topLevelCategories = categories
                       .filter(c => !c.parent_id)
-                      .sort((a, b) => a.name.localeCompare(b.name))
-                      .map((cat, idx) => renderCategory(cat, 0, idx));
+                      .filter(c => !visibleCategoryIds || visibleCategoryIds.has(c.id))
+                      .sort((a, b) => a.name.localeCompare(b.name));
+
+                    if (normSearch && topLevelCategories.length === 0) {
+                      return (
+                        <div className="py-8 text-center px-4 flex flex-col items-center justify-center">
+                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
+                            <Folder className="w-5 h-5" />
+                          </div>
+                          <p className="text-xs font-bold text-gray-700">
+                            {i18n?.language === 'az' ? 'Kateqoriya tapılmadı' : 'Категория не найдена'}
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            {i18n?.language === 'az' ? 'Axtarış sorğusunu dəyişin' : 'Попробуйте другой запрос'}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setCategorySearchTerm('')}
+                            className="mt-3 text-xs font-bold text-merkez-blue hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                          >
+                            {i18n?.language === 'az' ? 'Axtarışı sıfırla' : 'Сбросить поиск'}
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return topLevelCategories.map((cat, idx) => renderCategory(cat, 0, idx));
                   })()}
                 </div>
                 

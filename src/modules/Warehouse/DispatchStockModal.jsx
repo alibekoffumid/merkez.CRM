@@ -416,11 +416,15 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
                             <Dropdown 
                                 value={selectedCategoryId}
                                 onChange={handleCategoryChange}
+                                searchable
                                 options={[
                                     { value: '', label: t('warehouse.allCategories') || 'Bütün Kateqoriyalar' },
                                     ...formatCategoriesHierarchically(categories, null, t).map(c => ({
                                         value: c.id,
-                                        label: c.label
+                                        label: c.label,
+                                        rawName: c.rawName,
+                                        parentName: c.parentName,
+                                        level: c.level
                                     }))
                                 ]}
                             />

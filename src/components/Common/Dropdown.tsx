@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Folder } from 'lucide-react';
+import { ChevronDown, Folder, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface DropdownOption {
@@ -34,6 +34,22 @@ interface DropdownProps {
   disabled?: boolean;
 }
 
+const normalizeDropdownStr = (str: string) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/i̇/g, 'i')
+    .replace(/ı/g, 'i')
+    .replace(/ə/g, 'e')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u')
+    .replace(/ğ/g, 'g')
+    .replace(/ş/g, 's')
+    .replace(/ç/g, 'c')
+    .replace(/ё/g, 'е');
+};
+
 const Dropdown: React.FC<DropdownProps> = ({ 
   value, 
   onChange, 
@@ -47,7 +63,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   searchable = false,
   disabled = false
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, isTop: false });
@@ -104,11 +120,14 @@ const Dropdown: React.FC<DropdownProps> = ({
   }, [isOpen]);
 
   const filteredOptions = options ? (
-    searchable && searchQuery ? options.filter(opt =>
-      opt.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (opt.rawName && opt.rawName.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (opt.parentName && opt.parentName.toLowerCase().includes(searchQuery.toLowerCase()))
-    ) : options
+    searchable && searchQuery.trim() ? options.filter(opt => {
+      const q = normalizeDropdownStr(searchQuery);
+      return (
+        normalizeDropdownStr(opt.label).includes(q) ||
+        (opt.rawName && normalizeDropdownStr(opt.rawName).includes(q)) ||
+        (opt.parentName && normalizeDropdownStr(opt.parentName).includes(q))
+      );
+    }) : options
   ) : null;
 
   const dropdownMenu = isOpen && createPortal(
@@ -119,29 +138,41 @@ const Dropdown: React.FC<DropdownProps> = ({
         top: coords.isTop ? 'auto' : `${coords.top + 6}px`,
         bottom: coords.isTop ? `${window.innerHeight - coords.top + 6}px` : 'auto',
         left: `${coords.left}px`,
-        minWidth: `${Math.max(coords.width, 180)}px`,
+        minWidth: `${Math.max(coords.width, 220)}px`,
         width: 'max-content',
-        maxWidth: '380px',
+        maxWidth: '420px',
       }}
     >
       {searchable && (
-        <div className="px-2 py-1.5 border-b border-gray-100/70 sticky top-0 bg-white/95 backdrop-blur-md z-10 shrink-0 mb-1">
-          <input
-            type="text"
-            placeholder={t('common.search') || 'Axtarış...'}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200/60 rounded-xl text-xs outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue/20 transition-all font-bold text-gray-800 placeholder-gray-400"
-            autoFocus
-            onKeyDown={(e) => e.stopPropagation()}
-          />
+        <div className="px-1.5 py-1.5 border-b border-gray-100/80 sticky top-0 bg-white/95 backdrop-blur-md z-10 shrink-0 mb-1">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t('common.search') || (i18n?.language === 'az' ? 'Axtarış...' : 'Поиск...')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-7 py-1.5 bg-gray-50 border border-gray-200/70 rounded-xl text-xs outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue/20 transition-all font-semibold text-gray-800 placeholder-gray-400"
+              autoFocus
+              onKeyDown={(e) => e.stopPropagation()}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 rounded-full"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
       )}
       <div className="max-h-[280px] overflow-y-auto custom-scrollbar flex flex-col gap-0.5 pr-0.5">
         {filteredOptions ? (
           filteredOptions.length === 0 ? (
             <div className="py-4 text-center text-xs font-bold text-gray-400">
-              {i18n.language === 'az' ? 'Nəticə tapılmadı' : 'Ничего не найдено'}
+              {i18n?.language === 'az' ? 'Nəticə tapılmadı' : 'Ничего не найдено'}
             </div>
           ) : (
             filteredOptions.map((opt) => {
