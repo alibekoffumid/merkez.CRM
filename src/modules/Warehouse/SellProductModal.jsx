@@ -80,6 +80,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     } catch (e) {}
   };
 
+  const prevIsOpenRef = useRef(false);
+
   useEffect(() => {
     if (isOpen && warehouseId) {
       fetchCategories();
@@ -87,47 +89,54 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       fetchCustomers();
       fetchBankSettings();
 
-      // Auto-populate cart with initially selected products
-      if (initialProducts && initialProducts.length > 0) {
-        const initialCart = initialProducts.map(p => ({
-          product_id: p.id,
-          quantity: 1,
-          productName: p.name,
-          price: Number(p.price || p.sale_price || 0),
-          currentStock: p.stock_quantity
-        }));
-        setCart(initialCart);
-        if (initialProducts.length === 1) {
-          setCurrentItem({
-            product_id: initialProducts[0].id,
-            quantity: '1'
-          });
-          if (initialProducts[0].category_id) {
-            setSelectedCategoryId(initialProducts[0].category_id);
+      const wasClosed = !prevIsOpenRef.current;
+      prevIsOpenRef.current = true;
+
+      if (wasClosed) {
+        // Auto-populate cart with initially selected products
+        if (initialProducts && initialProducts.length > 0) {
+          const initialCart = initialProducts.map(p => ({
+            product_id: p.id,
+            quantity: 1,
+            productName: p.name,
+            price: Number(p.price || p.sale_price || 0),
+            currentStock: p.stock_quantity
+          }));
+          setCart(initialCart);
+          if (initialProducts.length === 1) {
+            setCurrentItem({
+              product_id: initialProducts[0].id,
+              quantity: '1'
+            });
+            if (initialProducts[0].category_id) {
+              setSelectedCategoryId(initialProducts[0].category_id);
+            }
+          } else {
+            setCurrentItem({ product_id: '', quantity: '1' });
           }
         } else {
-          setCurrentItem({ product_id: '', quantity: '1' });
+          setCart([]);
+          setSelectedCategoryId('');
+          setCurrentItem({
+            product_id: '',
+            quantity: '1'
+          });
         }
-      } else {
-        setCart([]);
-        setSelectedCategoryId('');
-        setCurrentItem({
-          product_id: '',
-          quantity: '1'
-        });
-      }
 
-      setBarcodeMode(false);
-      setBarcodeBuffer('');
-      setSaleDate(new Date().toISOString().split('T')[0]);
-      setSelectedCustomerId('');
-      setPaymentMethod('cash');
-      setNotes('');
-      setDiscount('0');
-      setBirmarketCategory('Alətlər');
-      setSalesChannel('Mağaza');
+        setBarcodeMode(false);
+        setBarcodeBuffer('');
+        setSaleDate(new Date().toISOString().split('T')[0]);
+        setSelectedCustomerId('');
+        setPaymentMethod('cash');
+        setNotes('');
+        setDiscount('0');
+        setBirmarketCategory('Alətlər');
+        setSalesChannel('Mağaza');
+      }
+    } else {
+      prevIsOpenRef.current = false;
     }
-  }, [isOpen, warehouseId]);
+  }, [isOpen, warehouseId, initialProducts]);
 
   useEffect(() => {
     if (isOpen) {

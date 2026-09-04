@@ -127,6 +127,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [bulkSelectedCategoryId, setBulkSelectedCategoryId] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
+
+  const selectedProductsList = useMemo(() => {
+    if (!selectedItems || selectedItems.length === 0) return [];
+    const idSet = new Set(selectedItems);
+    return (products || []).filter(p => idSet.has(p.id));
+  }, [selectedItems, products]);
   const [warehouses, setWarehouses] = useState([]);
   const [currentWarehouseId, setCurrentWarehouseId] = useState(null);
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
@@ -1387,6 +1393,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
               >
                 <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+                {selectedItems.length > 0 && (
+                  <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
+                    {selectedItems.length}
+                  </span>
+                )}
               </button>
             )}
             
@@ -3018,9 +3029,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <SellProductModal
           isOpen={showSellProduct}
           onClose={() => setShowSellProduct(false)}
-          onSaleComplete={fetchAll}
+          onSaleComplete={() => {
+            fetchAll();
+            setSelectedItems([]);
+          }}
           warehouseId={currentWarehouseId}
           activeRepairsMap={activeRepairsMap}
+          initialProducts={selectedProductsList}
         />
       </ModalPortal>
       {confirmDelete && (
