@@ -235,7 +235,7 @@ const WarehouseAppContent = () => {
 
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 overflow-hidden flex items-center justify-center mb-4">
-              <img src="/Merkez-logo.svg" alt="Logo" className="w-full h-full object-contain" />
+              <img src="/digitall_logo.svg" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight">{t('warehouse.terminalTitle')}</h2>
             <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mt-1">{t('warehouse.autonomousTerminal')}</p>
@@ -368,7 +368,7 @@ const WarehouseAppContent = () => {
                   <div className="fixed inset-y-0 left-0 w-72 bg-[#0c0c28] border-r border-white/10 shadow-2xl z-[70] p-4 flex flex-col animate-in slide-in-from-left md:hidden">
                     <div className="flex items-center gap-3 mb-8 px-2 mt-2">
                       <div className="w-8 h-8 shrink-0">
-                        <img src="/Merkez-logo.svg" alt="Logo" className="w-full h-full object-contain" />
+                        <img src="/digitall_logo.svg" alt="Logo" className="w-full h-full object-contain" />
                       </div>
                       <span className="text-white font-black text-lg tracking-wide">MERKEZ CRM</span>
                     </div>
@@ -408,7 +408,7 @@ const WarehouseAppContent = () => {
 
             {/* Desktop Logo */}
             <div className="hidden md:flex w-10 h-10 overflow-hidden items-center justify-center shrink-0">
-              <img src="/Merkez-logo.svg" alt="Logo" className="w-full h-full object-contain" />
+              <img src="/digitall_logo.svg" alt="Logo" className="w-full h-full object-contain" />
             </div>
 
             {/* Navigation Tabs (Desktop) */}
