@@ -522,7 +522,7 @@ const WarehouseAppContent = () => {
       </header>
 
       {/* Main content container */}
-      <main className="flex-1 overflow-hidden p-3 md:p-6 flex flex-col">
+      <main className="flex-1 overflow-hidden p-2.5 md:p-4 md:pb-2 flex flex-col">
         <PinGuard moduleId="warehouse">
           <WarehouseModule activeTab={activeTab} setActiveTab={setActiveTab} />
         </PinGuard>

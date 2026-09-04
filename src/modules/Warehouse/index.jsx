@@ -1049,7 +1049,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   }, [ingredients, searchTerm]);
 
   return (
-    <div className="space-y-6 flex flex-col h-full w-full">
+    <div className="space-y-3 flex flex-col h-full w-full">
       {/* Modals */}
       <AddProductModal 
         isOpen={showAddProduct} 
@@ -2871,7 +2871,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           {/* Fixed Non-Scrolling Pagination Bar at the bottom of the card */}
           {activeTab === 'finished' && !loading && !loadingProducts && !isSearchingServer && filteredProducts.length > 0 && (
-            <div className="p-3.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0 z-20 shadow-sm">
+            <div className="px-4 py-1.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0 z-20 shadow-sm">
               <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
                 <span>
                   {i18n.language === 'az' ? 'Göstərilir:' : 'Показано:'}{' '}
@@ -2880,9 +2880,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </strong>{' '}
                   / <strong className="text-gray-900 font-bold">{filteredProducts.length}</strong> {i18n.language === 'az' ? 'məhsul' : 'товаров'}
                 </span>
-                <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-3">
+                <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-2.5">
                   <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
-                  <div className="w-[85px]">
+                  <div className="w-[80px]">
                     <Dropdown
                       value={String(pageSize)}
                       onChange={(val) => {
@@ -2897,7 +2897,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         { value: '200', label: '200' },
                         { value: 'all', label: i18n.language === 'az' ? 'Hamısı' : 'Все' }
                       ]}
-                      buttonClassName="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 h-[28px] text-gray-700 hover:border-merkez-blue"
+                      buttonClassName="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-0.5 h-[26px] text-gray-700 hover:border-merkez-blue"
                     />
                   </div>
                 </div>
@@ -2908,18 +2908,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
                     title={i18n.language === 'az' ? 'İlk səhifə' : 'Первая страница'}
                   >
-                    <ChevronsLeft className="w-4 h-4" />
+                    <ChevronsLeft className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
                     title={i18n.language === 'az' ? 'Əvvəlki' : 'Предыдущая'}
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
 
                   <div className="flex items-center gap-1 px-1">
@@ -2937,7 +2937,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <button
                             key={p}
                             onClick={() => setCurrentPage(p)}
-                            className={`min-w-[30px] h-7 px-2 rounded-md text-xs font-bold transition-all ${
+                            className={`min-w-[26px] h-6 px-1.5 rounded-md text-xs font-bold transition-all ${
                               currentPage === p
                                 ? 'bg-merkez-blue text-white shadow-sm shadow-blue-500/30'
                                 : 'border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
@@ -2954,18 +2954,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
                     title={i18n.language === 'az' ? 'Növbəti' : 'Следующая'}
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
-                    className="p-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
                     title={i18n.language === 'az' ? 'Son səhifə' : 'Последняя страница'}
                   >
-                    <ChevronsRight className="w-4 h-4" />
+                    <ChevronsRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
