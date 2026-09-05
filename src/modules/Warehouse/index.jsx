@@ -1380,6 +1380,23 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   className="py-2 h-[38px] text-xs"
                 />
               </div>
+              {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter || historySearchTerm) && (
+                <button 
+                  onClick={() => {
+                    setHistoryFilter(null);
+                    setHistorySearchTerm('');
+                    setStartDate('');
+                    setEndDate('');
+                    setSalesChannelFilter('');
+                    setCategoryFilter('');
+                  }}
+                  className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 h-[38px] shrink-0"
+                  title={t('common.clearFilters') || 'Təmizlə'}
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline">{t('common.clearFilters') || 'Təmizlə'}</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -1495,45 +1512,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'settings' ? (
           <WarehouseSettings />
         ) : activeTab === 'history' ? (
-          <div className="flex-1 bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    {historyTab === 'receipts' ? (t('warehouse.receiptHistory') || 'История приёмок') : 
-                     historyTab === 'dispatches' ? (t('warehouse.dispatchHistory') || 'История списаний') : 
-                     historyTab === 'sales' ? (t('warehouse.salesHistory') || 'Satış tarixçəsi') : 
-                     (t('warehouse.transferHistory') || 'История перемещений')}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {historyTab === 'receipts' ? (t('warehouse.receiptHistoryDesc') || 'Список всех поступлений товаров от поставщиков') : 
-                     historyTab === 'dispatches' ? (t('warehouse.dispatchHistoryDesc') || 'Список всех выданных и списанных товаров') : 
-                     historyTab === 'sales' ? (t('warehouse.salesHistoryDesc') || 'Məhsul satışlarının ətraflı qeydləri') : 
-                     (t('warehouse.transferHistoryDesc') || 'Журнал перемещения товаров между складами')}
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full xl:w-auto">
-                  {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter) && (
-                    <button 
-                      onClick={() => {
-                        setHistoryFilter(null);
-                        setHistorySearchTerm('');
-                        setStartDate('');
-                        setEndDate('');
-                        setSalesChannelFilter('');
-                        setCategoryFilter('');
-                      }}
-                      className="px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shrink-0"
-                    >
-                      <Search className="w-3.5 h-3.5" />
-                      {t('common.clearFilters') || 'Сбросить фильтры'}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Filters Bar moved to top bar */}
-            </div>
+          <div className="flex-1 bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-auto">
               <table className="w-full min-w-[850px] text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
