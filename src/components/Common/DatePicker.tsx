@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -6,14 +7,16 @@ interface DatePickerProps {
   value: string; // YYYY-MM-DD
   onChange: (value: string) => void;
   label?: string;
-  position?: 'top' | 'bottom';
+  position?: 'top' | 'bottom' | 'auto';
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, position = 'bottom' }) => {
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, position = 'auto' }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'date' | 'year'>('date');
   const containerRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0, isTop: false });
 
   // Use state for the calendar view date (independent of selected value)
   const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
@@ -27,16 +30,52 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
 
   const selectedDate = value ? new Date(value) : null;
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-        setViewMode('date');
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 380 && spaceAbove > spaceBelow);
+      
+      const popupWidth = 320;
+      let left = rect.left;
+      if (left + popupWidth > window.innerWidth - 12) {
+        left = Math.max(12, rect.right - popupWidth);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+      setCoords({
+        top: shouldOpenTop ? rect.top : rect.bottom,
+        left: Math.max(12, left),
+        isTop: shouldOpenTop
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Node;
+        if (
+          containerRef.current && !containerRef.current.contains(target) &&
+          popupRef.current && !popupRef.current.contains(target)
+        ) {
+          setIsOpen(false);
+          setViewMode('date');
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        window.removeEventListener('scroll', updateCoords, true);
+        window.removeEventListener('resize', updateCoords);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   const changeMonth = (offset: number) => {
     const d = new Date(viewDate);
@@ -113,8 +152,16 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
         </span>
       </button>
 
-      {isOpen && (
-        <div className={`absolute ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 w-[320px] z-[600] animate-in zoom-in-95 fade-in duration-200 ${position === 'top' ? 'origin-bottom' : 'origin-top'}`}>
+      {isOpen && createPortal(
+        <div 
+          ref={popupRef}
+          className={`fixed z-[99999] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-gray-100 p-6 w-[320px] animate-in zoom-in-95 fade-in duration-150 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'}`}
+          style={{
+            top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
+            bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',
+            left: `${coords.left}px`,
+          }}
+        >
           <div className="flex items-center justify-between mb-6">
             <button type="button" onClick={() => viewMode === 'date' ? changeMonth(-1) : setViewMode('date')} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
               <ChevronLeft className="w-5 h-5" />
@@ -191,7 +238,8 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
               })}
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

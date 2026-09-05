@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +9,7 @@ interface DateRangePickerProps {
   onChange: (start: string, end: string) => void;
   label?: string;
   placeholder?: string;
-  position?: 'top' | 'bottom';
+  position?: 'top' | 'bottom' | 'auto';
   className?: string;
 }
 
@@ -16,9 +17,9 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   startDate, 
   endDate, 
   onChange, 
-  label,
+  label, 
   placeholder = 'Select date range',
-  position = 'bottom',
+  position = 'auto',
   className
 }) => {
   const { t, i18n } = useTranslation();
@@ -37,15 +38,54 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     setTempEnd(endDate);
   }, [startDate, endDate]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0, isTop: false });
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 340 && spaceAbove > spaceBelow);
+      
+      const popupWidth = 300;
+      let left = rect.left;
+      if (left + popupWidth > window.innerWidth - 12) {
+        left = Math.max(12, rect.right - popupWidth);
       }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+      setCoords({
+        top: shouldOpenTop ? rect.top : rect.bottom,
+        left: Math.max(12, left),
+        isTop: shouldOpenTop
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('scroll', updateCoords, true);
+      window.addEventListener('resize', updateCoords);
+
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Node;
+        if (
+          containerRef.current && !containerRef.current.contains(target) &&
+          popupRef.current && !popupRef.current.contains(target)
+        ) {
+          setIsOpen(false);
+        }
+      };
+
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        window.removeEventListener('scroll', updateCoords, true);
+        window.removeEventListener('resize', updateCoords);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   const monthsList = [
     'january', 'february', 'march', 'april', 'may', 'june',
@@ -139,8 +179,16 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
             <X className="w-4 h-4" />
           </button>
         )}
-        {isOpen && (
-          <div className={`absolute ${position === 'top' ? 'bottom-full mb-2 origin-bottom' : 'top-full mt-2 origin-top'} left-0 sm:right-0 sm:left-auto bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-4 w-[290px] animate-in fade-in zoom-in-95 duration-200`}>
+        {isOpen && createPortal(
+          <div 
+            ref={popupRef}
+            className={`fixed z-[99999] bg-white border border-gray-100 rounded-2xl shadow-[0_16px_48px_-8px_rgba(0,0,0,0.22)] p-4 w-[295px] animate-in fade-in duration-150 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'} zoom-in-95`}
+            style={{
+              top: coords.isTop ? 'auto' : `${coords.top + 6}px`,
+              bottom: coords.isTop ? `${window.innerHeight - coords.top + 6}px` : 'auto',
+              left: `${coords.left}px`,
+            }}
+          >
             <div className="flex justify-between items-center mb-2.5">
               <span className="text-xs font-black text-gray-900 uppercase tracking-tight">
                 {t(`common.months.${monthsList[monthIndex]}`)} {year}
@@ -220,7 +268,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                 {t('restaurant.applyRange') || 'Apply'}
               </button>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>
