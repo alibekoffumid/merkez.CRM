@@ -94,8 +94,45 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [historySearchTerm, setHistorySearchTerm] = useState('');
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
   const [salesChannelFilter, setSalesChannelFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
+  const [categorySidebarWidth, setCategorySidebarWidth] = useState(() => {
+    const saved = localStorage.getItem('warehouse_category_sidebar_width');
+    return saved ? parseInt(saved, 10) : null;
+  });
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  const startResizingSidebar = (e) => {
+    e.preventDefault();
+    setIsResizingSidebar(true);
+    const startX = e.clientX;
+    const sidebarEl = document.getElementById('tour-categories');
+    const startWidth = sidebarEl ? sidebarEl.getBoundingClientRect().width : 380;
+
+    const onMouseMove = (moveEvent) => {
+      const newWidth = Math.max(280, Math.min(750, startWidth + (moveEvent.clientX - startX)));
+      setCategorySidebarWidth(newWidth);
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      setIsResizingSidebar(false);
+      setCategorySidebarWidth((currentWidth) => {
+        if (currentWidth) {
+          localStorage.setItem('warehouse_category_sidebar_width', currentWidth.toString());
+        }
+        return currentWidth;
+      });
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
+  const resetSidebarWidth = () => {
+    setCategorySidebarWidth(null);
+    localStorage.removeItem('warehouse_category_sidebar_width');
+  };
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -1931,14 +1968,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'reports' ? (
           <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} />
         ) : (
-        <div className="flex flex-1 gap-0 2xl:gap-6 overflow-hidden relative">
+        <div className="flex flex-1 gap-2 xl:gap-3 2xl:gap-5 overflow-hidden relative">
           {activeTab === 'finished' && (
-              <div id="tour-categories" className={`
-                fixed inset-y-0 left-0 z-50 w-80 lg:w-80 xl:w-[320px] 2xl:w-[340px] shrink-0 bg-white/95 backdrop-blur-md shadow-2xl p-5 lg:p-4 xl:p-5 flex flex-col 
-                lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-lg
-                transition-transform duration-300 border-r border-gray-100 lg:border-r-0
-                ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
-              `}>
+            <>
+              <div 
+                id="tour-categories" 
+                style={categorySidebarWidth ? { width: `${categorySidebarWidth}px`, minWidth: `${categorySidebarWidth}px` } : undefined}
+                className={`
+                  fixed inset-y-0 left-0 z-50 w-80 sm:w-96 shrink-0 bg-white/95 backdrop-blur-md shadow-2xl p-5 lg:p-4 xl:p-5 flex flex-col 
+                  lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-xl
+                  ${categorySidebarWidth ? '' : 'lg:w-fit lg:min-w-[360px] xl:min-w-[390px] 2xl:min-w-[420px] lg:max-w-[600px] 2xl:max-w-[700px]'}
+                  border-r border-gray-100 lg:border-r
+                  ${isResizingSidebar ? 'select-none transition-none' : 'transition-transform duration-300'}
+                  ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
+                `}
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-merkez-blue/10 flex items-center justify-center">
@@ -2076,9 +2120,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               }
                             }}
                           >
-                            <div className="flex items-center flex-1 truncate gap-2.5">
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                               {hasSubcategories ? (
                                 <button 
+                                  type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setExpandedCategories(prev => 
@@ -2109,15 +2154,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 />
                               )}
 
-                              <span className="truncate" title={t(`categories.${cat.name}`, { defaultValue: cat.name })}>
+                              <span 
+                                className="whitespace-nowrap font-bold text-gray-800 group-hover:text-gray-900" 
+                                title={t(`categories.${cat.name}`, { defaultValue: cat.name })}
+                              >
                                 {t(`categories.${cat.name}`, { defaultValue: cat.name })}
                               </span>
                             </div>
                             
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 shrink-0 ml-auto pl-2">
                               <button 
+                                type="button"
                                 onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
                                 className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                                title={i18n?.language === 'az' ? 'Redaktə et' : 'Редактировать'}
                               >
                                 <Pencil className="w-3.5 h-3.5" />
                               </button>
@@ -2179,12 +2229,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </button>
                 </div>
               </div>
-            )}
+              {/* Desktop Draggable Resize Handle */}
+              <div
+                onMouseDown={startResizingSidebar}
+                onDoubleClick={resetSidebarWidth}
+                className="hidden lg:flex w-2.5 -ml-1 cursor-col-resize items-center justify-center group z-10 select-none hover:w-3.5 transition-all"
+                title={i18n?.language === 'az' ? 'Ölçünü dəyişmək üçün dartın (avto-ölçü üçün iki dəfə klikləyin)' : 'Потяните, чтобы изменить ширину (двойной клик для авто-подбора)'}
+              >
+                <div className="w-1 h-10 rounded-full bg-gray-200 group-hover:bg-merkez-blue group-hover:h-14 transition-all" />
+              </div>
+            </>
+          )}
 
         {/* Overlay for mobile sidebar */}
         {activeTab === 'finished' && showCategorySidebar && (
           <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 2xl:hidden"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setShowCategorySidebar(false)}
           />
         )}
