@@ -48,13 +48,14 @@ interface DropdownProps {
   trigger?: React.ReactNode;
   items?: DropdownItem[];
   searchable?: boolean;
+  searchPlaceholder?: string;
   disabled?: boolean;
   multiple?: boolean;
 }
 
-const normalizeDropdownStr = (str: string) => {
-  if (!str) return '';
-  return str
+const normalizeDropdownStr = (str: any) => {
+  if (str == null) return '';
+  return String(str)
     .toLowerCase()
     .trim()
     .replace(/i̇/g, 'i')
@@ -79,6 +80,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   trigger,
   items,
   searchable = false,
+  searchPlaceholder,
   disabled = false,
   multiple = false
 }) => {
@@ -137,10 +139,16 @@ const Dropdown: React.FC<DropdownProps> = ({
       const spaceAbove = rect.top;
       const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 250 && spaceAbove > spaceBelow);
       
+      const minMenuWidth = Math.max(rect.width, 220);
+      let calculatedLeft = rect.left;
+      if (calculatedLeft + minMenuWidth > window.innerWidth - 16) {
+        calculatedLeft = Math.max(16, window.innerWidth - minMenuWidth - 16);
+      }
+
       setCoords({
         top: shouldOpenTop ? rect.top : rect.bottom,
-        left: rect.left,
-        width: Math.max(rect.width, 160),
+        left: calculatedLeft,
+        width: minMenuWidth,
         isTop: shouldOpenTop
       });
     }
@@ -201,7 +209,7 @@ const Dropdown: React.FC<DropdownProps> = ({
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
               type="text"
-              placeholder={t('common.search') || (i18n?.language === 'az' ? 'Axtarış...' : 'Поиск...')}
+              placeholder={searchPlaceholder || t('common.search') || (i18n?.language === 'az' ? 'Axtarış...' : 'Поиск...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-8 pr-7 py-1.5 bg-gray-50 border border-gray-200/70 rounded-xl text-xs outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue/20 transition-all font-semibold text-gray-800 placeholder-gray-400"

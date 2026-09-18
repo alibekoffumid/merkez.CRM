@@ -367,6 +367,8 @@ const CreateSupplierOrderModal = ({ isOpen, onClose, selectedSupplierId, warehou
                 <Dropdown
                   value={supplierId}
                   onChange={(val) => setSupplierId(val)}
+                  searchable
+                  searchPlaceholder={i18n.language === 'az' ? 'Təchizatçı axtar...' : 'Поиск поставщика...'}
                   options={supplierOptions}
                   className="w-full"
                   buttonClassName="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:border-merkez-blue outline-none text-left"

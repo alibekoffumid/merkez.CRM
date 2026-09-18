@@ -413,6 +413,8 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                     <Dropdown 
                       value={headerData.supplier_id}
                       onChange={val => setHeaderData({...headerData, supplier_id: val})}
+                      searchable
+                      searchPlaceholder={i18n?.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
                       options={[
                         { value: '', label: t('warehouse.selectSupplier') },
                         ...suppliers.map(s => ({ value: s.id, label: s.name }))

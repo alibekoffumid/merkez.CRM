@@ -1339,6 +1339,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Dropdown 
                     value={historyFilter || ''} 
                     onChange={(val) => setHistoryFilter(val || null)}
+                    searchable
+                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
                     options={[
                       { value: '', label: t('common.all') || 'Все', icon: Truck },
                       ...suppliers.map(s => ({
@@ -2395,6 +2397,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Dropdown
                     value={supplierFilter}
                     onChange={setSupplierFilter}
+                    searchable
+                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
                     options={[
                       { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
                       ...suppliers.map(s => ({ value: s.id, label: s.name }))
@@ -2565,6 +2569,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                     value={item.supplier_id || ''}
                                     onChange={(val) => handleQuickSupplierChange(item.id, val)}
                                     searchable
+                                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
                                     position="auto"
                                     options={[
                                       { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },

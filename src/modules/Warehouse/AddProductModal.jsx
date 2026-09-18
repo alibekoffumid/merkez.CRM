@@ -10,7 +10,7 @@ import ModalPortal from '../../components/Common/ModalPortal';
 import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
 
 const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   // Format categories for hierarchical dropdown
   const hierarchicalCategories = React.useMemo(() => 
@@ -334,6 +334,8 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                 <Dropdown 
                   value={formData.supplier_id}
                   onChange={val => setFormData({ ...formData, supplier_id: val })}
+                  searchable
+                  searchPlaceholder={i18n?.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
                   buttonClassName="rounded-xl px-5 py-3"
                   options={[
                     { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
