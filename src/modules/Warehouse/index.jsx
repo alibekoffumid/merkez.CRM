@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -164,6 +164,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [bulkSelectedCategoryId, setBulkSelectedCategoryId] = useState('');
   const [showBulkSupplierModal, setShowBulkSupplierModal] = useState(false);
   const [bulkSelectedSupplierId, setBulkSelectedSupplierId] = useState('');
+  const [showBulkPriceModal, setShowBulkPriceModal] = useState(false);
+  const [bulkPriceTab, setBulkPriceTab] = useState('exact'); // 'exact' | 'relative'
+  const [bulkExactPrices, setBulkExactPrices] = useState({
+    price: '',
+    purchase_price: '',
+    factory_price: ''
+  });
+  const [bulkRelativeConfig, setBulkRelativeConfig] = useState({
+    target: 'price', // 'price' | 'purchase_price' | 'both'
+    action: 'increase', // 'increase' | 'decrease'
+    type: 'percent', // 'percent' | 'amount'
+    value: ''
+  });
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
 
@@ -620,6 +633,150 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       toast.error(err.message || (i18n.language === 'az' ? 'Tədarükçü təyin edilərkən xəta baş verdi' : 'Ошибка назначения поставщика'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBulkPriceUpdate = async () => {
+    if (selectedItems.length === 0) return;
+    const isManager = !currentStaff || currentStaff.role === 'Manager';
+
+    if (bulkPriceTab === 'exact') {
+      const hasPrice = bulkExactPrices.price !== '' && !isNaN(parseFloat(bulkExactPrices.price));
+      const hasPurchase = isManager && bulkExactPrices.purchase_price !== '' && !isNaN(parseFloat(bulkExactPrices.purchase_price));
+      const hasFactory = isManager && bulkExactPrices.factory_price.trim() !== '';
+
+      if (!hasPrice && !hasPurchase && !hasFactory) {
+        toast.error(i18n.language === 'az' ? 'Ən azı bir qiymət daxil edin' : 'Введите хотя бы одну цену');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const selectedProducts = products.filter(p => selectedItems.includes(p.id));
+
+        if (!hasFactory) {
+          const patch = {};
+          if (hasPrice) patch.price = parseFloat(bulkExactPrices.price);
+          if (hasPurchase) patch.purchase_price = parseFloat(bulkExactPrices.purchase_price);
+
+          const { error } = await supabase
+            .from('products')
+            .update(patch)
+            .in('id', selectedItems);
+
+          if (error) throw error;
+
+          setProducts(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, ...patch } : p));
+          setServerSearchResults(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, ...patch } : p));
+        } else {
+          const updates = selectedProducts.map(async (p) => {
+            const patch = {};
+            if (hasPrice) patch.price = parseFloat(bulkExactPrices.price);
+            if (hasPurchase) patch.purchase_price = parseFloat(bulkExactPrices.purchase_price);
+
+            let lines = (p.description || '').split('\n').filter(l => !l.toLowerCase().includes('zavod'));
+            lines.unshift(`Zavod qiyməti: ${bulkExactPrices.factory_price.trim()}`);
+            patch.description = lines.join('\n').trim() || null;
+            patch.factory_price = bulkExactPrices.factory_price.trim();
+
+            let res = await supabase.from('products').update(patch).eq('id', p.id);
+            if (res.error && res.error.message && res.error.message.includes('factory_price')) {
+              delete patch.factory_price;
+              res = await supabase.from('products').update(patch).eq('id', p.id);
+            }
+            if (res.error) throw res.error;
+            return { id: p.id, patch };
+          });
+
+          const results = await Promise.all(updates);
+          setProducts(prev => prev.map(p => {
+            const matched = results.find(r => r.id === p.id);
+            return matched ? { ...p, ...matched.patch } : p;
+          }));
+          setServerSearchResults(prev => prev.map(p => {
+            const matched = results.find(r => r.id === p.id);
+            return matched ? { ...p, ...matched.patch } : p;
+          }));
+        }
+
+        toast.success(
+          i18n.language === 'az'
+            ? `${selectedItems.length} məhsulun qiyməti yeniləndi`
+            : i18n.language === 'ru'
+            ? `Цены обновлены для ${selectedItems.length} товаров`
+            : `Prices updated for ${selectedItems.length} products`
+        );
+        setShowBulkPriceModal(false);
+        setSelectedItems([]);
+      } catch (err) {
+        console.error('Error bulk updating prices:', err);
+        toast.error(err.message || (i18n.language === 'az' ? 'Qiymətlər yenilənərkən xəta baş verdi' : 'Ошибка обновления цен'));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      const val = parseFloat(bulkRelativeConfig.value);
+      if (isNaN(val) || val <= 0) {
+        toast.error(i18n.language === 'az' ? 'Düzgün dəyər daxil edin' : 'Введите корректное значение');
+        return;
+      }
+
+      const isPercent = bulkRelativeConfig.type === 'percent';
+      const isIncrease = bulkRelativeConfig.action === 'increase';
+      const target = bulkRelativeConfig.target;
+
+      setLoading(true);
+      try {
+        const selectedProducts = products.filter(p => selectedItems.includes(p.id));
+
+        const updates = selectedProducts.map(async (p) => {
+          const patch = {};
+          if (target === 'price' || target === 'both') {
+            const cur = parseFloat(p.price || 0);
+            const next = isPercent
+              ? (isIncrease ? cur * (1 + val / 100) : cur * (1 - val / 100))
+              : (isIncrease ? cur + val : cur - val);
+            patch.price = Math.max(0, parseFloat(next.toFixed(2)));
+          }
+          if (isManager && (target === 'purchase_price' || target === 'both')) {
+            const cur = parseFloat(p.purchase_price || 0);
+            const next = isPercent
+              ? (isIncrease ? cur * (1 + val / 100) : cur * (1 - val / 100))
+              : (isIncrease ? cur + val : cur - val);
+            patch.purchase_price = Math.max(0, parseFloat(next.toFixed(2)));
+          }
+
+          const { error } = await supabase.from('products').update(patch).eq('id', p.id);
+          if (error) throw error;
+          return { id: p.id, patch };
+        });
+
+        const results = await Promise.all(updates);
+
+        setProducts(prev => prev.map(p => {
+          const matched = results.find(r => r.id === p.id);
+          return matched ? { ...p, ...matched.patch } : p;
+        }));
+        setServerSearchResults(prev => prev.map(p => {
+          const matched = results.find(r => r.id === p.id);
+          return matched ? { ...p, ...matched.patch } : p;
+        }));
+
+        toast.success(
+          i18n.language === 'az'
+            ? `${selectedItems.length} məhsulun qiyməti yeniləndi`
+            : i18n.language === 'ru'
+            ? `Цены обновлены для ${selectedItems.length} товаров`
+            : `Prices updated for ${selectedItems.length} products`
+        );
+        setShowBulkPriceModal(false);
+        setSelectedItems([]);
+      } catch (err) {
+        console.error('Error bulk updating relative prices:', err);
+        toast.error(err.message || (i18n.language === 'az' ? 'Qiymətlər yenilənərkən xəta baş verdi' : 'Ошибка обновления цен'));
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -1344,6 +1501,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           className="bg-purple-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors flex items-center shadow-sm"
                         >
                           <Truck className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'} ({selectedItems.length})
+                        </button>
+                        <button
+                          onClick={() => {
+                            setBulkExactPrices({ price: '', purchase_price: '', factory_price: '' });
+                            setBulkRelativeConfig({ target: 'price', action: 'increase', type: 'percent', value: '' });
+                            setBulkPriceTab('exact');
+                            setShowBulkPriceModal(true);
+                          }}
+                          className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
+                        >
+                          <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Qiymətləri Dəyiş' : i18n.language === 'ru' ? 'Изменить цены' : 'Change Prices'} ({selectedItems.length})
                         </button>
                         <button 
                           id="tour-bulk-delete"
@@ -3316,6 +3484,289 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => handleBulkSupplierAssign(bulkSelectedSupplierId)}
                     className="flex-1 px-6 py-4 bg-purple-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-purple-600/20 hover:bg-purple-700 transition-all"
+                  >
+                    {t('common.save') || 'Yadda saxla'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {showBulkPriceModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4" onClick={() => setShowBulkPriceModal(false)}>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-8 shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setShowBulkPriceModal(false)}
+                className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
+                  <DollarSign className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 mb-1">
+                  {i18n.language === 'az' ? 'Qiymətləri Kütləvi Dəyiş' : i18n.language === 'ru' ? 'Массовое изменение цен' : 'Bulk Price Update'}
+                </h2>
+                <p className="text-gray-500 text-xs mb-6">
+                  {i18n.language === 'az' 
+                    ? `Seçilmiş ${selectedItems.length} məhsul üçün qiymət tənzimləməsi:` 
+                    : i18n.language === 'ru'
+                    ? `Настройка цен для ${selectedItems.length} выбранных товаров:`
+                    : `Adjust prices for ${selectedItems.length} selected products:`}
+                </p>
+
+                {/* Mode tabs */}
+                <div className="w-full bg-gray-100 p-1 rounded-2xl flex items-center gap-1 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setBulkPriceTab('exact')}
+                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                      bulkPriceTab === 'exact'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    {i18n.language === 'az' ? 'Dəqiq Qiymət' : i18n.language === 'ru' ? 'Точная цена' : 'Exact Price'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBulkPriceTab('relative')}
+                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
+                      bulkPriceTab === 'relative'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-800'
+                    }`}
+                  >
+                    {i18n.language === 'az' ? 'Faiz / Məbləğlə' : i18n.language === 'ru' ? 'На % или сумму' : 'By % or Amount'}
+                  </button>
+                </div>
+
+                {bulkPriceTab === 'exact' ? (
+                  <div className="w-full flex flex-col gap-4 text-left mb-6">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                        {i18n.language === 'az' ? 'Satış qiyməti' : i18n.language === 'ru' ? 'Цена продажи' : 'Selling Price'} (₼)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₼</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={bulkExactPrices.price}
+                          onChange={e => setBulkExactPrices(prev => ({ ...prev, price: e.target.value }))}
+                          placeholder={i18n.language === 'az' ? 'Dəyişməmək üçün boş qoyun' : 'Оставьте пустым, чтобы не менять'}
+                          className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {(!currentStaff || currentStaff?.role === 'Manager') && (
+                      <>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                            {i18n.language === 'az' ? 'Maya / Alış qiyməti' : i18n.language === 'ru' ? 'Себестоимость / Закупка' : 'Cost Price'} (₼)
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">₼</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={bulkExactPrices.purchase_price}
+                              onChange={e => setBulkExactPrices(prev => ({ ...prev, purchase_price: e.target.value }))}
+                              placeholder={i18n.language === 'az' ? 'Dəyişməmək üçün boş qoyun' : 'Оставьте пустым, чтобы не менять'}
+                              className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                            {i18n.language === 'az' ? 'Zavod qiyməti' : i18n.language === 'ru' ? 'Заводская цена' : 'Factory Price'}
+                          </label>
+                          <input
+                            type="text"
+                            value={bulkExactPrices.factory_price}
+                            onChange={e => setBulkExactPrices(prev => ({ ...prev, factory_price: e.target.value }))}
+                            placeholder={i18n.language === 'az' ? 'Məs: 0.70 və ya 1.50 $' : 'Напр: 0.70 или 1.50 $'}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all outline-none"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <p className="text-[11px] text-gray-400 font-medium">
+                      ℹ️ {i18n.language === 'az' ? 'Yalnız doldurulan qiymətlər dəyişdiriləcək.' : 'Будут изменены только заполненные поля.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="w-full flex flex-col gap-4 text-left mb-6">
+                    {(!currentStaff || currentStaff?.role === 'Manager') && (
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          {i18n.language === 'az' ? 'Hansı qiymət?' : i18n.language === 'ru' ? 'Какая цена?' : 'Target Price'}
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, target: 'price' }))}
+                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
+                              bulkRelativeConfig.target === 'price'
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {i18n.language === 'az' ? 'Satış' : i18n.language === 'ru' ? 'Продажа' : 'Sale'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, target: 'purchase_price' }))}
+                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
+                              bulkRelativeConfig.target === 'purchase_price'
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {i18n.language === 'az' ? 'Maya' : i18n.language === 'ru' ? 'Себестоимость' : 'Cost'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, target: 'both' }))}
+                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
+                              bulkRelativeConfig.target === 'both'
+                                ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {i18n.language === 'az' ? 'Hər ikisi' : i18n.language === 'ru' ? 'Обе' : 'Both'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          {i18n.language === 'az' ? 'Əməliyyat' : i18n.language === 'ru' ? 'Действие' : 'Action'}
+                        </label>
+                        <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, action: 'increase' }))}
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                              bulkRelativeConfig.action === 'increase'
+                                ? 'bg-white text-emerald-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-800'
+                            }`}
+                          >
+                            + {i18n.language === 'az' ? 'Artır' : i18n.language === 'ru' ? 'Увеличить' : 'Increase'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, action: 'decrease' }))}
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                              bulkRelativeConfig.action === 'decrease'
+                                ? 'bg-white text-red-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-800'
+                            }`}
+                          >
+                            - {i18n.language === 'az' ? 'Azalt' : i18n.language === 'ru' ? 'Уменьшить' : 'Decrease'}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          {i18n.language === 'az' ? 'Növ' : i18n.language === 'ru' ? 'Тип' : 'Type'}
+                        </label>
+                        <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-xl">
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, type: 'percent' }))}
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                              bulkRelativeConfig.type === 'percent'
+                                ? 'bg-white text-emerald-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-800'
+                            }`}
+                          >
+                            % {i18n.language === 'az' ? 'Faiz' : i18n.language === 'ru' ? 'Процент' : 'Percent'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBulkRelativeConfig(prev => ({ ...prev, type: 'amount' }))}
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
+                              bulkRelativeConfig.type === 'amount'
+                                ? 'bg-white text-emerald-700 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-800'
+                            }`}
+                          >
+                            ₼ {i18n.language === 'az' ? 'Məbləğ' : i18n.language === 'ru' ? 'Сумма' : 'Amount'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                        {i18n.language === 'az' ? 'Dəyər' : i18n.language === 'ru' ? 'Значение' : 'Value'} ({bulkRelativeConfig.type === 'percent' ? '%' : '₼'})
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={bulkRelativeConfig.value}
+                        onChange={e => setBulkRelativeConfig(prev => ({ ...prev, value: e.target.value }))}
+                        placeholder={bulkRelativeConfig.type === 'percent' ? 'Məs: 10 (%)' : 'Məs: 2.50 (₼)'}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all outline-none"
+                      />
+                    </div>
+
+                    {/* Live Preview of first item */}
+                    {(() => {
+                      const sampleProduct = products.find(p => selectedItems.includes(p.id));
+                      if (!sampleProduct || !bulkRelativeConfig.value) return null;
+                      const val = parseFloat(bulkRelativeConfig.value);
+                      if (isNaN(val) || val <= 0) return null;
+
+                      const isPercent = bulkRelativeConfig.type === 'percent';
+                      const isIncrease = bulkRelativeConfig.action === 'increase';
+                      const curPrice = parseFloat(sampleProduct.price || 0);
+                      const nextPrice = isPercent
+                        ? (isIncrease ? curPrice * (1 + val / 100) : curPrice * (1 - val / 100))
+                        : (isIncrease ? curPrice + val : curPrice - val);
+
+                      return (
+                        <div className="bg-emerald-50/80 border border-emerald-200/60 rounded-xl p-3 text-xs text-emerald-900 flex items-center justify-between shadow-sm">
+                          <span className="font-semibold truncate max-w-[200px] text-emerald-950">
+                            {sampleProduct.name}
+                          </span>
+                          <span className="font-bold flex items-center gap-1.5 shrink-0">
+                            <span className="text-gray-400 line-through">₼{curPrice.toFixed(2)}</span>
+                            <span>➔</span>
+                            <span className="text-emerald-700 font-black">₼{Math.max(0, nextPrice).toFixed(2)}</span>
+                          </span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setShowBulkPriceModal(false)}
+                    className="flex-1 px-6 py-4 bg-gray-50 text-gray-600 rounded-2xl text-sm font-bold hover:bg-gray-100 transition-all"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={handleBulkPriceUpdate}
+                    className="flex-1 px-6 py-4 bg-emerald-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all"
                   >
                     {t('common.save') || 'Yadda saxla'}
                   </button>
