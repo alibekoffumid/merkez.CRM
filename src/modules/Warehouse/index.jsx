@@ -162,6 +162,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [showBulkCategoryModal, setShowBulkCategoryModal] = useState(false);
   const [bulkSelectedCategoryId, setBulkSelectedCategoryId] = useState('');
+  const [showBulkSupplierModal, setShowBulkSupplierModal] = useState(false);
+  const [bulkSelectedSupplierId, setBulkSelectedSupplierId] = useState('');
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
 
@@ -578,12 +580,44 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       if (error) throw error;
 
       setProducts(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, category_id: targetCatId } : p));
+      setServerSearchResults(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, category_id: targetCatId } : p));
       toast.success(i18n.language === 'az' ? `${selectedItems.length} məhsula kateqoriya təyin edildi` : `Категория назначена для ${selectedItems.length} товаров`);
       setShowBulkCategoryModal(false);
       setSelectedItems([]);
     } catch (err) {
       console.error('Error bulk updating category:', err);
       toast.error(err.message || 'Ошибка назначения категории');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkSupplierAssign = async (supplierId) => {
+    if (selectedItems.length === 0) return;
+    const targetSupId = supplierId || null;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ supplier_id: targetSupId })
+        .in('id', selectedItems);
+
+      if (error) throw error;
+
+      setProducts(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, supplier_id: targetSupId } : p));
+      setServerSearchResults(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, supplier_id: targetSupId } : p));
+      toast.success(
+        i18n.language === 'az' 
+          ? `${selectedItems.length} məhsula tədarükçü təyin edildi` 
+          : i18n.language === 'ru'
+          ? `Поставщик назначен для ${selectedItems.length} товаров`
+          : `Supplier assigned to ${selectedItems.length} products`
+      );
+      setShowBulkSupplierModal(false);
+      setSelectedItems([]);
+    } catch (err) {
+      console.error('Error bulk updating supplier:', err);
+      toast.error(err.message || (i18n.language === 'az' ? 'Tədarükçü təyin edilərkən xəta baş verdi' : 'Ошибка назначения поставщика'));
     } finally {
       setLoading(false);
     }
@@ -1300,7 +1334,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           }}
                           className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-sm"
                         >
-                          <FolderTree className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : 'Назначить категорию'} ({selectedItems.length})
+                          <FolderTree className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : i18n.language === 'ru' ? 'Назначить категорию' : 'Assign Category'} ({selectedItems.length})
+                        </button>
+                        <button
+                          onClick={() => {
+                            setBulkSelectedSupplierId('');
+                            setShowBulkSupplierModal(true);
+                          }}
+                          className="bg-purple-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors flex items-center shadow-sm"
+                        >
+                          <Truck className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'} ({selectedItems.length})
                         </button>
                         <button 
                           id="tour-bulk-delete"
@@ -3210,6 +3253,69 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => handleBulkCategoryAssign(bulkSelectedCategoryId)}
                     className="flex-1 px-6 py-4 bg-merkez-blue text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 hover:bg-blue-600 transition-all"
+                  >
+                    {t('common.save') || 'Yadda saxla'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {showBulkSupplierModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4" onClick={() => setShowBulkSupplierModal(false)}>
+            <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 p-8 shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setShowBulkSupplierModal(false)}
+                className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                  <Truck className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 mb-2">
+                  {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'}
+                </h2>
+                <p className="text-gray-500 text-sm mb-6">
+                  {i18n.language === 'az' 
+                    ? `Seçilmiş ${selectedItems.length} məhsul üçün tədarükçü seçin:` 
+                    : i18n.language === 'ru'
+                    ? `Выберите поставщика для ${selectedItems.length} выбранных товаров:`
+                    : `Select supplier for ${selectedItems.length} selected products:`}
+                </p>
+
+                <div className="w-full mb-8 text-left">
+                  <Dropdown
+                    value={bulkSelectedSupplierId}
+                    onChange={val => setBulkSelectedSupplierId(val)}
+                    searchable
+                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                    options={[
+                      { value: '', label: i18n.language === 'az' ? '— Tədarükçü seçin (yoxdur) —' : '— Выберите поставщика (нет) —' },
+                      ...suppliers.map(s => ({
+                        value: s.id,
+                        label: s.name || s.company_name
+                      }))
+                    ]}
+                    buttonClassName="rounded-xl px-4 py-3 text-sm w-full font-bold"
+                  />
+                </div>
+
+                <div className="flex gap-3 w-full">
+                  <button
+                    onClick={() => setShowBulkSupplierModal(false)}
+                    className="flex-1 px-6 py-4 bg-gray-50 text-gray-600 rounded-2xl text-sm font-bold hover:bg-gray-100 transition-all"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={() => handleBulkSupplierAssign(bulkSelectedSupplierId)}
+                    className="flex-1 px-6 py-4 bg-purple-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-purple-600/20 hover:bg-purple-700 transition-all"
                   >
                     {t('common.save') || 'Yadda saxla'}
                   </button>
