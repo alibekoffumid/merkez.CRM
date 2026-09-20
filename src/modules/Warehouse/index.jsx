@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
 import AddCategoryModal from './AddCategoryModal';
 import EditProductModal from './EditProductModal';
 import EditCategoryModal from './EditCategoryModal';
+import BulkRenameModal from './BulkRenameModal';
 import AddIngredientModal from './AddIngredientModal';
 import EditIngredientModal from './EditIngredientModal';
 import ModalPortal from '../../components/Common/ModalPortal';
@@ -177,6 +178,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     type: 'percent', // 'percent' | 'amount'
     value: ''
   });
+  const [showBulkRenameModal, setShowBulkRenameModal] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState([]);
 
@@ -1512,6 +1514,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
                         >
                           <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Qiymətləri Dəyiş' : i18n.language === 'ru' ? 'Изменить цены' : 'Change Prices'} ({selectedItems.length})
+                        </button>
+                        <button
+                          onClick={() => setShowBulkRenameModal(true)}
+                          className="bg-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-sm"
+                        >
+                          <Type className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Adları Dəyiş' : i18n.language === 'ru' ? 'Изменить названия' : 'Change Names'} ({selectedItems.length})
                         </button>
                         <button 
                           id="tour-bulk-delete"
@@ -3775,6 +3783,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             </div>
           </div>
         </ModalPortal>
+      )}
+
+      {showBulkRenameModal && (
+        <BulkRenameModal
+          isOpen={showBulkRenameModal}
+          onClose={() => setShowBulkRenameModal(false)}
+          selectedProducts={products.filter(p => selectedItems.includes(p.id))}
+          onSuccess={(updatedMap) => {
+            setProducts(prev => prev.map(p => updatedMap[p.id] ? { ...p, name: updatedMap[p.id] } : p));
+            setServerSearchResults(prev => prev.map(p => updatedMap[p.id] ? { ...p, name: updatedMap[p.id] } : p));
+            setSelectedItems([]);
+            fetchProducts();
+          }}
+        />
       )}
     </div>
   );
