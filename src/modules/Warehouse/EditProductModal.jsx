@@ -243,10 +243,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                     value={formData.supplier_id}
                     onChange={val => setFormData({ ...formData, supplier_id: val })}
                     searchable
-                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : i18n.language === 'ru' ? 'Поиск поставщика...' : 'Search supplier...'}
                     buttonClassName="rounded-xl px-5 py-3"
                     options={[
-                      { value: '', label: t('warehouse.selectSupplier') || 'Tədarükçü seçin' },
+                      { value: '', label: t('warehouse.selectSupplier') || (i18n.language === 'az' ? 'Tədarükçü seçin' : i18n.language === 'ru' ? 'Выберите поставщика' : 'Select supplier') },
                       ...suppliers.map(s => ({ value: s.id, label: s.name }))
                     ]}
                   />
@@ -258,8 +258,9 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                     onChange={val => setFormData({ ...formData, category_id: val })}
                     buttonClassName="rounded-xl px-5 py-3"
                     searchable
+                    searchPlaceholder={i18n.language === 'az' ? 'Kateqoriya axtar...' : i18n.language === 'ru' ? 'Поиск категории...' : 'Search category...'}
                     options={[
-                      { value: '', label: t('warehouse.selectCategory') || 'Kateqoriya seçin' },
+                      { value: '', label: t('warehouse.selectCategory') || (i18n.language === 'az' ? 'Kateqoriya seçin' : i18n.language === 'ru' ? 'Выберите категорию' : 'Select category') },
                       ...hierarchicalCategories.map(cat => ({
                         value: cat.id,
                         label: cat.label,

@@ -23,16 +23,18 @@ const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
-const toTitleCase = (str) => {
-  return str.replace(/\b\w+/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+const toTitleCase = (str, locale = 'az') => {
+  const loc = locale === 'az' ? 'az-AZ' : locale === 'ru' ? 'ru-RU' : 'en-US';
+  return str.replace(/\p{L}+/gu, (txt) => {
+    return txt.charAt(0).toLocaleUpperCase(loc) + txt.slice(1).toLocaleLowerCase(loc);
   });
 };
 
-const toSentenceCase = (str) => {
+const toSentenceCase = (str, locale = 'az') => {
+  const loc = locale === 'az' ? 'az-AZ' : locale === 'ru' ? 'ru-RU' : 'en-US';
   const trimmed = str.trim();
   if (!trimmed) return str;
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  return trimmed.charAt(0).toLocaleUpperCase(loc) + trimmed.slice(1).toLocaleLowerCase(loc);
 };
 
 const BulkRenameModal = ({ 
@@ -128,10 +130,11 @@ const BulkRenameModal = ({
     }
 
     if (activeMode === 'case') {
-      if (caseType === 'upper') return orig.toUpperCase();
-      if (caseType === 'lower') return orig.toLowerCase();
-      if (caseType === 'title') return toTitleCase(orig);
-      if (caseType === 'sentence') return toSentenceCase(orig);
+      const loc = lang === 'az' ? 'az-AZ' : lang === 'ru' ? 'ru-RU' : 'en-US';
+      if (caseType === 'upper') return orig.toLocaleUpperCase(loc);
+      if (caseType === 'lower') return orig.toLocaleLowerCase(loc);
+      if (caseType === 'title') return toTitleCase(orig, lang);
+      if (caseType === 'sentence') return toSentenceCase(orig, lang);
     }
 
     return orig;
@@ -510,7 +513,7 @@ const BulkRenameModal = ({
               {activeMode === 'case' && (
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-2">
-                    {lang === 'az' ? 'Registr formatını seçin:' : 'Выберите формат регистра:'}
+                    {lang === 'az' ? 'Registr formatını seçin:' : lang === 'ru' ? 'Выберите формат регистра:' : 'Select case format:'}
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <button
@@ -522,7 +525,7 @@ const BulkRenameModal = ({
                           : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      ВСЕ ПРОПИСНЫЕ
+                      {lang === 'az' ? 'HAMISI BÖYÜK' : lang === 'ru' ? 'ВСЕ ПРОПИСНЫЕ' : 'UPPERCASE'}
                     </button>
                     <button
                       type="button"
@@ -533,7 +536,7 @@ const BulkRenameModal = ({
                           : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      все строчные
+                      {lang === 'az' ? 'hamısı kiçik' : lang === 'ru' ? 'все строчные' : 'lowercase'}
                     </button>
                     <button
                       type="button"
@@ -544,7 +547,7 @@ const BulkRenameModal = ({
                           : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      С Заглавной Буквы
+                      {lang === 'az' ? 'Hər Söz Böyük' : lang === 'ru' ? 'С Заглавной Буквы' : 'Title Case'}
                     </button>
                     <button
                       type="button"
@@ -555,7 +558,7 @@ const BulkRenameModal = ({
                           : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      Как в предложении
+                      {lang === 'az' ? 'Cümlə kimi' : lang === 'ru' ? 'Как в предложении' : 'Sentence case'}
                     </button>
                   </div>
                 </div>
@@ -659,7 +662,7 @@ const BulkRenameModal = ({
 
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-gray-700 truncate" title={item.originalName}>
-                              {item.originalName || <span className="italic text-gray-400">(без названия)</span>}
+                              {item.originalName || <span className="italic text-gray-400">{lang === 'az' ? '(adsız)' : lang === 'ru' ? '(без названия)' : '(unnamed)'}</span>}
                             </p>
                             {item.product.barcode && (
                               <span className="text-[10px] text-gray-400 font-mono">
@@ -688,7 +691,7 @@ const BulkRenameModal = ({
                                   [item.product.id]: val
                                 }));
                               }}
-                              placeholder={lang === 'az' ? 'Yeni ad...' : 'Новое название...'}
+                              placeholder={lang === 'az' ? 'Yeni ad...' : lang === 'ru' ? 'Новое название...' : 'New name...'}
                               className={`w-full px-3 py-1.5 text-xs font-bold rounded-lg border outline-none transition-all ${
                                 !item.isEnabled
                                   ? 'bg-gray-100 text-gray-400 border-gray-200'
@@ -702,7 +705,7 @@ const BulkRenameModal = ({
                             {item.isManual && item.isEnabled && (
                               <span 
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-amber-400"
-                                title={lang === 'az' ? 'Əl ilə redaktə edilib' : 'Отредактировано вручную'}
+                                title={lang === 'az' ? 'Əl ilə redaktə edilib' : lang === 'ru' ? 'Отредактировано вручную' : 'Edited manually'}
                               />
                             )}
                           </div>
@@ -711,21 +714,21 @@ const BulkRenameModal = ({
                           <div className="shrink-0 w-24 text-right">
                             {!item.isEnabled ? (
                               <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
-                                {lang === 'az' ? 'Keç' : 'Пропущен'}
+                                {lang === 'az' ? 'Keç' : lang === 'ru' ? 'Пропущен' : 'Skipped'}
                               </span>
                             ) : item.isEmpty ? (
                               <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-md flex items-center gap-1 justify-end">
                                 <AlertCircle className="w-3 h-3" />
-                                {lang === 'az' ? 'Boşdur' : 'Пусто'}
+                                {lang === 'az' ? 'Boşdur' : lang === 'ru' ? 'Пусто' : 'Empty'}
                               </span>
                             ) : item.isChanged ? (
                               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center gap-1 justify-end">
                                 <Check className="w-3 h-3" />
-                                {lang === 'az' ? 'Dəyişəcək' : 'Изменится'}
+                                {lang === 'az' ? 'Dəyişəcək' : lang === 'ru' ? 'Изменится' : 'Changed'}
                               </span>
                             ) : (
                               <span className="text-[10px] font-semibold text-gray-400">
-                                {lang === 'az' ? 'Eyni' : 'Без изм.'}
+                                {lang === 'az' ? 'Eyni' : lang === 'ru' ? 'Без изм.' : 'Same'}
                               </span>
                             )}
                           </div>
