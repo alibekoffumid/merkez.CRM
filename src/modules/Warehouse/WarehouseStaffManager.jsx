@@ -273,7 +273,17 @@ const WarehouseStaffManager = () => {
   );
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      {(!portalTarget || !actionTarget) && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3.5 mb-3 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+          <div className="flex-1 w-full">
+            {topBarContent}
+          </div>
+          <div className="shrink-0">
+            {actionContent}
+          </div>
+        </div>
+      )}
       {portalTarget && createPortal(topBarContent, portalTarget)}
       {actionTarget && createPortal(actionContent, actionTarget)}
 
