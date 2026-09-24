@@ -292,7 +292,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }
   }, [warehouses.length]);
 
-  // Realtime updates for products
+  // Realtime updates for products, categories, dispatches and receipts
   useEffect(() => {
     const prodChannel = supabase
       .channel('warehouse-products')
@@ -308,9 +308,25 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       })
       .subscribe();
 
+    const dispatchChannel = supabase
+      .channel('warehouse-dispatches')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_dispatches' }, () => {
+        fetchDispatches();
+      })
+      .subscribe();
+
+    const receiptChannel = supabase
+      .channel('warehouse-receipts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'stock_receipts' }, () => {
+        fetchReceipts();
+      })
+      .subscribe();
+
     return () => { 
       supabase.removeChannel(prodChannel); 
       supabase.removeChannel(catChannel);
+      supabase.removeChannel(dispatchChannel);
+      supabase.removeChannel(receiptChannel);
     };
   }, []);
 
@@ -863,13 +879,49 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     const wId = overrideWarehouseId || currentWarehouseIdRef.current || currentWarehouseId;
     const pId = profileRef.current?.id || profile?.id;
     if (!pId || !wId) return;
-    const { data } = await supabase
-      .from('stock_dispatches')
-      .select('*, products(name, barcode, category_id), ingredients(name, barcode)')
-      .eq('user_id', pId)
-      .eq('warehouse_id', wId)
-      .order('issued_at', { ascending: false });
-    if (data) setDispatches(data);
+    try {
+      const { data, error } = await supabase
+        .from('stock_dispatches')
+        .select('*, products(name, barcode, category_id)')
+        .eq('user_id', pId)
+        .eq('warehouse_id', wId)
+        .order('issued_at', { ascending: false });
+
+      if (error) {
+        console.error('fetchDispatches join error, falling back to raw select:', error);
+        const { data: rawData, error: rawError } = await supabase
+          .from('stock_dispatches')
+          .select('*')
+          .eq('user_id', pId)
+          .eq('warehouse_id', wId)
+          .order('issued_at', { ascending: false });
+
+        if (!rawError && rawData) {
+          const enriched = rawData.map(d => {
+            const p = (products || []).find(prod => prod.id === d.product_id);
+            return {
+              ...d,
+              products: p ? { name: p.name, barcode: p.barcode, category_id: p.category_id } : null
+            };
+          });
+          setDispatches(enriched);
+        }
+        return;
+      }
+
+      if (data) {
+        const enriched = data.map(d => {
+          if (!d.products && d.product_id) {
+            const p = (products || []).find(prod => prod.id === d.product_id);
+            if (p) return { ...d, products: { name: p.name, barcode: p.barcode, category_id: p.category_id } };
+          }
+          return d;
+        });
+        setDispatches(enriched);
+      }
+    } catch (err) {
+      console.error('Error fetching dispatches:', err);
+    }
   };
   
   const fetchTransfers = async () => {
@@ -1819,25 +1871,37 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {activeTab === 'history' && (
               <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto items-center h-[38px]">
                 <button 
-                  onClick={() => setHistoryTab('receipts')}
+                  onClick={() => {
+                    setHistoryTab('receipts');
+                    fetchReceipts();
+                  }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.receipts') || 'Приёмки'}
                 </button>
                 <button 
-                  onClick={() => setHistoryTab('sales')}
+                  onClick={() => {
+                    setHistoryTab('sales');
+                    fetchDispatches();
+                  }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
                 </button>
                 <button 
-                  onClick={() => setHistoryTab('dispatches')}
+                  onClick={() => {
+                    setHistoryTab('dispatches');
+                    fetchDispatches();
+                  }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.dispatches') || 'Списания'}
                 </button>
                 <button 
-                  onClick={() => setHistoryTab('transfers')}
+                  onClick={() => {
+                    setHistoryTab('transfers');
+                    fetchTransfers();
+                  }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                   {t('warehouse.transfers') || 'Перемещения'}
@@ -1891,7 +1955,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>}
                     {(historyTab === 'dispatches' || historyTab === 'sales') && (
                       <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                        {historyTab === 'sales' ? (t('common.type') || 'Növ') : (t('warehouse.reason') || 'Səbəb')}
+                        {historyTab === 'sales' 
+                          ? (i18n.language === 'az' ? 'Növ' : i18n.language === 'ru' ? 'Тип' : (t('common.type') === 'COMMON.TYPE' ? 'Type' : t('common.type'))) 
+                          : (t('warehouse.reason') || 'Səbəb')}
                       </th>
                     )}
                     {historyTab === 'transfers' && (
@@ -2011,8 +2077,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }
                       if (historySearchTerm) {
                         const search = historySearchTerm.toLowerCase();
-                        const productName = (dispatch.products?.name || '').toLowerCase();
-                        const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                        const prod = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                        const productName = (prod?.name || '').toLowerCase();
+                        const barcode = (prod?.barcode || '').toLowerCase();
                         const notes = (dispatch.notes || '').toLowerCase();
                         return productName.includes(search) || barcode.includes(search) || notes.includes(search);
                       }
@@ -2037,35 +2104,38 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         }
                         if (historySearchTerm) {
                           const search = historySearchTerm.toLowerCase();
-                          const productName = (dispatch.products?.name || dispatch.ingredients?.name || '').toLowerCase();
-                          const barcode = (dispatch.products?.barcode || dispatch.ingredients?.barcode || '').toLowerCase();
+                          const prod = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                          const productName = (prod?.name || '').toLowerCase();
+                          const barcode = (prod?.barcode || '').toLowerCase();
                           const notes = (dispatch.notes || '').toLowerCase();
                           return productName.includes(search) || barcode.includes(search) || notes.includes(search);
                         }
                         return true;
-                      }).map(dispatch => (
-                        <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
-                          <td className="px-6 py-4">
-                            <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at).toLocaleDateString()}</span>
-                            {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
-                              dispatch.reason === 'damaged' ? 'bg-red-50 text-red-500' :
-                              'bg-gray-100 text-gray-500'
-                            }`}>
-                              {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-gray-900">{dispatch.products?.name || dispatch.ingredients?.name || '—'}</span>
-                              <span className="text-[10px] text-gray-400 font-mono">{dispatch.products?.barcode || dispatch.ingredients?.barcode || '—'}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
-                          </td>
+                      }).map(dispatch => {
+                        const prod = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                        return (
+                          <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
+                            <td className="px-6 py-4">
+                              <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at || dispatch.created_at).toLocaleDateString()}</span>
+                              {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                                dispatch.reason === 'damaged' ? 'bg-red-50 text-red-500' :
+                                'bg-gray-100 text-gray-500'
+                              }`}>
+                                {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold text-gray-900">{prod?.name || '—'}</span>
+                                <span className="text-[10px] text-gray-400 font-mono">{prod?.barcode || '—'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
+                            </td>
                           {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
                             <td className="px-4 py-4 text-right">
                               <button
@@ -2078,7 +2148,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                           )}
                         </tr>
-                      ))
+                      );
+                    })
                     )
                   ) : historyTab === 'sales' ? (
                     dispatches.filter(dispatch => {
@@ -2091,7 +2162,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }
 
                       // Channel filter
-                      if (salesChannelFilter) {
+                      if (salesChannelFilter && salesChannelFilter !== 'all') {
                         const notesStr = (dispatch.notes || '').toLowerCase();
                         const filterLower = salesChannelFilter.toLowerCase();
                         let channelMatch = false;
@@ -2116,14 +2187,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }
 
                       // Category filter
-                      if (categoryFilter && dispatch.products?.category_id !== categoryFilter) {
+                      const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                      if (categoryFilter && categoryFilter !== 'all' && prodObj?.category_id !== categoryFilter) {
                         return false;
                       }
 
                       if (historySearchTerm) {
                         const search = historySearchTerm.toLowerCase();
-                        const productName = (dispatch.products?.name || '').toLowerCase();
-                        const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                        const productName = (prodObj?.name || '').toLowerCase();
+                        const barcode = (prodObj?.barcode || '').toLowerCase();
                         const notes = (dispatch.notes || '').toLowerCase();
                         return productName.includes(search) || barcode.includes(search) || notes.includes(search);
                       }
@@ -2148,7 +2220,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         }
 
                         // Channel filter
-                        if (salesChannelFilter) {
+                        if (salesChannelFilter && salesChannelFilter !== 'all') {
                           const notesStr = (dispatch.notes || '').toLowerCase();
                           const filterLower = salesChannelFilter.toLowerCase();
                           let channelMatch = false;
@@ -2173,51 +2245,55 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         }
 
                         // Category filter
-                        if (categoryFilter && dispatch.products?.category_id !== categoryFilter) {
+                        const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                        if (categoryFilter && categoryFilter !== 'all' && prodObj?.category_id !== categoryFilter) {
                           return false;
                         }
 
                         if (historySearchTerm) {
                           const search = historySearchTerm.toLowerCase();
-                          const productName = (dispatch.products?.name || '').toLowerCase();
-                          const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                          const productName = (prodObj?.name || '').toLowerCase();
+                          const barcode = (prodObj?.barcode || '').toLowerCase();
                           const notes = (dispatch.notes || '').toLowerCase();
                           return productName.includes(search) || barcode.includes(search) || notes.includes(search);
                         }
                         return true;
-                      }).map(dispatch => (
-                        <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
-                          <td className="px-6 py-4">
-                            <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at).toLocaleDateString()}</span>
-                            {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-50 text-merkez-green">
-                              {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-gray-900">{dispatch.products?.name || '—'}</span>
-                              <span className="text-[10px] text-gray-400 font-mono">{dispatch.products?.barcode || '—'}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
-                          </td>
-                          {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
-                            <td className="px-4 py-4 text-right">
-                              <button
-                                onClick={() => handleDeleteDispatch(dispatch)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title={t('common.delete') || 'Sil'}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                      }).map(dispatch => {
+                        const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                        return (
+                          <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
+                            <td className="px-6 py-4">
+                              <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at || dispatch.created_at).toLocaleDateString()}</span>
+                              {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
                             </td>
-                          )}
-                        </tr>
-                      ))
+                            <td className="px-6 py-4">
+                              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-50 text-merkez-green">
+                                {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold text-gray-900">{prodObj?.name || '—'}</span>
+                                <span className="text-[10px] text-gray-400 font-mono">{prodObj?.barcode || '—'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
+                            </td>
+                            {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                              <td className="px-4 py-4 text-right">
+                                <button
+                                  onClick={() => handleDeleteDispatch(dispatch)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  title={t('common.delete') || 'Sil'}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })
                     )
                   ) : (
                     /* Transfers Tab */
