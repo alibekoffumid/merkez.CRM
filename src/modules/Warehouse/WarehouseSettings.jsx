@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X } from 'lucide-react';
+import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X, Shield, Lock, KeyRound, Eye, EyeOff } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
@@ -8,10 +8,17 @@ import Papa from 'papaparse';
 import { useUser } from '../../core/UserContext';
 
 const WarehouseSettings = () => {
-  const { t } = useTranslation();
-  const { profile } = useUser();
+  const { t, i18n } = useTranslation();
+  const { profile, refreshProfile } = useUser();
   const [exporting, setExporting] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [adminPin, setAdminPin] = useState(profile?.admin_pin || '');
+  const [showAdminPin, setShowAdminPin] = useState(false);
+  const [savingPin, setSavingPin] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [settings, setSettings] = useState({
     currency: 'AZN',
     defaultUnit: 'pcs',
@@ -28,6 +35,112 @@ const WarehouseSettings = () => {
   const [editingWarehouseId, setEditingWarehouseId] = useState(null);
   const [showAddCustomUnit, setShowAddCustomUnit] = useState(false);
   const [customUnitName, setCustomUnitName] = useState('');
+
+  useEffect(() => {
+    if (profile?.admin_pin !== undefined) {
+      setAdminPin(profile.admin_pin || '');
+    }
+  }, [profile?.admin_pin]);
+
+  const handleSavePin = async () => {
+    if (!profile?.id) return;
+    const cleanPin = adminPin.trim();
+    if (cleanPin.length !== 4 || !/^\d{4}$/.test(cleanPin)) {
+      toast.error(
+        i18n.language === 'az' 
+          ? 'İdarəçi PIN-kodu 4 rəqəmdən ibarət olmalıdır' 
+          : i18n.language === 'ru' 
+          ? 'PIN-код администратора должен состоять ровно из 4 цифр' 
+          : 'Administrator PIN must be exactly 4 digits'
+      );
+      return;
+    }
+
+    setSavingPin(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ admin_pin: cleanPin })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      if (refreshProfile) {
+        await refreshProfile();
+      }
+
+      toast.success(
+        i18n.language === 'az' 
+          ? 'İdarəçi PIN-kodu uğurla yeniləndi' 
+          : i18n.language === 'ru' 
+          ? 'PIN-код администратора успешно сохранен' 
+          : 'Administrator PIN updated successfully'
+      );
+    } catch (err) {
+      console.error('Error updating admin PIN:', err);
+      toast.error(err.message || 'Error updating PIN');
+    } finally {
+      setSavingPin(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    if (e) e.preventDefault();
+    if (!newPassword) {
+      toast.error(
+        i18n.language === 'az' 
+          ? 'Yeni şifrəni daxil edin' 
+          : i18n.language === 'ru' 
+          ? 'Введите новый пароль' 
+          : 'Please enter a new password'
+      );
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error(
+        i18n.language === 'az' 
+          ? 'Şifrə ən azı 6 simvoldan ibarət olmalıdır' 
+          : i18n.language === 'ru' 
+          ? 'Пароль должен содержать минимум 6 символов' 
+          : 'Password must be at least 6 characters'
+      );
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(
+        i18n.language === 'az' 
+          ? 'Şifrələr uyğun gəlmir' 
+          : i18n.language === 'ru' 
+          ? 'Пароли не совпадают' 
+          : 'Passwords do not match'
+      );
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success(
+        i18n.language === 'az' 
+          ? 'Hesab şifrəsi uğurla dəyişdirildi' 
+          : i18n.language === 'ru' 
+          ? 'Пароль учетной записи успешно изменен' 
+          : 'Account password changed successfully'
+      );
+    } catch (err) {
+      console.error('Error updating password:', err);
+      toast.error(err.message || 'Error updating password');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('merkez_warehouse_settings');
@@ -301,6 +414,138 @@ const WarehouseSettings = () => {
                 className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-bold shadow-sm" 
               />
               <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.lowStockThresholdDesc') || 'Порог уведомления о низком запасе товара.'}</p>
+            </div>
+
+            {/* Security & Access */}
+            <div className="pt-4 border-t border-gray-100 space-y-6">
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-merkez-blue" />
+                {i18n.language === 'az' ? 'Təhlükəsizlik və Giriş' : i18n.language === 'ru' ? 'Безопасность и вход' : 'Security & Login'}
+              </h3>
+
+              {/* Administrator PIN */}
+              <div className="bg-amber-50/40 p-6 rounded-lg border border-amber-100/70 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-sm">
+                      <KeyRound className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900">
+                        {i18n.language === 'az' ? 'Sahib / İdarəçi PIN-kodu' : i18n.language === 'ru' ? 'PIN-код администратора' : 'Administrator PIN Code'}
+                      </h4>
+                      <p className="text-[11px] text-amber-800/60 font-medium">
+                        {i18n.language === 'az' ? '"Kim işləyir?" pəncərəsində giriş üçün (4 rəqəm)' : i18n.language === 'ru' ? 'Для входа в профиль "Владелец / Администратор" (4 цифры)' : 'For logging into Owner / Admin profile (4 digits)'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input 
+                      type={showAdminPin ? "text" : "password"}
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={adminPin}
+                      onChange={(e) => setAdminPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      placeholder="0000"
+                      className="w-full bg-white border border-amber-200 text-gray-900 text-lg rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-3 pr-10 outline-none transition-colors font-mono font-black tracking-[0.4em] shadow-sm text-center" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminPin(!showAdminPin)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded"
+                    >
+                      {showAdminPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={handleSavePin}
+                    disabled={savingPin || adminPin.length !== 4}
+                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-all shadow-sm flex items-center justify-center gap-2"
+                  >
+                    {savingPin ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    {i18n.language === 'az' ? 'PIN-kodu yadda saxla' : i18n.language === 'ru' ? 'Сохранить PIN-код' : 'Save PIN Code'}
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-relaxed">
+                  {i18n.language === 'az' 
+                    ? 'Bu PIN-kod kassada və ya anbarda işçilər arasında keçid edərkən administrator profilini qoruyur.' 
+                    : i18n.language === 'ru'
+                    ? 'Этот PIN-код защищает доступ к профилю администратора при переключении сотрудников в окне "Кто работает?".'
+                    : 'This PIN protects administrator profile when switching staff members.'}
+                </p>
+              </div>
+
+              {/* Account Password */}
+              <div className="bg-gray-50/50 p-6 rounded-lg border border-gray-100 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-merkez-blue flex items-center justify-center shadow-sm">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-900">
+                      {i18n.language === 'az' ? 'Hesab şifrəsi (Email ilə giriş)' : i18n.language === 'ru' ? 'Пароль аккаунта (Вход по Email)' : 'Account Password (Email Login)'}
+                    </h4>
+                    <p className="text-[11px] text-gray-400 font-medium">
+                      {profile?.email || ''}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={i18n.language === 'az' ? 'Yeni şifrə (min. 6 simvol)' : i18n.language === 'ru' ? 'Новый пароль (мин. 6 символов)' : 'New password (min. 6 chars)'}
+                      className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 pr-10 outline-none transition-colors font-medium shadow-sm" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 rounded"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  <input 
+                    type={showPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={i18n.language === 'az' ? 'Yeni şifrənin təkrarı' : i18n.language === 'ru' ? 'Подтверждение нового пароля' : 'Confirm new password'}
+                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-merkez-blue focus:border-merkez-blue block p-3 outline-none transition-colors font-medium shadow-sm" 
+                  />
+
+                  <button
+                    onClick={handleUpdatePassword}
+                    disabled={savingPassword || !newPassword || newPassword.length < 6}
+                    className="w-full py-2.5 bg-gray-900 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-lg transition-all shadow-sm flex items-center justify-center gap-2"
+                  >
+                    {savingPassword ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
+                    {i18n.language === 'az' ? 'Şifrəni yenilə' : i18n.language === 'ru' ? 'Обновить пароль входа' : 'Update Login Password'}
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-500 leading-relaxed">
+                  {i18n.language === 'az'
+                    ? 'Sistemdən çıxdıqdan sonra yeni şifrə ilə daxil olacaqsınız.'
+                    : i18n.language === 'ru'
+                    ? 'После изменения пароля вход в систему будет осуществляться с новым паролем.'
+                    : 'After updating, you will use the new password to log in.'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
