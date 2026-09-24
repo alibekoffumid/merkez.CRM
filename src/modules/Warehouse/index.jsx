@@ -95,6 +95,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [historySearchTerm, setHistorySearchTerm] = useState('');
   const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
   const [salesChannelFilter, setSalesChannelFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
   const [categorySidebarWidth, setCategorySidebarWidth] = useState(() => {
     const saved = localStorage.getItem('warehouse_category_sidebar_width');
