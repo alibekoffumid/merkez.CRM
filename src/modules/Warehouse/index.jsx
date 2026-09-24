@@ -159,6 +159,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [receiptToDelete, setReceiptToDelete] = useState(null);
+  const [dispatchToDelete, setDispatchToDelete] = useState(null);
   const [mainBarcodeMode, setMainBarcodeMode] = useState(false);
   const mainBarcodeInputRef = useRef(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
@@ -431,6 +432,64 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       toast.error(err.message || 'Ошибка при удалении');
     } finally {
       setReceiptToDelete(null);
+    }
+  };
+
+  const handleDeleteDispatch = (dispatch) => {
+    setDispatchToDelete(dispatch);
+  };
+
+  const confirmDeleteDispatch = async () => {
+    if (!dispatchToDelete) return;
+    try {
+      const { error: delErr } = await supabase
+        .from('stock_dispatches')
+        .delete()
+        .eq('id', dispatchToDelete.id);
+
+      if (delErr) throw delErr;
+
+      const qtyToAdd = parseFloat(dispatchToDelete.quantity || 0);
+
+      if (dispatchToDelete.product_id && qtyToAdd > 0) {
+        const { data: prodData } = await supabase
+          .from('products')
+          .select('stock_quantity')
+          .eq('id', dispatchToDelete.product_id)
+          .single();
+
+        const currentQty = prodData ? Number(prodData.stock_quantity || 0) : Number((products || []).find(p => p.id === dispatchToDelete.product_id)?.stock_quantity || 0);
+        const newQty = currentQty + qtyToAdd;
+
+        await supabase
+          .from('products')
+          .update({ stock_quantity: newQty })
+          .eq('id', dispatchToDelete.product_id);
+      } else if (dispatchToDelete.ingredient_id && qtyToAdd > 0) {
+        const { data: ingData } = await supabase
+          .from('ingredients')
+          .select('quantity')
+          .eq('id', dispatchToDelete.ingredient_id)
+          .single();
+
+        const currentQty = ingData ? Number(ingData.quantity || 0) : Number((ingredients || []).find(i => i.id === dispatchToDelete.ingredient_id)?.quantity || 0);
+        const newQty = currentQty + qtyToAdd;
+
+        await supabase
+          .from('ingredients')
+          .update({ quantity: newQty })
+          .eq('id', dispatchToDelete.ingredient_id);
+      }
+
+      toast.success(t('common.deletedSuccessfully') || 'Uğurla silindi');
+      fetchDispatches();
+      fetchProducts();
+      fetchIngredients();
+    } catch (err) {
+      console.error('Error deleting dispatch/sale:', err);
+      toast.error(err.message || 'Ошибка при удалении');
+    } finally {
+      setDispatchToDelete(null);
     }
   };
 
@@ -789,7 +848,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (!pId || !wId) return;
     const { data } = await supabase
       .from('stock_dispatches')
-      .select('*, products(name, barcode, category_id)')
+      .select('*, products(name, barcode, category_id), ingredients(name, barcode)')
       .eq('user_id', pId)
       .eq('warehouse_id', wId)
       .order('issued_at', { ascending: false });
@@ -1782,7 +1841,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                        (t('common.date') || 'Дата')}
                     </th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>}
-                    {historyTab === 'dispatches' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.reason') || 'Причина'}</th>}
+                    {(historyTab === 'dispatches' || historyTab === 'sales') && (
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                        {historyTab === 'sales' ? (t('common.type') || 'Növ') : (t('warehouse.reason') || 'Səbəb')}
+                      </th>
+                    )}
                     {historyTab === 'transfers' && (
                       <>
                         <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.fromWarehouse') || 'Откуда'}</th>
@@ -1793,7 +1856,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>}
-                    {historyTab === 'receipts' && (!currentStaff || currentStaff?.role === 'Manager') && <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>}
+                    {(historyTab === 'receipts' || historyTab === 'dispatches' || historyTab === 'sales') && (!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                      <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -1906,7 +1971,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="px-6 py-20 text-center">
+                        <td colSpan={(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') ? 5 : 4} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noDispatchesFound') || 'История списаний пуста'}</p>
@@ -1924,8 +1989,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         }
                         if (historySearchTerm) {
                           const search = historySearchTerm.toLowerCase();
-                          const productName = (dispatch.products?.name || '').toLowerCase();
-                          const barcode = (dispatch.products?.barcode || '').toLowerCase();
+                          const productName = (dispatch.products?.name || dispatch.ingredients?.name || '').toLowerCase();
+                          const barcode = (dispatch.products?.barcode || dispatch.ingredients?.barcode || '').toLowerCase();
                           const notes = (dispatch.notes || '').toLowerCase();
                           return productName.includes(search) || barcode.includes(search) || notes.includes(search);
                         }
@@ -1946,13 +2011,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-col">
-                              <span className="text-sm font-bold text-gray-900">{dispatch.products?.name || '—'}</span>
-                              <span className="text-[10px] text-gray-400 font-mono">{dispatch.products?.barcode || '—'}</span>
+                              <span className="text-sm font-bold text-gray-900">{dispatch.products?.name || dispatch.ingredients?.name || '—'}</span>
+                              <span className="text-[10px] text-gray-400 font-mono">{dispatch.products?.barcode || dispatch.ingredients?.barcode || '—'}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-right">
                             <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                           </td>
+                          {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                            <td className="px-4 py-4 text-right">
+                              <button
+                                onClick={() => handleDeleteDispatch(dispatch)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title={t('common.delete') || 'Sil'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))
                     )
@@ -2006,7 +2082,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="px-6 py-20 text-center">
+                        <td colSpan={(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') ? 5 : 4} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noSalesFound') || 'Satış tarixçəsi boşdur'}</p>
@@ -2081,6 +2157,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <td className="px-6 py-4 text-right">
                             <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                           </td>
+                          {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                            <td className="px-4 py-4 text-right">
+                              <button
+                                onClick={() => handleDeleteDispatch(dispatch)}
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title={t('common.delete') || 'Sil'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       ))
                     )
@@ -3349,6 +3436,33 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         message={i18n.language === 'az' ? 'Bu qəbul yazısını silmək və stok miqdarını geri qaytarmaq istədiyinizdən əminsiniz?' : 'Вы уверены, что хотите удалить эту запись приёмки и вернуть количество товара на складе?'}
         confirmText={i18n.language === 'az' ? 'Sil' : 'Удалить'}
         cancelText={i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
+        isDanger={true}
+      />
+
+      <ConfirmModal
+        isOpen={!!dispatchToDelete}
+        onClose={() => setDispatchToDelete(null)}
+        onConfirm={confirmDeleteDispatch}
+        title={
+          dispatchToDelete?.reason === 'sale'
+            ? (i18n.language === 'az' ? 'Satış yazısını sil' : i18n.language === 'ru' ? 'Удалить запись продажи' : 'Delete Sale Record')
+            : (i18n.language === 'az' ? 'Silinmə yazısını sil' : i18n.language === 'ru' ? 'Удалить запись списания' : 'Delete Dispatch Record')
+        }
+        message={
+          dispatchToDelete?.reason === 'sale'
+            ? (i18n.language === 'az' 
+                ? 'Bu satış yazısını silmək və məhsulun sayını anbara geri qaytarmaq istədiyinizdən əminsiniz?' 
+                : i18n.language === 'ru'
+                ? 'Вы уверены, что хотите удалить эту запись продажи и вернуть количество товара на склад?'
+                : 'Are you sure you want to delete this sale record and restore product quantity to warehouse?')
+            : (i18n.language === 'az' 
+                ? 'Bu silinmə yazısını silmək və məhsulun sayını anbara geri qaytarmaq istədiyinizdən əminsiniz?' 
+                : i18n.language === 'ru'
+                ? 'Вы уверены, что хотите удалить эту запись списания и вернуть количество товара на склад?'
+                : 'Are you sure you want to delete this dispatch record and restore product quantity to warehouse?')
+        }
+        confirmText={i18n.language === 'az' ? 'Sil' : i18n.language === 'ru' ? 'Удалить' : 'Delete'}
+        cancelText={i18n.language === 'az' ? 'Ləğv et' : i18n.language === 'ru' ? 'Отмена' : 'Cancel'}
         isDanger={true}
       />
 
