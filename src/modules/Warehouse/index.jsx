@@ -1043,6 +1043,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const requestDeleteProduct = (productId) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Silmək üçün admin hüququ lazımdır' : 'Для удаления требуются права администратора');
+      return;
+    }
     setConfirmDelete({ type: 'product', id: productId });
     setOpenMenuId(null);
   };
@@ -1063,6 +1067,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     const { type, id } = confirmDelete;
     try {
       if (type === 'product') {
+        if (!isAdmin) {
+          toast.error(i18n.language === 'az' ? 'Silmək üçün admin hüququ lazımdır' : 'Для удаления требуются права администратора');
+          setConfirmDelete(null);
+          return;
+        }
         const { error } = await supabase
           .from('products')
           .update({ is_deleted: true })
@@ -1093,6 +1102,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleBulkDelete = async () => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Silmək üçün admin hüququ lazımdır' : 'Для удаления требуются права администратора');
+      setConfirmDelete(null);
+      return;
+    }
     if (selectedItems.length === 0) return;
     
     setLoading(true);
@@ -1132,7 +1146,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleEdit = (product) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Düzəliş etmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора');
+      return;
+    }
     setEditingProduct(product);
+    setOpenMenuId(null);
+  };
+
+  const handlePrintProduct = (product) => {
+    setPrintingItems([product]);
     setOpenMenuId(null);
   };
 
@@ -1565,54 +1588,60 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         >
                           <Printer className="w-3.5 h-3.5 mr-1.5" /> Seçilənləri Çap Et ({selectedItems.length})
                         </button>
-                        <button
-                          onClick={() => {
-                            setBulkSelectedCategoryId('');
-                            setShowBulkCategoryModal(true);
-                          }}
-                          className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-sm"
-                        >
-                          <FolderTree className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : i18n.language === 'ru' ? 'Назначить категорию' : 'Assign Category'} ({selectedItems.length})
-                        </button>
-                        <button
-                          onClick={() => {
-                            setBulkSelectedSupplierId('');
-                            setShowBulkSupplierModal(true);
-                          }}
-                          className="bg-purple-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors flex items-center shadow-sm"
-                        >
-                          <Truck className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'} ({selectedItems.length})
-                        </button>
-                        <button
-                          onClick={() => {
-                            setBulkExactPrices({ price: '', purchase_price: '', factory_price: '' });
-                            setBulkRelativeConfig({ target: 'price', action: 'increase', type: 'percent', value: '' });
-                            setBulkPriceTab('exact');
-                            setShowBulkPriceModal(true);
-                          }}
-                          className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
-                        >
-                          <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Qiymətləri Dəyiş' : i18n.language === 'ru' ? 'Изменить цены' : 'Change Prices'} ({selectedItems.length})
-                        </button>
-                        <button
-                          onClick={() => setShowBulkRenameModal(true)}
-                          className="bg-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-sm"
-                        >
-                          <Type className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Adları Dəyiş' : i18n.language === 'ru' ? 'Изменить названия' : 'Change Names'} ({selectedItems.length})
-                        </button>
-                        <button 
-                          id="tour-bulk-delete"
-                          onClick={() => setConfirmDelete({ type: 'bulk' })} 
-                          className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
-                        </button>
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setBulkSelectedCategoryId('');
+                                setShowBulkCategoryModal(true);
+                              }}
+                              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-sm"
+                            >
+                              <FolderTree className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : i18n.language === 'ru' ? 'Назначить категорию' : 'Assign Category'} ({selectedItems.length})
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBulkSelectedSupplierId('');
+                                setShowBulkSupplierModal(true);
+                              }}
+                              className="bg-purple-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors flex items-center shadow-sm"
+                            >
+                              <Truck className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'} ({selectedItems.length})
+                            </button>
+                            <button
+                              onClick={() => {
+                                setBulkExactPrices({ price: '', purchase_price: '', factory_price: '' });
+                                setBulkRelativeConfig({ target: 'price', action: 'increase', type: 'percent', value: '' });
+                                setBulkPriceTab('exact');
+                                setShowBulkPriceModal(true);
+                              }}
+                              className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
+                            >
+                              <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Qiymətləri Dəyiş' : i18n.language === 'ru' ? 'Изменить цены' : 'Change Prices'} ({selectedItems.length})
+                            </button>
+                            <button
+                              onClick={() => setShowBulkRenameModal(true)}
+                              className="bg-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-sm"
+                            >
+                              <Type className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Adları Dəyiş' : i18n.language === 'ru' ? 'Изменить названия' : 'Change Names'} ({selectedItems.length})
+                            </button>
+                            <button 
+                              id="tour-bulk-delete"
+                              onClick={() => setConfirmDelete({ type: 'bulk' })} 
+                              className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
+                            </button>
+                          </>
+                        )}
                       </>
                     )}
 
-                    <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                      <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
-                    </button>
+                    {isAdmin && (
+                      <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                        <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
+                      </button>
+                    )}
                   </>
                 )}
               </div>
@@ -2819,9 +2848,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
-                        {currentStaff?.role !== 'Cashier' && (
-                          <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap"></th>
-                        )}
+                        <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -2968,45 +2995,47 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {getStatusIcon(item.stock_quantity, item.critical_stock)}
                             </div>
                           </td>
-                          {currentStaff?.role !== 'Cashier' && (
-                            <td className="px-2 py-4 pr-6 text-right">
-                              <div className="relative inline-block">
-                                <button 
-                                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                  className="text-gray-400 hover:text-merkez-blue p-1 rounded-lg hover:bg-gray-100 transition-colors"
-                                >
-                                  <MoreVertical className="w-4 h-4" />
-                                </button>
-                                {openMenuId === item.id && (
-                                  <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
-                                    <button 
-                                      onClick={() => handlePrintProduct(item)}
-                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                    >
-                                      <Printer className="w-3.5 h-3.5 text-gray-500" />
-                                      {i18n.language === 'az' ? 'Çap et' : 'Печать'}
-                                    </button>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button 
-                                      onClick={() => handleEdit(item)}
-                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                    >
-                                      <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
-                                      {t('warehouse.editProduct')}
-                                    </button>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button 
-                                      onClick={() => requestDeleteProduct(item.id)}
-                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                      {t('warehouse.deleteProduct')}
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          )}
+                          <td className="px-2 py-4 pr-6 text-right">
+                            <div className="relative inline-block">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                className="text-gray-400 hover:text-merkez-blue p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                              {openMenuId === item.id && (
+                                <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                  <button 
+                                    onClick={() => handlePrintProduct(item)}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                  >
+                                    <Printer className="w-3.5 h-3.5 text-gray-500" />
+                                    {i18n.language === 'az' ? 'Çap et' : 'Печать'}
+                                  </button>
+                                  {isAdmin && (
+                                    <>
+                                      <div className="mx-3 my-1 border-t border-gray-100" />
+                                      <button 
+                                        onClick={() => handleEdit(item)}
+                                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                      >
+                                        <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
+                                        {t('warehouse.editProduct')}
+                                      </button>
+                                      <div className="mx-3 my-1 border-t border-gray-100" />
+                                      <button 
+                                        onClick={() => requestDeleteProduct(item.id)}
+                                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        {t('warehouse.deleteProduct')}
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -3048,35 +3077,45 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </div>
                           </div>
 
-                          {currentStaff?.role !== 'Cashier' && (
-                            <div className="relative">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
-                              >
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
-                              {openMenuId === item.id && (
-                                <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
-                                  <button
-                                    onClick={() => handleEdit(item)}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
-                                    {t('warehouse.editProduct') || 'Düzəliş et'}
-                                  </button>
-                                  <div className="mx-3 my-1 border-t border-gray-100" />
-                                  <button
-                                    onClick={() => requestDeleteProduct(item.id)}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                    {t('warehouse.deleteProduct') || 'Sil'}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <div className="relative">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
+                            >
+                              <MoreVertical className="w-5 h-5" />
+                            </button>
+                            {openMenuId === item.id && (
+                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                <button
+                                  onClick={() => handlePrintProduct(item)}
+                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold whitespace-nowrap"
+                                >
+                                  <Printer className="w-3.5 h-3.5 text-gray-500" />
+                                  {i18n.language === 'az' ? 'Çap et' : 'Печать'}
+                                </button>
+                                {isAdmin && (
+                                  <>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
+                                      onClick={() => handleEdit(item)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
+                                      {t('warehouse.editProduct') || 'Düzəliş et'}
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
+                                      onClick={() => requestDeleteProduct(item.id)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      {t('warehouse.deleteProduct') || 'Sil'}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-2 flex-1 flex-wrap">

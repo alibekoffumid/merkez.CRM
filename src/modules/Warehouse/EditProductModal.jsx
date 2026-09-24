@@ -137,6 +137,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Düzəliş etmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора');
+      return;
+    }
     if (!formData.name || !formData.price) return;
     setLoading(true);
 
