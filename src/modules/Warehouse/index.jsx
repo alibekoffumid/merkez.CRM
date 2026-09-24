@@ -77,6 +77,7 @@ export const getFactoryPrice = (item, suppliers = []) => {
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules, currentStaff } = useUser();
+  const isAdmin = !currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin';
   const isRestaurantActive = activeModules.includes('restaurant');
   const [localActiveTab, localSetActiveTab] = useState('finished');
   const activeTab = propActiveTab || localActiveTab;
@@ -585,6 +586,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleQuickCategoryChange = async (productId, categoryId) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin bu məlumatı dəyişə bilər' : 'Только администратор может изменять эти данные');
+      return;
+    }
     const targetCatId = categoryId || null;
     try {
       const { error } = await supabase
@@ -603,6 +608,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleQuickSupplierChange = async (productId, supplierId) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin bu məlumatı dəyişə bilər' : 'Только администратор может изменять эти данные');
+      return;
+    }
     const targetSupId = supplierId || null;
     try {
       const { error } = await supabase
@@ -643,6 +652,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleBulkCategoryAssign = async (categoryId) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin bu məlumatı dəyişə bilər' : 'Только администратор может изменять эти данные');
+      return;
+    }
     if (selectedItems.length === 0) return;
     const targetCatId = categoryId || null;
     setLoading(true);
@@ -668,6 +681,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleBulkSupplierAssign = async (supplierId) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin bu məlumatı dəyişə bilər' : 'Только администратор может изменять эти данные');
+      return;
+    }
     if (selectedItems.length === 0) return;
     const targetSupId = supplierId || null;
     setLoading(true);
@@ -2849,21 +2866,40 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           </td>
                           <td className="px-2 py-4">
                             <div className="inline-block min-w-[130px]">
-                              <Dropdown
-                                value={item.category_id || ''}
-                                onChange={(val) => handleQuickCategoryChange(item.id, val)}
-                                searchable
-                                position="auto"
-                                options={[
-                                  { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
-                                  ...hierarchicalCategoryOptions
-                                ]}
-                                buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
-                                  item.category_id 
-                                    ? 'bg-blue-50 text-merkez-blue border-blue-100 hover:border-merkez-blue' 
-                                    : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
-                                }`}
-                              />
+                              {isAdmin ? (
+                                <Dropdown
+                                  value={item.category_id || ''}
+                                  onChange={(val) => handleQuickCategoryChange(item.id, val)}
+                                  searchable
+                                  position="auto"
+                                  options={[
+                                    { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
+                                    ...hierarchicalCategoryOptions
+                                  ]}
+                                  buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
+                                    item.category_id 
+                                      ? 'bg-blue-50 text-merkez-blue border-blue-100 hover:border-merkez-blue' 
+                                      : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
+                                  }`}
+                                />
+                              ) : (
+                                <div 
+                                  className={`inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-full border text-xs font-bold select-none cursor-default max-w-full ${
+                                    item.category_id 
+                                      ? 'bg-blue-50/70 text-merkez-blue border-blue-100/90' 
+                                      : 'bg-gray-50 text-gray-400 border-dashed border-gray-200'
+                                  }`}
+                                  title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
+                                >
+                                  <Folder className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                                  <span className="truncate max-w-[130px]">
+                                    {(() => {
+                                      const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
+                                      return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
+                                    })()}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="px-2 py-4">
@@ -2871,7 +2907,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {(() => {
                                 const sup = (suppliers || []).find(s => s.id === item.supplier_id);
                                 const supStyle = getSupplierStyle(item.supplier_id);
-                                return (
+                                return isAdmin ? (
                                   <Dropdown
                                     value={item.supplier_id || ''}
                                     onChange={(val) => handleQuickSupplierChange(item.id, val)}
@@ -2902,6 +2938,23 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                       )
                                     }
                                   />
+                                ) : (
+                                  item.supplier_id && sup ? (
+                                    <div 
+                                      className={`inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} text-xs font-bold text-gray-800 select-none cursor-default shadow-sm max-w-full`}
+                                      title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
+                                      <span className="truncate max-w-[130px]">{sup.name || sup.company_name}</span>
+                                    </div>
+                                  ) : (
+                                    <div 
+                                      className="inline-flex items-center px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50 text-gray-400 text-xs font-bold select-none cursor-default"
+                                      title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
+                                    >
+                                      —
+                                    </div>
+                                  )
                                 );
                               })()}
                             </div>
