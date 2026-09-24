@@ -198,7 +198,7 @@ const WarehouseRepairs = ({ activeTab }) => {
   );
 
   return (
-    <>
+    <div className="flex-1 flex flex-col min-h-0 w-full overflow-hidden">
       {(!topBarTarget || !actionTarget) && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3.5 mb-3 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
           <div className="flex-1 w-full flex items-center gap-4">
@@ -418,7 +418,7 @@ const WarehouseRepairs = ({ activeTab }) => {
         isDanger={true}
       />
     </div>
-    </>
+    </div>
   );
 };
 

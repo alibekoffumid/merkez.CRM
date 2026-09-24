@@ -1741,7 +1741,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       </div>
       )}
 
-      <div className={`flex flex-1 ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'} ${activeTab === 'finished' ? '2xl:gap-6' : 'gap-6'}`}>
+      <div className={`flex flex-1 ${activeTab === 'finished' ? 'flex-row 2xl:gap-6 gap-6' : 'flex-col gap-0'} ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'}`}>
         {activeTab === 'debts' ? (
           <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 overflow-y-auto flex items-center justify-center">
             <p className="text-gray-500 font-medium text-center">
