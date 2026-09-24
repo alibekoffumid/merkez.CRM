@@ -27,7 +27,8 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [deleteImage, setDeleteImage] = useState(false);
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
+  const isAdmin = !currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin';
   const [availableUnits, setAvailableUnits] = useState(['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2']);
 
   const [formData, setFormData] = useState({
@@ -236,21 +237,23 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
-                  <Dropdown
-                    value={formData.supplier_id}
-                    onChange={val => setFormData({ ...formData, supplier_id: val })}
-                    searchable
-                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : i18n.language === 'ru' ? 'Поиск поставщика...' : 'Search supplier...'}
-                    buttonClassName="rounded-xl px-5 py-3"
-                    options={[
-                      { value: '', label: t('warehouse.selectSupplier') || (i18n.language === 'az' ? 'Tədarükçü seçin' : i18n.language === 'ru' ? 'Выберите поставщика' : 'Select supplier') },
-                      ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                    ]}
-                  />
-                </div>
+              <div className={`grid ${isAdmin ? 'grid-cols-2' : 'grid-cols-1'} gap-5`}>
+                {isAdmin && (
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
+                    <Dropdown
+                      value={formData.supplier_id}
+                      onChange={val => setFormData({ ...formData, supplier_id: val })}
+                      searchable
+                      searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : i18n.language === 'ru' ? 'Поиск поставщика...' : 'Search supplier...'}
+                      buttonClassName="rounded-xl px-5 py-3"
+                      options={[
+                        { value: '', label: t('warehouse.selectSupplier') || (i18n.language === 'az' ? 'Tədarükçü seçin' : i18n.language === 'ru' ? 'Выберите поставщика' : 'Select supplier') },
+                        ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                      ]}
+                    />
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
                   <Dropdown

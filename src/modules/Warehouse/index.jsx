@@ -1466,17 +1466,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 
                 {currentStaff?.role !== 'Cashier' && (
                   <>
-                    <button
-                      onClick={() => setActiveTab('suppliers')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                        activeTab === 'suppliers'
-                          ? 'bg-white text-merkez-blue shadow-sm'
-                          : 'text-gray-500 hover:text-gray-850'
-                      }`}
-                    >
-                      <Truck className="w-3.5 h-3.5" />
-                      {t('warehouse.suppliers') || 'Tədarükçülər'}
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => setActiveTab('suppliers')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                          activeTab === 'suppliers'
+                            ? 'bg-white text-merkez-blue shadow-sm'
+                            : 'text-gray-500 hover:text-gray-850'
+                        }`}
+                      >
+                        <Truck className="w-3.5 h-3.5" />
+                        {t('warehouse.suppliers') || 'Tədarükçülər'}
+                      </button>
+                    )}
                     
                     <button
                       onClick={() => setActiveTab('history')}
@@ -2717,19 +2719,21 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   />
                 </div>
 
-                <div className="w-full sm:w-56 shrink-0">
-                  <Dropdown
-                    value={supplierFilter}
-                    onChange={setSupplierFilter}
-                    searchable
-                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
-                    options={[
-                      { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
-                      ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                    ]}
-                    buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
-                  />
-                </div>
+                {isAdmin && (
+                  <div className="w-full sm:w-56 shrink-0">
+                    <Dropdown
+                      value={supplierFilter}
+                      onChange={setSupplierFilter}
+                      searchable
+                      searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                      options={[
+                        { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
+                        ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                      ]}
+                      buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -2803,7 +2807,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
+                        {isAdmin && (
+                          <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
+                        )}
                         {(!currentStaff || currentStaff?.role === 'Manager') && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}</th>
                         )}
@@ -2902,63 +2908,48 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               )}
                             </div>
                           </td>
-                          <td className="px-2 py-4">
-                            <div className="inline-block min-w-[130px]">
-                              {(() => {
-                                const sup = (suppliers || []).find(s => s.id === item.supplier_id);
-                                const supStyle = getSupplierStyle(item.supplier_id);
-                                return isAdmin ? (
-                                  <Dropdown
-                                    value={item.supplier_id || ''}
-                                    onChange={(val) => handleQuickSupplierChange(item.id, val)}
-                                    searchable
-                                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
-                                    position="auto"
-                                    options={[
-                                      { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
-                                      ...suppliers.map(s => ({
-                                        value: s.id,
-                                        label: s.name || s.company_name
-                                      }))
-                                    ]}
-                                    trigger={
-                                      item.supplier_id ? (
-                                        <div className={`w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} ${supStyle.hover} hover:shadow-sm transition-all text-xs font-bold text-gray-800 shadow-sm`}>
-                                          <div className="flex items-center gap-1.5 truncate">
-                                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
-                                            <span className="truncate">{sup?.name || sup?.company_name || '—'}</span>
+                          {isAdmin && (
+                            <td className="px-2 py-4">
+                              <div className="inline-block min-w-[130px]">
+                                {(() => {
+                                  const sup = (suppliers || []).find(s => s.id === item.supplier_id);
+                                  const supStyle = getSupplierStyle(item.supplier_id);
+                                  return (
+                                    <Dropdown
+                                      value={item.supplier_id || ''}
+                                      onChange={(val) => handleQuickSupplierChange(item.id, val)}
+                                      searchable
+                                      searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                                      position="auto"
+                                      options={[
+                                        { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
+                                        ...suppliers.map(s => ({
+                                          value: s.id,
+                                          label: s.name || s.company_name
+                                        }))
+                                      ]}
+                                      trigger={
+                                        item.supplier_id ? (
+                                          <div className={`w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} ${supStyle.hover} hover:shadow-sm transition-all text-xs font-bold text-gray-800 shadow-sm`}>
+                                            <div className="flex items-center gap-1.5 truncate">
+                                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
+                                              <span className="truncate">{sup?.name || sup?.company_name || '—'}</span>
+                                            </div>
+                                            <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
                                           </div>
-                                          <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
-                                        </div>
-                                      ) : (
-                                        <div className="w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50/70 hover:bg-white hover:border-gray-300 text-gray-400 hover:text-gray-600 transition-all text-xs font-bold shadow-sm">
-                                          <span className="truncate">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</span>
-                                          <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
-                                        </div>
-                                      )
-                                    }
-                                  />
-                                ) : (
-                                  item.supplier_id && sup ? (
-                                    <div 
-                                      className={`inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} text-xs font-bold text-gray-800 select-none cursor-default shadow-sm max-w-full`}
-                                      title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
-                                    >
-                                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
-                                      <span className="truncate max-w-[130px]">{sup.name || sup.company_name}</span>
-                                    </div>
-                                  ) : (
-                                    <div 
-                                      className="inline-flex items-center px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50 text-gray-400 text-xs font-bold select-none cursor-default"
-                                      title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
-                                    >
-                                      —
-                                    </div>
-                                  )
-                                );
-                              })()}
-                            </div>
-                          </td>
+                                        ) : (
+                                          <div className="w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50/70 hover:bg-white hover:border-gray-300 text-gray-400 hover:text-gray-600 transition-all text-xs font-bold shadow-sm">
+                                            <span className="truncate">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</span>
+                                            <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
+                                          </div>
+                                        )
+                                      }
+                                    />
+                                  );
+                                })()}
+                              </div>
+                            </td>
+                          )}
                           {(!currentStaff || currentStaff?.role === 'Manager') && (
                             <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
                               {getFactoryPrice(item, suppliers) || '—'}
@@ -3094,7 +3085,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
                             })()}
                           </span>
-                          {(() => {
+                          {isAdmin && (() => {
                             const sup = (suppliers || []).find(s => s.id === item.supplier_id);
                             const supStyle = getSupplierStyle(item.supplier_id);
                             return sup ? (
