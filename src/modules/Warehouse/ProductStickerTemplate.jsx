@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
 import Barcode from 'react-barcode';
 import ModalPortal from '../../components/Common/ModalPortal';
 
@@ -26,55 +25,46 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
   return (
     <ModalPortal>
       <div className="print-only-container">
-      {items.map((item, index) => {
-        const qrUrl = `https://rastmusicshop.com/product/${item.id}`;
-        // Ensure barcode has a value, fallback to short ID if empty
-        const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 10) || '00000000';
-        const displayPrice = item.sale_price ?? item.price ?? item.sell_price ?? 0;
+        {items.map((item, index) => {
+          // Ensure barcode has a value, fallback to short ID if empty
+          const barcodeValue = item.barcode || item.id?.replace(/-/g, '').substring(0, 10) || '00000000';
+          const rawPrice = item.sale_price ?? item.price ?? item.sell_price ?? 0;
+          const displayPrice = isNaN(rawPrice) ? rawPrice : Number(rawPrice).toFixed(2);
 
-        return (
-          <div key={`${item.id}-${index}`} className="sticker-page">
-            <div className="sticker-layout">
-              {/* Left Side: Branding, Title, Sale Price, Barcode */}
-              <div className="sticker-left">
-                <div className="sticker-brand">RAST MUSIC SHOP</div>
+          return (
+            <div key={`${item.id}-${index}`} className="sticker-page">
+              <div className="sticker-layout">
+                {/* 1. Product Title */}
                 <div className="sticker-title" title={item.name}>
                   {item.name}
                 </div>
-                <div className="sticker-price">
-                  <span className="sticker-price-label">SATIŞ QİYMƏTİ: </span>
-                  <span className="sticker-price-value">{displayPrice} ₼</span>
-                </div>
+
+                {/* 2. Linear Barcode */}
                 <div className="sticker-barcode-wrapper">
                   <Barcode 
                     value={barcodeValue} 
                     format="CODE128" 
-                    width={1.1} 
-                    height={14} 
+                    width={1.05} 
+                    height={18} 
                     fontSize={8}
                     margin={0}
+                    textMargin={1}
                     displayValue={true}
                     background="transparent"
                   />
                 </div>
-              </div>
 
-              {/* Right Side: QR Code + CTA */}
-              <div className="sticker-right">
-                <div className="sticker-qr-wrapper">
-                  <QRCodeSVG value={qrUrl} size={44} level="M" includeMargin={false} />
-                </div>
-                <div className="sticker-cta">
-                  Kredit kalkulyatoru<br />üçün skan edin
+                {/* 3. Product Price */}
+                <div className="sticker-price">
+                  <span className="sticker-price-value">{displayPrice} ₼</span>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
-  </ModalPortal>
-);
+          );
+        })}
+      </div>
+    </ModalPortal>
+  );
 };
 
 export default ProductStickerTemplate;

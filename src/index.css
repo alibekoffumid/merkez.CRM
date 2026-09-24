@@ -82,7 +82,7 @@
 
 @media print {
   @page {
-    size: 60mm 30mm !important;
+    size: 40mm 20mm !important;
     margin: 0mm !important;
   }
   
@@ -94,7 +94,7 @@
     background: white !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 60mm !important;
+    width: 40mm !important;
     height: auto !important;
   }
 
@@ -108,7 +108,7 @@
     position: relative !important;
     left: 0 !important;
     top: 0 !important;
-    width: 60mm !important;
+    width: 40mm !important;
     height: auto !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -121,15 +121,15 @@
   }
 
   .sticker-page {
-    width: 60mm !important;
-    height: 29.5mm !important;
-    max-height: 29.5mm !important;
+    width: 40mm !important;
+    height: 19.5mm !important;
+    max-height: 19.5mm !important;
     page-break-after: always !important;
     break-after: page !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     overflow: hidden !important;
-    padding: 2.5mm 3mm !important;
+    padding: 1mm 1.5mm !important;
     box-sizing: border-box !important;
     background: white !important;
     print-color-adjust: exact !important;
@@ -143,76 +143,37 @@
 
   .sticker-layout {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
     width: 100%;
     height: 100%;
-  }
-
-  .sticker-left {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: flex-start;
-    text-align: left;
-    height: 100%;
-    padding-right: 2.5mm;
-    overflow: visible;
-  }
-
-  .sticker-brand {
-    font-size: 8px;
-    font-weight: 900;
-    text-align: left;
-    text-transform: uppercase;
-    color: #000;
-    letter-spacing: 0.4px;
-    line-height: 1;
+    text-align: center;
   }
 
   .sticker-title {
-    font-size: 10.5px;
+    font-size: 8px;
     font-weight: 800;
-    text-align: left;
+    text-align: center;
     color: #000;
-    line-height: 1.15;
+    line-height: 1.1;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     word-break: break-word;
-    max-height: 25px;
-    margin: 1px 0;
-  }
-
-  .sticker-price {
-    font-size: 10.5px;
-    font-weight: 900;
-    color: #000;
-    line-height: 1.1;
-    margin: 1px 0;
-  }
-
-  .sticker-price-label {
-    font-size: 8px;
-    font-weight: 700;
-    color: #000;
-  }
-
-  .sticker-price-value {
-    font-size: 13.5px;
-    font-weight: 900;
-    color: #000;
+    max-height: 18px;
+    width: 100%;
+    margin: 0;
   }
 
   .sticker-barcode-wrapper {
     width: 100%;
     display: flex;
-    justify-content: flex-start;
-    align-items: flex-end;
-    overflow: visible;
-    margin-top: auto;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin: auto 0;
   }
 
   .sticker-barcode-wrapper svg {
@@ -220,32 +181,20 @@
     height: auto !important;
   }
 
-  .sticker-right {
-    width: 52px;
-    height: 100%;
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+  .sticker-price {
+    width: 100%;
     text-align: center;
-    padding-top: 1mm;
-  }
-
-  .sticker-qr-wrapper {
-    width: 44px;
-    height: 44px;
+    line-height: 1;
+    margin: 0;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: baseline;
   }
 
-  .sticker-cta {
-    font-size: 6px;
-    font-weight: 700;
-    text-align: center;
-    line-height: 1.05;
+  .sticker-price-value {
+    font-size: 11.5px;
+    font-weight: 900;
     color: #000;
-    margin-top: auto;
+    letter-spacing: -0.2px;
   }
 }
