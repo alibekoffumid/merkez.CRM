@@ -174,10 +174,12 @@
     align-items: center;
     overflow: hidden;
     margin: auto 0;
+    padding: 0 1.5mm;
+    box-sizing: border-box;
   }
 
   .sticker-barcode-wrapper svg {
-    max-width: 100%;
+    max-width: 86%;
     height: auto !important;
   }
 

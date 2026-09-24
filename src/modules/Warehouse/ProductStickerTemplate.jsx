@@ -44,9 +44,9 @@ const ProductStickerTemplate = ({ items, onPrintComplete }) => {
                   <Barcode 
                     value={barcodeValue} 
                     format="CODE128" 
-                    width={1.05} 
-                    height={18} 
-                    fontSize={8}
+                    width={0.88} 
+                    height={16} 
+                    fontSize={7.5}
                     margin={0}
                     textMargin={1}
                     displayValue={true}
