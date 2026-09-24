@@ -51,6 +51,7 @@ interface DropdownProps {
   searchPlaceholder?: string;
   disabled?: boolean;
   multiple?: boolean;
+  noTruncate?: boolean;
 }
 
 const normalizeDropdownStr = (str: any) => {
@@ -82,7 +83,8 @@ const Dropdown: React.FC<DropdownProps> = ({
   searchable = false,
   searchPlaceholder,
   disabled = false,
-  multiple = false
+  multiple = false,
+  noTruncate = false
 }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -420,7 +422,7 @@ const Dropdown: React.FC<DropdownProps> = ({
             }}
             className={`w-full flex items-center justify-between gap-2 bg-gray-50 border border-gray-100 transition-all group shadow-sm outline-none focus:ring-1 focus:ring-merkez-blue ${buttonClassName || 'rounded-lg px-4 py-2.5'} ${disabled ? 'opacity-75 cursor-not-allowed' : 'hover:border-merkez-blue hover:bg-white'}`}
           >
-            <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+            <div className={`flex items-center gap-2 flex-1 ${noTruncate ? 'min-w-max' : 'overflow-hidden min-w-0'}`}>
               {(() => {
                 if (multiple && !isAllSelected) {
                   const firstSelected = options?.find(o => o.value === selectedValues[0]);
@@ -433,7 +435,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                         fill={firstColor}
                         fillOpacity={0.2}
                       />
-                      <span className="text-sm font-bold text-gray-800 truncate">
+                      <span className={`text-sm font-bold text-gray-800 ${noTruncate ? 'whitespace-nowrap' : 'truncate'}`}>
                         {firstSelected?.rawName || (firstSelected?.label ? firstSelected.label.replace(/^[\s\u00A0↳]+/, '') : '')}
                       </span>
                       {selectedCount > 1 && (
@@ -449,9 +451,9 @@ const Dropdown: React.FC<DropdownProps> = ({
                 if (selectedOption?.icon) {
                   return (
                     <selectedOption.icon 
-                      className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" 
-                      style={selectedColor ? { color: selectedColor } : undefined}
-                    />
+                    className="w-4 h-4 shrink-0 text-gray-400 group-hover:text-merkez-blue transition-colors" 
+                    style={selectedColor ? { color: selectedColor } : undefined}
+                  />
                   );
                 }
                 if (selectedIsHierarchy && selectedOption?.value !== '' && selectedOption?.value !== 'all') {
@@ -467,7 +469,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                 return null;
               })()}
               {(multiple ? isAllSelected : true) && (
-                <span className="text-sm font-bold text-gray-700 whitespace-nowrap truncate">
+                <span className={`text-sm font-bold text-gray-700 whitespace-nowrap ${noTruncate ? '' : 'truncate'}`}>
                   {selectedOption?.rawName || (selectedOption?.label ? selectedOption.label.replace(/^[\s\u00A0↳]+/, '') : '')}
                 </span>
               )}

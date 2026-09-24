@@ -2870,19 +2870,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               </button>
                             )}
                           </td>
-                          <td className="px-2 py-4">
-                            <div className="inline-block min-w-[130px]">
+                          <td className="px-2 py-4 whitespace-nowrap">
+                            <div className="inline-block w-max max-w-none">
                               {isAdmin ? (
                                 <Dropdown
                                   value={item.category_id || ''}
                                   onChange={(val) => handleQuickCategoryChange(item.id, val)}
                                   searchable
                                   position="auto"
+                                  noTruncate
                                   options={[
                                     { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
                                     ...hierarchicalCategoryOptions
                                   ]}
-                                  buttonClassName={`text-xs font-bold px-2.5 py-1 rounded-full border transition-all h-[28px] ${
+                                  buttonClassName={`text-xs font-bold px-3 py-1 rounded-full border transition-all h-[28px] whitespace-nowrap ${
                                     item.category_id 
                                       ? 'bg-blue-50 text-merkez-blue border-blue-100 hover:border-merkez-blue' 
                                       : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
@@ -2890,7 +2891,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 />
                               ) : (
                                 <div 
-                                  className={`inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-full border text-xs font-bold select-none cursor-default max-w-full ${
+                                  className={`inline-flex items-center gap-1.5 px-3 h-[28px] rounded-full border text-xs font-bold select-none cursor-default whitespace-nowrap ${
                                     item.category_id 
                                       ? 'bg-blue-50/70 text-merkez-blue border-blue-100/90' 
                                       : 'bg-gray-50 text-gray-400 border-dashed border-gray-200'
@@ -2898,7 +2899,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
                                 >
                                   <Folder className="w-3.5 h-3.5 shrink-0 opacity-70" />
-                                  <span className="truncate max-w-[130px]">
+                                  <span className="whitespace-nowrap">
                                     {(() => {
                                       const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
                                       return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
