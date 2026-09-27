@@ -1007,23 +1007,6 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                   )}
                   
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                      {i18n.language === 'az' ? 'Endirim (AZN)' : 'Скидка (AZN)'}
-                    </label>
-                    <input 
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={discount}
-                      onChange={e => setDiscount(e.target.value)}
-                      onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setDiscount(''); }}
-                      onBlur={e => { if (e.target.value === '') setDiscount('0'); }}
-                      className="w-full bg-white border border-gray-100 rounded-xl px-4 py-2.5 outline-none transition-all font-bold text-sm focus:border-merkez-blue shadow-sm"
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">{t('common.notes')}</label>
                     <textarea 
                       value={notes}
@@ -1266,7 +1249,23 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           </div>
 
           {/* Footer actions */}
-          <div className="p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
+          <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-wrap sm:flex-nowrap items-center justify-end gap-3 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                {i18n.language === 'az' ? 'Endirim (AZN)' : 'Скидка (AZN)'}
+              </label>
+              <input 
+                type="number"
+                min="0"
+                step="any"
+                value={discount}
+                onChange={e => setDiscount(e.target.value)}
+                onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setDiscount(''); }}
+                onBlur={e => { if (e.target.value === '') setDiscount('0'); }}
+                className="w-24 sm:w-28 bg-white border border-gray-200 rounded-xl px-3 py-2.5 outline-none transition-all font-bold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 shadow-sm"
+                placeholder="0.00"
+              />
+            </div>
             <button 
               type="button" 
               onClick={onClose}
