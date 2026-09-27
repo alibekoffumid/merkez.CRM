@@ -17,6 +17,7 @@ const PinGuard = ({ children, moduleId }) => {
   const [staffList, setStaffList] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null); // 'owner' or staff object
+  const [activeKey, setActiveKey] = useState(null);
 
   useEffect(() => {
     if (profile?.id) {
@@ -56,13 +57,14 @@ const PinGuard = ({ children, moduleId }) => {
 
   const handlePinSubmit = (e) => {
     if (e) e.preventDefault();
+    if (pin.length !== 4) return;
     if (pin === getCorrectPin()) {
       setCurrentStaff(selectedUser === 'owner' ? null : selectedUser);
       setIsLocked(false);
       setError(false);
     } else {
       setError(true);
-      setPin('');
+      setTimeout(() => setPin(''), 500);
     }
   };
 
@@ -90,6 +92,68 @@ const PinGuard = ({ children, moduleId }) => {
   const handleClose = () => {
     navigate(-1);
   };
+
+  useEffect(() => {
+    if (!isLocked) return;
+
+    const handleKeyDown = (e) => {
+      // Don't intercept if an editable input/textarea is focused
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+        return;
+      }
+
+      if (selectedUser) {
+        let digit = null;
+        if (e.key >= '0' && e.key <= '9') {
+          digit = e.key;
+        } else if (/^Numpad[0-9]$/.test(e.code)) {
+          digit = e.code.replace('Numpad', '');
+        } else if (/^Digit[0-9]$/.test(e.code) && !e.shiftKey) {
+          digit = e.code.replace('Digit', '');
+        }
+
+        if (digit !== null) {
+          e.preventDefault();
+          setActiveKey(digit);
+          setTimeout(() => setActiveKey(null), 150);
+          handleNumberClick(digit);
+          return;
+        }
+
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          e.preventDefault();
+          setActiveKey('backspace');
+          setTimeout(() => setActiveKey(null), 150);
+          handleDelete();
+          return;
+        }
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          setActiveKey('enter');
+          setTimeout(() => setActiveKey(null), 150);
+          handlePinSubmit();
+          return;
+        }
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          setSelectedUser(null);
+          setPin('');
+          setError(false);
+          return;
+        }
+      } else {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          handleClose();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLocked, selectedUser, pin, profile]);
 
   if (!isLocked) {
     return children;
@@ -207,27 +271,43 @@ const PinGuard = ({ children, moduleId }) => {
 
                 {/* Keypad */}
                 <div className="grid grid-cols-3 gap-3 mb-8">
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => handleNumberClick(num.toString())}
-                      className="h-16 rounded-lg bg-gray-50 text-xl font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
-                    >
-                      {num}
-                    </button>
-                  ))}
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
+                    const numStr = num.toString();
+                    const isPressed = activeKey === numStr;
+                    return (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => handleNumberClick(numStr)}
+                        className={`h-16 rounded-lg text-xl font-bold transition-all ${
+                          isPressed
+                            ? 'bg-amber-100 text-amber-700 scale-95 ring-2 ring-amber-400'
+                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    );
+                  })}
                   <button
                     type="button"
                     onClick={handleDelete}
-                    className="h-16 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+                    className={`h-16 rounded-lg flex items-center justify-center transition-all ${
+                      activeKey === 'backspace'
+                        ? 'bg-red-50 text-red-500 scale-95 ring-2 ring-red-300'
+                        : 'bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 active:scale-95'
+                    }`}
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleNumberClick('0')}
-                    className="h-16 rounded-lg bg-gray-50 text-xl font-bold text-gray-700 hover:bg-gray-100 active:scale-95 transition-all"
+                    className={`h-16 rounded-lg text-xl font-bold transition-all ${
+                      activeKey === '0'
+                        ? 'bg-amber-100 text-amber-700 scale-95 ring-2 ring-amber-400'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-95'
+                    }`}
                   >
                     0
                   </button>
@@ -236,7 +316,9 @@ const PinGuard = ({ children, moduleId }) => {
                     disabled={pin.length !== 4}
                     className={`h-16 rounded-lg flex items-center justify-center transition-all ${
                       pin.length === 4 
-                        ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' 
+                        ? (activeKey === 'enter' 
+                            ? 'bg-amber-600 text-white scale-95 ring-2 ring-amber-500' 
+                            : 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 hover:bg-amber-600') 
                         : 'bg-gray-100 text-gray-300'
                     }`}
                   >
