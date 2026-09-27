@@ -109,6 +109,10 @@ const WarehouseRepairs = ({ activeTab }) => {
   };
 
   const handleDeleteRepair = async (id) => {
+    if (currentStaff && currentStaff?.role !== 'Admin') {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin silə bilər' : 'Только администратор имеет право удалять');
+      return;
+    }
     const loadingToast = toast.loading(i18n.language === 'az' ? 'Silinir...' : 'Удаление...');
     try {
       const { error } = await supabase
@@ -308,7 +312,7 @@ const WarehouseRepairs = ({ activeTab }) => {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        {(!currentStaff || currentStaff?.role === 'Manager') && (
+                        {(!currentStaff || currentStaff?.role === 'Admin') && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

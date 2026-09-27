@@ -78,6 +78,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const { t, i18n } = useTranslation();
   const { profile, activeModules, currentStaff } = useUser();
   const isAdmin = !currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin';
+  const canDeleteHistory = !currentStaff || currentStaff?.role === 'Admin';
   const isRestaurantActive = activeModules.includes('restaurant');
   const [localActiveTab, localSetActiveTab] = useState('finished');
   const activeTab = propActiveTab || localActiveTab;
@@ -416,11 +417,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleDeleteReceipt = (receipt) => {
+    if (!canDeleteHistory) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin tarixi silə bilər' : 'Только администратор имеет право удалять историю');
+      return;
+    }
     setReceiptToDelete(receipt);
   };
 
   const confirmDeleteReceipt = async () => {
     if (!receiptToDelete) return;
+    if (!canDeleteHistory) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin tarixi silə bilər' : 'Только администратор имеет право удалять историю');
+      setReceiptToDelete(null);
+      return;
+    }
     try {
       const { error: delErr } = await supabase
         .from('stock_receipts')
@@ -453,11 +463,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const handleDeleteDispatch = (dispatch) => {
+    if (!canDeleteHistory) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin tarixi silə bilər' : 'Только администратор имеет право удалять историю');
+      return;
+    }
     setDispatchToDelete(dispatch);
   };
 
   const confirmDeleteDispatch = async () => {
     if (!dispatchToDelete) return;
+    if (!canDeleteHistory) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin tarixi silə bilər' : 'Только администратор имеет право удалять историю');
+      setDispatchToDelete(null);
+      return;
+    }
     try {
       const { error: delErr } = await supabase
         .from('stock_dispatches')
@@ -1970,7 +1989,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>}
-                    {(historyTab === 'receipts' || historyTab === 'dispatches' || historyTab === 'sales') && (!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                    {(historyTab === 'receipts' || historyTab === 'dispatches' || historyTab === 'sales') && canDeleteHistory && (
                       <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>
                     )}
                   </tr>
@@ -1996,7 +2015,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="px-6 py-20 text-center">
+                        <td colSpan={canDeleteHistory ? 7 : 6} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noReceiptsFound') || 'История приёмок пуста'}</p>
@@ -2052,7 +2071,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               ₼{(receipt.quantity * (receipt.unit_price || 0)).toFixed(2)}
                             </span>
                           </td>
-                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          {canDeleteHistory && (
                             <td className="px-4 py-4 text-right">
                               <button
                                 onClick={() => handleDeleteReceipt(receipt)}
@@ -2086,7 +2105,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan={(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') ? 5 : 4} className="px-6 py-20 text-center">
+                        <td colSpan={canDeleteHistory ? 5 : 4} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noDispatchesFound') || 'История списаний пуста'}</p>
@@ -2136,7 +2155,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             <td className="px-6 py-4 text-right">
                               <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                             </td>
-                          {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                          {canDeleteHistory && (
                             <td className="px-4 py-4 text-right">
                               <button
                                 onClick={() => handleDeleteDispatch(dispatch)}
@@ -2202,7 +2221,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan={(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') ? 5 : 4} className="px-6 py-20 text-center">
+                        <td colSpan={canDeleteHistory ? 5 : 4} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noSalesFound') || 'Satış tarixçəsi boşdur'}</p>
@@ -2280,7 +2299,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             <td className="px-6 py-4 text-right">
                               <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                             </td>
-                            {(!currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin') && (
+                            {canDeleteHistory && (
                               <td className="px-4 py-4 text-right">
                                 <button
                                   onClick={() => handleDeleteDispatch(dispatch)}
