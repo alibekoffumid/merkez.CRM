@@ -34,6 +34,7 @@ import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthCo
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
+import DebtBook from '../CRM/DebtBook';
 import ConfirmModal from '../../components/Common/ConfirmModal';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { toast } from 'react-hot-toast';
@@ -1970,11 +1971,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       <div className={`flex flex-1 ${activeTab === 'finished' ? 'flex-row 2xl:gap-6 gap-6' : 'flex-col gap-0'} ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'}`}>
         {activeTab === 'debts' ? (
-          <div className="flex-1 bg-white rounded-lg border border-gray-100 p-6 overflow-y-auto flex items-center justify-center">
-            <p className="text-gray-500 font-medium text-center">
-              Модуль "Долговая книга" (DebtBook) недоступен в автономной версии склада.<br/>
-              Он является частью модуля CRM.
-            </p>
+          <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
+            <DebtBook />
           </div>
         ) : activeTab === 'clients' ? (
           <WarehouseClientManager />
