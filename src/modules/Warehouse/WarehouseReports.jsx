@@ -220,6 +220,15 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
   return (
     <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
 
+      {/* Sales and Efficiency Analytics Section (FIRST on page) */}
+      {reportType === 'product' && (
+        <WarehouseEfficiencyCharts 
+          dispatches={dispatches}
+          products={products}
+          categories={categories}
+        />
+      )}
+
       {/* Dashboard Cards in One Line */}
       <div className={`grid gap-3.5 sm:gap-4 ${reportType === 'product' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
         {/* Cost */}
@@ -281,15 +290,6 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
           </div>
         </div>
       </div>
-
-      {/* Sales and Efficiency Analytics Section */}
-      {reportType === 'product' && (
-        <WarehouseEfficiencyCharts 
-          dispatches={dispatches}
-          products={products}
-          categories={categories}
-        />
-      )}
 
       {/* Low Stock Report Section */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
