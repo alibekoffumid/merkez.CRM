@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -164,6 +164,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [receiptToDelete, setReceiptToDelete] = useState(null);
   const [dispatchToDelete, setDispatchToDelete] = useState(null);
   const [selectedSaleDetail, setSelectedSaleDetail] = useState(null);
+  const [reportsRefreshTrigger, setReportsRefreshTrigger] = useState(0);
   const [mainBarcodeMode, setMainBarcodeMode] = useState(false);
   const mainBarcodeInputRef = useRef(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
@@ -1752,6 +1753,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
           )}
 
+          {activeTab === 'reports' && (
+            <div className="relative w-full lg:flex-1 flex items-center justify-end gap-3 shrink-0">
+              <button
+                onClick={() => setReportsRefreshTrigger(prev => prev + 1)}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 border border-blue-100 rounded-lg text-xs font-bold text-merkez-blue hover:bg-blue-100 hover:border-blue-200 transition-all shadow-sm group"
+                title={i18n.language === 'az' ? 'Məlumatları yenilə' : 'Обновить данные'}
+              >
+                <RotateCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+                <span>{i18n.language === 'az' ? 'Yenilə' : i18n.language === 'ru' ? 'Обновить' : 'Refresh'}</span>
+              </button>
+            </div>
+          )}
+
           {activeTab === 'history' && (
             <div className="relative w-full lg:flex-1 flex items-center justify-end gap-4 shrink-0 px-2">
               {historyTab === 'receipts' && (
@@ -2486,7 +2500,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'stocktake' ? (
           <WarehouseStocktake warehouseId={currentWarehouseId} warehouses={warehouses} isRestaurantActive={isRestaurantActive} />
         ) : activeTab === 'reports' ? (
-          <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} />
+          <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} refreshTrigger={reportsRefreshTrigger} />
         ) : (
         <div className="flex flex-1 gap-2 xl:gap-3 2xl:gap-5 overflow-hidden relative">
           {activeTab === 'finished' && (

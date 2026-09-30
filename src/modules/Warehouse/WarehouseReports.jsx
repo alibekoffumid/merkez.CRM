@@ -18,7 +18,7 @@ import { toast } from 'react-hot-toast';
 import WarehouseEfficiencyCharts from './WarehouseEfficiencyCharts';
 import { formatUnitName } from './SaleDetailModal';
 
-const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
+const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrigger = 0 }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   
@@ -44,7 +44,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
     if (profile?.id && warehouseId) {
       fetchReportData();
     }
-  }, [profile, warehouseId]);
+  }, [profile, warehouseId, refreshTrigger]);
 
   const fetchReportData = async () => {
     setLoading(true);
@@ -219,42 +219,6 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
 
   return (
     <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-      {/* Sub tabs */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100/80">
-        {false && isRestaurantActive ? (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setReportType('product')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                reportType === 'product'
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              Məhsul hesabatları
-            </button>
-            <button
-              onClick={() => setReportType('ingredient')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                reportType === 'ingredient'
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              İnqrediyent hesabatları
-            </button>
-          </div>
-        ) : (
-          <h3 className="text-sm font-bold text-gray-900 px-2">Məhsul hesabatları</h3>
-        )}
-
-        <button
-          onClick={fetchReportData}
-          className="text-xs font-bold text-merkez-blue hover:underline"
-        >
-          Yenilə
-        </button>
-      </div>
 
       {/* Dashboard Cards in One Line */}
       <div className={`grid gap-3.5 sm:gap-4 ${reportType === 'product' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
