@@ -31,12 +31,12 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
 export const formatUnitName = (rawUnit, lang = 'az') => {
-  if (!rawUnit) return lang === 'az' ? 'Ədəd' : lang === 'ru' ? 'Шт.' : 'pcs';
+  if (!rawUnit) return lang === 'az' ? 'əd' : lang === 'ru' ? 'шт.' : 'pcs';
 
   const u = String(rawUnit).trim().toLowerCase();
 
   if (['pcs', 'piece', 'pieces', 'ədəd', 'əd', 'əd.', 'ед', 'ед.', 'шт', 'шт.', 'штука'].includes(u)) {
-    return lang === 'az' ? 'Ədəd' : lang === 'ru' ? 'Шт.' : 'pcs';
+    return lang === 'az' ? 'əd' : lang === 'ru' ? 'шт.' : 'pcs';
   }
   if (['pack', 'paket', 'пакет', 'пачка', 'упаковка', 'упак', 'уп', 'bağlama', 'baglama'].includes(u)) {
     return lang === 'az' ? 'Paket' : lang === 'ru' ? 'Пачка' : 'pack';

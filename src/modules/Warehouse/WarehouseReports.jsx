@@ -15,9 +15,11 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import WarehouseEfficiencyCharts from './WarehouseEfficiencyCharts';
+import { formatUnitName } from './SaleDetailModal';
 
 const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useUser();
   
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
   const [ingredients, setIngredients] = useState([]);
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [dispatches, setDispatches] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Dashboard Stats
@@ -66,10 +69,10 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
       const step = 1000;
       let hasMore = true;
 
-      while (hasMore) {
+        while (hasMore) {
         const { data: prods, error: prodErr } = await supabase
           .from('products')
-          .select('id, name, barcode, stock_quantity, critical_stock, purchase_price, price, category_id, supplier_id')
+          .select('id, name, barcode, stock_quantity, critical_stock, purchase_price, price, category_id, supplier_id, unit')
           .eq('user_id', profile.id)
           .eq('warehouse_id', warehouseId)
           .eq('is_deleted', false)
@@ -89,6 +92,18 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         }
       }
       setProducts(allProducts);
+
+      // Fetch stock dispatches (sales and movements)
+      const { data: dispatchesData, error: dispErr } = await supabase
+        .from('stock_dispatches')
+        .select('id, product_id, quantity, reason, notes, issued_at, created_at')
+        .eq('user_id', profile.id)
+        .eq('warehouse_id', warehouseId)
+        .order('issued_at', { ascending: false });
+
+      if (!dispErr && dispatchesData) {
+        setDispatches(dispatchesData);
+      }
 
       // Fetch ingredients
       const { data: ings } = await supabase
@@ -110,8 +125,20 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
   // Recalculate stats whenever products, ingredients or reportType change
   useEffect(() => {
     if (reportType === 'product') {
-      const totalCost = products.reduce((sum, p) => sum + (parseFloat(p.stock_quantity || 0) * parseFloat(p.purchase_price || 0)), 0);
-      const totalRetail = products.reduce((sum, p) => sum + (parseFloat(p.stock_quantity || 0) * parseFloat(p.price || 0)), 0);
+      const totalCost = products.reduce((sum, p) => {
+        const qty = parseFloat(p.stock_quantity || 0);
+        const price = parseFloat(p.purchase_price || 0);
+        if (qty > 1000000 || price > 1000000) return sum;
+        return sum + (qty * price);
+      }, 0);
+
+      const totalRetail = products.reduce((sum, p) => {
+        const qty = parseFloat(p.stock_quantity || 0);
+        const price = parseFloat(p.price || 0);
+        if (qty > 1000000 || price > 1000000) return sum;
+        return sum + (qty * price);
+      }, 0);
+
       const lowStock = products.filter(p => parseFloat(p.stock_quantity || 0) < parseFloat(p.critical_stock || 15));
       
       setStats({
@@ -291,6 +318,15 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
         </div>
       </div>
 
+      {/* Sales and Efficiency Analytics Section */}
+      {reportType === 'product' && (
+        <WarehouseEfficiencyCharts 
+          dispatches={dispatches}
+          products={products}
+          categories={categories}
+        />
+      )}
+
       {/* Low Stock Report Section */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -356,7 +392,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false }) => {
                     </td>
                     <td className="p-4 text-center">
                       <span className="inline-block px-2.5 py-1 rounded-full text-xs font-black bg-red-50 text-red-500 border border-red-100">
-                        {reportType === 'product' ? item.stock_quantity : item.quantity}
+                        {reportType === 'product' ? `${item.stock_quantity} ${formatUnitName(item.unit, i18n.language)}` : item.quantity}
                       </span>
                     </td>
                     <td className="p-4 text-xs font-bold text-gray-500 text-center">
