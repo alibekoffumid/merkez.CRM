@@ -101,14 +101,46 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
   if (priceMatch) {
     info.unitPrice = parseFloat(priceMatch[1].replace(',', '.'));
   }
+  const originalGross = info.unitPrice * qty;
+  info.originalGross = originalGross;
+
+  // 5. Discount detection (supports [Endirim: ₼5.00], [Скидка: 5], [Endirim: 10%], etc.)
+  let discountAmount = 0;
+  let discountPercent = null;
+  const discBracketMatch = note.match(/\[(?:Endirim|Скидка|Discount):\s*₼?([0-9.,]+)%?\]/i);
+  if (discBracketMatch) {
+    if (discBracketMatch[0].includes('%')) {
+      discountPercent = parseFloat(discBracketMatch[1].replace(',', '.'));
+      discountAmount = (originalGross * discountPercent) / 100;
+    } else {
+      discountAmount = parseFloat(discBracketMatch[1].replace(',', '.'));
+    }
+  } else {
+    const looseDiscMatch = note.match(/(?:endirim|скидка|discount)\s*:\s*₼?([0-9.,]+)%?/i);
+    if (looseDiscMatch) {
+      if (looseDiscMatch[0].includes('%')) {
+        discountPercent = parseFloat(looseDiscMatch[1].replace(',', '.'));
+        discountAmount = (originalGross * discountPercent) / 100;
+      } else {
+        discountAmount = parseFloat(looseDiscMatch[1].replace(',', '.'));
+      }
+    }
+  }
+
   const totalMatch = note.match(/\[Məbləğ:\s*₼?([0-9.,]+)\]/i) || note.match(/\[Cəmi:\s*₼?([0-9.,]+)\]/i);
   if (totalMatch) {
     info.totalAmount = parseFloat(totalMatch[1].replace(',', '.'));
+    if (discountAmount === 0 && info.totalAmount < originalGross && info.unitPrice > 0) {
+      discountAmount = Math.max(0, originalGross - info.totalAmount);
+    }
   } else {
-    info.totalAmount = info.unitPrice * qty;
+    info.totalAmount = Math.max(0, originalGross - discountAmount);
   }
 
-  // 5. Birmarket details
+  info.discount = discountAmount;
+  info.discountPercent = discountPercent;
+
+  // 6. Birmarket details
   const birmarketMatch = note.match(/Satış\s*\(([^)]+)\):\s*Kassaya\/Saytda:\s*₼?([0-9.,]+),\s*Mənfəət:\s*₼?([0-9.,]+)/i);
   if (birmarketMatch) {
     info.birmarketCategory = birmarketMatch[1].trim();
@@ -116,7 +148,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
     info.profit = parseFloat(birmarketMatch[3].replace(',', '.'));
   }
 
-  // 6. Credit details
+  // 7. Credit details
   const creditMatch = note.match(/Kredit Satışı\s*\(([0-9]+)\s*ay\):\s*Kassaya:\s*₼?([0-9.,]+),\s*Mənfəət:\s*₼?([0-9.,]+)/i);
   if (creditMatch) {
     info.months = parseInt(creditMatch[1], 10);
@@ -134,6 +166,9 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
     .replace(/\[Kanal:[^\]]+\]/gi, '')
     .replace(/\[Müştəri:[^\]]+\]/gi, '')
     .replace(/\[Qiymət:[^\]]+\]/gi, '')
+    .replace(/\[Endirim:[^\]]+\]/gi, '')
+    .replace(/\[Скидка:[^\]]+\]/gi, '')
+    .replace(/\[Discount:[^\]]+\]/gi, '')
     .replace(/\[Məbləğ:[^\]]+\]/gi, '')
     .replace(/\[Cəmi:[^\]]+\]/gi, '')
     .replace(/^Məhsul Satışı\s*\(Ödəniş:[^)]+\)/gi, '')
@@ -260,6 +295,18 @@ const SaleDetailModal = ({
 
         <div class="double-divider"></div>
 
+        ${saleInfo.discount > 0 ? `
+          <div class="flex-between">
+            <span>İlkin məbləğ:</span>
+            <span>₼${saleInfo.originalGross.toFixed(2)}</span>
+          </div>
+          <div class="flex-between bold" style="color: #b91c1c;">
+            <span>Endirim:</span>
+            <span>-₼${saleInfo.discount.toFixed(2)}</span>
+          </div>
+          <div class="divider"></div>
+        ` : ''}
+
         <div class="flex-between total-box">
           <span>YEKUN:</span>
           <span>₼${saleInfo.totalAmount.toFixed(2)}</span>
@@ -376,11 +423,21 @@ const SaleDetailModal = ({
                   </span>
                   <DollarSign className="w-4 h-4" />
                 </div>
-                <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">
-                  ₼{saleInfo.totalAmount.toFixed(2)}
+                <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight flex items-baseline gap-1.5 flex-wrap">
+                  <span>₼{saleInfo.totalAmount.toFixed(2)}</span>
+                  {saleInfo.discount > 0 && (
+                    <span className="text-xs line-through text-gray-400 font-semibold">
+                      ₼{saleInfo.originalGross.toFixed(2)}
+                    </span>
+                  )}
                 </div>
-                <div className="text-[10px] font-bold text-emerald-600/80 mt-1">
-                  ₼{saleInfo.unitPrice.toFixed(2)} / {prod?.unit || 'ədəd'}
+                <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600/80 mt-1">
+                  <span>₼{saleInfo.unitPrice.toFixed(2)} / {prod?.unit || 'ədəd'}</span>
+                  {saleInfo.discount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-700">
+                      -{saleInfo.discount.toFixed(2)} ₼
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -572,6 +629,23 @@ const SaleDetailModal = ({
                       <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'Miqdar:' : 'Количество:'}</span>
                       <span className="font-bold text-gray-900">{quantity} {prod?.unit || 'əd'}</span>
                     </div>
+
+                    {saleInfo.discount > 0 && (
+                      <>
+                        <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
+                          <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'İlkin məbləğ:' : 'Сумма без скидки:'}</span>
+                          <span className="font-bold text-gray-500 line-through">₼{saleInfo.originalGross.toFixed(2)}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-rose-600 bg-rose-50/80 px-2 py-1 rounded-md border border-rose-100 font-bold">
+                          <span className="flex items-center gap-1 text-[11px]">
+                            <Tag className="w-3.5 h-3.5" />
+                            {i18n.language === 'az' ? 'Tətbiq edilmiş endirim:' : 'Скидка:'}
+                          </span>
+                          <span className="text-xs font-black">-₼{saleInfo.discount.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
 
                     {saleInfo.months && (
                       <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">

@@ -594,8 +594,18 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
         // Append price and total info for full audit & history tracking
         const itemPrice = Number(item.price) || 0;
-        const itemTotal = itemPrice * Number(item.quantity || 1);
-        dispatchNote += ` [Qiymət: ₼${itemPrice.toFixed(2)}] [Məbləğ: ₼${itemTotal.toFixed(2)}]`;
+        const itemGross = itemPrice * Number(item.quantity || 1);
+        const totalDiscount = parseFloat(discount) || 0;
+        const cartGross = cart.reduce((acc, it) => acc + ((parseFloat(it.quantity) || 0) * (parseFloat(it.price) || 0)), 0);
+        const itemDiscount = (totalDiscount > 0 && cartGross > 0) ? (itemGross / cartGross) * totalDiscount : 0;
+        const itemFinalTotal = Math.max(0, itemGross - itemDiscount);
+
+        dispatchNote += ` [Qiymət: ₼${itemPrice.toFixed(2)}]`;
+        if (itemDiscount > 0) {
+          dispatchNote += ` [Endirim: ₼${itemDiscount.toFixed(2)}] [Məbləğ: ₼${itemFinalTotal.toFixed(2)}]`;
+        } else {
+          dispatchNote += ` [Məbləğ: ₼${itemGross.toFixed(2)}]`;
+        }
 
         dispatchNote = channelPrefix + dispatchNote;
 

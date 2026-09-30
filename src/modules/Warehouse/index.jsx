@@ -2348,9 +2348,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               ₼{parsed.unitPrice.toFixed(2)}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className="text-sm font-black text-emerald-600">
-                                ₼{parsed.totalAmount.toFixed(2)}
-                              </span>
+                              <div className="flex flex-col items-end">
+                                <span className="text-sm font-black text-emerald-600">
+                                  ₼{parsed.totalAmount.toFixed(2)}
+                                </span>
+                                {parsed.discount > 0 && (
+                                  <span className="text-[9px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100 mt-0.5">
+                                    -{parsed.discount.toFixed(2)} ₼
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1">
