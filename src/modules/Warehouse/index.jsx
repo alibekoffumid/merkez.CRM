@@ -29,7 +29,7 @@ import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
-import SaleDetailModal, { parseSaleNote, formatUnitName } from './SaleDetailModal';
+import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
@@ -1801,6 +1801,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
                         { value: 'Sosial şəbəkə', label: i18n.language === 'az' ? 'Sosial şəbəkə' : 'Социальные сети' },
                         { value: 'Birmarket', label: 'Birmarket' },
+                        { value: 'Tap.az', label: 'Tap.az' },
+                        { value: 'Lalafo', label: 'Lalafo' },
+                        { value: 'TikTok', label: 'TikTok' },
                         { value: 'Kredit', label: i18n.language === 'az' ? 'Kredit (Bütün Banklar)' : 'Кредит (Все банки)' },
                         { value: 'Kredit - ABB Kredit', label: 'Kredit - ABB Kredit' },
                         { value: 'Kredit - Birkart', label: 'Kredit - Birkart' },
@@ -2230,13 +2233,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           // Fallback checks for older/seeded rows
                           if (filterLower === 'birmarket') {
                             channelMatch = notesStr.includes('birmarket');
+                          } else if (filterLower === 'tap.az') {
+                            channelMatch = notesStr.includes('tap.az') || notesStr.includes('tap');
+                          } else if (filterLower === 'lalafo') {
+                            channelMatch = notesStr.includes('lalafo');
+                          } else if (filterLower === 'tiktok') {
+                            channelMatch = notesStr.includes('tiktok');
                           } else if (filterLower === 'kredit') {
                             channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
                           } else if (filterLower.startsWith('kredit - ')) {
                             const bankPart = filterLower.replace('kredit - ', '');
                             channelMatch = notesStr.includes(bankPart);
                           } else if (filterLower === 'mağaza') {
-                            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial'));
+                            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
                           } else if (filterLower === 'sosial şəbəkə') {
                             channelMatch = notesStr.includes('sosial');
                           }
@@ -2288,13 +2297,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             // Fallback checks for older/seeded rows
                             if (filterLower === 'birmarket') {
                               channelMatch = notesStr.includes('birmarket');
+                            } else if (filterLower === 'tap.az') {
+                              channelMatch = notesStr.includes('tap.az') || notesStr.includes('tap');
+                            } else if (filterLower === 'lalafo') {
+                              channelMatch = notesStr.includes('lalafo');
+                            } else if (filterLower === 'tiktok') {
+                              channelMatch = notesStr.includes('tiktok');
                             } else if (filterLower === 'kredit') {
                               channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
                             } else if (filterLower.startsWith('kredit - ')) {
                               const bankPart = filterLower.replace('kredit - ', '');
                               channelMatch = notesStr.includes(bankPart);
                             } else if (filterLower === 'mağaza') {
-                              channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial'));
+                              channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
                             } else if (filterLower === 'sosial şəbəkə') {
                               channelMatch = notesStr.includes('sosial');
                             }
@@ -2337,11 +2352,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-50 text-merkez-green">
                                   {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
                                 </span>
-                                {parsed.channel && (
-                                  <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                                    {parsed.channel}
-                                  </span>
-                                )}
+                                {parsed.channel && (() => {
+                                  const badge = getChannelBadge(parsed.channel);
+                                  return (
+                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${badge.bg}`}>
+                                      {badge.label}
+                                    </span>
+                                  );
+                                })()}
                               </div>
                             </td>
                             <td className="px-6 py-4">

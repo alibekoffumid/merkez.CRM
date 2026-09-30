@@ -66,6 +66,30 @@ export const formatUnitName = (rawUnit, lang = 'az') => {
   return rawUnit.charAt(0).toUpperCase() + rawUnit.slice(1);
 };
 
+// Channel badge colors & styles
+export const getChannelBadge = (channel) => {
+  const ch = (channel || '').toLowerCase();
+  if (ch.includes('birmarket')) {
+    return { bg: 'bg-red-50 text-red-700 border-red-200', label: 'Birmarket' };
+  }
+  if (ch.includes('kredit')) {
+    return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: channel };
+  }
+  if (ch.includes('sosial')) {
+    return { bg: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Sosial Şəbəkə' };
+  }
+  if (ch.includes('tap.az') || ch.includes('tap')) {
+    return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Tap.az' };
+  }
+  if (ch.includes('lalafo')) {
+    return { bg: 'bg-orange-50 text-orange-700 border-orange-200', label: 'Lalafo' };
+  }
+  if (ch.includes('tiktok')) {
+    return { bg: 'bg-slate-900 text-white border-slate-700', label: 'TikTok' };
+  }
+  return { bg: 'bg-blue-50 text-blue-700 border-blue-200', label: channel || 'Mağaza' };
+};
+
 export const parseSaleNote = (note = '', product = null, quantity = 1) => {
   const qty = Math.abs(parseFloat(quantity) || 1);
   const prodPrice = product?.price ? Number(product.price) : 0;
@@ -381,20 +405,7 @@ const SaleDetailModal = ({
     printWindow.document.close();
   };
 
-  // Channel badge colors
-  const getChannelBadge = (channel) => {
-    const ch = (channel || '').toLowerCase();
-    if (ch.includes('birmarket')) {
-      return { bg: 'bg-red-50 text-red-700 border-red-200', label: 'Birmarket' };
-    }
-    if (ch.includes('kredit')) {
-      return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: channel };
-    }
-    if (ch.includes('sosial')) {
-      return { bg: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Sosial Şəbəkə' };
-    }
-    return { bg: 'bg-blue-50 text-blue-700 border-blue-200', label: channel || 'Mağaza' };
-  };
+
 
   const channelBadge = getChannelBadge(saleInfo.channel);
 

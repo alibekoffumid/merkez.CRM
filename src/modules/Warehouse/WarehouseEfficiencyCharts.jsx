@@ -576,13 +576,25 @@ const WarehouseEfficiencyCharts = ({
       }))
       .sort((a, b) => b.value - a.value);
 
+    const getChannelColor = (name, idx) => {
+      const lower = (name || '').toLowerCase();
+      if (lower.includes('birmarket')) return '#EF4444'; // Red
+      if (lower.includes('tap.az') || lower.includes('tap')) return '#10B981'; // Emerald
+      if (lower.includes('lalafo')) return '#F97316'; // Orange
+      if (lower.includes('tiktok')) return '#0F172A'; // Dark slate
+      if (lower.includes('sosial')) return '#8B5CF6'; // Purple
+      if (lower.includes('mağaza') || lower.includes('magaza')) return '#2563EB'; // Blue
+      if (lower.includes('kredit')) return '#F59E0B'; // Amber
+      return CHART_COLORS[(idx + 4) % CHART_COLORS.length];
+    };
+
     const channels = Array.from(chanMap.entries())
       .map(([name, amount], idx) => ({
         label: name,
         value: amount,
         displayValue: `₼${amount.toFixed(2)}`,
         percent: summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0,
-        color: CHART_COLORS[(idx + 4) % CHART_COLORS.length]
+        color: getChannelColor(name, idx)
       }))
       .sort((a, b) => b.value - a.value);
 
