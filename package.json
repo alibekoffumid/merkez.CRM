@@ -13,7 +13,9 @@
     "dist": "npm run build && electron-builder",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview --host",
-    "sync-agent": "node warehouse-sync/sync-agent.js"
+    "sync-agent": "node warehouse-sync/sync-agent.js",
+    "mobile": "npm --prefix mobile start",
+    "mobile:android": "npm --prefix mobile run android"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.1",

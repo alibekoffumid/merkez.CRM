@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -29,6 +29,7 @@ import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
+import SaleDetailModal, { parseSaleNote } from './SaleDetailModal';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
@@ -162,6 +163,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [receiptToDelete, setReceiptToDelete] = useState(null);
   const [dispatchToDelete, setDispatchToDelete] = useState(null);
+  const [selectedSaleDetail, setSelectedSaleDetail] = useState(null);
   const [mainBarcodeMode, setMainBarcodeMode] = useState(false);
   const mainBarcodeInputRef = useRef(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
@@ -901,7 +903,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     try {
       const { data, error } = await supabase
         .from('stock_dispatches')
-        .select('*, products(name, barcode, category_id)')
+        .select('*, products(id, name, barcode, category_id, price, purchase_price, unit, image_url, stock_quantity)')
         .eq('user_id', pId)
         .eq('warehouse_id', wId)
         .order('issued_at', { ascending: false });
@@ -920,7 +922,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             const p = (products || []).find(prod => prod.id === d.product_id);
             return {
               ...d,
-              products: p ? { name: p.name, barcode: p.barcode, category_id: p.category_id } : null
+              products: p ? { 
+                id: p.id,
+                name: p.name, 
+                barcode: p.barcode, 
+                category_id: p.category_id,
+                price: p.price,
+                purchase_price: p.purchase_price,
+                unit: p.unit,
+                image_url: p.image_url,
+                stock_quantity: p.stock_quantity
+              } : null
             };
           });
           setDispatches(enriched);
@@ -932,7 +944,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         const enriched = data.map(d => {
           if (!d.products && d.product_id) {
             const p = (products || []).find(prod => prod.id === d.product_id);
-            if (p) return { ...d, products: { name: p.name, barcode: p.barcode, category_id: p.category_id } };
+            if (p) return { 
+              ...d, 
+              products: { 
+                id: p.id,
+                name: p.name, 
+                barcode: p.barcode, 
+                category_id: p.category_id,
+                price: p.price,
+                purchase_price: p.purchase_price,
+                unit: p.unit,
+                image_url: p.image_url,
+                stock_quantity: p.stock_quantity
+              } 
+            };
           }
           return d;
         });
@@ -1975,7 +2000,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     {(historyTab === 'dispatches' || historyTab === 'sales') && (
                       <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                         {historyTab === 'sales' 
-                          ? (i18n.language === 'az' ? 'Növ' : i18n.language === 'ru' ? 'Тип' : (t('common.type') === 'COMMON.TYPE' ? 'Type' : t('common.type'))) 
+                          ? (i18n.language === 'az' ? 'Növ / Kanal' : i18n.language === 'ru' ? 'Тип / Канал' : (t('common.type') === 'COMMON.TYPE' ? 'Type / Channel' : t('common.type'))) 
                           : (t('warehouse.reason') || 'Səbəb')}
                       </th>
                     )}
@@ -1989,7 +2014,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>}
-                    {(historyTab === 'receipts' || historyTab === 'dispatches' || historyTab === 'sales') && canDeleteHistory && (
+                    {historyTab === 'sales' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice') || 'Qiymət'}</th>}
+                    {historyTab === 'sales' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Məbləğ'}</th>}
+                    {((historyTab === 'receipts' || historyTab === 'dispatches') && canDeleteHistory) && (
+                      <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>
+                    )}
+                    {historyTab === 'sales' && (
                       <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>
                     )}
                   </tr>
@@ -2221,7 +2251,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       return true;
                     }).length === 0 ? (
                       <tr>
-                        <td colSpan={canDeleteHistory ? 5 : 4} className="px-6 py-20 text-center">
+                        <td colSpan={7} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noSalesFound') || 'Satış tarixçəsi boşdur'}</p>
@@ -2279,37 +2309,71 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         return true;
                       }).map(dispatch => {
                         const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+                        const qty = Math.abs(parseFloat(dispatch.quantity) || 1);
+                        const parsed = parseSaleNote(dispatch.notes, prodObj, qty);
+
                         return (
-                          <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
+                          <tr 
+                            key={dispatch.id} 
+                            onClick={() => setSelectedSaleDetail(dispatch)}
+                            className="hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                            title={i18n.language === 'az' ? 'Ətraflı satış kartı üçün klikləyin' : i18n.language === 'ru' ? 'Нажмите для просмотра карточки продажи' : 'Click to view sale card'}
+                          >
                             <td className="px-6 py-4">
                               <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at || dispatch.created_at).toLocaleDateString()}</span>
                               {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
                             </td>
                             <td className="px-6 py-4">
-                              <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-50 text-merkez-green">
-                                {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
-                              </span>
+                              <div className="flex flex-col gap-1 items-start">
+                                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-50 text-merkez-green">
+                                  {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
+                                </span>
+                                {parsed.channel && (
+                                  <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                    {parsed.channel}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col">
-                                <span className="text-sm font-bold text-gray-900">{prodObj?.name || '—'}</span>
+                                <span className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{prodObj?.name || '—'}</span>
                                 <span className="text-[10px] text-gray-400 font-mono">{prodObj?.barcode || '—'}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 text-right">
                               <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                             </td>
-                            {canDeleteHistory && (
-                              <td className="px-4 py-4 text-right">
+                            <td className="px-6 py-4 text-right font-bold text-gray-600 text-sm">
+                              ₼{parsed.unitPrice.toFixed(2)}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <span className="text-sm font-black text-emerald-600">
+                                ₼{parsed.totalAmount.toFixed(2)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center justify-end gap-1">
                                 <button
-                                  onClick={() => handleDeleteDispatch(dispatch)}
-                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                  title={t('common.delete') || 'Sil'}
+                                  type="button"
+                                  onClick={() => setSelectedSaleDetail(dispatch)}
+                                  className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  title={i18n.language === 'az' ? 'Ətraflı məlumat' : i18n.language === 'ru' ? 'Подробнее' : 'Details'}
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <Eye className="w-4 h-4" />
                                 </button>
-                              </td>
-                            )}
+                                {canDeleteHistory && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteDispatch(dispatch)}
+                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    title={t('common.delete') || 'Sil'}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
                           </tr>
                         );
                       })
@@ -3643,6 +3707,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         confirmText={i18n.language === 'az' ? 'Sil' : i18n.language === 'ru' ? 'Удалить' : 'Delete'}
         cancelText={i18n.language === 'az' ? 'Ləğv et' : i18n.language === 'ru' ? 'Отмена' : 'Cancel'}
         isDanger={true}
+      />
+
+      <SaleDetailModal
+        isOpen={!!selectedSaleDetail}
+        onClose={() => setSelectedSaleDetail(null)}
+        sale={selectedSaleDetail}
+        warehouseName={warehouses.find(w => w.id === (selectedSaleDetail?.warehouse_id || currentWarehouseId))?.name}
+        categoryName={categories.find(c => c.id === (selectedSaleDetail?.products?.category_id))?.name}
+        onDelete={handleDeleteDispatch}
+        canDelete={canDeleteHistory}
+        currentStaff={currentStaff}
       />
 
       <WarehouseTour 

@@ -592,6 +592,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           }
         }
 
+        // Append price and total info for full audit & history tracking
+        const itemPrice = Number(item.price) || 0;
+        const itemTotal = itemPrice * Number(item.quantity || 1);
+        dispatchNote += ` [Qiymət: ₼${itemPrice.toFixed(2)}] [Məbləğ: ₼${itemTotal.toFixed(2)}]`;
+
         dispatchNote = channelPrefix + dispatchNote;
 
         const { error: dispatchError } = await supabase
