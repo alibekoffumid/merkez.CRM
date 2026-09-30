@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { 
   TrendingUp, 
   BarChart3, 
-  PieChart, 
+  PieChart as PieChartIcon, 
   Activity, 
   Calendar, 
   DollarSign, 
@@ -19,9 +19,25 @@ import {
   Sparkles,
   ChevronRight,
   TrendingDown,
-  Info
+  Info,
+  CircleDot,
+  LayoutGrid,
+  BarChart2
 } from 'lucide-react';
 import { formatUnitName } from './SaleDetailModal';
+
+const CHART_COLORS = [
+  '#2563EB', // Blue
+  '#10B981', // Emerald
+  '#F59E0B', // Amber
+  '#8B5CF6', // Purple
+  '#EC4899', // Pink
+  '#06B6D4', // Cyan
+  '#F97316', // Orange
+  '#6366F1', // Indigo
+  '#14B8A6', // Teal
+  '#84CC16', // Lime
+];
 
 const PERIODS = [
   { id: 'today', labelAz: 'Bugün', labelRu: 'Сегодня', labelEn: 'Today' },
@@ -34,10 +50,194 @@ const PERIODS = [
 const TABS = [
   { id: 'top_products', icon: Award, labelAz: 'Ən Çox Satılanlar', labelRu: 'Топ продаж', labelEn: 'Top Products' },
   { id: 'timeline', icon: BarChart3, labelAz: 'Satış Dinamikası', labelRu: 'Динамика продаж', labelEn: 'Timeline' },
-  { id: 'categories', icon: Layers, labelAz: 'Kateqoriyalar', labelRu: 'По категориям', labelEn: 'Categories' },
+  { id: 'categories', icon: PieChartIcon, labelAz: 'Kateqoriyalar', labelRu: 'По категориям', labelEn: 'Categories' },
   { id: 'margins', icon: TrendingUp, labelAz: 'Mənfəət və Marja', labelRu: 'Прибыль и маржа', labelEn: 'Profit & Margin' },
   { id: 'channels', icon: CreditCard, labelAz: 'Ödəniş və Kanallar', labelRu: 'Оплата и каналы', labelEn: 'Payment & Channels' }
 ];
+
+// Helper: SVG Donut Chart with interactive slices and center summary
+const SvgDonutChart = ({ data = [], totalLabel = 'Cəmi', totalValue = '0', size = 210 }) => {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+  const total = useMemo(() => data.reduce((sum, d) => sum + (d.value || 0), 0), [data]);
+
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius; // ~238.76
+
+  let accumulatedPercent = 0;
+  const segments = data.map((item, idx) => {
+    const percent = total > 0 ? item.value / total : 0;
+    const strokeDash = percent * circumference;
+    const strokeOffset = circumference * (1 - accumulatedPercent) + (circumference * 0.25);
+    accumulatedPercent += percent;
+    return {
+      ...item,
+      percent,
+      strokeDash: `${Math.max(strokeDash - (data.length > 1 ? 2 : 0), 0)} ${circumference}`,
+      strokeOffset,
+      color: item.color || CHART_COLORS[idx % CHART_COLORS.length]
+    };
+  });
+
+  return (
+    <div className="relative flex flex-col items-center justify-center p-2">
+      <svg width={size} height={size} viewBox="0 0 100 100" className="transform -rotate-90 drop-shadow-sm">
+        {/* Background ring */}
+        <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#F1F5F9" strokeWidth="15" />
+        
+        {/* Slices */}
+        {segments.map((seg, i) => {
+          if (seg.percent <= 0) return null;
+          const isHovered = hoveredIdx === i;
+          return (
+            <circle
+              key={i}
+              cx="50"
+              cy="50"
+              r={radius}
+              fill="transparent"
+              stroke={seg.color}
+              strokeWidth={isHovered ? "18" : "15"}
+              strokeDasharray={seg.strokeDash}
+              strokeDashoffset={seg.strokeOffset}
+              className="transition-all duration-300 cursor-pointer"
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            />
+          );
+        })}
+      </svg>
+      {/* Center Label */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+        {hoveredIdx !== null && segments[hoveredIdx] ? (
+          <>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate max-w-[110px]">
+              {segments[hoveredIdx].label}
+            </span>
+            <span className="text-base font-black text-gray-900 tracking-tight">
+              {segments[hoveredIdx].displayValue || segments[hoveredIdx].value}
+            </span>
+            <span className="text-[11px] font-black text-blue-600">
+              {(segments[hoveredIdx].percent * 100).toFixed(1)}%
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+              {totalLabel}
+            </span>
+            <span className="text-lg font-black text-gray-900 tracking-tight">
+              {totalValue}
+            </span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Helper: Real Vertical Column Chart with grid lines and value badges
+const VerticalColumnChart = ({ 
+  items = [], 
+  valueKey = 'value', 
+  labelKey = 'name', 
+  displayValueKey = 'displayValue', 
+  yUnit = '',
+  i18n 
+}) => {
+  const [hoveredIdx, setHoveredIdx] = useState(null);
+  const maxVal = Math.max(...items.map(it => it[valueKey] || 0), 1);
+
+  // Y-axis steps: 100%, 75%, 50%, 25%, 0%
+  const gridSteps = [1, 0.75, 0.5, 0.25, 0];
+
+  return (
+    <div className="bg-gradient-to-b from-gray-50/50 to-white rounded-xl border border-gray-100 p-5 pt-8">
+      {/* Chart Canvas Area */}
+      <div className="relative h-64 w-full flex items-end">
+        {/* Horizontal Gridlines */}
+        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+          {gridSteps.map((step, idx) => (
+            <div key={idx} className="flex items-center w-full">
+              <span className="text-[9px] font-mono font-bold text-gray-400 w-12 text-right pr-2 shrink-0">
+                {step === 0 ? '0' : (maxVal * step).toFixed(maxVal < 10 ? 1 : 0)} {yUnit}
+              </span>
+              <div className="flex-1 border-b border-dashed border-gray-200" />
+            </div>
+          ))}
+        </div>
+
+        {/* Vertical Columns Container */}
+        <div className="relative z-10 flex items-end justify-around w-full h-full pl-14 pr-2 gap-2 sm:gap-4">
+          {items.map((it, idx) => {
+            const val = it[valueKey] || 0;
+            const heightPercent = Math.max((val / maxVal) * 100, 4);
+            const isHovered = hoveredIdx === idx;
+            const rank = idx + 1;
+
+            const columnGradients = [
+              'from-amber-500 to-yellow-400 shadow-amber-500/20', // #1 Gold
+              'from-blue-600 to-indigo-500 shadow-blue-500/20',   // #2 Silver/Blue
+              'from-emerald-500 to-teal-400 shadow-emerald-500/20', // #3 Bronze/Teal
+              'from-purple-600 to-fuchsia-500 shadow-purple-500/20',
+              'from-sky-500 to-cyan-400 shadow-cyan-500/20',
+              'from-rose-500 to-pink-400 shadow-rose-500/20',
+            ];
+            const colColor = columnGradients[idx % columnGradients.length];
+
+            return (
+              <div 
+                key={it.id || idx}
+                className="flex-1 flex flex-col items-center h-full justify-end group relative cursor-pointer max-w-[72px]"
+                onMouseEnter={() => setHoveredIdx(idx)}
+                onMouseLeave={() => setHoveredIdx(null)}
+              >
+                {/* Floating Value Pill Above Bar */}
+                <div 
+                  className={`absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-black transition-all shadow-sm whitespace-nowrap z-20 ${
+                    isHovered
+                      ? 'bg-gray-900 text-white scale-110'
+                      : 'bg-white text-gray-700 border border-gray-200'
+                  }`}
+                >
+                  {it[displayValueKey] || val}
+                </div>
+
+                {/* Column Body with Animated Fill */}
+                <div className="w-full h-full relative flex items-end justify-center">
+                  <div 
+                    className={`w-full max-w-[48px] rounded-t-xl bg-gradient-to-t ${colColor} shadow-md transition-all duration-700 ease-out flex items-center justify-center ${
+                      isHovered ? 'brightness-110 scale-x-105' : 'opacity-90 hover:opacity-100'
+                    }`}
+                    style={{ height: `${heightPercent}%` }}
+                  >
+                    {/* Rank Badge inside the column if tall enough */}
+                    {heightPercent > 20 && (
+                      <span className="text-[10px] font-black text-white/90 drop-shadow mb-1">
+                        #{rank}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* X-axis Label & Details */}
+                <div className="mt-2.5 text-center w-full">
+                  <div className="text-[11px] font-black text-gray-800 truncate" title={it[labelKey]}>
+                    {it[labelKey]}
+                  </div>
+                  {it.subLabel && (
+                    <div className="text-[9px] font-semibold text-gray-400 truncate">
+                      {it.subLabel}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const WarehouseEfficiencyCharts = ({ 
   dispatches = [], 
@@ -48,6 +248,7 @@ const WarehouseEfficiencyCharts = ({
   const [selectedPeriod, setSelectedPeriod] = useState('30days');
   const [activeTab, setActiveTab] = useState('top_products');
   const [topSortBy, setTopSortBy] = useState('quantity'); // 'quantity' | 'revenue' | 'profit'
+  const [topChartView, setTopChartView] = useState('columns'); // 'columns' | 'bars'
   const [searchQuery, setSearchQuery] = useState('');
 
   // 1. Process all sales dispatches with product information
@@ -64,7 +265,6 @@ const WarehouseEfficiencyCharts = ({
 
     return (dispatches || [])
       .filter(d => {
-        // Dispatches marked as sale or negative quantity sales
         const isSaleReason = !d.reason || d.reason === 'sale';
         const qty = Math.abs(parseFloat(d.quantity) || 0);
         return isSaleReason && qty > 0;
@@ -209,6 +409,7 @@ const WarehouseEfficiencyCharts = ({
           revenue: 0,
           profit: 0,
           ordersCount: 0,
+          purchasePrice: s.purchasePrice,
           avgPrice: s.unitPrice
         });
       }
@@ -221,7 +422,6 @@ const WarehouseEfficiencyCharts = ({
 
     let list = Array.from(map.values());
 
-    // Calculate share
     const maxQty = Math.max(...list.map(i => i.quantity), 1);
     const maxRev = Math.max(...list.map(i => i.revenue), 1);
     const maxProfit = Math.max(...list.map(i => i.profit), 1);
@@ -236,7 +436,6 @@ const WarehouseEfficiencyCharts = ({
       profitBarPercent: item.profit > 0 ? (item.profit / maxProfit) * 100 : 0
     }));
 
-    // Sort based on user selection
     if (topSortBy === 'quantity') {
       list.sort((a, b) => b.quantity - a.quantity);
     } else if (topSortBy === 'revenue') {
@@ -248,13 +447,38 @@ const WarehouseEfficiencyCharts = ({
     return list;
   }, [filteredSales, topSortBy, summary]);
 
+  // Formatted items for the VerticalColumnChart in Tab 1
+  const topColumnsData = useMemo(() => {
+    return productAggregates.slice(0, 8).map(p => {
+      const unitStr = formatUnitName(p.unit, i18n.language);
+      let value = p.quantity;
+      let displayValue = `${p.quantity} ${unitStr}`;
+
+      if (topSortBy === 'revenue') {
+        value = p.revenue;
+        displayValue = `₼${p.revenue.toFixed(2)}`;
+      } else if (topSortBy === 'profit') {
+        value = p.profit;
+        displayValue = `+₼${p.profit.toFixed(2)}`;
+      }
+
+      return {
+        id: p.id,
+        name: p.name,
+        subLabel: p.categoryName,
+        value,
+        displayValue,
+        unit: unitStr
+      };
+    });
+  }, [productAggregates, topSortBy, i18n.language]);
+
   // 5. Aggregate by Date for Timeline Chart
   const timelineData = useMemo(() => {
     if (filteredSales.length === 0) return [];
 
     const dateMap = new Map();
 
-    // Group sales by YYYY-MM-DD
     filteredSales.forEach(s => {
       const d = s.date;
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -286,7 +510,7 @@ const WarehouseEfficiencyCharts = ({
     }));
   }, [filteredSales, i18n.language]);
 
-  // 6. Aggregate by Category
+  // 6. Aggregate by Category for Donut & Breakdown
   const categoryData = useMemo(() => {
     const catMap = new Map();
 
@@ -311,43 +535,56 @@ const WarehouseEfficiencyCharts = ({
     const list = Array.from(catMap.values()).sort((a, b) => b.revenue - a.revenue);
     const maxCatRev = Math.max(...list.map(c => c.revenue), 1);
 
-    return list.map(c => ({
+    return list.map((c, idx) => ({
       ...c,
+      color: CHART_COLORS[idx % CHART_COLORS.length],
       share: summary.totalRevenue > 0 ? (c.revenue / summary.totalRevenue) * 100 : 0,
       barPercent: (c.revenue / maxCatRev) * 100
     }));
   }, [filteredSales, summary]);
 
-  // 7. Aggregate by Payment Method and Channels
+  // Category donut slices
+  const categoryDonutSlices = useMemo(() => {
+    return categoryData.map(c => ({
+      label: c.name,
+      value: c.revenue,
+      displayValue: `₼${c.revenue.toFixed(2)}`,
+      color: c.color
+    }));
+  }, [categoryData]);
+
+  // 7. Aggregate by Payment Method and Channels for Donut charts
   const paymentAndChannels = useMemo(() => {
     const payMap = new Map();
     const chanMap = new Map();
 
     filteredSales.forEach(s => {
-      // Payment
       const pay = s.paymentMethod || 'Nəqd';
       payMap.set(pay, (payMap.get(pay) || 0) + s.totalAmount);
 
-      // Channel
       const chan = s.channel || 'Mağaza';
       chanMap.set(chan, (chanMap.get(chan) || 0) + s.totalAmount);
     });
 
     const payments = Array.from(payMap.entries())
-      .map(([name, amount]) => ({
-        name,
-        amount,
-        percent: summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0
+      .map(([name, amount], idx) => ({
+        label: name,
+        value: amount,
+        displayValue: `₼${amount.toFixed(2)}`,
+        percent: summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0,
+        color: CHART_COLORS[idx % CHART_COLORS.length]
       }))
-      .sort((a, b) => b.amount - a.amount);
+      .sort((a, b) => b.value - a.value);
 
     const channels = Array.from(chanMap.entries())
-      .map(([name, amount]) => ({
-        name,
-        amount,
-        percent: summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0
+      .map(([name, amount], idx) => ({
+        label: name,
+        value: amount,
+        displayValue: `₼${amount.toFixed(2)}`,
+        percent: summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0,
+        color: CHART_COLORS[(idx + 4) % CHART_COLORS.length]
       }))
-      .sort((a, b) => b.amount - a.amount);
+      .sort((a, b) => b.value - a.value);
 
     return { payments, channels };
   }, [filteredSales, summary]);
@@ -544,12 +781,12 @@ const WarehouseEfficiencyCharts = ({
           </div>
         ) : (
           <>
-            {/* TAB 1: TOP PRODUCTS */}
+            {/* TAB 1: TOP PRODUCTS - REAL VISUAL COLUMN CHART */}
             {activeTab === 'top_products' && (
               <div className="space-y-6">
-                {/* Sub-filter: Sort by quantity vs revenue vs profit */}
+                {/* Sub-filter: Sort by quantity vs revenue vs profit + View Switcher */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-100">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-bold text-gray-500 mr-1">
                       {i18n.language === 'az' ? 'Sıralama:' : 'Сортировка:'}
                     </span>
@@ -585,15 +822,54 @@ const WarehouseEfficiencyCharts = ({
                     </button>
                   </div>
 
-                  <div className="text-xs text-gray-400 font-medium">
-                    {i18n.language === 'az' 
-                      ? `Ümumi ${productAggregates.length} adda məhsul satılıb` 
-                      : `Всего продано ${productAggregates.length} наименований`}
+                  {/* Toggle between Column Chart and Rank List */}
+                  <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg self-end sm:self-auto">
+                    <button
+                      onClick={() => setTopChartView('columns')}
+                      className={`p-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${
+                        topChartView === 'columns' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                      title={i18n.language === 'az' ? 'Sütun qrafiki' : 'Столбчатый график'}
+                    >
+                      <BarChart2 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] hidden sm:inline">{i18n.language === 'az' ? 'Sütun Qrafiki' : 'График'}</span>
+                    </button>
+                    <button
+                      onClick={() => setTopChartView('bars')}
+                      className={`p-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${
+                        topChartView === 'bars' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                      title={i18n.language === 'az' ? 'Siyahı xətləri' : 'Список'}
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span className="text-[10px] hidden sm:inline">{i18n.language === 'az' ? 'Xətli Siyahı' : 'Список'}</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Visual Ranking Bars (Top 5-10) */}
+                {/* THE REAL VISUAL COLUMN CHART */}
+                {topChartView === 'columns' && (
+                  <VerticalColumnChart 
+                    items={topColumnsData}
+                    valueKey="value"
+                    labelKey="name"
+                    displayValueKey="displayValue"
+                    yUnit={topSortBy === 'quantity' ? formatUnitName('pcs', i18n.language) : '₼'}
+                    i18n={i18n}
+                  />
+                )}
+
+                {/* Visual Ranking Bars (Top 10) */}
                 <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-xs font-black uppercase text-gray-500 tracking-wider">
+                      {i18n.language === 'az' ? 'Reytinq və Məhsul Göstəriciləri' : 'Рейтинг и показатели товаров'}
+                    </h5>
+                    <span className="text-xs font-semibold text-gray-400">
+                      {productAggregates.length} {i18n.language === 'az' ? 'məhsul' : 'товаров'}
+                    </span>
+                  </div>
+
                   {productAggregates.slice(0, 10).map((prod, idx) => {
                     const unitStr = formatUnitName(prod.unit, i18n.language);
                     const barPercent = topSortBy === 'quantity' 
@@ -692,7 +968,7 @@ const WarehouseEfficiencyCharts = ({
                 </div>
 
                 {/* Detailed Table for all sold items */}
-                {productAggregates.length > 10 && (
+                {productAggregates.length > 5 && (
                   <div className="mt-8 pt-6 border-t border-gray-100">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                       <h4 className="text-sm font-black text-gray-900">
@@ -819,176 +1095,254 @@ const WarehouseEfficiencyCharts = ({
               </div>
             )}
 
-            {/* TAB 3: CATEGORIES DISTRIBUTION */}
+            {/* TAB 3: CATEGORIES - REAL INTERACTIVE SVG DONUT CHART + BREAKDOWN */}
             {activeTab === 'categories' && (
               <div className="space-y-6">
                 <div>
                   <h4 className="text-sm font-black text-gray-900">
-                    {i18n.language === 'az' ? 'Kateqoriyalar üzrə Satış və Paylanma' : 'Продажи по категориям'}
+                    {i18n.language === 'az' ? 'Kateqoriyalar üzrə Dairəvi Qrafik və Paylanma' : 'Круговая диаграмма по категориям'}
                   </h4>
                   <p className="text-xs text-gray-400 font-medium">
-                    {i18n.language === 'az' ? 'Hansı məhsul qrupları ən böyük gəlir gətirir' : 'Какие группы товаров приносят наибольший доход'}
+                    {i18n.language === 'az' ? 'Kateqoriyaların satış həcmi və gəlir nisbəti' : 'Соотношение категорий по выручке и продажам'}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {categoryData.map((cat, idx) => (
-                    <div 
-                      key={cat.name || idx}
-                      className="p-4 rounded-xl border border-gray-100 bg-gray-50/40 hover:bg-white hover:border-blue-200 hover:shadow-sm transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-black text-xs">
-                            {idx + 1}
+                {/* Donut Chart + Category Cards Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                  {/* Left: SVG Donut Chart */}
+                  <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-2xl border border-gray-100">
+                    <SvgDonutChart 
+                      data={categoryDonutSlices}
+                      totalLabel={i18n.language === 'az' ? 'Cəmi Satış' : 'Всего'}
+                      totalValue={`₼${summary.totalRevenue.toFixed(2)}`}
+                      size={220}
+                    />
+                    <p className="text-[11px] font-bold text-gray-400 mt-2">
+                      {categoryData.length} {i18n.language === 'az' ? 'kateqoriya üzrə paylanma' : 'категорий товаров'}
+                    </p>
+                  </div>
+
+                  {/* Right: Category Legend & Visual Progress */}
+                  <div className="lg:col-span-7 space-y-3">
+                    {categoryData.map((cat, idx) => (
+                      <div 
+                        key={cat.name || idx}
+                        className="p-4 rounded-xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-4 h-4 rounded-full shrink-0 shadow-sm"
+                              style={{ backgroundColor: cat.color }}
+                            />
+                            <div>
+                              <h5 className="text-sm font-black text-gray-900">{cat.name}</h5>
+                              <p className="text-[10px] text-gray-400 font-bold">
+                                {cat.quantity} {formatUnitName('pcs', i18n.language)} {i18n.language === 'az' ? 'satılıb' : 'продано'} • {cat.count} {i18n.language === 'az' ? 'əməliyyat' : 'чеков'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h5 className="text-sm font-black text-gray-900">{cat.name}</h5>
-                            <p className="text-[10px] text-gray-400 font-bold">
-                              {cat.quantity} {formatUnitName('pcs', i18n.language)} {i18n.language === 'az' ? 'satılıb' : 'продано'}
-                            </p>
+
+                          <div className="text-right">
+                            <p className="text-sm font-black text-emerald-600">₼{cat.revenue.toFixed(2)}</p>
+                            <span 
+                              className="inline-block px-2 py-0.5 rounded-full text-[10px] font-black text-white"
+                              style={{ backgroundColor: cat.color }}
+                            >
+                              {cat.share.toFixed(1)}%
+                            </span>
                           </div>
                         </div>
 
-                        <div className="text-right">
-                          <p className="text-sm font-black text-emerald-600">₼{cat.revenue.toFixed(2)}</p>
-                          <p className="text-[10px] font-bold text-gray-400">{cat.share.toFixed(1)}%</p>
+                        {/* Visual Bar */}
+                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{ 
+                              width: `${Math.max(cat.share, 3)}%`,
+                              backgroundColor: cat.color 
+                            }}
+                          />
                         </div>
                       </div>
-
-                      <div className="w-full bg-gray-200/60 rounded-full h-2 overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.max(cat.share, 4)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 4: PROFIT & MARGINS */}
+            {/* TAB 4: PROFIT & MARGINS - COMPARATIVE VISUAL BARS */}
             {activeTab === 'margins' && (
               <div className="space-y-6">
                 <div>
                   <h4 className="text-sm font-black text-gray-900">
-                    {i18n.language === 'az' ? 'Məhsul Effektivliyi və Rentabellik' : 'Эффективность товаров и рентабельность'}
+                    {i18n.language === 'az' ? 'Maya vs Satış vs Xalis Qazanc Qrafiki' : 'График: Себестоимость vs Продажи vs Прибыль'}
                   </h4>
                   <p className="text-xs text-gray-400 font-medium">
                     {i18n.language === 'az' 
-                      ? 'Ən çox xalis qazanc gətirən və yüksək marjalı məhsullar' 
-                      : 'Товары с максимальной чистой прибылью и высокой наценкой'}
+                      ? 'Hər məhsul üzrə maya xərci, yekun satış dövriyyəsi və əldə olunan xalis gəlir' 
+                      : 'Соотношение себестоимости, выручки и чистой прибыли по каждому товару'}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Top profit products */}
-                  <div className="bg-gradient-to-br from-amber-50/50 to-orange-50/20 border border-amber-100/80 rounded-xl p-4">
-                    <h5 className="text-xs font-black uppercase text-amber-700 tracking-wider mb-3 flex items-center gap-1.5">
-                      <Award className="w-4 h-4" />
-                      {i18n.language === 'az' ? 'Ən Çox Xalis Qazanc Gətirənlər' : 'Топ по чистой прибыли'}
-                    </h5>
-                    <div className="space-y-2.5">
-                      {[...productAggregates].sort((a, b) => b.profit - a.profit).slice(0, 5).map((p, i) => (
-                        <div key={p.id || i} className="bg-white p-3 rounded-lg border border-amber-100/60 flex items-center justify-between">
-                          <div className="min-w-0 pr-2">
-                            <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
-                            <p className="text-[10px] text-gray-400 font-medium">
-                              {p.quantity} {formatUnitName(p.unit, i18n.language)} • Dövriyyə: ₼{p.revenue.toFixed(2)}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs font-black text-amber-600">+₼{p.profit.toFixed(2)}</p>
-                            <p className="text-[10px] font-bold text-emerald-600">{p.margin.toFixed(1)}% {i18n.language === 'az' ? 'marja' : ''}</p>
-                          </div>
-                        </div>
-                      ))}
+                {/* Comparative Visual Chart */}
+                <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-5 space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-200/60">
+                    <span className="text-xs font-black uppercase text-gray-500 tracking-wider">
+                      {i18n.language === 'az' ? 'Məhsulların Maliyyə Strukturu' : 'Финансовая структура товаров'}
+                    </span>
+                    <div className="flex items-center gap-4 text-xs font-bold">
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <span className="w-3 h-3 rounded bg-blue-500" />
+                        <span>{i18n.language === 'az' ? 'Maya Dəyəri' : 'Себестоимость'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <span className="w-3 h-3 rounded bg-emerald-500" />
+                        <span>{i18n.language === 'az' ? 'Satış Məbləği' : 'Выручка'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <span className="w-3 h-3 rounded bg-amber-500" />
+                        <span>{i18n.language === 'az' ? 'Xalis Qazanc' : 'Чистая прибыль'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Highest margin % */}
-                  <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/20 border border-emerald-100/80 rounded-xl p-4">
-                    <h5 className="text-xs font-black uppercase text-emerald-700 tracking-wider mb-3 flex items-center gap-1.5">
-                      <TrendingUp className="w-4 h-4" />
-                      {i18n.language === 'az' ? 'Ən Yüksək Marjalı Məhsullar (%)' : 'Самые высокомаржинальные (%)'}
-                    </h5>
-                    <div className="space-y-2.5">
-                      {[...productAggregates].filter(p => p.revenue > 10).sort((a, b) => b.margin - a.margin).slice(0, 5).map((p, i) => (
-                        <div key={p.id || i} className="bg-white p-3 rounded-lg border border-emerald-100/60 flex items-center justify-between">
-                          <div className="min-w-0 pr-2">
-                            <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
-                            <p className="text-[10px] text-gray-400 font-medium">
-                              Maya: ₼{(p.revenue - p.profit).toFixed(2)} • Satış: ₼{p.revenue.toFixed(2)}
-                            </p>
+                  <div className="space-y-4">
+                    {productAggregates.slice(0, 6).map((p, idx) => {
+                      const costTotal = Math.max(p.revenue - p.profit, 0);
+                      const maxBar = Math.max(p.revenue, 1);
+
+                      return (
+                        <div key={p.id || idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h5 className="text-sm font-black text-gray-900">{p.name}</h5>
+                              <p className="text-[10px] text-gray-400 font-bold">
+                                {p.quantity} {formatUnitName(p.unit, i18n.language)} • {p.categoryName}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                {p.margin.toFixed(1)}% {i18n.language === 'az' ? 'marja' : 'маржа'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-xs font-black text-emerald-600">{p.margin.toFixed(1)}%</p>
-                            <p className="text-[10px] font-bold text-gray-400">+{p.profit.toFixed(2)} ₼</p>
+
+                          {/* 3 Comparative Bars */}
+                          <div className="space-y-1.5 text-xs font-bold pt-1">
+                            {/* Cost Bar */}
+                            <div className="flex items-center gap-3">
+                              <span className="w-24 text-[10px] text-gray-500 uppercase">{i18n.language === 'az' ? 'Maya:' : 'Себест:'}</span>
+                              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                <div 
+                                  className="h-full bg-blue-500 rounded-full transition-all duration-700" 
+                                  style={{ width: `${Math.max((costTotal / maxBar) * 100, 3)}%` }} 
+                                />
+                              </div>
+                              <span className="w-20 text-right font-black text-gray-700">₼{costTotal.toFixed(2)}</span>
+                            </div>
+
+                            {/* Revenue Bar */}
+                            <div className="flex items-center gap-3">
+                              <span className="w-24 text-[10px] text-emerald-600 uppercase">{i18n.language === 'az' ? 'Satış:' : 'Продажа:'}</span>
+                              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                <div 
+                                  className="h-full bg-emerald-500 rounded-full transition-all duration-700" 
+                                  style={{ width: '100%' }} 
+                                />
+                              </div>
+                              <span className="w-20 text-right font-black text-emerald-600">₼{p.revenue.toFixed(2)}</span>
+                            </div>
+
+                            {/* Profit Bar */}
+                            <div className="flex items-center gap-3">
+                              <span className="w-24 text-[10px] text-amber-600 uppercase">{i18n.language === 'az' ? 'Qazanc:' : 'Прибыль:'}</span>
+                              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                <div 
+                                  className="h-full bg-amber-500 rounded-full transition-all duration-700" 
+                                  style={{ width: `${Math.max((p.profit / maxBar) * 100, 3)}%` }} 
+                                />
+                              </div>
+                              <span className="w-20 text-right font-black text-amber-600">+₼{p.profit.toFixed(2)}</span>
+                            </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TAB 5: PAYMENT METHODS & CHANNELS */}
+            {/* TAB 5: PAYMENT METHODS & CHANNELS - DUAL SVG DONUT CHARTS */}
             {activeTab === 'channels' && (
               <div className="space-y-6">
                 <div>
                   <h4 className="text-sm font-black text-gray-900">
-                    {i18n.language === 'az' ? 'Ödəniş Üsulları və Satış Kanalları' : 'Способы оплаты и каналы продаж'}
+                    {i18n.language === 'az' ? 'Ödəniş Üsulları və Satış Kanalları Qrafiki' : 'Графики: Способы оплаты и каналы'}
                   </h4>
                   <p className="text-xs text-gray-400 font-medium">
-                    {i18n.language === 'az' ? 'Müştərilərin necə və haradan alış etməsi' : 'Как и откуда покупают клиенты'}
+                    {i18n.language === 'az' ? 'Dairəvi diaqramlarla ödəniş metodları və satış mənbələri' : 'Круговые диаграммы способов оплаты и каналов сбыта'}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Payment methods */}
-                  <div className="border border-gray-100 rounded-xl p-4 bg-gray-50/30">
-                    <h5 className="text-xs font-black uppercase text-gray-500 tracking-wider mb-4 flex items-center gap-1.5">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Donut 1: Payment Methods */}
+                  <div className="border border-gray-100 rounded-2xl p-5 bg-gradient-to-b from-gray-50/50 to-white shadow-sm flex flex-col items-center">
+                    <h5 className="text-xs font-black uppercase text-purple-700 tracking-wider mb-4 flex items-center gap-1.5 self-start">
                       <CreditCard className="w-4 h-4 text-purple-600" />
-                      {i18n.language === 'az' ? 'Ödəniş Üsulları' : 'Способы оплаты'}
+                      {i18n.language === 'az' ? 'Ödəniş Üsulları Qrafiki' : 'Диаграмма способов оплаты'}
                     </h5>
-                    <div className="space-y-3">
+
+                    <SvgDonutChart 
+                      data={paymentAndChannels.payments}
+                      totalLabel={i18n.language === 'az' ? 'Cəmi Ödəniş' : 'Всего'}
+                      totalValue={`₼${summary.totalRevenue.toFixed(2)}`}
+                      size={200}
+                    />
+
+                    {/* Legend */}
+                    <div className="w-full space-y-2 mt-4 pt-4 border-t border-gray-100">
                       {paymentAndChannels.payments.map((p, i) => (
-                        <div key={p.name || i} className="bg-white p-3 rounded-lg border border-gray-100">
-                          <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                            <span className="text-gray-900">{p.name}</span>
-                            <span className="text-emerald-600 font-black">₼{p.amount.toFixed(2)} ({p.percent.toFixed(1)}%)</span>
+                        <div key={p.label || i} className="flex items-center justify-between text-xs font-bold p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: p.color }} />
+                            <span className="text-gray-900">{p.label}</span>
                           </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div 
-                              className="h-full bg-purple-600 rounded-full"
-                              style={{ width: `${Math.max(p.percent, 3)}%` }}
-                            />
+                          <div className="flex items-center gap-2">
+                            <span className="text-emerald-600 font-black">{p.displayValue}</span>
+                            <span className="text-[10px] text-gray-400 font-bold">({p.percent.toFixed(1)}%)</span>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Channels */}
-                  <div className="border border-gray-100 rounded-xl p-4 bg-gray-50/30">
-                    <h5 className="text-xs font-black uppercase text-gray-500 tracking-wider mb-4 flex items-center gap-1.5">
+                  {/* Donut 2: Channels */}
+                  <div className="border border-gray-100 rounded-2xl p-5 bg-gradient-to-b from-gray-50/50 to-white shadow-sm flex flex-col items-center">
+                    <h5 className="text-xs font-black uppercase text-blue-700 tracking-wider mb-4 flex items-center gap-1.5 self-start">
                       <Store className="w-4 h-4 text-blue-600" />
-                      {i18n.language === 'az' ? 'Satış Kanalları' : 'Каналы продаж'}
+                      {i18n.language === 'az' ? 'Satış Kanalları Qrafiki' : 'Диаграмма каналов продаж'}
                     </h5>
-                    <div className="space-y-3">
+
+                    <SvgDonutChart 
+                      data={paymentAndChannels.channels}
+                      totalLabel={i18n.language === 'az' ? 'Cəmi Satış' : 'Всего'}
+                      totalValue={`₼${summary.totalRevenue.toFixed(2)}`}
+                      size={200}
+                    />
+
+                    {/* Legend */}
+                    <div className="w-full space-y-2 mt-4 pt-4 border-t border-gray-100">
                       {paymentAndChannels.channels.map((c, i) => (
-                        <div key={c.name || i} className="bg-white p-3 rounded-lg border border-gray-100">
-                          <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                            <span className="text-gray-900">{c.name}</span>
-                            <span className="text-blue-600 font-black">₼{c.amount.toFixed(2)} ({c.percent.toFixed(1)}%)</span>
+                        <div key={c.label || i} className="flex items-center justify-between text-xs font-bold p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: c.color }} />
+                            <span className="text-gray-900">{c.label}</span>
                           </div>
-                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div 
-                              className="h-full bg-blue-600 rounded-full"
-                              style={{ width: `${Math.max(c.percent, 3)}%` }}
-                            />
+                          <div className="flex items-center gap-2">
+                            <span className="text-blue-600 font-black">{c.displayValue}</span>
+                            <span className="text-[10px] text-gray-400 font-bold">({c.percent.toFixed(1)}%)</span>
                           </div>
                         </div>
                       ))}
