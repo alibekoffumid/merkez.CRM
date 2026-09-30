@@ -29,7 +29,7 @@ import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
-import SaleDetailModal, { parseSaleNote } from './SaleDetailModal';
+import SaleDetailModal, { parseSaleNote, formatUnitName } from './SaleDetailModal';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
@@ -1279,10 +1279,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const formatUnit = (unit) => {
-    if (!unit || unit === 'pcs' || unit === 'ədəd' || unit === 'əd.' || unit === 'шт' || unit === 'шт.') {
-      return i18n.language === 'az' ? 'əd.' : i18n.language === 'ru' ? 'шт.' : 'pcs';
-    }
-    return t('restaurant.' + unit, { defaultValue: unit });
+    return formatUnitName(unit, i18n.language);
   };
 
   const SUPPLIER_PALETTES = [
@@ -2342,7 +2339,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               </div>
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
+                              <span className="text-sm font-black text-red-500">-{dispatch.quantity} {formatUnit(prodObj?.unit)}</span>
                             </td>
                             <td className="px-6 py-4 text-right font-bold text-gray-600 text-sm">
                               ₼{parsed.unitPrice.toFixed(2)}

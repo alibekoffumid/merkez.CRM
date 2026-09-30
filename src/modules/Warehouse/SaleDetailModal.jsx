@@ -30,6 +30,42 @@ import ModalPortal from '../../components/Common/ModalPortal';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 
+export const formatUnitName = (rawUnit, lang = 'az') => {
+  if (!rawUnit) return lang === 'az' ? 'Ədəd' : lang === 'ru' ? 'Шт.' : 'pcs';
+
+  const u = String(rawUnit).trim().toLowerCase();
+
+  if (['pcs', 'piece', 'pieces', 'ədəd', 'əd', 'əd.', 'ед', 'ед.', 'шт', 'шт.', 'штука'].includes(u)) {
+    return lang === 'az' ? 'Ədəd' : lang === 'ru' ? 'Шт.' : 'pcs';
+  }
+  if (['pack', 'paket', 'пакет', 'пачка', 'упаковка', 'упак', 'уп', 'bağlama', 'baglama'].includes(u)) {
+    return lang === 'az' ? 'Paket' : lang === 'ru' ? 'Пачка' : 'pack';
+  }
+  if (['kg', 'kiloqram', 'килограмм', 'кг', 'kq'].includes(u)) {
+    return lang === 'az' ? 'Kq' : lang === 'ru' ? 'Кг' : 'kg';
+  }
+  if (['g', 'q', 'gram', 'qram', 'грамм', 'гр', 'г'].includes(u)) {
+    return lang === 'az' ? 'Qram' : lang === 'ru' ? 'Грамм' : 'g';
+  }
+  if (['liter', 'litr', 'литр', 'л', 'l'].includes(u)) {
+    return lang === 'az' ? 'Litr' : lang === 'ru' ? 'Литр' : 'liter';
+  }
+  if (['ml', 'millilitr', 'миллилитр', 'мл'].includes(u)) {
+    return lang === 'az' ? 'Ml' : lang === 'ru' ? 'Мл' : 'ml';
+  }
+  if (['bottle', 'şüşə', 'suse', 'бутылка', 'бут'].includes(u)) {
+    return lang === 'az' ? 'Şüşə' : lang === 'ru' ? 'Бутылка' : 'bottle';
+  }
+  if (['m', 'metr', 'метр', 'м'].includes(u)) {
+    return lang === 'az' ? 'Metr' : lang === 'ru' ? 'Метр' : 'm';
+  }
+  if (['m2', 'm²', 'kv.m', 'кв.м'].includes(u)) {
+    return 'm²';
+  }
+
+  return rawUnit.charAt(0).toUpperCase() + rawUnit.slice(1);
+};
+
 export const parseSaleNote = (note = '', product = null, quantity = 1) => {
   const qty = Math.abs(parseFloat(quantity) || 1);
   const prodPrice = product?.price ? Number(product.price) : 0;
@@ -195,6 +231,7 @@ const SaleDetailModal = ({
   const prod = sale.products;
   const quantity = Math.abs(parseFloat(sale.quantity) || 1);
   const saleInfo = parseSaleNote(sale.notes, prod, quantity);
+  const unitLabel = formatUnitName(prod?.unit, i18n.language);
   
   // Format Date and Time
   const dateObj = new Date(sale.issued_at || sale.created_at || Date.now());
@@ -288,7 +325,7 @@ const SaleDetailModal = ({
           <div class="bold">${prod?.name || 'Məhsul'}</div>
           ${prod?.barcode ? `<div style="font-size: 10px;">Barkod: ${prod.barcode}</div>` : ''}
           <div class="flex-between" style="margin-top: 2px;">
-            <span>${quantity} ${prod?.unit || 'əd'} x ₼${saleInfo.unitPrice.toFixed(2)}</span>
+            <span>${quantity} ${unitLabel} x ₼${saleInfo.unitPrice.toFixed(2)}</span>
             <span class="bold">₼${saleInfo.totalAmount.toFixed(2)}</span>
           </div>
         </div>
@@ -432,7 +469,7 @@ const SaleDetailModal = ({
                   )}
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600/80 mt-1">
-                  <span>₼{saleInfo.unitPrice.toFixed(2)} / {prod?.unit || 'ədəd'}</span>
+                  <span>₼{saleInfo.unitPrice.toFixed(2)} / {unitLabel}</span>
                   {saleInfo.discount > 0 && (
                     <span className="px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-700">
                       -{saleInfo.discount.toFixed(2)} ₼
@@ -450,10 +487,10 @@ const SaleDetailModal = ({
                   <Package className="w-4 h-4" />
                 </div>
                 <div className="text-xl sm:text-2xl font-black text-blue-700 tracking-tight">
-                  {quantity} <span className="text-sm font-bold">{prod?.unit || 'ədəd'}</span>
+                  {quantity} <span className="text-sm font-bold">{unitLabel}</span>
                 </div>
                 <div className="text-[10px] font-bold text-blue-600/80 mt-1 truncate">
-                  {i18n.language === 'az' ? `Qalıq: ${prod?.stock_quantity ?? '—'}` : `Остаток: ${prod?.stock_quantity ?? '—'}`}
+                  {i18n.language === 'az' ? `Qalıq: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}` : `Остаток: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}`}
                 </div>
               </div>
 
@@ -627,7 +664,7 @@ const SaleDetailModal = ({
 
                     <div className="flex items-center justify-between">
                       <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'Miqdar:' : 'Количество:'}</span>
-                      <span className="font-bold text-gray-900">{quantity} {prod?.unit || 'əd'}</span>
+                      <span className="font-bold text-gray-900">{quantity} {unitLabel}</span>
                     </div>
 
                     {saleInfo.discount > 0 && (
