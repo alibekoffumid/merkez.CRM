@@ -75,6 +75,12 @@ export const getChannelBadge = (channel) => {
   if (ch.includes('kredit')) {
     return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: channel };
   }
+  if (ch.includes('instagram')) {
+    return { bg: 'bg-pink-50 text-pink-700 border-pink-200', label: 'Instagram' };
+  }
+  if (ch.includes('web site') || ch.includes('website') || ch.includes('sayt')) {
+    return { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', label: 'Web site' };
+  }
   if (ch.includes('sosial')) {
     return { bg: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Sosial Şəbəkə' };
   }
@@ -249,6 +255,9 @@ const SaleDetailModal = ({
 }) => {
   const { t, i18n } = useTranslation();
   const [copiedField, setCopiedField] = useState(null);
+
+  // Only Admin (no staff = owner, or role === 'Admin') can see financial KPIs
+  const isAdmin = !currentStaff || currentStaff?.role === 'Admin';
 
   if (!isOpen || !sale) return null;
 
@@ -461,82 +470,84 @@ const SaleDetailModal = ({
           {/* Modal Body */}
           <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
             
-            {/* 1. Top Financial KPI Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Total Sale Amount */}
-              <div className="bg-gradient-to-br from-emerald-50 to-green-50/40 border border-emerald-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-emerald-600 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider">
-                    {i18n.language === 'az' ? 'Cəmi Məbləğ' : i18n.language === 'ru' ? 'Итого' : 'Total'}
-                  </span>
-                  <DollarSign className="w-4 h-4" />
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight flex items-baseline gap-1.5 flex-wrap">
-                  <span>₼{saleInfo.totalAmount.toFixed(2)}</span>
-                  {saleInfo.discount > 0 && (
-                    <span className="text-xs line-through text-gray-400 font-semibold">
-                      ₼{saleInfo.originalGross.toFixed(2)}
+            {/* 1. Top Financial KPI Cards — Admin only */}
+            {isAdmin && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {/* Total Sale Amount */}
+                <div className="bg-gradient-to-br from-emerald-50 to-green-50/40 border border-emerald-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-emerald-600 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {i18n.language === 'az' ? 'Cəmi Məbləğ' : i18n.language === 'ru' ? 'Итого' : 'Total'}
                     </span>
-                  )}
+                    <DollarSign className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight flex items-baseline gap-1.5 flex-wrap">
+                    <span>₼{saleInfo.totalAmount.toFixed(2)}</span>
+                    {saleInfo.discount > 0 && (
+                      <span className="text-xs line-through text-gray-400 font-semibold">
+                        ₼{saleInfo.originalGross.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600/80 mt-1">
+                    <span>₼{saleInfo.unitPrice.toFixed(2)} / {unitLabel}</span>
+                    {saleInfo.discount > 0 && (
+                      <span className="px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-700">
+                        -{saleInfo.discount.toFixed(2)} ₼
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600/80 mt-1">
-                  <span>₼{saleInfo.unitPrice.toFixed(2)} / {unitLabel}</span>
-                  {saleInfo.discount > 0 && (
-                    <span className="px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-700">
-                      -{saleInfo.discount.toFixed(2)} ₼
+
+                {/* Quantity */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 border border-blue-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-blue-600 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {i18n.language === 'az' ? 'Miqdar' : i18n.language === 'ru' ? 'Количество' : 'Quantity'}
                     </span>
-                  )}
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-blue-700 tracking-tight">
+                    {quantity} <span className="text-sm font-bold">{unitLabel}</span>
+                  </div>
+                  <div className="text-[10px] font-bold text-blue-600/80 mt-1 truncate">
+                    {i18n.language === 'az' ? `Qalıq: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}` : `Остаток: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}`}
+                  </div>
                 </div>
-              </div>
 
-              {/* Quantity */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 border border-blue-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-blue-600 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider">
-                    {i18n.language === 'az' ? 'Miqdar' : i18n.language === 'ru' ? 'Количество' : 'Quantity'}
-                  </span>
-                  <Package className="w-4 h-4" />
+                {/* Payment Method */}
+                <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50/40 border border-purple-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-purple-600 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {i18n.language === 'az' ? 'Ödəniş' : i18n.language === 'ru' ? 'Оплата' : 'Payment'}
+                    </span>
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div className="text-base sm:text-lg font-black text-purple-700 truncate tracking-tight">
+                    {saleInfo.paymentMethod}
+                  </div>
+                  <div className="text-[10px] font-bold text-purple-600/80 mt-1 truncate">
+                    {saleInfo.channel}
+                  </div>
                 </div>
-                <div className="text-xl sm:text-2xl font-black text-blue-700 tracking-tight">
-                  {quantity} <span className="text-sm font-bold">{unitLabel}</span>
-                </div>
-                <div className="text-[10px] font-bold text-blue-600/80 mt-1 truncate">
-                  {i18n.language === 'az' ? `Qalıq: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}` : `Остаток: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}`}
-                </div>
-              </div>
 
-              {/* Payment Method */}
-              <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50/40 border border-purple-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-purple-600 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider">
-                    {i18n.language === 'az' ? 'Ödəniş' : i18n.language === 'ru' ? 'Оплата' : 'Payment'}
-                  </span>
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <div className="text-base sm:text-lg font-black text-purple-700 truncate tracking-tight">
-                  {saleInfo.paymentMethod}
-                </div>
-                <div className="text-[10px] font-bold text-purple-600/80 mt-1 truncate">
-                  {saleInfo.channel}
-                </div>
-              </div>
-
-              {/* Profit / Cost (for Managers / Admins) */}
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 border border-amber-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                <div className="flex items-center justify-between text-amber-600 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider">
-                    {i18n.language === 'az' ? 'Mənfəət' : i18n.language === 'ru' ? 'Прибыль' : 'Profit'}
-                  </span>
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
-                  +₼{saleInfo.profit !== null ? saleInfo.profit.toFixed(2) : (saleInfo.totalAmount - saleInfo.totalCost).toFixed(2)}
-                </div>
-                <div className="text-[10px] font-bold text-amber-600/80 mt-1 truncate">
-                  {i18n.language === 'az' ? `Maya: ₼${saleInfo.totalCost.toFixed(2)}` : `Себест.: ₼${saleInfo.totalCost.toFixed(2)}`}
+                {/* Profit / Cost */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 border border-amber-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between text-amber-600 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {i18n.language === 'az' ? 'Mənfəət' : i18n.language === 'ru' ? 'Прибыль' : 'Profit'}
+                    </span>
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                  <div className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
+                    +₼{saleInfo.profit !== null ? saleInfo.profit.toFixed(2) : (saleInfo.totalAmount - saleInfo.totalCost).toFixed(2)}
+                  </div>
+                  <div className="text-[10px] font-bold text-amber-600/80 mt-1 truncate">
+                    {i18n.language === 'az' ? `Maya: ₼${saleInfo.totalCost.toFixed(2)}` : `Себест.: ₼${saleInfo.totalCost.toFixed(2)}`}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* 2. Product Information Card */}
             <div className="bg-gray-50/70 border border-gray-100 rounded-xl p-4 sm:p-5">
