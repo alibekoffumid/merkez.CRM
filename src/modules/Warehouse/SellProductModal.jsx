@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera } from 'lucide-react'; 
+import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
@@ -48,7 +48,51 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [bankSettings, setBankSettings] = useState([]);
   const [activeTariff, setActiveTariff] = useState(null);
   const [birmarketCategory, setBirmarketCategory] = useState('Alətlər'); // 'Alətlər' | 'Aksesuarlar'
-  const [salesChannel, setSalesChannel] = useState('Mağaza'); // 'Mağaza' | 'Sosial şəbəkə'
+  const [salesChannel, setSalesChannel] = useState('Mağaza');
+
+  // Custom channels stored in localStorage
+  const STORAGE_KEY = 'crm_custom_sales_channels';
+  const DEFAULT_CHANNELS = [
+    { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
+    { value: 'Instagram', label: 'Instagram' },
+    { value: 'Web site', label: 'Web site' },
+    { value: 'Birmarket', label: 'Birmarket' },
+    { value: 'Tap.az', label: 'Tap.az' },
+    { value: 'Lalafo', label: 'Lalafo' },
+    { value: 'TikTok', label: 'TikTok' },
+  ];
+  const [customChannels, setCustomChannels] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  });
+  const [showAddChannel, setShowAddChannel] = useState(false);
+  const [newChannelName, setNewChannelName] = useState('');
+  const newChannelInputRef = useRef(null);
+
+  const allChannels = [
+    ...DEFAULT_CHANNELS,
+    ...customChannels.map(ch => ({ value: ch, label: ch }))
+  ];
+
+  const handleAddChannel = () => {
+    const name = newChannelName.trim();
+    if (!name) return;
+    const already = allChannels.some(c => c.value.toLowerCase() === name.toLowerCase());
+    if (already) { toast.error(i18n.language === 'az' ? 'Bu kanal artıq mövcuddur' : 'Канал уже существует'); return; }
+    const updated = [...customChannels, name];
+    setCustomChannels(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    setSalesChannel(name);
+    setNewChannelName('');
+    setShowAddChannel(false);
+    toast.success(i18n.language === 'az' ? `"${name}" kanalı əlavə edildi` : `Канал "${name}" добавлен`);
+  };
+
+  const handleDeleteCustomChannel = (ch) => {
+    const updated = customChannels.filter(c => c !== ch);
+    setCustomChannels(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    if (salesChannel === ch) setSalesChannel('Mağaza');
+  };
 
   const handleCustomerAdded = (newCust) => {
     setCustomers(prev => [newCust, ...prev]);
@@ -805,23 +849,67 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
                   {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt') && (
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">
-                        {i18n.language === 'az' ? 'Satış kanalı' : 'Канал продажи'}
-                      </label>
-                      <Dropdown 
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          {i18n.language === 'az' ? 'Satış kanalı' : 'Канал продажи'}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => { setShowAddChannel(v => !v); setTimeout(() => newChannelInputRef.current?.focus(), 50); }}
+                          className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                        >
+                          <PlusCircle className="w-3.5 h-3.5" />
+                          {i18n.language === 'az' ? 'Yeni kanal' : 'Новый канал'}
+                        </button>
+                      </div>
+
+                      {/* Add new channel inline form */}
+                      {showAddChannel && (
+                        <div className="flex gap-2 mb-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <input
+                            ref={newChannelInputRef}
+                            type="text"
+                            value={newChannelName}
+                            onChange={e => setNewChannelName(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleAddChannel(); if (e.key === 'Escape') { setShowAddChannel(false); setNewChannelName(''); } }}
+                            placeholder={i18n.language === 'az' ? 'Kanal adı...' : 'Название канала...'}
+                            className="flex-1 rounded-lg border border-blue-200 bg-blue-50/40 px-3 py-2 text-sm font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddChannel}
+                            className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-colors"
+                          >
+                            {i18n.language === 'az' ? 'Əlavə et' : 'Добавить'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setShowAddChannel(false); setNewChannelName(''); }}
+                            className="px-2 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      <Dropdown
                         value={salesChannel}
                         onChange={val => setSalesChannel(val)}
                         buttonClassName="rounded-xl px-5 py-3"
-                        options={[
-                          { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
-                          { value: 'Instagram', label: 'Instagram' },
-                          { value: 'Web site', label: 'Web site' },
-                          { value: 'Birmarket', label: 'Birmarket' },
-                          { value: 'Tap.az', label: 'Tap.az' },
-                          { value: 'Lalafo', label: 'Lalafo' },
-                          { value: 'TikTok', label: 'TikTok' }
-                        ]}
+                        options={allChannels}
                       />
+
+                      {/* Show delete button for custom channels */}
+                      {customChannels.includes(salesChannel) && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCustomChannel(salesChannel)}
+                          className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors px-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {i18n.language === 'az' ? `"${salesChannel}" kanalını sil` : `Удалить канал "${salesChannel}"`}
+                        </button>
+                      )}
                     </div>
                   )}
 
