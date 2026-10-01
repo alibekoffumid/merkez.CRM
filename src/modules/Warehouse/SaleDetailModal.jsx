@@ -82,7 +82,7 @@ export const getChannelBadge = (channel) => {
     return { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', label: 'Web site' };
   }
   if (ch.includes('sosial')) {
-    return { bg: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Sosial Şəbəkə' };
+    return { bg: 'bg-purple-50 text-purple-700 border-purple-200', label: 'Instagram' };
   }
   if (ch.includes('tap.az') || ch.includes('tap')) {
     return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Tap.az' };
