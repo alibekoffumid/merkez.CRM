@@ -50,7 +50,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [birmarketCategory, setBirmarketCategory] = useState('Alətlər'); // 'Alətlər' | 'Aksesuarlar'
   const [salesChannel, setSalesChannel] = useState('Mağaza');
 
-  // Custom channels stored in localStorage
+  // Custom channels — stored in Supabase profiles.custom_channels + localStorage cache
   const STORAGE_KEY = 'crm_custom_sales_channels';
   const DEFAULT_CHANNELS = [
     { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
@@ -68,29 +68,58 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [newChannelName, setNewChannelName] = useState('');
   const newChannelInputRef = useRef(null);
 
+  // Load custom channels from Supabase on mount
+  useEffect(() => {
+    const loadChannelsFromDB = async () => {
+      if (!profile?.id) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('custom_channels')
+        .eq('id', profile.id)
+        .single();
+      if (!error && data?.custom_channels) {
+        const dbChannels = Array.isArray(data.custom_channels) ? data.custom_channels : [];
+        setCustomChannels(dbChannels);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dbChannels));
+      }
+    };
+    loadChannelsFromDB();
+  }, [profile?.id]);
+
+  // Save channels to Supabase + localStorage
+  const saveChannelsToDB = async (updated) => {
+    setCustomChannels(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    if (profile?.id) {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ custom_channels: updated })
+        .eq('id', profile.id);
+      if (error) console.error('Failed to save channels to DB:', error.message);
+    }
+  };
+
   const allChannels = [
     ...DEFAULT_CHANNELS,
     ...customChannels.map(ch => ({ value: ch, label: ch }))
   ];
 
-  const handleAddChannel = () => {
+  const handleAddChannel = async () => {
     const name = newChannelName.trim();
     if (!name) return;
     const already = allChannels.some(c => c.value.toLowerCase() === name.toLowerCase());
     if (already) { toast.error(i18n.language === 'az' ? 'Bu kanal artıq mövcuddur' : 'Канал уже существует'); return; }
     const updated = [...customChannels, name];
-    setCustomChannels(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    await saveChannelsToDB(updated);
     setSalesChannel(name);
     setNewChannelName('');
     setShowAddChannel(false);
     toast.success(i18n.language === 'az' ? `"${name}" kanalı əlavə edildi` : `Канал "${name}" добавлен`);
   };
 
-  const handleDeleteCustomChannel = (ch) => {
+  const handleDeleteCustomChannel = async (ch) => {
     const updated = customChannels.filter(c => c !== ch);
-    setCustomChannels(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    await saveChannelsToDB(updated);
     if (salesChannel === ch) setSalesChannel('Mağaza');
   };
 
