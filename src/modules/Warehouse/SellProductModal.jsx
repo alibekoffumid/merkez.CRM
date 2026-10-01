@@ -814,7 +814,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         buttonClassName="rounded-xl px-5 py-3"
                         options={[
                           { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
-                          { value: 'Sosial şəbəkə', label: i18n.language === 'az' ? 'Sosial şəbəkə' : 'Социальные сети' },
+                          { value: 'Instagram', label: 'Instagram' },
+                          { value: 'Web site', label: 'Web site' },
                           { value: 'Birmarket', label: 'Birmarket' },
                           { value: 'Tap.az', label: 'Tap.az' },
                           { value: 'Lalafo', label: 'Lalafo' },
