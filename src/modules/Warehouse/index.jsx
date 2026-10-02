@@ -97,7 +97,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [transfers, setTransfers] = useState([]);
   const [historyFilter, setHistoryFilter] = useState(null); // supplier_id
   const [historySearchTerm, setHistorySearchTerm] = useState('');
-  const [historyTab, setHistoryTab] = useState('receipts'); // 'receipts' | 'dispatches'
+  const [historyTab, setHistoryTab] = useState('sales'); // 'sales' | 'receipts' | 'dispatches'
   const [salesChannelFilter, setSalesChannelFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
@@ -106,6 +106,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return saved ? parseInt(saved, 10) : null;
   });
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  const getTodayDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   const formatHistoryDateTime = (dateVal, createdAtVal) => {
     let dateObj = null;
@@ -180,8 +188,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     setCategorySidebarWidth(null);
     localStorage.removeItem('warehouse_category_sidebar_width');
   };
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => getTodayDateString());
+  const [endDate, setEndDate] = useState(() => getTodayDateString());
   const [loading, setLoading] = useState(true);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -1981,6 +1989,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button 
                   onClick={() => {
                     setHistoryTab('receipts');
+                    setStartDate('');
+                    setEndDate('');
                     fetchReceipts();
                   }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
@@ -1990,6 +2000,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button 
                   onClick={() => {
                     setHistoryTab('sales');
+                    if (!startDate && !endDate) {
+                      const today = getTodayDateString();
+                      setStartDate(today);
+                      setEndDate(today);
+                    }
                     fetchDispatches();
                   }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
@@ -1999,6 +2014,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button 
                   onClick={() => {
                     setHistoryTab('dispatches');
+                    setStartDate('');
+                    setEndDate('');
                     fetchDispatches();
                   }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
@@ -2008,6 +2025,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <button 
                   onClick={() => {
                     setHistoryTab('transfers');
+                    setStartDate('');
+                    setEndDate('');
                     fetchTransfers();
                   }}
                   className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
@@ -2288,11 +2307,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   ) : historyTab === 'sales' ? (
                     dispatches.filter(dispatch => {
                       if (dispatch.reason !== 'sale') return false;
-                      if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                      const targetDateStr = dispatch.issued_at || dispatch.created_at;
+                      if (startDate) {
+                        const start = new Date(startDate);
+                        start.setHours(0, 0, 0, 0);
+                        if (new Date(targetDateStr) < start) return false;
+                      }
                       if (endDate) {
                         const end = new Date(endDate);
                         end.setHours(23, 59, 59, 999);
-                        if (new Date(dispatch.issued_at) > end) return false;
+                        if (new Date(targetDateStr) > end) return false;
                       }
 
                       // Channel filter
@@ -2356,11 +2380,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     ) : (
                       dispatches.filter(dispatch => {
                         if (dispatch.reason !== 'sale') return false;
-                        if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                        const targetDateStr = dispatch.issued_at || dispatch.created_at;
+                        if (startDate) {
+                          const start = new Date(startDate);
+                          start.setHours(0, 0, 0, 0);
+                          if (new Date(targetDateStr) < start) return false;
+                        }
                         if (endDate) {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);
-                          if (new Date(dispatch.issued_at) > end) return false;
+                          if (new Date(targetDateStr) > end) return false;
                         }
 
                         // Channel filter

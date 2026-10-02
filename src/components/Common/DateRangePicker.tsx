@@ -162,7 +162,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-merkez-blue transition-colors" />
           <span className={startDate ? 'text-gray-900' : 'text-gray-400 font-medium'}>
             {startDate ? (
-              endDate ? `${formatDateDisplay(startDate)} - ${formatDateDisplay(endDate)}` : `${formatDateDisplay(startDate)}...`
+              endDate ? (startDate === endDate ? formatDateDisplay(startDate) : `${formatDateDisplay(startDate)} - ${formatDateDisplay(endDate)}`) : `${formatDateDisplay(startDate)}...`
             ) : placeholder}
           </span>
         </button>
