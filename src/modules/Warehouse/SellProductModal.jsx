@@ -30,7 +30,13 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [categories, setCategories] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeMode, setBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeInputRef = useRef(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
@@ -196,7 +202,13 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           });
         }
 
-        setBarcodeMode(false);
+        const savedScannerMode = (() => {
+          try { return localStorage.getItem('crm_scanner_mode') !== 'false'; } catch (e) { return true; }
+        })();
+        setBarcodeMode(savedScannerMode);
+        if (savedScannerMode) {
+          setTimeout(() => barcodeInputRef.current?.focus(), 150);
+        }
         setBarcodeBuffer('');
         setSaleDate(new Date().toISOString().split('T')[0]);
         setSelectedCustomerId('');
@@ -1192,6 +1204,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                             onChange={(e) => {
                               const isChecked = e.target.checked;
                               setBarcodeMode(isChecked);
+                              try {
+                                localStorage.setItem('crm_scanner_mode', String(isChecked));
+                              } catch (err) {}
                               if (isChecked) {
                                 const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
                                 if (isMobile) {

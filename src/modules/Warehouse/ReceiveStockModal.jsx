@@ -20,7 +20,13 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeMode, setBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
   const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeInputRef = React.useRef(null);
@@ -65,7 +71,13 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
       fetchProducts();
       setItems([]);
       setSelectedCategoryId('');
-      setBarcodeMode(false);
+      const savedScannerMode = (() => {
+        try { return localStorage.getItem('crm_scanner_mode') !== 'false'; } catch (e) { return true; }
+      })();
+      setBarcodeMode(savedScannerMode);
+      if (savedScannerMode) {
+        setTimeout(() => barcodeInputRef.current?.focus(), 150);
+      }
       setBarcodeBuffer('');
       setHeaderData({
         supplier_id: '',
@@ -477,6 +489,9 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
                             onChange={(e) => {
                               const isChecked = e.target.checked;
                               setBarcodeMode(isChecked);
+                              try {
+                                localStorage.setItem('crm_scanner_mode', String(isChecked));
+                              } catch (err) {}
                               if (isChecked) {
                                 const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
                                 if (isMobile) {

@@ -39,7 +39,13 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
   const [onlyDiscrepancies, setOnlyDiscrepancies] = useState(false);
   const [activeStocktakeId, setActiveStocktakeId] = useState(null);
   const [viewModeOnly, setViewModeOnly] = useState(false);
-  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeMode, setBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeInputRef = useRef(null);
 
@@ -713,8 +719,12 @@ const WarehouseStocktake = ({ warehouseId, warehouses, isRestaurantActive = fals
                       type="checkbox"
                       checked={barcodeMode}
                       onChange={(e) => {
-                        setBarcodeMode(e.target.checked);
-                        if (e.target.checked) {
+                        const isChecked = e.target.checked;
+                        setBarcodeMode(isChecked);
+                        try {
+                          localStorage.setItem('crm_scanner_mode', String(isChecked));
+                        } catch (err) {}
+                        if (isChecked) {
                           setTimeout(() => barcodeInputRef.current?.focus(), 100);
                         }
                       }}

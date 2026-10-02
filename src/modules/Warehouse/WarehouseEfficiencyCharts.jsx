@@ -582,6 +582,8 @@ const WarehouseEfficiencyCharts = ({
       if (lower.includes('tap.az') || lower.includes('tap')) return '#10B981'; // Emerald
       if (lower.includes('lalafo')) return '#F97316'; // Orange
       if (lower.includes('tiktok')) return '#0F172A'; // Dark slate
+      if (lower.includes('instagram')) return '#E1306C'; // Instagram pink/rose
+      if (lower.includes('web site') || lower.includes('website') || lower.includes('sayt')) return '#6366F1'; // Indigo
       if (lower.includes('sosial')) return '#8B5CF6'; // Purple
       if (lower.includes('mağaza') || lower.includes('magaza')) return '#2563EB'; // Blue
       if (lower.includes('kredit')) return '#F59E0B'; // Amber

@@ -166,7 +166,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [dispatchToDelete, setDispatchToDelete] = useState(null);
   const [selectedSaleDetail, setSelectedSaleDetail] = useState(null);
   const [reportsRefreshTrigger, setReportsRefreshTrigger] = useState(0);
-  const [mainBarcodeMode, setMainBarcodeMode] = useState(false);
+  const [mainBarcodeMode, setMainBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
   const mainBarcodeInputRef = useRef(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
   const [showBulkCategoryModal, setShowBulkCategoryModal] = useState(false);
@@ -1799,7 +1805,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       options={[
                         { value: '', label: i18n.language === 'az' ? 'Bütün kanallar' : 'Все каналы' },
                         { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
-                        { value: 'Sosial şəbəkə', label: i18n.language === 'az' ? 'Sosial şəbəkə' : 'Социальные сети' },
+                        { value: 'Instagram', label: 'Instagram' },
+                        { value: 'Web site', label: 'Web site' },
                         { value: 'Birmarket', label: 'Birmarket' },
                         { value: 'Tap.az', label: 'Tap.az' },
                         { value: 'Lalafo', label: 'Lalafo' },
@@ -2239,15 +2246,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             channelMatch = notesStr.includes('lalafo');
                           } else if (filterLower === 'tiktok') {
                             channelMatch = notesStr.includes('tiktok');
+                          } else if (filterLower === 'instagram') {
+                            channelMatch = notesStr.includes('instagram') || notesStr.includes('sosial');
+                          } else if (filterLower === 'web site' || filterLower === 'website') {
+                            channelMatch = notesStr.includes('web site') || notesStr.includes('website') || notesStr.includes('sayt');
                           } else if (filterLower === 'kredit') {
                             channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
                           } else if (filterLower.startsWith('kredit - ')) {
                             const bankPart = filterLower.replace('kredit - ', '');
                             channelMatch = notesStr.includes(bankPart);
                           } else if (filterLower === 'mağaza') {
-                            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
+                            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('instagram') && !notesStr.includes('web site') && !notesStr.includes('website') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
                           } else if (filterLower === 'sosial şəbəkə') {
-                            channelMatch = notesStr.includes('sosial');
+                            channelMatch = notesStr.includes('sosial') || notesStr.includes('instagram');
                           }
                         }
                         if (!channelMatch) return false;
@@ -2303,15 +2314,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               channelMatch = notesStr.includes('lalafo');
                             } else if (filterLower === 'tiktok') {
                               channelMatch = notesStr.includes('tiktok');
+                            } else if (filterLower === 'instagram') {
+                              channelMatch = notesStr.includes('instagram') || notesStr.includes('sosial');
+                            } else if (filterLower === 'web site' || filterLower === 'website') {
+                              channelMatch = notesStr.includes('web site') || notesStr.includes('website') || notesStr.includes('sayt');
                             } else if (filterLower === 'kredit') {
                               channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
                             } else if (filterLower.startsWith('kredit - ')) {
                               const bankPart = filterLower.replace('kredit - ', '');
                               channelMatch = notesStr.includes(bankPart);
                             } else if (filterLower === 'mağaza') {
-                              channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
+                              channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('instagram') && !notesStr.includes('web site') && !notesStr.includes('website') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
                             } else if (filterLower === 'sosial şəbəkə') {
-                              channelMatch = notesStr.includes('sosial');
+                              channelMatch = notesStr.includes('sosial') || notesStr.includes('instagram');
                             }
                           }
                           if (!channelMatch) return false;
@@ -2848,6 +2863,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         onChange={(e) => {
                           const isChecked = e.target.checked;
                           setMainBarcodeMode(isChecked);
+                          try {
+                            localStorage.setItem('crm_scanner_mode', String(isChecked));
+                          } catch (err) {}
                           if (isChecked) {
                             const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
                             if (isMobile) {

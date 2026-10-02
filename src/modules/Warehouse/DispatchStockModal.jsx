@@ -16,7 +16,13 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeMode, setBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeInputRef = React.useRef(null);
   
@@ -58,7 +64,13 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
       fetchProducts();
       setItems([]);
       setSelectedCategoryId('');
-      setBarcodeMode(false);
+      const savedScannerMode = (() => {
+        try { return localStorage.getItem('crm_scanner_mode') !== 'false'; } catch (e) { return true; }
+      })();
+      setBarcodeMode(savedScannerMode);
+      if (savedScannerMode) {
+        setTimeout(() => barcodeInputRef.current?.focus(), 150);
+      }
       setBarcodeBuffer('');
       setHeaderData({
         issued_at: new Date().toISOString().split('T')[0],
@@ -378,8 +390,12 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
                           type="checkbox"
                           checked={barcodeMode}
                           onChange={(e) => {
-                            setBarcodeMode(e.target.checked);
-                            if (e.target.checked) {
+                            const isChecked = e.target.checked;
+                            setBarcodeMode(isChecked);
+                            try {
+                              localStorage.setItem('crm_scanner_mode', String(isChecked));
+                            } catch (err) {}
+                            if (isChecked) {
                               setTimeout(() => barcodeInputRef.current?.focus(), 100);
                             }
                           }}

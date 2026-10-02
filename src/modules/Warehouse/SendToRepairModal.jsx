@@ -29,12 +29,27 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const [newMasterName, setNewMasterName] = useState('');
   const [isAddingMaster, setIsAddingMaster] = useState(false);
 
-  const [barcodeMode, setBarcodeMode] = useState(false);
+  const [barcodeMode, setBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
   const [barcodeBuffer, setBarcodeBuffer] = useState('');
   const barcodeInputRef = React.useRef(null);
 
   useEffect(() => {
     if (!profile) return;
+    if (isOpen) {
+      try {
+        const mode = localStorage.getItem('crm_scanner_mode') !== 'false';
+        setBarcodeMode(mode);
+        if (mode) {
+          setTimeout(() => barcodeInputRef.current?.focus(), 150);
+        }
+      } catch (e) {}
+    }
     
     const fetchInitialData = async () => {
       try {
@@ -282,8 +297,12 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                             type="checkbox"
                             checked={barcodeMode}
                             onChange={(e) => {
-                              setBarcodeMode(e.target.checked);
-                              if (e.target.checked) {
+                              const isChecked = e.target.checked;
+                              setBarcodeMode(isChecked);
+                              try {
+                                localStorage.setItem('crm_scanner_mode', String(isChecked));
+                              } catch (err) {}
+                              if (isChecked) {
                                 setTimeout(() => barcodeInputRef.current?.focus(), 100);
                               }
                             }}
