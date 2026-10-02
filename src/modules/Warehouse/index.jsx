@@ -107,6 +107,47 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   });
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
+  const formatHistoryDateTime = (dateVal, createdAtVal) => {
+    let dateObj = null;
+    let timeStr = '';
+
+    if (createdAtVal) {
+      const cDate = new Date(createdAtVal);
+      if (!isNaN(cDate.getTime())) {
+        dateObj = cDate;
+        timeStr = cDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      }
+    }
+
+    if (dateVal) {
+      const dDate = new Date(dateVal);
+      if (!isNaN(dDate.getTime())) {
+        if (!dateObj) {
+          dateObj = dDate;
+        } else {
+          const dDateOnly = typeof dateVal === 'string' ? dateVal.split('T')[0] : '';
+          const cDateOnly = dateObj.toISOString().split('T')[0];
+          if (dDateOnly && dDateOnly !== cDateOnly) {
+            dateObj = dDate;
+          }
+        }
+        if (!timeStr && typeof dateVal === 'string' && (dateVal.includes('T') || dateVal.includes(':'))) {
+          timeStr = dDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+      }
+    }
+
+    if (!dateObj) return { dateStr: '—', timeStr: '' };
+
+    const dateStr = dateObj.toLocaleDateString(i18n.language === 'az' ? 'az-AZ' : i18n.language === 'ru' ? 'ru-RU' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+
+    return { dateStr, timeStr };
+  };
+
   const startResizingSidebar = (e) => {
     e.preventDefault();
     setIsResizingSidebar(true);
@@ -969,6 +1010,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           }
           return d;
         });
+        enriched.sort((a, b) => new Date(b.created_at || b.issued_at || 0) - new Date(a.created_at || a.issued_at || 0));
         setDispatches(enriched);
       }
     } catch (err) {
@@ -1480,7 +1522,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   }, [ingredients, searchTerm]);
 
   return (
-    <div className="space-y-3 flex flex-col h-full w-full">
+    <div className="space-y-3 flex flex-col h-full w-full flex-1 min-h-0">
       {/* Modals */}
       <AddProductModal 
         isOpen={showAddProduct} 
@@ -1979,7 +2021,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       </div>
       )}
 
-      <div className={`flex flex-1 ${activeTab === 'finished' ? 'flex-row 2xl:gap-6 gap-6' : 'flex-col gap-0'} ${activeTab === 'history' || activeTab === 'debts' || activeTab === 'staff' || activeTab === 'clients' ? 'overflow-visible' : 'overflow-hidden'}`}>
+      <div className={`flex flex-1 min-h-0 ${activeTab === 'finished' ? 'flex-row 2xl:gap-6 gap-6' : 'flex-col gap-0'} overflow-hidden`}>
         {activeTab === 'debts' ? (
           <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
             <DebtBook />
@@ -2005,8 +2047,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'settings' ? (
           <WarehouseSettings />
         ) : activeTab === 'history' ? (
-          <div className="flex-1 bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-auto">
+          <div className="flex-1 min-h-0 bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto">
               <table className="w-full min-w-[850px] text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
@@ -2092,7 +2134,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }).map(receipt => (
                         <tr key={receipt.id} className="hover:bg-gray-50/50 transition-colors group">
                           <td className="px-6 py-4">
-                            <span className="text-sm font-bold text-gray-700">{new Date(receipt.received_at).toLocaleDateString()}</span>
+                            {(() => {
+                              const dt = formatHistoryDateTime(receipt.received_at, receipt.created_at);
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-gray-800">{dt.dateStr}</span>
+                                  {dt.timeStr && (
+                                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                      {dt.timeStr}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                             {receipt.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{receipt.notes}</p>}
                           </td>
                           <td className="px-6 py-4">
@@ -2184,7 +2238,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         return (
                           <tr key={dispatch.id} className="hover:bg-gray-50/50 transition-colors group">
                             <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at || dispatch.created_at).toLocaleDateString()}</span>
+                              {(() => {
+                                const dt = formatHistoryDateTime(dispatch.issued_at, dispatch.created_at);
+                                return (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-800">{dt.dateStr}</span>
+                                    {dt.timeStr && (
+                                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                        {dt.timeStr}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                               {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
                             </td>
                             <td className="px-6 py-4">
@@ -2359,7 +2425,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             title={i18n.language === 'az' ? 'Ətraflı satış kartı üçün klikləyin' : i18n.language === 'ru' ? 'Нажмите для просмотра карточки продажи' : 'Click to view sale card'}
                           >
                             <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-gray-700">{new Date(dispatch.issued_at || dispatch.created_at).toLocaleDateString()}</span>
+                              {(() => {
+                                const dt = formatHistoryDateTime(dispatch.issued_at, dispatch.created_at);
+                                return (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-800">{dt.dateStr}</span>
+                                    {dt.timeStr && (
+                                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                        {dt.timeStr}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                               {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
                             </td>
                             <td className="px-6 py-4">
@@ -2482,7 +2560,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }).map(transfer => (
                         <tr key={transfer.id} className="hover:bg-gray-50/50 transition-colors group border-b border-gray-50">
                           <td className="px-6 py-4">
-                            <span className="text-sm font-bold text-gray-700">{new Date(transfer.created_at).toLocaleDateString()}</span>
+                            {(() => {
+                              const dt = formatHistoryDateTime(null, transfer.created_at);
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-gray-800">{dt.dateStr}</span>
+                                  {dt.timeStr && (
+                                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                                      {dt.timeStr}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                             {transfer.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{transfer.notes}</p>}
                           </td>
                           <td className="px-6 py-4">

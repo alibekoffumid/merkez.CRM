@@ -268,12 +268,13 @@ const SaleDetailModal = ({
   
   // Format Date and Time
   const dateObj = new Date(sale.issued_at || sale.created_at || Date.now());
+  const timeObj = sale.created_at ? new Date(sale.created_at) : (sale.issued_at && sale.issued_at.includes('T') ? new Date(sale.issued_at) : dateObj);
   const formattedDate = dateObj.toLocaleDateString(i18n.language === 'az' ? 'az-AZ' : i18n.language === 'ru' ? 'ru-RU' : 'en-US', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   });
-  const formattedTime = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formattedTime = timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
   const handleCopy = (text, fieldName) => {
     if (!text) return;
