@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle } from 'lucide-react'; 
+import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle, Tag } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
@@ -501,16 +501,30 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   };
 
   const [discount, setDiscount] = useState('0');
+  const [discountType, setDiscountType] = useState('fixed'); // 'fixed' | 'percent'
+
+  const grossCartTotal = useMemo(() => {
+    return cart.reduce((acc, item) => acc + ((parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0)), 0);
+  }, [cart]);
+
+  const discountVal = parseFloat(discount) || 0;
+  const discountAmount = useMemo(() => {
+    if (discountVal <= 0 || grossCartTotal <= 0) return 0;
+    if (discountType === 'percent') {
+      return (grossCartTotal * Math.min(100, Math.max(0, discountVal))) / 100;
+    }
+    return Math.min(grossCartTotal, Math.max(0, discountVal));
+  }, [grossCartTotal, discountVal, discountType]);
+
+  const finalTotal = Math.max(0, grossCartTotal - discountAmount);
 
   const calculateTotal = () => {
-    const sum = cart.reduce((acc, item) => acc + ((parseFloat(item.quantity) || 0) * (parseFloat(item.price) || 0)), 0);
-    const disc = parseFloat(discount) || 0;
-    return Math.max(0, sum - disc);
+    return finalTotal;
   };
 
   useEffect(() => {
-    setBasePriceInput(calculateTotal());
-  }, [cart, discount]);
+    setBasePriceInput(finalTotal);
+  }, [finalTotal]);
 
   const getBankPercentForMonth = (m) => {
     const setting = bankSettings.find(
@@ -680,9 +694,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         // Append price and total info for full audit & history tracking
         const itemPrice = Number(item.price) || 0;
         const itemGross = itemPrice * Number(item.quantity || 1);
-        const totalDiscount = parseFloat(discount) || 0;
-        const cartGross = cart.reduce((acc, it) => acc + ((parseFloat(it.quantity) || 0) * (parseFloat(it.price) || 0)), 0);
-        const itemDiscount = (totalDiscount > 0 && cartGross > 0) ? (itemGross / cartGross) * totalDiscount : 0;
+        const totalDiscount = discountAmount;
+        const itemDiscount = (totalDiscount > 0 && grossCartTotal > 0) ? (itemGross / grossCartTotal) * totalDiscount : 0;
         const itemFinalTotal = Math.max(0, itemGross - itemDiscount);
 
         dispatchNote += ` [Qiymət: ₼${itemPrice.toFixed(2)}]`;
@@ -715,6 +728,48 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           .eq('id', item.product_id);
 
         if (updateError) throw updateError;
+      }
+
+      // Sync sale to retail_sales for unified CRM reporting & analytics
+      try {
+        if (profile?.id) {
+          const { data: saleRec, error: saleErr } = await supabase
+            .from('retail_sales')
+            .insert([{
+              user_id: profile.id,
+              total_amount: finalTotal,
+              tax_amount: 0,
+              payment_method: paymentMethod,
+              discount_amount: discountAmount,
+              discount_type: discountType,
+              created_at: new Date().toISOString(),
+            }])
+            .select('id')
+            .maybeSingle();
+
+          if (!saleErr && saleRec?.id) {
+            const saleItems = cart.map(it => {
+              const itPrice = Number(it.price) || 0;
+              const itGross = itPrice * Number(it.quantity || 1);
+              const itDisc = (discountAmount > 0 && grossCartTotal > 0) ? (itGross / grossCartTotal) * discountAmount : 0;
+              return {
+                sale_id: saleRec.id,
+                product_id: it.product_id,
+                product_name: it.productName,
+                quantity: it.quantity,
+                price_at_sale: Math.max(0, itPrice - (itDisc / (Number(it.quantity) || 1))),
+                base_price: itPrice,
+                discount_amount: itDisc,
+                discount_type: discountType,
+                total: Math.max(0, itGross - itDisc),
+                created_at: new Date().toISOString(),
+              };
+            });
+            await supabase.from('retail_sale_items').insert(saleItems);
+          }
+        }
+      } catch (e) {
+        console.warn('retail_sales sync optional write error:', e);
       }
 
       // 2. If payment method is Debt or Credit, update customer balance & log debt transaction
@@ -1383,7 +1438,23 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               />
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className="text-sm font-black text-gray-900">₼{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toFixed(2)}</span>
+                              {discountAmount > 0 && grossCartTotal > 0 ? (
+                                <div className="flex flex-col items-end">
+                                  <span className="text-xs line-through text-gray-400 font-medium">
+                                    ₼{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toFixed(2)}
+                                  </span>
+                                  <span className="text-sm font-black text-emerald-600">
+                                    ₼{(
+                                      ((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)) -
+                                      ((((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)) / grossCartTotal) * discountAmount)
+                                    ).toFixed(2)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm font-black text-gray-900">
+                                  ₼{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toFixed(2)}
+                                </span>
+                              )}
                             </td>
                             <td className="px-6 py-4 text-right">
                               <button onClick={() => removeFromCart(idx)} className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-all">
@@ -1393,6 +1464,43 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                           </tr>
                         ))}
                       </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-gray-100 bg-gray-50/50">
+                          <td colSpan={3} className="px-6 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                            {i18n.language === 'az' ? 'Ara Cəm:' : i18n.language === 'ru' ? 'Сумма товаров:' : 'Subtotal:'}
+                          </td>
+                          <td className="px-6 py-2.5 text-right">
+                            <span className="text-sm font-bold text-gray-700">₼{grossCartTotal.toFixed(2)}</span>
+                          </td>
+                          <td></td>
+                        </tr>
+                        {discountAmount > 0 && (
+                          <tr className="bg-emerald-50/50">
+                            <td colSpan={3} className="px-6 py-2 text-xs font-black text-emerald-600 uppercase tracking-wider text-right">
+                              <span className="inline-flex items-center gap-1.5">
+                                <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                                {i18n.language === 'az' ? 'Endirim' : i18n.language === 'ru' ? 'Скидка' : 'Discount'}
+                                {discountType === 'percent' ? ` (${discountVal}%)` : ''}:
+                              </span>
+                            </td>
+                            <td className="px-6 py-2 text-right">
+                              <span className="text-sm font-black text-emerald-600">-₼{discountAmount.toFixed(2)}</span>
+                            </td>
+                            <td></td>
+                          </tr>
+                        )}
+                        <tr className="border-t border-gray-200 bg-gray-100/60">
+                          <td colSpan={3} className="px-6 py-3 text-xs font-black text-gray-900 uppercase tracking-widest text-right">
+                            {i18n.language === 'az' ? 'Yekun Məbləğ:' : i18n.language === 'ru' ? 'Итого к оплате:' : 'Total To Pay:'}
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <span className="text-base font-black text-gray-900">
+                              ₼{finalTotal.toFixed(2)}
+                            </span>
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
                     </table>
                   )}
                 </div>
@@ -1401,39 +1509,90 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           </div>
 
           {/* Footer actions */}
-          <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-wrap sm:flex-nowrap items-center justify-end gap-3 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                {i18n.language === 'az' ? 'Endirim (AZN)' : 'Скидка (AZN)'}
-              </label>
-              <input 
-                type="number"
-                min="0"
-                step="any"
-                value={discount}
-                onChange={e => setDiscount(e.target.value)}
-                onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setDiscount(''); }}
-                onBlur={e => { if (e.target.value === '') setDiscount('0'); }}
-                className="w-24 sm:w-28 bg-white border border-gray-200 rounded-xl px-3 py-2.5 outline-none transition-all font-bold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 shadow-sm"
-                placeholder="0.00"
-              />
+          <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4">
+            {/* Live total display */}
+            <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-2 shadow-sm">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  {i18n.language === 'az' ? 'Yekun Məbləğ' : i18n.language === 'ru' ? 'Итого к оплате' : 'Total'}
+                </span>
+                <div className="flex items-baseline gap-2">
+                  {discountAmount > 0 && (
+                    <span className="text-xs line-through text-gray-400 font-bold">
+                      ₼{grossCartTotal.toFixed(2)}
+                    </span>
+                  )}
+                  <span className="text-lg sm:text-xl font-black text-merkez-blue">
+                    ₼{finalTotal.toFixed(2)}
+                  </span>
+                </div>
+              </div>
             </div>
-            <button 
-              type="button" 
-              onClick={onClose}
-              className="px-6 py-3 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-sm shadow-sm"
-            >
-              {t('common.cancel')}
-            </button>
-            <button 
-              type="button"
-              disabled={loading || cart.length === 0}
-              onClick={handleSubmit}
-              className="px-8 py-3 bg-merkez-blue text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 hover:bg-blue-600 disabled:opacity-50 transition-all text-sm flex items-center justify-center"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-              {i18n.language === 'az' ? 'Satışı Tamamla' : i18n.language === 'ru' ? 'Завершить продажу' : 'Complete Sale'}
-            </button>
+
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-end gap-3 sm:gap-4 ml-auto">
+              {/* Discount Input with Fixed/Percent Switcher */}
+              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                <div className="flex items-center gap-1 pl-2">
+                  <Tag className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                    {i18n.language === 'az' ? 'Endirim' : i18n.language === 'ru' ? 'Скидка' : 'Discount'}
+                  </span>
+                </div>
+                <div className="flex bg-gray-100 rounded-lg p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setDiscountType('fixed')}
+                    className={`px-2 py-1 text-xs font-bold rounded-md transition-all ${discountType === 'fixed' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
+                  >
+                    ₼
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDiscountType('percent')}
+                    className={`px-2 py-1 text-xs font-bold rounded-md transition-all ${discountType === 'percent' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
+                  >
+                    %
+                  </button>
+                </div>
+                <input 
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={discount}
+                  onChange={e => setDiscount(e.target.value)}
+                  onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setDiscount(''); }}
+                  onBlur={e => { if (e.target.value === '') setDiscount('0'); }}
+                  className="w-16 sm:w-20 bg-transparent outline-none font-bold text-sm text-right px-2 focus:text-merkez-blue"
+                  placeholder="0"
+                />
+                <span className="pr-2 font-bold text-xs text-gray-400">
+                  {discountType === 'percent' ? '%' : '₼'}
+                </span>
+              </div>
+
+              <button 
+                type="button" 
+                onClick={onClose}
+                className="px-5 py-3 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-sm shadow-sm"
+              >
+                {t('common.cancel')}
+              </button>
+              <button 
+                type="button" 
+                disabled={loading || cart.length === 0}
+                onClick={handleSubmit}
+                className="px-6 sm:px-8 py-3 bg-merkez-blue text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 hover:bg-blue-600 disabled:opacity-50 transition-all text-sm flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>
+                  {i18n.language === 'az'
+                    ? `Satışı Tamamla (₼${finalTotal.toFixed(2)})`
+                    : i18n.language === 'ru'
+                    ? `Завершить продажу (₼${finalTotal.toFixed(2)})`
+                    : `Complete Sale (₼${finalTotal.toFixed(2)})`}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

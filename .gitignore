@@ -12,3 +12,6 @@ release/
 !.vscode/settings.json
 !.vscode/extensions.json
 .vercel
+*.apk
+*-qr.png
+

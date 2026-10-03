@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Merkez Склад & Сканер",
+    "slug": "merkez-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.merkez.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Камера необходима для сканирования штрихкодов товаров и работы терминала сбора данных."
+      }
+    },
+    "android": {
+      "package": "app.merkez.mobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.VIBRATE"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#10B981",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Камера необходима для сканирования штрихкодов товаров."
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
