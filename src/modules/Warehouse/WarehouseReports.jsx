@@ -233,7 +233,6 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black tracking-tight">Gün Sonu Satış Hesabatı (Z-Hesabat)</h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">Azərbaycan Dilində</span>
             </div>
             <p className="text-xs text-blue-100 font-medium mt-0.5">Günün yekun kassa dövriyyəsi, nağd/kart bölgüsü, satılan məhsullar və rəsmi PDF çapı</p>
           </div>

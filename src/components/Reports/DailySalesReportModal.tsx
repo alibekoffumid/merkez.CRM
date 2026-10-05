@@ -287,8 +287,6 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                   <p className="text-xs text-slate-300 font-medium mt-0.5 flex items-center gap-2">
                     <Building2 className="w-3.5 h-3.5 text-blue-400" />
                     <span>{businessInfo.businessName}</span>
-                    <span className="text-slate-500">•</span>
-                    <span>100% Azərbaycan Dilində</span>
                   </p>
                 </div>
               </div>
