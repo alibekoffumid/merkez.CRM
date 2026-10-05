@@ -229,31 +229,69 @@ export const movementService = {
 
     try {
       const userId = await getActiveUserId();
+      let records: any[] = [];
+
+      // 1. Try join with products table using existing valid columns
       const { data, error } = await supabase
         .from('stock_dispatches')
-        .select('*, products(name, barcode)')
+        .select('*, products(id, name, barcode, category_id, price, purchase_price, unit, image_url, stock_quantity)')
         .eq('user_id', userId)
         .order('issued_at', { ascending: false });
 
       if (error) {
-        console.error('getDispatchesAndSales error:', error);
-        return cachedDispatchesSales || { sales: [], dispatches: [] };
+        console.warn('getDispatchesAndSales join error, falling back to raw select:', error);
+        const { data: rawData, error: rawError } = await supabase
+          .from('stock_dispatches')
+          .select('*')
+          .eq('user_id', userId)
+          .order('issued_at', { ascending: false });
+
+        if (rawError) {
+          console.error('getDispatchesAndSales raw error:', rawError);
+          return cachedDispatchesSales || { sales: [], dispatches: [] };
+        }
+        records = rawData || [];
+      } else {
+        records = data || [];
       }
+
+      // Sort by actual transaction timestamp (newest first)
+      records.sort((a, b) => {
+        const timeA = new Date(a.created_at || a.issued_at || 0).getTime();
+        const timeB = new Date(b.created_at || b.issued_at || 0).getTime();
+        return timeB - timeA;
+      });
+
+      const cachedProds = productService.getCachedProducts() || [];
+      const cachedSuppliers = productService.getCachedSuppliers() || [];
+      const supMap = new Map(cachedSuppliers.map((s: any) => [s.id, s.name]));
 
       const sales: any[] = [];
       const dispatches: any[] = [];
 
-      (data || []).forEach((d: any) => {
+      records.forEach((d: any) => {
+        const prod = d.products || cachedProds.find((p) => p.id === d.product_id);
+        const supplierName = prod?.supplier_name || (prod?.supplier_id ? supMap.get(prod.supplier_id) : '') || '';
+
         const item = {
           id: d.id,
           product_id: d.product_id,
-          product_name: d.products?.name || 'Məhsul',
-          barcode: d.products?.barcode || '',
+          product_name: prod?.name || d.product_name || 'Məhsul',
+          barcode: prod?.barcode || d.barcode || '',
           quantity: Number(d.quantity || 0),
           notes: d.notes || '',
           issued_at: d.issued_at,
+          created_at: d.created_at,
           discount_amount: Number(d.discount_amount || 0),
           discount_type: d.discount_type || 'fixed',
+          product: prod ? {
+            ...prod,
+            price: prod.price ?? prod.sale_price ?? 0,
+            sale_price: prod.price ?? prod.sale_price ?? 0,
+            purchase_price: prod.purchase_price ?? 0,
+            stock_quantity: prod.stock_quantity ?? 0,
+            supplier_name: supplierName,
+          } : undefined,
         };
 
         if (

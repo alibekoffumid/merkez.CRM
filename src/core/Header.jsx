@@ -4,12 +4,14 @@ import { Search, Bell, User, Menu, X, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useUser } from './UserContext';
-import { ShoppingCart, AlertTriangle, TrendingUp } from 'lucide-react';
+import { ShoppingCart, AlertTriangle, TrendingUp, Receipt } from 'lucide-react';
+import DailySalesReportModal from '../components/Reports/DailySalesReportModal';
 
 const Header = ({ onMenuClick }) => {
   const { t, i18n } = useTranslation();
   const { profile, loading } = useUser();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [showDailyReportModal, setShowDailyReportModal] = useState(false);
   const [digestData, setDigestData] = useState({ totalSales: 0, lowStockItems: [], loaded: false });
 
   const changeLanguage = (lng) => {
@@ -149,14 +151,26 @@ const Header = ({ onMenuClick }) => {
                   ) : (
                     <>
                       {/* Sales Summary */}
-                      <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
-                          <ShoppingCart className="w-4 h-4" />
+                      <div className="flex flex-col gap-2 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
+                            <ShoppingCart className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">{t('header.todaySales')}</p>
+                            <p className="text-lg font-black text-gray-900 leading-none">{digestData.totalSales.toFixed(2)} ₼</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">{t('header.todaySales')}</p>
-                          <p className="text-lg font-black text-gray-900 leading-none">${digestData.totalSales.toFixed(2)}</p>
-                        </div>
+                        <button
+                          onClick={() => {
+                            setIsNotificationsOpen(false);
+                            setShowDailyReportModal(true);
+                          }}
+                          className="w-full mt-1 py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                        >
+                          <Receipt className="w-3.5 h-3.5" />
+                          <span>Gün Sonu Hesabatı (PDF)</span>
+                        </button>
                       </div>
 
                       {/* Critical Inventory */}
@@ -208,6 +222,12 @@ const Header = ({ onMenuClick }) => {
           </Link>
         </div>
       </div>
+
+      {/* Daily Sales Report Modal */}
+      <DailySalesReportModal
+        isOpen={showDailyReportModal}
+        onClose={() => setShowDailyReportModal(false)}
+      />
     </header>
   );
 };

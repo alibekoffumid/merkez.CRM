@@ -3037,7 +3037,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     {[
                       { id: 'all', label: t('common.all') },
                       { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
-                      { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
+                      ...(isAdmin ? [{ id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' }] : []),
                       { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
                     ].map(item => (
                       <button
@@ -3111,7 +3111,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {[
                     { id: 'all', label: t('common.all') },
                     { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
-                    { id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' },
+                    ...(isAdmin ? [{ id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' }] : []),
                     { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
                   ].map(item => (
                     <button

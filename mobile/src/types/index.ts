@@ -66,6 +66,8 @@ export interface StockSaleItem {
   discount_type?: string;
   notes?: string;
   issued_at: string;
+  created_at?: string;
+  product?: Product;
 }
 
 export interface StockDispatchItem {
@@ -77,6 +79,7 @@ export interface StockDispatchItem {
   reason: string;
   notes?: string;
   issued_at: string;
+  created_at?: string;
 }
 
 export interface StockTransferItem {
@@ -160,9 +163,12 @@ export interface StaffPermissions {
   canManageProducts: boolean;
   canPerformMovements: boolean;
   canDeleteHistory: boolean;
+  canViewSupplier: boolean;
+  canViewStockStats: boolean;
   isOwnerOrAdmin: boolean;
   isManager: boolean;
   isStoreman: boolean;
   isCashier: boolean;
   isMaster: boolean;
 }
+

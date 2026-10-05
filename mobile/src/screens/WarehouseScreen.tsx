@@ -132,7 +132,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   const filteredProducts = useMemo(() => {
     let result = products;
 
-    if (showLowStockOnly) {
+    if (showLowStockOnly && permissions.canViewStockStats) {
       result = result.filter(
         (p) => Number(p.stock_quantity || 0) <= (p.critical_stock && p.critical_stock > 0 ? p.critical_stock : 5)
       );
@@ -155,7 +155,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
     }
 
     return result;
-  }, [products, searchTerm, selectedCategory, showLowStockOnly]);
+  }, [products, searchTerm, selectedCategory, showLowStockOnly, permissions.canViewStockStats]);
 
   // Inventory stats summary
   const stats = useMemo(() => {
@@ -212,6 +212,8 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
         onDispatch={permissions.canPerformMovements ? () => handleProductDispatch(item) : undefined}
         onAddToCart={onAddToCart ? () => handleProductAddToCart(item) : undefined}
         canViewCostPrices={permissions.canViewCostPrices}
+        canViewSupplier={permissions.canViewSupplier}
+        canViewLowStock={permissions.canViewStockStats}
       />
     ),
     [handleProductPress, handleProductReceive, handleProductDispatch, handleProductAddToCart, onAddToCart, permissions]
@@ -230,8 +232,8 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                 ? `Sahib (${profile?.full_name || 'İdarəçi'})`
                 : currentStaff
                 ? `${currentStaff.name} · ${currentStaff.role}`
-                : profile?.full_name || user?.email || 'Anbar'}{' '}
-              · {stats.totalCount} ədəd
+                : profile?.full_name || user?.email || 'Anbar'}
+              {permissions.canViewStockStats ? ` · ${stats.totalCount} ədəd` : ''}
             </Text>
           </View>
           <View style={styles.headerRight}>
@@ -268,37 +270,43 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           </View>
         </View>
 
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <TouchableOpacity
-            style={[styles.statBox, !showLowStockOnly && styles.statBoxActive]}
-            onPress={() => setShowLowStockOnly(false)}
-          >
-            <Text style={styles.statVal}>{stats.totalCount}</Text>
-            <Text style={styles.statLabel}>Bütün mallar</Text>
-          </TouchableOpacity>
+        {/* Stats Row: Only visible if user has permission to see stock stats or add products */}
+        {(permissions.canViewStockStats || permissions.canManageProducts) && (
+          <View style={styles.statsRow}>
+            {permissions.canViewStockStats && (
+              <>
+                <TouchableOpacity
+                  style={[styles.statBox, !showLowStockOnly && styles.statBoxActive]}
+                  onPress={() => setShowLowStockOnly(false)}
+                >
+                  <Text style={styles.statVal}>{stats.totalCount}</Text>
+                  <Text style={styles.statLabel}>Bütün mallar</Text>
+                </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.statBox, showLowStockOnly && styles.statBoxActiveRed]}
-            onPress={() => setShowLowStockOnly(!showLowStockOnly)}
-          >
-            <View style={styles.statLabelWithIcon}>
-              <AlertTriangle size={13} color="#EF4444" />
-              <Text style={styles.statValRed}>{stats.lowStockCount}</Text>
-            </View>
-            <Text style={styles.statLabel}>Bitmək üzrədir</Text>
-          </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.statBox, showLowStockOnly && styles.statBoxActiveRed]}
+                  onPress={() => setShowLowStockOnly(!showLowStockOnly)}
+                >
+                  <View style={styles.statLabelWithIcon}>
+                    <AlertTriangle size={13} color="#EF4444" />
+                    <Text style={styles.statValRed}>{stats.lowStockCount}</Text>
+                  </View>
+                  <Text style={styles.statLabel}>Bitmək üzrədir</Text>
+                </TouchableOpacity>
+              </>
+            )}
 
-          {permissions.canManageProducts && (
-            <TouchableOpacity
-              style={styles.addStatBox}
-              onPress={() => setNewProductVisible(true)}
-            >
-              <Plus size={16} color="#10B981" />
-              <Text style={styles.addStatText}>Əlavə et</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+            {permissions.canManageProducts && (
+              <TouchableOpacity
+                style={styles.addStatBox}
+                onPress={() => setNewProductVisible(true)}
+              >
+                <Plus size={16} color="#10B981" />
+                <Text style={styles.addStatText}>Əlavə et</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
@@ -407,6 +415,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
         <ProductDetailsModal
           visible={detailsVisible}
           product={selectedProduct}
+          categories={categories}
           onClose={() => setDetailsVisible(false)}
           onUpdated={handleProductUpdated}
           onReceiveClick={(prod) => {
@@ -420,6 +429,8 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           canViewCostPrices={permissions.canViewCostPrices}
           canManageProducts={permissions.canManageProducts}
           canPerformMovements={permissions.canPerformMovements}
+          canViewSupplier={permissions.canViewSupplier}
+          isAdmin={permissions.isOwnerOrAdmin}
         />
 
         {/* Stock Operation Modal (Receive / Dispatch) */}
@@ -429,6 +440,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           operationType={opType}
           onClose={() => setOpType(null)}
           onSuccess={loadData}
+          canViewSupplier={permissions.canViewSupplier}
         />
 
         {/* Add Product Modal */}
@@ -450,6 +462,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           selectedCategoryId={selectedCategory}
           onSelectCategory={(id) => setSelectedCategory(id)}
           products={products}
+          canViewStockStats={permissions.canViewStockStats}
         />
       </View>
     </SafeAreaView>

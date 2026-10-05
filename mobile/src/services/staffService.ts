@@ -42,6 +42,8 @@ export const staffService = {
         canManageProducts: true,
         canPerformMovements: true,
         canDeleteHistory: true,
+        canViewSupplier: true,
+        canViewStockStats: true,
         isOwnerOrAdmin: true,
         isManager: true,
         isStoreman: false,
@@ -63,6 +65,8 @@ export const staffService = {
       canManageProducts: isOwnerOrAdmin, // Add, edit or delete products
       canPerformMovements: isOwnerOrAdmin || isStoreman, // Warehouse receipts (Qəbul) and dispatches (Silinmə)
       canDeleteHistory,
+      canViewSupplier: isOwnerOrAdmin, // Təchizatçı only visible to Admin/Owner/Manager
+      canViewStockStats: isOwnerOrAdmin, // Total goods and low stock items only visible to Admin/Owner/Manager
       isOwnerOrAdmin,
       isManager,
       isStoreman,

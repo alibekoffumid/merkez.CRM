@@ -10,6 +10,8 @@ interface ProductCardProps {
   onDispatch?: () => void;
   onAddToCart?: () => void;
   canViewCostPrices?: boolean;
+  canViewSupplier?: boolean;
+  canViewLowStock?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = React.memo(({
@@ -19,8 +21,11 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   onDispatch,
   onAddToCart,
   canViewCostPrices = true,
+  canViewSupplier = true,
+  canViewLowStock = true,
 }) => {
   const isCritical =
+    canViewLowStock &&
     Number(product.stock_quantity || 0) <=
     (product.critical_stock && product.critical_stock > 0 ? product.critical_stock : 5);
   const isOutOfStock = product.stock_quantity <= 0;
@@ -52,7 +57,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
               </View>
             )}
 
-            {product.supplier_name ? (
+            {canViewSupplier && product.supplier_name ? (
               <View style={styles.supplierBadge}>
                 <Text style={styles.supplierText} numberOfLines={1}>
                   {product.supplier_name}

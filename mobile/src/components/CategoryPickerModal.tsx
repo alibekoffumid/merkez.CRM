@@ -34,6 +34,7 @@ interface CategoryPickerModalProps {
   selectedCategoryId: string;
   onSelectCategory: (categoryId: string) => void;
   products: Product[];
+  canViewStockStats?: boolean;
 }
 
 export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
@@ -43,6 +44,7 @@ export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
   selectedCategoryId,
   onSelectCategory,
   products,
+  canViewStockStats = true,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
@@ -133,7 +135,8 @@ export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
               <View>
                 <Text style={styles.title}>Kateqoriyalar</Text>
                 <Text style={styles.subTitle}>
-                  {categories.length} kateqoriya · {totalProducts} anbar məhsulu
+                  {categories.length} kateqoriya
+                  {canViewStockStats ? ` · ${totalProducts} anbar məhsulu` : ''}
                 </Text>
               </View>
             </View>
@@ -220,9 +223,11 @@ export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
                     </Text>
                   </View>
                   <View style={styles.itemRight}>
-                    <View style={styles.countBadgeAll}>
-                      <Text style={styles.countTextAll}>{totalProducts} əd.</Text>
-                    </View>
+                    {canViewStockStats && (
+                      <View style={styles.countBadgeAll}>
+                        <Text style={styles.countTextAll}>{totalProducts} əd.</Text>
+                      </View>
+                    )}
                     {selectedCategoryId === 'ALL' && (
                       <Check size={18} color="#10B981" style={{ marginLeft: 8 }} />
                     )}
@@ -319,7 +324,7 @@ export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
                     </View>
 
                     <View style={styles.itemRight}>
-                      {count > 0 && (
+                      {canViewStockStats && count > 0 && (
                         <View
                           style={[
                             styles.countBadge,

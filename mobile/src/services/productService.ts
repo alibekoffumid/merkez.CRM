@@ -66,6 +66,10 @@ export const productService = {
     return cachedCategories;
   },
 
+  getCachedSuppliers(): Supplier[] | null {
+    return cachedSuppliers;
+  },
+
   invalidateCache(): void {
     cachedProducts = null;
     cachedCategories = null;
@@ -115,14 +119,22 @@ export const productService = {
           }
         }
 
+        const [catsData, suppliersData] = await Promise.all([
+          productService.getCategories(forceRefresh),
+          productService.getSuppliers(forceRefresh),
+        ]);
+        const catMap = new Map((catsData || []).map((c: any) => [c.id, c.name]));
+        const supMap = new Map((suppliersData || []).map((s: any) => [s.id, s.name]));
+
         const mapped: Product[] = allData.map((p: any) => ({
           ...p,
           factory_price: extractFactoryPrice(p.description),
           price: p.price ?? p.sale_price ?? 0,
-          sale_price: p.sale_price ?? p.price ?? 0,
+          sale_price: p.price ?? p.sale_price ?? 0,
           purchase_price: p.purchase_price ?? 0,
           stock_quantity: p.stock_quantity ?? 0,
-          supplier_name: p.suppliers?.name || p.supplier_name || '',
+          category: (p.category_id ? catMap.get(p.category_id) : '') || p.category || '',
+          supplier_name: p.suppliers?.name || (p.supplier_id ? supMap.get(p.supplier_id) : '') || p.supplier_name || '',
         }));
 
         cachedProducts = mapped;
@@ -147,24 +159,31 @@ export const productService = {
     }
 
     const userId = await getActiveUserId();
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, suppliers(name)')
-      .eq('user_id', userId)
-      .eq('is_deleted', false)
-      .or(`barcode.eq.${cleanBarcode},article_number.eq.${cleanBarcode}`)
-      .limit(1)
-      .maybeSingle();
+    const [cats, prodRes] = await Promise.all([
+      productService.getCategories(),
+      supabase
+        .from('products')
+        .select('*, suppliers(name)')
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .or(`barcode.eq.${cleanBarcode},article_number.eq.${cleanBarcode}`)
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
+    const { data, error } = prodRes;
     if (error || !data) return null;
+
+    const catMap = new Map(cats.map((c) => [c.id, c.name]));
 
     return {
       ...data,
       factory_price: extractFactoryPrice(data.description),
       price: data.price ?? data.sale_price ?? 0,
-      sale_price: data.sale_price ?? data.price ?? 0,
+      sale_price: data.price ?? data.sale_price ?? 0,
       purchase_price: data.purchase_price ?? 0,
       stock_quantity: data.stock_quantity ?? 0,
+      category: (data.category_id ? catMap.get(data.category_id) : '') || data.category || '',
       supplier_name: data.suppliers?.name || data.supplier_name || '',
     };
   },

@@ -12,11 +12,14 @@ import {
   Copy, 
   Search,
   ShoppingCart,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Receipt,
+  FileText
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import WarehouseEfficiencyCharts from './WarehouseEfficiencyCharts';
 import { formatUnitName } from './SaleDetailModal';
+import DailySalesReportModal from '../../components/Reports/DailySalesReportModal';
 
 const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrigger = 0 }) => {
   const { t, i18n } = useTranslation();
@@ -30,6 +33,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
   const [suppliers, setSuppliers] = useState([]);
   const [dispatches, setDispatches] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDailyReportModal, setShowDailyReportModal] = useState(false);
 
   // Dashboard Stats
   const [stats, setStats] = useState({
@@ -220,6 +224,29 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
   return (
     <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
 
+      {/* Top Daily Sales Report Banner */}
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-3xl p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-blue-500/15">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
+            <Receipt className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black tracking-tight">Gün Sonu Satış Hesabatı (Z-Hesabat)</h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/20 text-white">Azərbaycan Dilində</span>
+            </div>
+            <p className="text-xs text-blue-100 font-medium mt-0.5">Günün yekun kassa dövriyyəsi, nağd/kart bölgüsü, satılan məhsullar və rəsmi PDF çapı</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowDailyReportModal(true)}
+          className="px-5 py-2.5 rounded-2xl bg-white text-blue-600 hover:bg-blue-50 font-black text-xs transition-all flex items-center justify-center gap-2 shadow-md active:scale-95 shrink-0"
+        >
+          <FileText className="w-4 h-4" />
+          <span>Hesabatı Çıxar / PDF Çap</span>
+        </button>
+      </div>
+
       {/* Sales and Efficiency Analytics Section (FIRST on page) */}
       {reportType === 'product' && (
         <WarehouseEfficiencyCharts 
@@ -382,6 +409,12 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
           )}
         </div>
       </div>
+
+      {/* Daily Sales Report Modal */}
+      <DailySalesReportModal
+        isOpen={showDailyReportModal}
+        onClose={() => setShowDailyReportModal(false)}
+      />
     </div>
   );
 };

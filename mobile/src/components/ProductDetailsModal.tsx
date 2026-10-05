@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,13 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight, Edit3 } from 'lucide-react-native';
-import { Product } from '../types';
+import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
+import { Product, Category } from '../types';
 import { productService } from '../services/productService';
 
 interface ProductDetailsModalProps {
   product: Product | null;
+  categories?: Category[];
   visible: boolean;
   onClose: () => void;
   onUpdated: (updatedProduct: Product) => void;
@@ -24,10 +25,13 @@ interface ProductDetailsModalProps {
   canViewCostPrices?: boolean;
   canManageProducts?: boolean;
   canPerformMovements?: boolean;
+  canViewSupplier?: boolean;
+  isAdmin?: boolean;
 }
 
 export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   product,
+  categories,
   visible,
   onClose,
   onUpdated,
@@ -36,10 +40,13 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   canViewCostPrices = true,
   canManageProducts = true,
   canPerformMovements = true,
+  canViewSupplier = true,
+  isAdmin = true,
 }) => {
   if (!product) return null;
 
   const [saving, setSaving] = useState(false);
+  const [nameInput, setNameInput] = useState(product.name || '');
   const [stockInput, setStockInput] = useState(String(product.stock_quantity));
   const [priceInput, setPriceInput] = useState(String(product.sale_price ?? product.price ?? 0));
   const [costInput, setCostInput] = useState(String(product.purchase_price ?? 0));
@@ -47,12 +54,28 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
   useEffect(() => {
     if (product) {
+      setNameInput(product.name || '');
       setStockInput(String(product.stock_quantity ?? 0));
       setPriceInput(String(product.sale_price ?? product.price ?? 0));
       setCostInput(String(product.purchase_price ?? 0));
       setFactoryPriceInput(String(product.factory_price ?? ''));
     }
   }, [product]);
+
+  // Resolve exact category name
+  const categoryName = useMemo(() => {
+    if (product.category && product.category.trim() && product.category !== 'Kateqoriyasız') {
+      return product.category;
+    }
+    if (product.category_id) {
+      const catsList = categories && categories.length > 0
+        ? categories
+        : productService.getCachedCategories() || [];
+      const found = catsList.find((c: any) => c.id === product.category_id);
+      if (found?.name) return found.name;
+    }
+    return product.category || 'Kateqoriyasız';
+  }, [product.category, product.category_id, categories]);
 
   const handleQuickStockDelta = async (delta: number) => {
     const current = Number(product.stock_quantity) || 0;
@@ -72,11 +95,17 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   };
 
   const handleSaveAll = async () => {
+    const trimmedName = nameInput.trim();
+    if (isAdmin && !trimmedName) {
+      Alert.alert('Xəta', 'Məhsulun adı boş ola bilməz');
+      return;
+    }
+
     try {
       setSaving(true);
       const updatedData: Partial<Product> = {
         id: product.id,
-        name: product.name,
+        name: isAdmin && trimmedName ? trimmedName : product.name,
         stock_quantity: parseFloat(stockInput) || 0,
         sale_price: parseFloat(priceInput) || 0,
         purchase_price: parseFloat(costInput) || 0,
@@ -85,7 +114,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       };
 
       const res = await productService.saveProduct(updatedData);
-      onUpdated({ ...product, ...res });
+      onUpdated({ ...product, ...res, name: updatedData.name || product.name });
       Alert.alert('Uğurlu', 'Məhsul məlumatları saxlanıldı');
       onClose();
     } catch (e: any) {
@@ -99,11 +128,11 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.sheet}>
-          {/* Header */}
+          {/* Header with single title display */}
           <View style={styles.header}>
             <View style={styles.headerTitleWrap}>
               <Text style={styles.title} numberOfLines={2}>
-                {product.name}
+                {nameInput.trim() || product.name}
               </Text>
               {product.barcode ? (
                 <View style={styles.barcodeRow}>
@@ -118,6 +147,26 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Name input card for Admin */}
+            {isAdmin && (
+              <View style={styles.nameCard}>
+                <View style={styles.nameCardHeader}>
+                  <Text style={styles.inputLabel}>Məhsulun adı</Text>
+                  <View style={styles.adminBadge}>
+                    <Text style={styles.adminBadgeText}>Admin</Text>
+                  </View>
+                </View>
+                <TextInput
+                  style={styles.nameInput}
+                  value={nameInput}
+                  onChangeText={setNameInput}
+                  placeholder="Məhsulun adını daxil edin..."
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                />
+              </View>
+            )}
+
             {/* Quick Stock Counter Box */}
             <View style={styles.stockCard}>
               <Text style={styles.sectionLabel}>Anbardakı cari qalıq</Text>
@@ -221,9 +270,9 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
             <View style={styles.metaBox}>
               <View style={styles.metaRow}>
                 <Text style={styles.metaKey}>Kateqoriya:</Text>
-                <Text style={styles.metaVal}>{product.category || 'Kateqoriyasız'}</Text>
+                <Text style={styles.metaVal}>{categoryName}</Text>
               </View>
-              {product.supplier_name && (
+              {canViewSupplier && product.supplier_name && (
                 <View style={styles.metaRow}>
                   <Text style={styles.metaKey}>Təchizatçı:</Text>
                   <Text style={styles.metaVal}>{product.supplier_name}</Text>
@@ -289,6 +338,89 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: '#111827',
+    flexShrink: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editNameBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerNameEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerNameInput: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#3B82F6',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  headerNameConfirmBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nameCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 16,
+  },
+  nameCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  adminBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  adminBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#2563EB',
+    textTransform: 'uppercase',
+  },
+  nameInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+    minHeight: 40,
   },
   barcodeRow: {
     flexDirection: 'row',

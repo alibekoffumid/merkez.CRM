@@ -18,8 +18,10 @@ import {
   PauseCircle,
   Play,
   Tag,
-  Percent
+  Percent,
+  Receipt
 } from 'lucide-react';
+import DailySalesReportModal from '../../../components/Reports/DailySalesReportModal';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
@@ -62,6 +64,7 @@ const RetailPOS: React.FC = () => {
   const [editingDiscountId, setEditingDiscountId] = useState<string | null>(null); // For item level discount
   const [expiredProduct, setExpiredProduct] = useState<any | null>(null);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const [showDailyReportModal, setShowDailyReportModal] = useState(false);
   
   const barcodeRef = useRef<HTMLInputElement>(null);
 
@@ -572,6 +575,15 @@ const RetailPOS: React.FC = () => {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={() => setShowDailyReportModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all shadow-sm active:scale-95"
+              title="Gün Sonu Satış Hesabatı (Z-Hesabat)"
+            >
+              <Receipt className="w-4 h-4" />
+              <span className="hidden md:inline">Gün Sonu Hesabatı</span>
+            </button>
           </div>
           
           {!isElectron() && (
@@ -969,6 +981,12 @@ const RetailPOS: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Daily Sales Report Modal (Gün Sonu Z-Hesabat) */}
+      <DailySalesReportModal
+        isOpen={showDailyReportModal}
+        onClose={() => setShowDailyReportModal(false)}
+      />
     </div>
   );
 };

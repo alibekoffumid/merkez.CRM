@@ -34,6 +34,8 @@ const defaultPermissions: StaffPermissions = {
   canManageProducts: true,
   canPerformMovements: true,
   canDeleteHistory: true,
+  canViewSupplier: true,
+  canViewStockStats: true,
   isOwnerOrAdmin: true,
   isManager: true,
   isStoreman: false,

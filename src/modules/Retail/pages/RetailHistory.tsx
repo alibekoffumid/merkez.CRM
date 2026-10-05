@@ -15,8 +15,10 @@ import {
   RotateCcw,
   CheckSquare,
   Square,
-  Trash2
+  Trash2,
+  Receipt
 } from 'lucide-react';
+import DailySalesReportModal from '../../../components/Reports/DailySalesReportModal';
 import { supabase } from '../../../supabaseClient';
 import { useUser } from '../../../core/UserContext';
 import { toast } from 'react-hot-toast';
@@ -86,6 +88,7 @@ const RetailHistory: React.FC = () => {
   const [showHidden, setShowHidden] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmHide, setShowConfirmHide] = useState(false);
+  const [showDailyReportModal, setShowDailyReportModal] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -269,6 +272,14 @@ const RetailHistory: React.FC = () => {
               <span className="text-[10px] font-black text-green-600/60 uppercase tracking-widest">{t('retail.history.revenue')}</span>
               <span className="text-lg font-black text-green-600">{sales.reduce((acc, s) => acc + Number(s.total_amount || 0), 0).toFixed(2)} ₼</span>
             </div>
+            <button
+              onClick={() => setShowDailyReportModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black shadow-md shadow-blue-500/20 transition-all active:scale-95"
+              title="Gün Sonu Satış Hesabatı (Z-Hesabat / PDF Çap)"
+            >
+              <Receipt className="w-4 h-4" />
+              <span>Gün Sonu Hesabatı (PDF)</span>
+            </button>
           </div>
         </div>
       </div>
@@ -688,6 +699,13 @@ const RetailHistory: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Daily Sales Report Modal (Gün Sonu Z-Hesabat) */}
+      <DailySalesReportModal
+        isOpen={showDailyReportModal}
+        onClose={() => setShowDailyReportModal(false)}
+        initialDate={rangeStart ? rangeStart.toISOString().split('T')[0] : undefined}
+      />
     </div>
   );
 };

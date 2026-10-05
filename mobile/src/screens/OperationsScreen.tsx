@@ -25,6 +25,10 @@ import {
   Building,
   Tag,
   FileText,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  RotateCcw,
+  X,
 } from 'lucide-react-native';
 import {
   StockReceiptItem,
@@ -35,6 +39,15 @@ import {
 import { movementService } from '../services/movementService';
 import { useAuth } from '../context/AuthContext';
 import { DeleteHistoryModal, HistoryItemToDelete } from '../components/DeleteHistoryModal';
+import { SaleDetailModal } from '../components/SaleDetailModal';
+import {
+  DateFilterModal,
+  DateFilterRange,
+  DatePreset,
+  getPresetRange,
+  formatDisplayDate,
+  formatYMD,
+} from '../components/DateFilterModal';
 
 type OperationTab = 'receipts' | 'sales' | 'dispatches' | 'transfers';
 
@@ -89,6 +102,52 @@ export const OperationsScreen: React.FC = () => {
   const canDeleteHistory = permissions.canDeleteHistory;
   const [itemToDelete, setItemToDelete] = useState<HistoryItemToDelete | null>(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedSaleDetail, setSelectedSaleDetail] = useState<StockSaleItem | null>(null);
+  const [dateRange, setDateRange] = useState<DateFilterRange>({
+    startDate: '',
+    endDate: '',
+    preset: 'all',
+  });
+  const [dateModalVisible, setDateModalVisible] = useState(false);
+
+  const isDateFiltered = dateRange.preset !== 'all' || !!dateRange.startDate || !!dateRange.endDate;
+
+  const handleQuickPreset = (preset: DatePreset) => {
+    if (preset === 'all') {
+      setDateRange({ startDate: '', endDate: '', preset: 'all' });
+      return;
+    }
+    const range = getPresetRange(preset);
+    setDateRange({
+      startDate: range.startDate,
+      endDate: range.endDate,
+      preset,
+    });
+  };
+
+  const getItemYMD = (dateVal?: string | null, createdAtVal?: string | null): string => {
+    const target = dateVal || createdAtVal;
+    if (!target) return '';
+    try {
+      const d = new Date(target);
+      if (isNaN(d.getTime())) {
+        return target.substring(0, 10);
+      }
+      return formatYMD(d);
+    } catch {
+      return target.substring(0, 10);
+    }
+  };
+
+  const isWithinRange = (dateVal?: string | null, createdAtVal?: string | null) => {
+    if (!dateRange.startDate && !dateRange.endDate) return true;
+    if (!dateVal && !createdAtVal) return false;
+    const ymd = getItemYMD(dateVal, createdAtVal);
+    if (!ymd) return false;
+    if (dateRange.startDate && ymd < dateRange.startDate) return false;
+    if (dateRange.endDate && ymd > dateRange.endDate) return false;
+    return true;
+  };
 
   const handleOpenDelete = (item: any, type: 'sale' | 'dispatch' | 'receipt') => {
     setItemToDelete({
@@ -150,75 +209,122 @@ export const OperationsScreen: React.FC = () => {
     setRefreshing(false);
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '—';
-    try {
-      const d = new Date(dateStr);
-      return `${d.toLocaleDateString('ru-RU')} ${d.toLocaleTimeString('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })}`;
-    } catch {
-      return dateStr;
+  const formatHistoryDateTime = (dateVal?: string | null, createdAtVal?: string | null) => {
+    let dateObj: Date | null = null;
+    let timeStr = '';
+
+    if (createdAtVal) {
+      const cDate = new Date(createdAtVal);
+      if (!isNaN(cDate.getTime())) {
+        dateObj = cDate;
+        timeStr = cDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      }
     }
+
+    if (dateVal) {
+      const dDate = new Date(dateVal);
+      if (!isNaN(dDate.getTime())) {
+        if (!dateObj) {
+          dateObj = dDate;
+        } else {
+          const dDateOnly = typeof dateVal === 'string' ? dateVal.split('T')[0] : '';
+          const cDateOnly = dateObj.toISOString().split('T')[0];
+          if (dDateOnly && dDateOnly !== cDateOnly) {
+            dateObj = dDate;
+          }
+        }
+        if (!timeStr && typeof dateVal === 'string' && (dateVal.includes('T') || dateVal.includes(':'))) {
+          timeStr = dDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+      }
+    }
+
+    if (!dateObj) return '—';
+
+    const dateStr = dateObj.toLocaleDateString('ru-RU');
+    return timeStr ? `${dateStr} ${timeStr}` : dateStr;
   };
 
-  // Filtered lists based on search term
+  // Filtered lists based on search term & date range
   const filteredReceipts = useMemo(() => {
-    if (!searchTerm.trim()) return receipts;
-    const q = searchTerm.toLowerCase().trim();
-    return receipts.filter(
-      (r) =>
-        r.product_name.toLowerCase().includes(q) ||
-        (r.barcode && r.barcode.includes(q)) ||
-        (r.supplier_name && r.supplier_name.toLowerCase().includes(q)) ||
-        (r.notes && r.notes.toLowerCase().includes(q))
-    );
-  }, [receipts, searchTerm]);
+    let result = receipts;
+    if (dateRange.startDate || dateRange.endDate) {
+      result = result.filter((r) => isWithinRange(r.received_at, (r as any).created_at));
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      result = result.filter(
+        (r) =>
+          r.product_name.toLowerCase().includes(q) ||
+          (r.barcode && r.barcode.includes(q)) ||
+          (permissions.canViewSupplier && r.supplier_name && r.supplier_name.toLowerCase().includes(q)) ||
+          (r.notes && r.notes.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [receipts, searchTerm, permissions.canViewSupplier, dateRange]);
 
   const filteredSales = useMemo(() => {
-    if (!searchTerm.trim()) return sales;
-    const q = searchTerm.toLowerCase().trim();
-    return sales.filter(
-      (s) =>
-        s.product_name.toLowerCase().includes(q) ||
-        (s.barcode && s.barcode.includes(q)) ||
-        (s.notes && s.notes.toLowerCase().includes(q))
-    );
-  }, [sales, searchTerm]);
+    let result = sales;
+    if (dateRange.startDate || dateRange.endDate) {
+      result = result.filter((s) => isWithinRange(s.issued_at, s.created_at));
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      result = result.filter(
+        (s) =>
+          s.product_name.toLowerCase().includes(q) ||
+          (s.barcode && s.barcode.includes(q)) ||
+          (s.notes && s.notes.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [sales, searchTerm, dateRange]);
 
   const filteredDispatches = useMemo(() => {
-    if (!searchTerm.trim()) return dispatches;
-    const q = searchTerm.toLowerCase().trim();
-    return dispatches.filter(
-      (d) =>
-        d.product_name.toLowerCase().includes(q) ||
-        (d.barcode && d.barcode.includes(q)) ||
-        (d.reason && d.reason.toLowerCase().includes(q)) ||
-        (d.notes && d.notes.toLowerCase().includes(q))
-    );
-  }, [dispatches, searchTerm]);
+    let result = dispatches;
+    if (dateRange.startDate || dateRange.endDate) {
+      result = result.filter((d) => isWithinRange(d.issued_at, d.created_at));
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      result = result.filter(
+        (d) =>
+          d.product_name.toLowerCase().includes(q) ||
+          (d.barcode && d.barcode.includes(q)) ||
+          (d.reason && d.reason.toLowerCase().includes(q)) ||
+          (d.notes && d.notes.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [dispatches, searchTerm, dateRange]);
 
   const filteredTransfers = useMemo(() => {
-    if (!searchTerm.trim()) return transfers;
-    const q = searchTerm.toLowerCase().trim();
-    return transfers.filter(
-      (t) =>
-        (t.notes && t.notes.toLowerCase().includes(q)) ||
-        t.items?.some((i) => i.product_name.toLowerCase().includes(q))
-    );
-  }, [transfers, searchTerm]);
+    let result = transfers;
+    if (dateRange.startDate || dateRange.endDate) {
+      result = result.filter((t) => isWithinRange(t.created_at));
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      result = result.filter(
+        (t) =>
+          (t.notes && t.notes.toLowerCase().includes(q)) ||
+          t.items?.some((i) => i.product_name.toLowerCase().includes(q))
+      );
+    }
+    return result;
+  }, [transfers, searchTerm, dateRange]);
 
   const getTabCount = (tab: OperationTab) => {
     switch (tab) {
       case 'receipts':
-        return receipts.length;
+        return filteredReceipts.length;
       case 'sales':
-        return sales.length;
+        return filteredSales.length;
       case 'dispatches':
-        return dispatches.length;
+        return filteredDispatches.length;
       case 'transfers':
-        return transfers.length;
+        return filteredTransfers.length;
     }
   };
 
@@ -240,7 +346,7 @@ export const OperationsScreen: React.FC = () => {
                   <Text style={styles.barcodeChipText}>{item.barcode}</Text>
                 </View>
               ) : null}
-              {item.supplier_name ? (
+              {permissions.canViewSupplier && item.supplier_name ? (
                 <View style={styles.supplierChip}>
                   <Building size={11} color="#4B5563" />
                   <Text style={styles.supplierChipText} numberOfLines={1}>
@@ -259,7 +365,7 @@ export const OperationsScreen: React.FC = () => {
                 +{item.quantity}
               </Text>
             </View>
-            {item.unit_price ? (
+            {permissions.canViewCostPrices && item.unit_price ? (
               <Text style={styles.subPriceText}>
                 {item.unit_price.toFixed(2)} ₼ / əd.
               </Text>
@@ -281,7 +387,7 @@ export const OperationsScreen: React.FC = () => {
       <View style={styles.cardFooter}>
         <View style={styles.dateRow}>
           <Clock size={12} color="#9CA3AF" />
-          <Text style={styles.dateText}>{formatDate(item.received_at)}</Text>
+          <Text style={styles.dateText}>{formatHistoryDateTime(item.received_at, (item as any).created_at)}</Text>
         </View>
         {item.notes ? (
           <Text style={styles.notesText} numberOfLines={1}>
@@ -306,7 +412,11 @@ export const OperationsScreen: React.FC = () => {
           : null);
 
     return (
-      <View style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.7}
+        onPress={() => setSelectedSaleDetail(item)}
+      >
         <View style={styles.cardHeader}>
           <View style={styles.cardLeft}>
             <View style={[styles.typeIconBox, { backgroundColor: '#ECFDF5' }]}>
@@ -337,10 +447,13 @@ export const OperationsScreen: React.FC = () => {
           </View>
 
           <View style={styles.cardRight}>
-            <View style={[styles.qtyBadge, { backgroundColor: '#FEF2F2' }]}>
-              <Text style={[styles.qtyText, { color: '#DC2626' }]}>
-                -{item.quantity}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <View style={[styles.qtyBadge, { backgroundColor: '#FEF2F2' }]}>
+                <Text style={[styles.qtyText, { color: '#DC2626' }]}>
+                  -{item.quantity}
+                </Text>
+              </View>
+              <ChevronRight size={16} color="#9CA3AF" />
             </View>
 
             {canDeleteHistory && (
@@ -358,7 +471,7 @@ export const OperationsScreen: React.FC = () => {
         <View style={styles.cardFooter}>
           <View style={styles.dateRow}>
             <Clock size={12} color="#9CA3AF" />
-            <Text style={styles.dateText}>{formatDate(item.issued_at)}</Text>
+            <Text style={styles.dateText}>{formatHistoryDateTime(item.issued_at, item.created_at)}</Text>
           </View>
           {item.notes ? (
             <Text style={styles.notesText} numberOfLines={1}>
@@ -366,7 +479,7 @@ export const OperationsScreen: React.FC = () => {
             </Text>
           ) : null}
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -418,7 +531,7 @@ export const OperationsScreen: React.FC = () => {
       <View style={styles.cardFooter}>
         <View style={styles.dateRow}>
           <Clock size={12} color="#9CA3AF" />
-          <Text style={styles.dateText}>{formatDate(item.issued_at)}</Text>
+          <Text style={styles.dateText}>{formatHistoryDateTime(item.issued_at, item.created_at)}</Text>
         </View>
         {item.notes ? (
           <Text style={styles.notesText} numberOfLines={1}>
@@ -468,7 +581,7 @@ export const OperationsScreen: React.FC = () => {
       <View style={styles.cardFooter}>
         <View style={styles.dateRow}>
           <Clock size={12} color="#9CA3AF" />
-          <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
+          <Text style={styles.dateText}>{formatHistoryDateTime(item.created_at)}</Text>
         </View>
         {item.notes ? (
           <Text style={styles.notesText} numberOfLines={1}>
@@ -609,17 +722,174 @@ export const OperationsScreen: React.FC = () => {
           </ScrollView>
         </View>
 
-        {/* Search Bar */}
-        <View style={styles.searchBar}>
-          <Search size={16} color="#9CA3AF" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Ada, barkoda, qeydə görə axtarış..."
-            placeholderTextColor="#9CA3AF"
-            value={searchTerm}
-            onChangeText={setSearchTerm}
-            clearButtonMode="while-editing"
-          />
+        {/* Search & Date Filter Bar */}
+        <View style={styles.searchFilterRow}>
+          <View style={styles.searchBar}>
+            <Search size={16} color="#9CA3AF" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Ada, barkoda, qeydə görə axtarış..."
+              placeholderTextColor="#9CA3AF"
+              value={searchTerm}
+              onChangeText={setSearchTerm}
+              clearButtonMode="while-editing"
+            />
+            {searchTerm ? (
+              <TouchableOpacity onPress={() => setSearchTerm('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <X size={15} color="#9CA3AF" />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.dateTriggerBtn,
+              isDateFiltered && styles.dateTriggerBtnActive,
+            ]}
+            onPress={() => setDateModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <CalendarIcon size={18} color={isDateFiltered ? '#059669' : '#4B5563'} />
+            {isDateFiltered && <View style={styles.dateFilterDot} />}
+          </TouchableOpacity>
+        </View>
+
+        {/* Quick Date Presets Row */}
+        <View style={styles.dateChipsWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateChipsContainer}
+          >
+            <TouchableOpacity
+              style={[
+                styles.dateChip,
+                dateRange.preset === 'all' && styles.dateChipActive,
+              ]}
+              onPress={() => handleQuickPreset('all')}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.dateChipText,
+                  dateRange.preset === 'all' && styles.dateChipTextActive,
+                ]}
+              >
+                Hamısı
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.dateChip,
+                dateRange.preset === 'today' && styles.dateChipActive,
+              ]}
+              onPress={() => handleQuickPreset('today')}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.dateChipText,
+                  dateRange.preset === 'today' && styles.dateChipTextActive,
+                ]}
+              >
+                Bu gün
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.dateChip,
+                dateRange.preset === 'yesterday' && styles.dateChipActive,
+              ]}
+              onPress={() => handleQuickPreset('yesterday')}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.dateChipText,
+                  dateRange.preset === 'yesterday' && styles.dateChipTextActive,
+                ]}
+              >
+                Dünən
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.dateChip,
+                dateRange.preset === 'week' && styles.dateChipActive,
+              ]}
+              onPress={() => handleQuickPreset('week')}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.dateChipText,
+                  dateRange.preset === 'week' && styles.dateChipTextActive,
+                ]}
+              >
+                Son 7 gün
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.dateChip,
+                dateRange.preset === 'month' && styles.dateChipActive,
+              ]}
+              onPress={() => handleQuickPreset('month')}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.dateChipText,
+                  dateRange.preset === 'month' && styles.dateChipTextActive,
+                ]}
+              >
+                Bu ay
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.dateChip,
+                dateRange.preset === 'custom' && styles.dateChipActive,
+                isDateFiltered && dateRange.preset === 'custom' && styles.dateChipCustomActive,
+              ]}
+              onPress={() => setDateModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <CalendarIcon
+                size={12}
+                color={dateRange.preset === 'custom' ? '#0284C7' : '#6B7280'}
+              />
+              <Text
+                style={[
+                  styles.dateChipText,
+                  dateRange.preset === 'custom' && { color: '#0284C7', fontWeight: '700' },
+                ]}
+              >
+                {dateRange.preset === 'custom' && dateRange.startDate
+                  ? `${formatDisplayDate(dateRange.startDate)}${
+                      dateRange.endDate && dateRange.endDate !== dateRange.startDate
+                        ? ` - ${formatDisplayDate(dateRange.endDate)}`
+                        : ''
+                    }`
+                  : 'Fərdi...'}
+              </Text>
+            </TouchableOpacity>
+
+            {isDateFiltered ? (
+              <TouchableOpacity
+                style={styles.clearDateBtn}
+                onPress={() => handleQuickPreset('all')}
+                activeOpacity={0.7}
+              >
+                <RotateCcw size={11} color="#DC2626" />
+                <Text style={styles.clearDateBtnText}>Sıfırla</Text>
+              </TouchableOpacity>
+            ) : null}
+          </ScrollView>
         </View>
 
         {/* Content */}
@@ -637,6 +907,25 @@ export const OperationsScreen: React.FC = () => {
           item={itemToDelete}
           onClose={() => setDeleteModalVisible(false)}
           onSuccess={handleDeleteSuccess}
+        />
+
+        <SaleDetailModal
+          visible={!!selectedSaleDetail}
+          sale={selectedSaleDetail}
+          onClose={() => setSelectedSaleDetail(null)}
+          onDelete={(sale) => handleOpenDelete(sale, 'sale')}
+          canDelete={canDeleteHistory}
+          permissions={permissions}
+        />
+
+        <DateFilterModal
+          visible={dateModalVisible}
+          currentRange={dateRange}
+          onClose={() => setDateModalVisible(false)}
+          onApply={(newRange) => {
+            setDateRange(newRange);
+            setDateModalVisible(false);
+          }}
         />
       </View>
     </SafeAreaView>
@@ -713,12 +1002,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#4B5563',
   },
+  searchFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginVertical: 5,
+    gap: 8,
+  },
   searchBar: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
@@ -730,6 +1025,84 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: '#111827',
+  },
+  dateTriggerBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  dateTriggerBtnActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+  },
+  dateFilterDot: {
+    position: 'absolute',
+    top: 7,
+    right: 7,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+  },
+  dateChipsWrapper: {
+    marginBottom: 6,
+  },
+  dateChipsContainer: {
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 2,
+  },
+  dateChip: {
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  dateChipActive: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+  },
+  dateChipCustomActive: {
+    backgroundColor: '#E0F2FE',
+    borderColor: '#0284C7',
+  },
+  dateChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  dateChipTextActive: {
+    color: '#059669',
+    fontWeight: '700',
+  },
+  clearDateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  clearDateBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#DC2626',
   },
   listContent: {
     paddingHorizontal: 16,

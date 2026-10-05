@@ -19,6 +19,7 @@ interface StockOperationModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  canViewSupplier?: boolean;
 }
 
 export const StockOperationModal: React.FC<StockOperationModalProps> = ({
@@ -27,6 +28,7 @@ export const StockOperationModal: React.FC<StockOperationModalProps> = ({
   visible,
   onClose,
   onSuccess,
+  canViewSupplier = true,
 }) => {
   if (!product || !operationType) return null;
 
@@ -140,7 +142,7 @@ export const StockOperationModal: React.FC<StockOperationModalProps> = ({
                 style={styles.input}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder={isReceive ? 'Qaimə nömrəsi və ya təchizatçı' : 'Silinmə səbəbi'}
+                placeholder={isReceive ? (canViewSupplier ? 'Qaimə nömrəsi və ya təchizatçı' : 'Qaimə nömrəsi və ya qeyd') : 'Silinmə səbəbi'}
               />
             </View>
 
