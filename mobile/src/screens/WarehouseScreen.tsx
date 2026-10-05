@@ -85,15 +85,23 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
       (p) => p.barcode === barcode || p.article_number === barcode
     );
     if (found) {
-      setSelectedProduct(found);
-      setDetailsVisible(true);
+      if (permissions.isOwnerOrAdmin) {
+        setSelectedProduct(found);
+        setDetailsVisible(true);
+      } else if (onAddToCart) {
+        onAddToCart(found);
+      }
     } else {
       // Lookup in DB directly
       const direct = await productService.lookupByBarcode(barcode);
       if (direct) {
-        setSelectedProduct(direct);
-        setDetailsVisible(true);
-      } else {
+        if (permissions.isOwnerOrAdmin) {
+          setSelectedProduct(direct);
+          setDetailsVisible(true);
+        } else if (onAddToCart) {
+          onAddToCart(direct);
+        }
+      } else if (permissions.isOwnerOrAdmin) {
         // Offer to create product with this barcode
         setNewProductVisible(true);
       }
@@ -182,9 +190,10 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   };
 
   const handleProductPress = useCallback((item: Product) => {
+    if (!permissions.isOwnerOrAdmin) return;
     setSelectedProduct(item);
     setDetailsVisible(true);
-  }, []);
+  }, [permissions.isOwnerOrAdmin]);
 
   const handleProductReceive = useCallback((item: Product) => {
     setOpModalProduct(item);
@@ -207,7 +216,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
     ({ item }: { item: Product }) => (
       <ProductCard
         product={item}
-        onPress={() => handleProductPress(item)}
+        onPress={permissions.isOwnerOrAdmin ? () => handleProductPress(item) : undefined}
         onReceive={permissions.canPerformMovements ? () => handleProductReceive(item) : undefined}
         onDispatch={permissions.canPerformMovements ? () => handleProductDispatch(item) : undefined}
         onAddToCart={onAddToCart ? () => handleProductAddToCart(item) : undefined}

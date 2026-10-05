@@ -5,7 +5,7 @@ import { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
-  onPress: () => void;
+  onPress?: () => void;
   onReceive?: () => void;
   onDispatch?: () => void;
   onAddToCart?: () => void;
@@ -31,7 +31,12 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   const isOutOfStock = product.stock_quantity <= 0;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      disabled={!onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+    >
       <View style={styles.mainRow}>
         <View style={styles.infoCol}>
           <Text style={styles.productName} numberOfLines={2}>

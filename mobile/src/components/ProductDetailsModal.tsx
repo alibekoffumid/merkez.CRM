@@ -43,7 +43,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   canViewSupplier = true,
   isAdmin = true,
 }) => {
-  if (!product) return null;
+  if (!visible || !product || !isAdmin) return null;
 
   const [saving, setSaving] = useState(false);
   const [nameInput, setNameInput] = useState(product.name || '');
