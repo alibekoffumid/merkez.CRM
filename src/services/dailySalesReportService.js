@@ -121,47 +121,132 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   const startOfDay = new Date(`${dateStr}T00:00:00.000`);
   const endOfDay = new Date(`${dateStr}T23:59:59.999`);
 
-  // 1. Fetch sales with items
-  let query = supabase
-    .from('retail_sales')
-    .select('*, retail_sale_items(*)')
-    .eq('user_id', userId)
-    .gte('created_at', startOfDay.toISOString())
-    .lte('created_at', endOfDay.toISOString())
-    .order('created_at', { ascending: true });
+  // 1. Fetch sales with items (with pagination to support busy shifts with >1000 sales)
+  let salesList = [];
+  let sFrom = 0;
+  const sStep = 1000;
+  let sHasMore = true;
 
-  if (!includeHidden) {
-    query = query.or('is_hidden.is.null,is_hidden.eq.false');
+  while (sHasMore) {
+    let salesQuery = supabase
+      .from('retail_sales')
+      .select('*, retail_sale_items(*)')
+      .eq('user_id', userId)
+      .gte('created_at', startOfDay.toISOString())
+      .lte('created_at', endOfDay.toISOString())
+      .order('created_at', { ascending: true })
+      .range(sFrom, sFrom + sStep - 1);
+
+    if (!includeHidden) {
+      salesQuery = salesQuery.or('is_hidden.is.null,is_hidden.eq.false');
+    }
+
+    const { data: salesChunk, error: salesError } = await salesQuery;
+    if (salesError) {
+      console.error('Error fetching retail sales in dailySalesReportService:', salesError);
+      throw salesError;
+    }
+
+    if (salesChunk && salesChunk.length > 0) {
+      salesList.push(...salesChunk);
+      if (salesChunk.length < sStep) {
+        sHasMore = false;
+      } else {
+        sFrom += sStep;
+      }
+    } else {
+      sHasMore = false;
+    }
   }
 
-  const { data: sales, error: salesError } = await query;
-  if (salesError) {
-    console.error('Error fetching retail sales:', salesError);
-    throw salesError;
+  // 2. Fetch ALL products for cost price & category mapping using range pagination
+  let allProducts = [];
+  let pFrom = 0;
+  const pStep = 1000;
+  let pHasMore = true;
+
+  while (pHasMore) {
+    const { data: prodsChunk, error: pErr } = await supabase
+      .from('products')
+      .select('id, name, barcode, purchase_price, price, category_id, unit')
+      .eq('user_id', userId)
+      .range(pFrom, pFrom + pStep - 1);
+
+    if (pErr) {
+      console.warn('Error fetching products chunk in dailySalesReportService:', pErr);
+      break;
+    }
+
+    if (prodsChunk && prodsChunk.length > 0) {
+      allProducts.push(...prodsChunk);
+      if (prodsChunk.length < pStep) {
+        pHasMore = false;
+      } else {
+        pFrom += pStep;
+      }
+    } else {
+      pHasMore = false;
+    }
   }
 
-  const salesList = sales || [];
-
-  // 2. Fetch products for cost price & category mapping
-  const { data: productsData } = await supabase
-    .from('products')
-    .select('id, name, barcode, purchase_price, price, category_id, unit')
-    .eq('user_id', userId);
-
+  // Multi-key indexed maps for instantaneous product matching
   const productsMap = new Map();
-  (productsData || []).forEach(p => {
-    if (p.id) productsMap.set(p.id, p);
-    if (p.barcode) productsMap.set(p.barcode, p);
+  const productsByName = new Map();
+  const productsByBarcode = new Map();
+
+  allProducts.forEach(p => {
+    if (p.id) {
+      productsMap.set(p.id, p);
+    }
+    if (p.barcode) {
+      const cleanBarcode = String(p.barcode).trim();
+      productsMap.set(cleanBarcode, p);
+      productsByBarcode.set(cleanBarcode.toLowerCase(), p);
+    }
+    if (p.name) {
+      const normName = String(p.name).trim().toLowerCase().replace(/\s+/g, ' ');
+      if (!productsByName.has(normName)) {
+        productsByName.set(normName, p);
+      }
+    }
   });
 
-  // 3. Fetch categories
-  const { data: categoriesData } = await supabase
-    .from('categories')
-    .select('id, name')
-    .eq('user_id', userId);
+  // 3. Fetch ALL categories using range pagination
+  let allCategories = [];
+  let cFrom = 0;
+  const cStep = 1000;
+  let cHasMore = true;
+
+  while (cHasMore) {
+    const { data: catsChunk, error: cErr } = await supabase
+      .from('categories')
+      .select('id, name, parent_id')
+      .eq('user_id', userId)
+      .range(cFrom, cFrom + cStep - 1);
+
+    if (cErr) {
+      console.warn('Error fetching categories chunk in dailySalesReportService:', cErr);
+      break;
+    }
+
+    if (catsChunk && catsChunk.length > 0) {
+      allCategories.push(...catsChunk);
+      if (catsChunk.length < cStep) {
+        cHasMore = false;
+      } else {
+        cFrom += cStep;
+      }
+    } else {
+      cHasMore = false;
+    }
+  }
 
   const categoriesMap = new Map();
-  (categoriesData || []).forEach(c => categoriesMap.set(c.id, c.name));
+  allCategories.forEach(c => {
+    if (c.id) {
+      categoriesMap.set(c.id, c.name);
+    }
+  });
 
   // Compute Aggregations
   let totalRevenue = 0;
@@ -230,23 +315,42 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       const price = Number(item.price_at_sale || item.base_price || 0);
       const itemTotal = Number(item.total || qty * price);
       const itemDiscount = Number(item.discount_amount || 0);
-      const productName = item.product_name || 'Naməlum Məhsul';
+      const productName = (item.product_name || 'Naməlum Məhsul').trim();
 
       totalItemsCount += qty;
       saleItemsQuantity += qty;
       saleItemNames.push(`${productName} (${qty})`);
 
-      // Match product metadata
-      const productMeta = productsMap.get(item.product_id) || {};
-      const unit = productMeta.unit || 'ədəd';
-      const barcode = productMeta.barcode || '-';
-      const costPrice = Number(productMeta.purchase_price || 0);
-      const categoryName = categoriesMap.get(productMeta.category_id) || 'Ümumi';
+      // Match product metadata with multiple fallback mechanisms
+      let productMeta = null;
+      if (item.product_id && productsMap.has(item.product_id)) {
+        productMeta = productsMap.get(item.product_id);
+      }
+      
+      const itemBarcode = item.barcode ? String(item.barcode).trim() : '';
+      if (!productMeta && itemBarcode) {
+        productMeta = productsMap.get(itemBarcode) || productsByBarcode.get(itemBarcode.toLowerCase());
+      }
+
+      if (!productMeta && productName) {
+        const normItemName = productName.toLowerCase().replace(/\s+/g, ' ');
+        productMeta = productsByName.get(normItemName);
+      }
+
+      productMeta = productMeta || {};
+
+      const unit = productMeta.unit || item.unit || 'ədəd';
+      const barcode = productMeta.barcode || itemBarcode || '-';
+      const costPrice = Number(productMeta.purchase_price || item.cost_price || 0);
+      const categoryName = (productMeta.category_id && categoriesMap.get(productMeta.category_id))
+        || item.category_name
+        || item.category
+        || 'Ümumi';
 
       totalCostPrice += (costPrice * qty);
 
-      // Aggregate Product Sales
-      const prodKey = item.product_id || productName;
+      // Aggregate Product Sales - group by matching product ID or clean name
+      const prodKey = productMeta.id || item.product_id || productName;
       if (!productAggregationMap.has(prodKey)) {
         productAggregationMap.set(prodKey, {
           id: prodKey,
@@ -267,6 +371,14 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       pAgg.totalCost += (costPrice * qty);
       pAgg.totalDiscount += itemDiscount;
       pAgg.avgPrice = pAgg.quantity > 0 ? (pAgg.totalRevenue / pAgg.quantity) : price;
+
+      // Ensure barcode and category get enriched if previously unknown
+      if ((!pAgg.barcode || pAgg.barcode === '-') && barcode && barcode !== '-') {
+        pAgg.barcode = barcode;
+      }
+      if ((!pAgg.category || pAgg.category === 'Ümumi') && categoryName && categoryName !== 'Ümumi') {
+        pAgg.category = categoryName;
+      }
 
       // Aggregate Category Sales
       if (!categoryAggregationMap.has(categoryName)) {
