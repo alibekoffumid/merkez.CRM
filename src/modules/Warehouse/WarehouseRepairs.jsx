@@ -255,7 +255,14 @@ const WarehouseRepairs = ({ activeTab }) => {
                     </span>
                   </td>
                   <td className="p-4">
-                    <div className="font-bold text-sm text-gray-900">{repair.item_name}</div>
+                    <div className="font-bold text-sm text-gray-900 flex items-center gap-1.5 flex-wrap">
+                      <span>{repair.item_name}</span>
+                      {repair.quantity && Number(repair.quantity) > 1 && !repair.item_name?.includes(`(x${repair.quantity})`) && (
+                        <span className="text-[10px] bg-orange-100 text-orange-700 font-black px-1.5 py-0.5 rounded">
+                          x{repair.quantity}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs text-gray-500 flex flex-col gap-1 mt-1">
                       <div className="flex items-center gap-1">
                         {repair.type === 'INTERNAL_STOCK' ? (

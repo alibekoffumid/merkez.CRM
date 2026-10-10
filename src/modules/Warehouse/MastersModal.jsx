@@ -1,19 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, User, Banknote, History, RefreshCw } from 'lucide-react';
+import { X, User, Banknote, History, RefreshCw, Edit3, Trash2, CheckCircle2, Plus } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import ConfirmModal from '../../components/Common/ConfirmModal';
 
 const MastersModal = ({ isOpen, onClose }) => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
+  const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin';
+
   const [masters, setMasters] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [payingMasterId, setPayingMasterId] = useState(null);
   const [payAmount, setPayAmount] = useState('');
+
+  // Edit / Add state
+  const [editingMaster, setEditingMaster] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editBalance, setEditBalance] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleteConfirmMaster, setDeleteConfirmMaster] = useState(null);
 
   const fetchMasters = async () => {
     if (!profile) return;
@@ -80,8 +91,6 @@ const MastersModal = ({ isOpen, onClose }) => {
         
       if (error) throw error;
       
-      // We should ideally record a cash operation here in a real accounting system.
-      // But for this quick feature, we just reduce the balance.
       toast.success(i18n.language === 'az' ? 'Ödəniş qeydə alındı' : 'Оплата зарегистрирована');
       
       setPayingMasterId(null);
@@ -90,6 +99,142 @@ const MastersModal = ({ isOpen, onClose }) => {
     } catch (err) {
       console.error('Error paying master:', err);
       toast.error(i18n.language === 'az' ? 'Xəta baş verdi' : 'Произошла ошибка');
+    }
+  };
+
+  const handleStartEdit = (master) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin redaktə edə bilər' : 'Только администратор имеет право редактировать');
+      return;
+    }
+    setEditingMaster(master);
+    setEditName(master.name || '');
+    setEditPhone(master.phone || '');
+    setEditBalance(master.balance !== undefined && master.balance !== null ? master.balance.toString() : '0');
+  };
+
+  const handleOpenAdd = () => {
+    if (!isAdmin) return;
+    setEditingMaster({ id: 'new', name: '', phone: '', balance: 0 });
+    setEditName('');
+    setEditPhone('');
+    setEditBalance('0');
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin redaktə edə bilər' : 'Только администратор имеет право редактировать');
+      return;
+    }
+    if (!editName.trim()) {
+      toast.error(i18n.language === 'az' ? 'Ustanın adı daxil edilməlidir' : 'Введите имя мастера');
+      return;
+    }
+
+    const parsedBalance = parseFloat(editBalance) || 0;
+    const newName = editName.trim();
+    const newPhone = editPhone.trim() || null;
+
+    setIsSaving(true);
+    try {
+      if (editingMaster.id === 'new') {
+        const { error: insertError } = await supabase
+          .from('warehouse_masters')
+          .insert([{
+            user_id: profile.id,
+            name: newName,
+            phone: newPhone,
+            balance: parsedBalance
+          }]);
+
+        if (insertError) throw insertError;
+
+        // Also add to staff table for consistency
+        await supabase
+          .from('staff')
+          .insert([{
+            user_id: profile.id,
+            name: newName,
+            phone: newPhone,
+            role: 'Master',
+            status: 'Active'
+          }]);
+
+        toast.success(i18n.language === 'az' ? 'Yeni usta əlavə edildi' : 'Мастер добавлен');
+      } else {
+        const oldName = editingMaster.name;
+
+        // 1. Update warehouse_masters
+        const { error: masterError } = await supabase
+          .from('warehouse_masters')
+          .update({
+            name: newName,
+            phone: newPhone,
+            balance: parsedBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editingMaster.id);
+
+        if (masterError) throw masterError;
+
+        // 2. Keep staff table in sync if master was synced from staff
+        if (oldName !== newName || newPhone) {
+          await supabase
+            .from('staff')
+            .update({
+              name: newName,
+              phone: newPhone
+            })
+            .eq('user_id', profile.id)
+            .eq('role', 'Master')
+            .eq('name', oldName);
+        }
+
+        toast.success(i18n.language === 'az' ? 'Usta məlumatları yeniləndi' : 'Данные мастера обновлены');
+      }
+
+      setEditingMaster(null);
+      fetchMasters();
+    } catch (err) {
+      console.error('Error saving master:', err);
+      toast.error(err.message || (i18n.language === 'az' ? 'Xəta baş verdi' : 'Произошла ошибка'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmMaster || !isAdmin) return;
+    const masterToDelete = deleteConfirmMaster;
+    setDeleteConfirmMaster(null);
+
+    const loadingToast = toast.loading(i18n.language === 'az' ? 'Silinir...' : 'Удаление...');
+    try {
+      // 1. Delete from warehouse_masters
+      const { error } = await supabase
+        .from('warehouse_masters')
+        .delete()
+        .eq('id', masterToDelete.id);
+
+      if (error) throw error;
+
+      // 2. Delete from staff if exists
+      await supabase
+        .from('staff')
+        .delete()
+        .eq('user_id', profile.id)
+        .eq('role', 'Master')
+        .eq('name', masterToDelete.name);
+
+      toast.success(i18n.language === 'az' ? 'Usta silindi' : 'Мастер удален', { id: loadingToast });
+      if (editingMaster?.id === masterToDelete.id) {
+        setEditingMaster(null);
+      }
+      fetchMasters();
+    } catch (err) {
+      console.error('Error deleting master:', err);
+      toast.error(err.message || (i18n.language === 'az' ? 'Xəta baş verdi' : 'Произошла ошибка'), { id: loadingToast });
     }
   };
 
@@ -114,12 +259,24 @@ const MastersModal = ({ isOpen, onClose }) => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-all shadow-sm border border-gray-100"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <button
+                  onClick={handleOpenAdd}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                  title={i18n.language === 'az' ? 'Yeni usta əlavə et' : 'Добавить нового мастера'}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">{i18n.language === 'az' ? 'Yeni Usta' : 'Новый мастер'}</span>
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-all shadow-sm border border-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50/30">
@@ -134,13 +291,25 @@ const MastersModal = ({ isOpen, onClose }) => {
             ) : (
               <div className="grid gap-4">
                 {masters.map(master => (
-                  <div key={master.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div key={master.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-gray-300 transition-all">
                     <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-lg">{master.name}</h3>
-                        {master.phone && <p className="text-sm text-gray-500">{master.phone}</p>}
+                      <div className="flex-1 min-w-0 pr-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-bold text-gray-900 text-lg truncate">{master.name}</h3>
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleStartEdit(master)}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 rounded-lg border border-gray-200 transition-all shadow-sm flex-shrink-0"
+                              title={i18n.language === 'az' ? 'Redaktə et' : 'Редактировать'}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>{i18n.language === 'az' ? 'Redaktə et' : 'Редактировать'}</span>
+                            </button>
+                          )}
+                        </div>
+                        {master.phone && <p className="text-sm text-gray-500 mt-0.5">{master.phone}</p>}
                       </div>
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
                           {i18n.language === 'az' ? 'Cari Borcumuz' : 'Наш долг'}
                         </p>
@@ -195,6 +364,147 @@ const MastersModal = ({ isOpen, onClose }) => {
             )}
           </div>
         </div>
+
+        {/* Edit / Add Master Modal */}
+        {editingMaster && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-gray-950/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100">
+              <div className="flex items-center justify-between p-4 md:p-5 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                    {editingMaster.id === 'new' ? (
+                      <Plus className="w-5 h-5 text-orange-600" />
+                    ) : (
+                      <Edit3 className="w-5 h-5 text-orange-600" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-gray-900">
+                      {editingMaster.id === 'new'
+                        ? (i18n.language === 'az' ? 'Yeni Usta Əlavə Et' : 'Добавить Нового Мастера')
+                        : (i18n.language === 'az' ? 'Ustanı Redaktə Et' : 'Редактировать Мастера')}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {editingMaster.id === 'new'
+                        ? (i18n.language === 'az' ? 'Yeni usta kartı yaradın' : 'Создание карточки мастера')
+                        : (editingMaster.name || '')}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setEditingMaster(null)}
+                  className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEdit} className="p-4 md:p-6 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                    {i18n.language === 'az' ? 'Ustanın Adı' : 'Имя мастера'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder={i18n.language === 'az' ? 'Məsələn: Usta Əli' : 'Например: Мастер Али'}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all shadow-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                    {i18n.language === 'az' ? 'Telefon Nömrəsi' : 'Номер телефона'}
+                  </label>
+                  <input
+                    type="text"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="+994"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all shadow-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                    {i18n.language === 'az' ? 'Cari Borcumuz (Balans ₼)' : 'Наш долг (Баланс ₼)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editBalance}
+                    onChange={(e) => setEditBalance(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all shadow-sm"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1 px-1">
+                    {i18n.language === 'az' 
+                      ? 'Ustaya olan cari borc məbləğini buradan tənzimləyə bilərsiniz' 
+                      : 'Здесь вы можете изменить текущий баланс задолженности перед мастером'}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  {editingMaster.id !== 'new' ? (
+                    <button
+                      type="button"
+                      onClick={() => setDeleteConfirmMaster(editingMaster)}
+                      className="px-3 py-2 text-xs font-bold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 rounded-xl transition-all flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{i18n.language === 'az' ? 'Sil' : 'Удалить'}</span>
+                    </button>
+                  ) : <div />}
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingMaster(null)}
+                      className="px-4 py-2.5 text-xs font-bold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all"
+                    >
+                      {i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="px-5 py-2.5 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 rounded-xl transition-all flex items-center gap-1.5 shadow-sm shadow-orange-600/20"
+                    >
+                      {isSaving ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>{i18n.language === 'az' ? 'Saxlanılır...' : 'Сохранение...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{i18n.language === 'az' ? 'Yadda saxla' : 'Сохранить'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmMaster && (
+          <ConfirmModal
+            isOpen={Boolean(deleteConfirmMaster)}
+            onClose={() => setDeleteConfirmMaster(null)}
+            onConfirm={handleConfirmDelete}
+            title={i18n.language === 'az' ? 'Ustanı Sil' : 'Удалить Мастера'}
+            message={i18n.language === 'az' 
+              ? `"${deleteConfirmMaster.name}" adlı ustanı silmək istədiyinizə əminsiniz?`
+              : `Вы уверены, что хотите удалить мастера "${deleteConfirmMaster.name}"?`}
+            confirmText={i18n.language === 'az' ? 'Bəli, Sil' : 'Да, Удалить'}
+            cancelText={i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
+            isDanger={true}
+          />
+        )}
       </div>
     </ModalPortal>
   );

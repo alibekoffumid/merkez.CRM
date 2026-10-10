@@ -17,8 +17,10 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const [products, setProducts] = useState([]);
   const [masters, setMasters] = useState([]);
   
+  const [itemSource, setItemSource] = useState('warehouse'); // 'warehouse' or 'manual'
   const [selectedProductId, setSelectedProductId] = useState('');
   const [itemName, setItemName] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [serialNumber, setSerialNumber] = useState('');
   const [selectedMasterId, setSelectedMasterId] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
@@ -42,6 +44,19 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   useEffect(() => {
     if (!profile) return;
     if (isOpen) {
+      setItemSource('warehouse');
+      setSelectedProductId('');
+      setItemName('');
+      setQuantity(1);
+      setSerialNumber('');
+      setSelectedMasterId('');
+      setIssueDescription('');
+      setClientName('');
+      setClientPhone('');
+      setPhotoBefore([]);
+      setIsAddingMaster(false);
+      setNewMasterName('');
+
       try {
         const mode = localStorage.getItem('crm_scanner_mode') !== 'false';
         setBarcodeMode(mode);
@@ -100,7 +115,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
     };
     
     fetchInitialData();
-  }, [profile]);
+  }, [profile, isOpen]);
 
   const handleProductSelect = (productId) => {
     setSelectedProductId(productId);
@@ -109,6 +124,8 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       setItemName(prod.name);
     }
   };
+
+  const selectedProduct = products.find(p => p.id === selectedProductId);
 
   const handleAddMaster = async () => {
     if (!newMasterName.trim()) return;
@@ -164,9 +181,15 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       return;
     }
     
-    if (type === 'INTERNAL_STOCK' && !selectedProductId) {
-      toast.error(i18n.language === 'az' ? 'Məhsul seçilməlidir' : 'Необходимо выбрать товар');
-      return;
+    if (type === 'INTERNAL_STOCK') {
+      if (itemSource === 'warehouse' && !selectedProductId && !itemName.trim()) {
+        toast.error(i18n.language === 'az' ? 'Məhsul seçilməlidir və ya adı daxil edilməlidir' : 'Необходимо выбрать товар или ввести название');
+        return;
+      }
+      if (itemSource === 'manual' && !itemName.trim()) {
+        toast.error(i18n.language === 'az' ? 'Məhsulun adı daxil edilməlidir' : 'Необходимо ввести название товара');
+        return;
+      }
     }
     
     if (type === 'CLIENT_ITEM') {
@@ -179,6 +202,8 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
         return;
       }
     }
+
+    const parsedQuantity = Math.max(1, parseInt(quantity) || 1);
     
     setLoading(true);
     
@@ -186,34 +211,54 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       // Generate unique code
       const repairCode = `REP-${Date.now().toString().slice(-6)}`;
       
+      const finalItemName = parsedQuantity > 1 
+        ? `${itemName.trim()} (x${parsedQuantity})` 
+        : itemName.trim();
+      
       let finalIssueDescription = issueDescription.trim();
       if (type === 'CLIENT_ITEM' && (clientName || clientPhone)) {
-        finalIssueDescription = `Müştəri: ${clientName || '-'}\nTelefon: ${clientPhone || '-'}\n\nProblem: ${finalIssueDescription}`;
+        finalIssueDescription = `Müştəri: ${clientName || '-'}\nTelefon: ${clientPhone || '-'}\nSay: ${parsedQuantity}\n\nProblem: ${finalIssueDescription}`;
+      } else if (parsedQuantity > 1) {
+        finalIssueDescription = `Say: ${parsedQuantity} ədəd\n\nProblem: ${finalIssueDescription}`;
       }
 
-      const { data, error } = await supabase
+      const insertPayload = {
+        user_id: profile.id,
+        repair_code: repairCode,
+        type,
+        product_id: (type === 'INTERNAL_STOCK' && itemSource === 'warehouse' && selectedProductId) ? selectedProductId : null,
+        item_name: finalItemName,
+        serial_number: serialNumber ? serialNumber.trim() : null,
+        master_id: selectedMasterId,
+        issue_description: finalIssueDescription,
+        status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER',
+        photo_before: photoBefore && photoBefore.length > 0 ? JSON.stringify(photoBefore) : null,
+        quantity: parsedQuantity
+      };
+
+      // Try inserting with quantity column
+      let { data, error } = await supabase
         .from('warehouse_repairs')
-        .insert([{
-          user_id: profile.id,
-          repair_code: repairCode,
-          type,
-          product_id: type === 'INTERNAL_STOCK' ? selectedProductId : null,
-          item_name: itemName,
-          serial_number: serialNumber || null,
-          master_id: selectedMasterId,
-          issue_description: finalIssueDescription,
-          status: type === 'INTERNAL_STOCK' ? 'SENT_TO_WORKSHOP' : 'RECEIVED_FROM_CUSTOMER',
-          photo_before: photoBefore && photoBefore.length > 0 ? JSON.stringify(photoBefore) : null
-        }])
+        .insert([insertPayload])
         .select()
         .single();
+        
+      // If column 'quantity' does not exist in schema, retry gracefully without it
+      if (error && (error.code === '42703' || error.message?.includes('quantity'))) {
+        const fallbackPayload = { ...insertPayload };
+        delete fallbackPayload.quantity;
+        const retry = await supabase
+          .from('warehouse_repairs')
+          .insert([fallbackPayload])
+          .select()
+          .single();
+        data = retry.data;
+        error = retry.error;
+      }
         
       if (error) throw error;
       
       toast.success(i18n.language === 'az' ? 'Təmirə göndərildi' : 'Передано в ремонт');
-      
-      // We could trigger printing the act here
-      // printTransferAct(data);
       
       onSuccess();
     } catch (err) {
@@ -287,62 +332,145 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                 {type === 'INTERNAL_STOCK' ? (
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                        {i18n.language === 'az' ? 'Məhsul Seçin' : 'Выберите Товар'} *
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <span className="text-xs font-bold text-gray-500">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
-                        <div className="relative">
-                          <input 
-                            type="checkbox"
-                            checked={barcodeMode}
-                            onChange={(e) => {
-                              const isChecked = e.target.checked;
-                              setBarcodeMode(isChecked);
-                              try {
-                                localStorage.setItem('crm_scanner_mode', String(isChecked));
-                              } catch (err) {}
-                              if (isChecked) {
-                                setTimeout(() => barcodeInputRef.current?.focus(), 100);
-                              }
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                          {itemSource === 'warehouse' 
+                            ? (i18n.language === 'az' ? 'Məhsul Seçin' : 'Выберите Товар')
+                            : (i18n.language === 'az' ? 'Məhsulun Adı' : 'Название Товара')} *
+                        </label>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {/* Source switcher: Warehouse vs Manual */}
+                        <div className="flex bg-gray-100 p-0.5 rounded-lg text-xs font-bold">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setItemSource('warehouse');
                             }}
-                            className="sr-only peer"
-                          />
-                          <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                            className={`px-2.5 py-1 rounded-md transition-all ${
+                              itemSource === 'warehouse'
+                                ? 'bg-white shadow-sm text-orange-600 font-black'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            {i18n.language === 'az' ? 'Anbardan' : 'Со склада'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setItemSource('manual');
+                              setSelectedProductId('');
+                            }}
+                            className={`px-2.5 py-1 rounded-md transition-all ${
+                              itemSource === 'manual'
+                                ? 'bg-white shadow-sm text-orange-600 font-black'
+                                : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                          >
+                            {i18n.language === 'az' ? 'Əl ilə' : 'Вручную'}
+                          </button>
                         </div>
-                      </label>
+
+                        {itemSource === 'warehouse' && (
+                          <label className="flex items-center gap-2 cursor-pointer select-none ml-1">
+                            <span className="text-xs font-bold text-gray-500 hidden sm:inline">{t('warehouse.barcodeMode') || 'Skaner'}</span>
+                            <div className="relative">
+                              <input 
+                                type="checkbox"
+                                checked={barcodeMode}
+                                onChange={(e) => {
+                                  const isChecked = e.target.checked;
+                                  setBarcodeMode(isChecked);
+                                  try {
+                                    localStorage.setItem('crm_scanner_mode', String(isChecked));
+                                  } catch (err) {}
+                                  if (isChecked) {
+                                    setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                                  }
+                                }}
+                                className="sr-only peer"
+                              />
+                              <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                            </div>
+                          </label>
+                        )}
+                      </div>
                     </div>
                     
-                    {barcodeMode ? (
-                      <div className="relative mb-2">
-                        <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                        <input
-                          ref={barcodeInputRef}
-                          type="text"
-                          value={barcodeBuffer}
-                          onChange={(e) => setBarcodeBuffer(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleBarcodeSubmit(e);
-                          }}
-                          placeholder={t('warehouse.scanBarcodePlaceholder') || 'Skan edin...'}
-                          className="w-full bg-gray-50 border-2 border-orange-500/30 rounded-xl pl-12 pr-4 py-3 text-sm font-bold focus:bg-white focus:border-orange-500 outline-none transition-all"
-                          autoFocus
-                        />
-                      </div>
+                    {itemSource === 'warehouse' ? (
+                      <>
+                        {barcodeMode ? (
+                          <div className="relative mb-2">
+                            <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                            <input
+                              ref={barcodeInputRef}
+                              type="text"
+                              value={barcodeBuffer}
+                              onChange={(e) => setBarcodeBuffer(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleBarcodeSubmit(e);
+                              }}
+                              placeholder={t('warehouse.scanBarcodePlaceholder') || 'Skan edin...'}
+                              className="w-full bg-gray-50 border-2 border-orange-500/30 rounded-xl pl-12 pr-4 py-3 text-sm font-bold focus:bg-white focus:border-orange-500 outline-none transition-all"
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <Dropdown
+                            value={selectedProductId}
+                            onChange={handleProductSelect}
+                            searchable={true}
+                            options={[
+                              { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
+                              ...products.map(p => ({
+                                value: p.id,
+                                label: `${p.name} ${p.barcode ? `(${p.barcode})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
+                              }))
+                            ]}
+                            buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                          />
+                        )}
+
+                        {selectedProduct && (
+                          <div className="flex items-center justify-between bg-orange-50/70 border border-orange-200 rounded-xl px-3.5 py-2.5 mt-2 animate-in fade-in duration-150">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <Package className="w-4 h-4 text-orange-600 shrink-0" />
+                              <span className="text-xs font-bold text-gray-900 truncate">{selectedProduct.name}</span>
+                              <span className="text-[11px] font-semibold text-gray-600 bg-white px-2 py-0.5 rounded-md border border-gray-200 shrink-0">
+                                {i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: {selectedProduct.stock_quantity ?? 0}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedProductId('');
+                                setItemName('');
+                              }}
+                              className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white rounded-lg transition-colors ml-2 shrink-0"
+                              title={i18n.language === 'az' ? 'Seçimi ləğv et' : 'Отменить выбор'}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </>
                     ) : (
-                      <Dropdown
-                        value={selectedProductId}
-                        onChange={handleProductSelect}
-                        searchable={true}
-                        options={[
-                          { value: '', label: i18n.language === 'az' ? 'Məhsul seçin...' : 'Выберите товар...' },
-                          ...products.map(p => ({
-                            value: p.id,
-                            label: `${p.name} ${p.barcode ? `(${p.barcode})` : ''} - ${i18n.language === 'az' ? 'Qalıq' : 'Остаток'}: ${p.stock_quantity}`
-                          }))
-                        ]}
-                        buttonClassName="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                      />
+                      <div>
+                        <input
+                          type="text"
+                          required
+                          value={itemName}
+                          onChange={(e) => setItemName(e.target.value)}
+                          placeholder={i18n.language === 'az' ? 'Məsələn: Yamaha F310 Gitara, Makita Perforator...' : 'Например: Гитара Yamaha F310, Перфоратор Makita...'}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all shadow-sm"
+                        />
+                        <p className="text-[11px] text-gray-400 mt-1.5 px-1">
+                          {i18n.language === 'az'
+                            ? 'Anbarda mövcud olmayan və ya sərbəst məhsul adını birbaşa daxil edin'
+                            : 'Введите название товара, которого нет на складе, или произвольное название'}
+                        </p>
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -391,17 +519,58 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                    {i18n.language === 'az' ? 'Seriya Nömrəsi (İxtiyari)' : 'Серийный Номер (Необязательно)'}
-                  </label>
-                  <input
-                    type="text"
-                    value={serialNumber}
-                    onChange={(e) => setSerialNumber(e.target.value)}
-                    placeholder="S/N..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                  />
+                {/* Quantity and Serial Number in a 2-column grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">
+                        {i18n.language === 'az' ? 'Say (Miqdar)' : 'Количество'} *
+                      </label>
+                      {selectedProduct && itemSource === 'warehouse' && (
+                        <span className="text-[10px] font-bold text-gray-400">
+                          {i18n.language === 'az' ? 'Anbarda' : 'На складе'}: {selectedProduct.stock_quantity ?? 0}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-orange-500/20 focus-within:border-orange-500 transition-all shadow-sm">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(prev => Math.max(1, (parseInt(prev) || 1) - 1))}
+                        className="px-3.5 py-3 text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-black text-base transition-colors select-none"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value)}
+                        className="w-full bg-transparent text-center text-sm font-black text-gray-900 outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(prev => (parseInt(prev) || 1) + 1)}
+                        className="px-3.5 py-3 text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-black text-base transition-colors select-none"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                      {i18n.language === 'az' ? 'Seriya Nömrəsi (İxtiyari)' : 'Серийный Номер (Необязательно)'}
+                    </label>
+                    <input
+                      type="text"
+                      value={serialNumber}
+                      onChange={(e) => setSerialNumber(e.target.value)}
+                      placeholder="S/N..."
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all shadow-sm"
+                    />
+                  </div>
                 </div>
 
                 <div>

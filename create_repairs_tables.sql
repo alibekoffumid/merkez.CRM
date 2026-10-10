@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS public.warehouse_repairs (
     type VARCHAR(50) NOT NULL CHECK (type IN ('INTERNAL_STOCK', 'CLIENT_ITEM')),
     product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
     item_name VARCHAR(255) NOT NULL,
+    quantity DECIMAL(15, 2) DEFAULT 1,
     serial_number VARCHAR(100),
     master_id UUID REFERENCES public.warehouse_masters(id) ON DELETE SET NULL,
     issue_description TEXT,

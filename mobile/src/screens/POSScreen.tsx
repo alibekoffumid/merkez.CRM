@@ -558,112 +558,69 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   <Text style={styles.discountSectionTitle}>Endirim:</Text>
                 </View>
 
-                {/* Switcher: ₼ vs % */}
-                <View style={styles.discountTypeToggle}>
-                  <TouchableOpacity
-                    style={[
-                      styles.discountTypeBtn,
-                      discountType === 'fixed' && styles.discountTypeBtnActive,
-                    ]}
-                    onPress={() => setDiscountType('fixed')}
-                  >
-                    <Text
-                      style={[
-                        styles.discountTypeBtnText,
-                        discountType === 'fixed' && styles.discountTypeBtnTextActive,
-                      ]}
-                    >
-                      ₼
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.discountTypeBtn,
-                      discountType === 'percent' && styles.discountTypeBtnActive,
-                    ]}
-                    onPress={() => setDiscountType('percent')}
-                  >
-                    <Text
-                      style={[
-                        styles.discountTypeBtnText,
-                        discountType === 'percent' && styles.discountTypeBtnTextActive,
-                      ]}
-                    >
-                      %
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Input field */}
-                <View style={styles.discountInputWrapper}>
-                  <TextInput
-                    style={styles.discountInput}
-                    placeholder="0"
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="numeric"
-                    value={discountInput}
-                    onChangeText={setDiscountInput}
-                  />
-                  <Text style={styles.discountInputUnit}>
-                    {discountType === 'percent' ? '%' : '₼'}
-                  </Text>
-                  {discountInput ? (
+                <View style={styles.discountRightControls}>
+                  {/* Switcher: ₼ vs % */}
+                  <View style={styles.discountTypeToggle}>
                     <TouchableOpacity
-                      onPress={() => setDiscountInput('')}
-                      style={styles.discountClearBtn}
-                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      style={[
+                        styles.discountTypeBtn,
+                        discountType === 'fixed' && styles.discountTypeBtnActive,
+                      ]}
+                      onPress={() => setDiscountType('fixed')}
                     >
-                      <X size={13} color="#9CA3AF" />
+                      <Text
+                        style={[
+                          styles.discountTypeBtnText,
+                          discountType === 'fixed' && styles.discountTypeBtnTextActive,
+                        ]}
+                      >
+                        ₼
+                      </Text>
                     </TouchableOpacity>
-                  ) : null}
+
+                    <TouchableOpacity
+                      style={[
+                        styles.discountTypeBtn,
+                        discountType === 'percent' && styles.discountTypeBtnActive,
+                      ]}
+                      onPress={() => setDiscountType('percent')}
+                    >
+                      <Text
+                        style={[
+                          styles.discountTypeBtnText,
+                          discountType === 'percent' && styles.discountTypeBtnTextActive,
+                        ]}
+                      >
+                        %
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Input field */}
+                  <View style={styles.discountInputWrapper}>
+                    <TextInput
+                      style={styles.discountInput}
+                      placeholder="0"
+                      placeholderTextColor="#9CA3AF"
+                      keyboardType="numeric"
+                      value={discountInput}
+                      onChangeText={setDiscountInput}
+                    />
+                    <Text style={styles.discountInputUnit}>
+                      {discountType === 'percent' ? '%' : '₼'}
+                    </Text>
+                    {discountInput ? (
+                      <TouchableOpacity
+                        onPress={() => setDiscountInput('')}
+                        style={styles.discountClearBtn}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      >
+                        <X size={13} color="#9CA3AF" />
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
                 </View>
               </View>
-
-              {/* Quick preset chips */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.discountChipsRow}
-              >
-                {discountType === 'percent'
-                  ? [5, 10, 15, 20, 25, 50].map((pct) => {
-                      const isSel = discountInput === String(pct);
-                      return (
-                        <TouchableOpacity
-                          key={pct}
-                          style={[styles.presetChip, isSel && styles.presetChipActive]}
-                          onPress={() => setDiscountInput(isSel ? '' : String(pct))}
-                        >
-                          <Text style={[styles.presetChipText, isSel && styles.presetChipTextActive]}>
-                            {pct}%
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })
-                  : [1, 2, 5, 10, 20, 50].map((amt) => {
-                      const isSel = discountInput === String(amt);
-                      return (
-                        <TouchableOpacity
-                          key={amt}
-                          style={[styles.presetChip, isSel && styles.presetChipActive]}
-                          onPress={() => setDiscountInput(isSel ? '' : String(amt))}
-                        >
-                          <Text style={[styles.presetChipText, isSel && styles.presetChipTextActive]}>
-                            {amt} ₼
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                {discountAmount > 0 && (
-                  <TouchableOpacity
-                    style={styles.presetClearChip}
-                    onPress={() => setDiscountInput('')}
-                  >
-                    <Text style={styles.presetClearChipText}>Sıfırla (✕)</Text>
-                  </TouchableOpacity>
-                )}
-              </ScrollView>
             </View>
 
             {/* Standard Summary Row (when not credit) */}
@@ -1217,7 +1174,8 @@ const styles = StyleSheet.create({
   discountContainer: {
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
-    padding: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
@@ -1231,29 +1189,38 @@ const styles = StyleSheet.create({
   discountLeftGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   discountSectionTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     color: '#1F2937',
+  },
+  discountRightControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   discountTypeToggle: {
     flexDirection: 'row',
     backgroundColor: '#E5E7EB',
     borderRadius: 8,
     padding: 2,
+    height: 36,
+    width: 82,
+    alignItems: 'stretch',
   },
   discountTypeBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 6,
   },
   discountTypeBtnActive: {
     backgroundColor: '#10B981',
   },
   discountTypeBtnText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#4B5563',
   },
@@ -1269,11 +1236,11 @@ const styles = StyleSheet.create({
     borderColor: '#D1D5DB',
     borderRadius: 8,
     paddingHorizontal: 8,
-    height: 34,
-    minWidth: 80,
+    height: 36,
+    minWidth: 82,
   },
   discountInput: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111827',
     paddingVertical: 0,
@@ -1281,56 +1248,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   discountInputUnit: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     color: '#059669',
     marginLeft: 3,
   },
   discountClearBtn: {
-    marginLeft: 5,
+    marginLeft: 4,
     padding: 2,
-  },
-  discountChipsRow: {
-    flexDirection: 'row',
-    gap: 5,
-    marginTop: 6,
-    paddingTop: 4,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  },
-  presetChip: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  presetChipActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  presetChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#4B5563',
-  },
-  presetChipTextActive: {
-    color: '#fff',
-    fontWeight: '800',
-  },
-  presetClearChip: {
-    backgroundColor: '#FEE2E2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  presetClearChipText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#DC2626',
   },
 
   // Summary box styles
