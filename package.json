@@ -66,6 +66,7 @@
     "electron-builder": "^26.8.1",
     "eslint": "^8.55.0",
     "postcss": "^8.4.32",
+    "puppeteer": "^25.8.0",
     "tailwindcss": "^3.4.0",
     "typescript": "^6.0.2",
     "vite": "^5.0.8",

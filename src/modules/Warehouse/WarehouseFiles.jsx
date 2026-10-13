@@ -8,6 +8,9 @@ import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
 import * as XLSX from 'xlsx';
 import { Parser } from 'hot-formula-parser';
+import { Workbook } from '@fortune-sheet/react';
+import '@fortune-sheet/react/dist/index.css';
+import LuckyExcel from 'luckyexcel';
 
 const WarehouseFiles = () => {
   const { t, i18n } = useTranslation();
@@ -34,77 +37,9 @@ const WarehouseFiles = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   const [previewFile, setPreviewFile] = useState(null);
-  const [previewWorkbook, setPreviewWorkbook] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
+  const [sheetData, setSheetData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewSearch, setPreviewSearch] = useState('');
-  const [focusedCell, setFocusedCell] = useState(null);
-
-  const previewDataRef = useRef(null);
-  useEffect(() => {
-    previewDataRef.current = previewData;
-  }, [previewData]);
-
-  const parser = useMemo(() => {
-    const p = new Parser();
-    p.on('callCellValue', (cellCoord, done) => {
-      const { row, column } = cellCoord;
-      let val = previewDataRef.current?.[row.index]?.[column.index];
-      
-      if (val === undefined || val === null || val === '') {
-        done(0);
-      } else if (typeof val === 'string' && val.startsWith('=')) {
-        const res = p.parse(val.substring(1));
-        done(res.error ? 0 : res.result);
-      } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
-        done(Number(val));
-      } else {
-        done(val);
-      }
-    });
-    
-    p.on('callRangeValue', (startCellCoord, endCellCoord, done) => {
-      const fragment = [];
-      for (let r = startCellCoord.row.index; r <= endCellCoord.row.index; r++) {
-        const rowData = [];
-        for (let c = startCellCoord.column.index; c <= endCellCoord.column.index; c++) {
-          let val = previewDataRef.current?.[r]?.[c];
-          if (val === undefined || val === null || val === '') {
-            rowData.push(0);
-          } else if (typeof val === 'string' && val.startsWith('=')) {
-            const res = p.parse(val.substring(1));
-            rowData.push(res.error ? 0 : res.result);
-          } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
-            rowData.push(Number(val));
-          } else {
-            rowData.push(val);
-          }
-        }
-        fragment.push(rowData);
-      }
-      done(fragment);
-    });
-    return p;
-  }, []);
-
-  const getDisplayValue = (rawValue, rowIndex, colIndex) => {
-    if (rawValue === undefined || rawValue === null) return '';
-    if (typeof rawValue === 'string' && rawValue.startsWith('=')) {
-      const res = parser.parse(rawValue.substring(1));
-      if (res.error) {
-        if (previewWorkbook) {
-          const ws = previewWorkbook.Sheets[previewWorkbook.SheetNames[0]];
-          const cell = ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex })];
-          if (cell && cell.v !== undefined) {
-            return String(cell.v);
-          }
-        }
-        return `#${res.error}!`;
-      }
-      return res.result !== null && res.result !== undefined ? String(res.result) : '';
-    }
-    return String(rawValue);
-  };
+  const workbookRef = useRef(null);
 
   useEffect(() => {
     if (profile?.id) {
@@ -313,81 +248,84 @@ const WarehouseFiles = () => {
 
   const handlePreview = async (file) => {
     setPreviewFile(file);
-    setPreviewSearch('');
+    setSheetData(null);
     setPreviewLoading(true);
     try {
       const response = await fetch(file.file_url);
-      const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true, cellStyles: true });
-      setPreviewWorkbook(workbook);
+      const blob = await response.blob();
       
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
+      const isCsv = file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv';
       
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      
-      const dataWithFormulas = jsonData.map((row, rIdx) => {
-        return row.map((cellValue, cIdx) => {
-          const cellAddress = XLSX.utils.encode_cell({ r: rIdx, c: cIdx });
-          const cell = worksheet[cellAddress];
-          if (cell && cell.f) {
-            return '=' + cell.f;
-          }
-          return cellValue;
+      if (isCsv) {
+        const text = await blob.text();
+        import('papaparse').then((PapaModule) => {
+          const Papa = PapaModule.default || PapaModule;
+          Papa.parse(text, {
+            complete: (results) => {
+              const data = results.data;
+              const celldata = [];
+              data.forEach((row, r) => {
+                if (Array.isArray(row)) {
+                  row.forEach((cell, c) => {
+                    celldata.push({
+                      r,
+                      c,
+                      v: { v: cell, m: cell }
+                    });
+                  });
+                }
+              });
+              
+              setSheetData([{
+                name: file.name,
+                celldata: celldata,
+                config: {},
+                index: 0,
+                status: 1,
+                order: 0,
+                row: Math.max(data.length, 100),
+                column: Math.max(data[0]?.length || 0, 26)
+              }]);
+              setPreviewLoading(false);
+            },
+            error: (err) => {
+              toast.error('Error parsing CSV: ' + err.message);
+              setPreviewFile(null);
+              setPreviewLoading(false);
+            }
+          });
         });
-      });
-      
-      setPreviewData(dataWithFormulas);
+        return;
+      }
+
+      const actualFile = new File([blob], file.name, { type: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      LuckyExcel.transformExcelToLucky(
+        actualFile, 
+        function(exportJson, luckysheetfile) {
+          if (exportJson.sheets == null || exportJson.sheets.length === 0) {
+            toast.error("Failed to read the excel file");
+            setPreviewFile(null);
+            return;
+          }
+          setSheetData(exportJson.sheets);
+          setPreviewLoading(false);
+        },
+        function(err) {
+          toast.error('Error previewing file: ' + err);
+          setPreviewFile(null);
+          setPreviewLoading(false);
+        }
+      );
     } catch (err) {
       toast.error('Error previewing file: ' + err.message);
       setPreviewFile(null);
-    } finally {
       setPreviewLoading(false);
     }
   };
 
-  const handleCellEdit = (rowIndex, colIndex, value) => {
-    // 1. Update UI state
-    const newData = [...previewData];
-    if (!newData[rowIndex]) newData[rowIndex] = [];
-    newData[rowIndex][colIndex] = value;
-    setPreviewData(newData);
-
-    // 2. Update Workbook state to preserve formatting and original structure
-    if (previewWorkbook) {
-      const wb = { ...previewWorkbook };
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-      
-      if (!ws[cellAddress]) ws[cellAddress] = {};
-      
-      if (typeof value === 'string' && value.startsWith('=')) {
-        ws[cellAddress].f = value.substring(1);
-        delete ws[cellAddress].v;
-      } else if (!isNaN(Number(value)) && value.trim() !== '') {
-        ws[cellAddress].v = Number(value);
-        ws[cellAddress].t = 'n';
-        delete ws[cellAddress].f;
-      } else {
-        ws[cellAddress].v = value;
-        ws[cellAddress].t = 's';
-        delete ws[cellAddress].f;
-      }
-      setPreviewWorkbook(wb);
-    }
-  };
-
   const handleDownloadEdited = () => {
-    if (!previewWorkbook || !previewFile) return;
-    try {
-      const fileNameParts = previewFile.name.split('.');
-      const ext = fileNameParts.pop();
-      const newName = `${fileNameParts.join('.')}_edited.${ext}`;
-      XLSX.writeFile(previewWorkbook, newName);
-      toast.success(i18n.language === 'az' ? 'Fayl yükləndi' : 'Файл скачан');
-    } catch (err) {
-      toast.error('Error downloading file: ' + err.message);
-    }
+    toast.error('Downloading edited files directly is currently not supported with the advanced editor.');
   };
 
   const getFileIcon = (type) => {
@@ -785,11 +723,10 @@ const WarehouseFiles = () => {
         </ModalPortal>
       )}
 
-      {/* Excel Preview Modal */}
       {previewFile && (
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[99999] flex items-center justify-center p-4" onClick={() => setPreviewFile(null)}>
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-lg shadow-xl w-full h-full flex flex-col overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
@@ -801,111 +738,25 @@ const WarehouseFiles = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {previewData && (
-                    <div className="relative hidden sm:block">
-                      <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        placeholder={i18n.language === 'az' ? 'Faylın daxilində axtar...' : 'Поиск внутри файла...'}
-                        value={previewSearch}
-                        onChange={(e) => setPreviewSearch(e.target.value)}
-                        className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-xs font-bold w-64 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                      />
-                      {previewSearch && (
-                        <button onClick={() => setPreviewSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                  <button
-                    onClick={handleDownloadEdited}
-                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-green-50 hover:border-green-200 hover:text-green-600 transition-all shadow-sm"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">{i18n.language === 'az' ? 'Yüklə' : 'Скачать'}</span>
-                  </button>
                   <button onClick={() => setPreviewFile(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
-              <div className="flex-1 flex flex-col overflow-hidden bg-white">
-                {previewData && !previewLoading && (
-                  <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-gray-50/80 shrink-0">
-                    <div className="font-mono text-xs font-bold text-gray-500 bg-white px-2 py-1 rounded border border-gray-200 min-w-[3rem] text-center shadow-sm">
-                      {focusedCell ? `${String.fromCharCode(65 + focusedCell.c)}${focusedCell.r + 1}` : ''}
-                    </div>
-                    <div className="font-serif italic text-gray-400 font-bold px-1 text-sm select-none">fx</div>
-                    <input
-                      type="text"
-                      className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 bg-white shadow-sm font-mono text-gray-700 transition-colors"
-                      value={focusedCell ? (previewData[focusedCell.r][focusedCell.c] !== undefined && previewData[focusedCell.r][focusedCell.c] !== null ? String(previewData[focusedCell.r][focusedCell.c]) : '') : ''}
-                      onChange={(e) => focusedCell && handleCellEdit(focusedCell.r, focusedCell.c, e.target.value)}
-                      disabled={!focusedCell}
-                      placeholder={i18n.language === 'az' ? 'Xananı seçin və düstur və ya dəyər daxil edin...' : 'Выберите ячейку и введите формулу или значение...'}
-                    />
+              <div className="flex-1 overflow-hidden relative">
+                {previewLoading ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                    <Loader2 className="w-8 h-8 animate-spin mb-4 text-green-500" />
+                    <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
                   </div>
-                )}
-                
-                <div className="flex-1 overflow-auto p-0 relative">
-                  {previewLoading ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400 absolute inset-0">
-                      <Loader2 className="w-8 h-8 animate-spin mb-4 text-green-500" />
-                      <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
-                    </div>
-                  ) : previewData ? (
-                    <div className="w-full h-full overflow-auto">
-                      <table className="w-full text-left text-sm whitespace-nowrap min-w-max">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-                          {/* Render column headers (A, B, C...) based on the max length of rows */}
-                          <th className="px-4 py-3 font-bold text-gray-500 bg-gray-100 border-r border-gray-200 w-12 text-center sticky left-0 z-20">#</th>
-                          {Array.from({ length: Math.max(...previewData.map(row => row.length)) }).map((_, i) => (
-                            <th key={i} className="px-4 py-3 font-bold text-gray-700 border-r border-gray-200 min-w-[120px]">
-                              {String.fromCharCode(65 + i)}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {previewData
-                          .map((row, originalIndex) => ({ row, originalIndex }))
-                          .filter(item => {
-                            if (!previewSearch.trim()) return true;
-                            const searchLower = previewSearch.toLowerCase();
-                            return item.row.some(cell => 
-                              cell !== undefined && cell !== null && 
-                              String(cell).toLowerCase().includes(searchLower)
-                            );
-                          })
-                          .map((item, mapIndex) => (
-                          <tr key={item.originalIndex} className="hover:bg-green-50/30 transition-colors focus-within:bg-green-50/30">
-                            <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{item.originalIndex + 1}</td>
-                            {Array.from({ length: Math.max(...previewData.map(r => r.length)) }).map((_, colIndex) => (
-                              <td key={colIndex} className="p-0 border-r border-gray-100 max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null && String(item.row[colIndex]).startsWith('=') ? `Формула: ${item.row[colIndex]}` : ''}>
-                                <input
-                                  type="text"
-                                  value={getDisplayValue(item.row[colIndex], item.originalIndex, colIndex)}
-                                  onFocus={() => setFocusedCell({ r: item.originalIndex, c: colIndex })}
-                                  onBlur={() => setFocusedCell(null)}
-                                  onChange={(e) => handleCellEdit(item.originalIndex, colIndex, e.target.value)}
-                                  className="w-full h-full min-h-[36px] px-4 py-2 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-inset focus:ring-green-500 text-gray-700 text-sm truncate"
-                                />
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                ) : sheetData ? (
+                  <Workbook ref={workbookRef} data={sheetData} />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-gray-400">
                     <FileSpreadsheet className="w-12 h-12 mb-4 opacity-20" />
                     <p className="font-bold text-sm">{i18n.language === 'az' ? 'Məlumat oxuna bilmədi' : 'Не удалось прочитать данные'}</p>
                   </div>
                 )}
-                </div>
               </div>
             </div>
           </div>
