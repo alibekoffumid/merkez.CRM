@@ -4,10 +4,11 @@ import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
 import { 
   FileText, Calendar, CheckCircle, Search, 
-  Loader2, AlertCircle, DollarSign, X, ArrowDownLeft, ChevronRight, User
+  Loader2, AlertCircle, DollarSign, X, ArrowDownLeft, ChevronRight, User, RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import { syncCreditSales } from './creditSyncService';
 
 const WarehouseCreditManager = ({ searchTerm = '' }) => {
   const { t, i18n } = useTranslation();
@@ -22,15 +23,37 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
   const [payingInstallment, setPayingInstallment] = useState(null);
   const [processingPayment, setProcessingPayment] = useState(false);
 
+  const [syncing, setSyncing] = useState(false);
+
   useEffect(() => {
     if (profile?.id) {
       fetchCredits();
     }
   }, [profile]);
 
-  const fetchCredits = async () => {
-    setLoading(true);
+  const fetchCredits = async (forceSync = false) => {
+    if (forceSync) {
+      setSyncing(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
+      if (profile?.id) {
+        const syncRes = await syncCreditSales(profile.id);
+        if (syncRes?.syncedCount > 0) {
+          toast.success(
+            i18n.language === 'az'
+              ? `${syncRes.syncedCount} yeni kredit müqaviləsi və müştəri sinxronizasiya edildi!`
+              : `${syncRes.syncedCount} новых кредитных договора и клиента успешно синхронизированы!`
+          );
+        } else if (forceSync) {
+          toast.success(
+            i18n.language === 'az' ? 'Bütün kreditlər aktualdır' : 'Все данные актуальны'
+          );
+        }
+      }
+
       const { data, error } = await supabase
         .from('customer_credits')
         .select(`
@@ -45,6 +68,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
       toast.error('Error fetching credits: ' + err.message);
     } finally {
       setLoading(false);
+      setSyncing(false);
     }
   };
 
@@ -156,6 +180,34 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
 
   return (
     <div className="flex-1 flex flex-col">
+
+      {/* Top Toolbar */}
+      <div className="flex items-center justify-between pb-3 mb-2 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-gray-500">
+            {i18n.language === 'az' ? 'Cəmi müqavilə:' : 'Всего договоров:'}{' '}
+            <span className="text-gray-900 font-black">{credits.length}</span>
+          </span>
+          {credits.length > 0 && (
+            <span className="text-xs font-bold text-gray-400">
+              • {i18n.language === 'az' ? 'Aktiv:' : 'Активных:'}{' '}
+              <span className="text-merkez-blue font-black">
+                {credits.filter(c => c.status === 'active').length}
+              </span>
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={() => fetchCredits(true)}
+          disabled={syncing || loading}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-merkez-blue text-xs font-bold transition-all disabled:opacity-50"
+          title={i18n.language === 'az' ? 'Anbar satışlarından kreditləri yenilə və sinxron et' : 'Синхронизировать кредиты из продаж склада'}
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+          <span>{syncing ? (i18n.language === 'az' ? 'Sinxron edilir...' : 'Синхронизация...') : (i18n.language === 'az' ? 'Sinxronizasiya' : 'Синхронизировать')}</span>
+        </button>
+      </div>
 
       {/* Credits List */}
       <div className="flex-1 overflow-x-auto">

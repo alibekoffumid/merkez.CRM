@@ -181,6 +181,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           discountType,
           discountValue: discountVal,
           clientName: formattedClient,
+          clientPhone: clientPhone.trim() || undefined,
           creditDetails,
         }
       );

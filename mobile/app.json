@@ -10,7 +10,18 @@
       "supportsTablet": true,
       "bundleIdentifier": "app.merkez.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "Камера необходима для сканирования штрихкодов товаров и работы терминала сбора данных."
+        "NSCameraUsageDescription": "Камера необходима для сканирования штрихкодов товаров и работы терминала сбора данных.",
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
+              }
+            ]
+          }
+        }
       }
     },
     "android": {

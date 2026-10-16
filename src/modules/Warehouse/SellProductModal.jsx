@@ -677,7 +677,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           if (paymentMethod === 'birmarket') {
             dispatchNote = `Satış (${birmarketCategory}): Kassaya/Saytda: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
           } else if (paymentMethod === 'credit') {
-            dispatchNote = `Kredit Satışı (${installmentMonths} ay): Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
+            dispatchNote = `Kredit Satışı (${installmentMonths} ay): Müqavilə: ₼${contractTotal.toFixed(2)}, Aylıq: ₼${monthlyPayment.toFixed(2)}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
           } else {
             dispatchNote = `Məhsul Satışı (Ödəniş: ${paymentMethod === 'cash' ? 'Nəqd' : paymentMethod === 'card' ? 'Kart' : 'Nisyə'})`;
           }

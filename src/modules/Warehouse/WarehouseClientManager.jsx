@@ -10,6 +10,7 @@ import {
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import WarehouseCreditManager from './WarehouseCreditManager';
+import { syncCreditSales } from './creditSyncService';
 
 const WarehouseClientManager = () => {
   const { t, i18n } = useTranslation();
@@ -49,6 +50,9 @@ const WarehouseClientManager = () => {
   const fetchClients = async () => {
     setLoading(true);
     try {
+      if (profile?.id) {
+        await syncCreditSales(profile.id);
+      }
       const { data, error } = await supabase
         .from('customers')
         .select('*')
