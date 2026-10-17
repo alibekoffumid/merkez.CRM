@@ -4,7 +4,7 @@ import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
 import { 
   FileText, Calendar, CheckCircle, Search, 
-  Loader2, AlertCircle, DollarSign, X, ArrowDownLeft, ChevronRight, User, RefreshCw
+  Loader2, AlertCircle, DollarSign, X, ArrowDownLeft, ChevronRight, User, RefreshCw, Plus
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
@@ -24,11 +24,20 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
   const [processingPayment, setProcessingPayment] = useState(false);
 
   const [syncing, setSyncing] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
+  const [existingCustomers, setExistingCustomers] = useState([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const [newCustName, setNewCustName] = useState('');
+  const [newCustPhone, setNewCustPhone] = useState('');
+  const [creditBank, setCreditBank] = useState('Birkart');
+  const [creditAmount, setCreditAmount] = useState('');
+  const [creditMonths, setCreditMonths] = useState(12);
+  const [creditMonthly, setCreditMonthly] = useState('');
+  const [creditNotes, setCreditNotes] = useState('');
 
   useEffect(() => {
-    if (profile?.id) {
-      fetchCredits();
-    }
+    fetchCredits();
   }, [profile]);
 
   const fetchCredits = async (forceSync = false) => {
@@ -39,22 +48,28 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
     }
 
     try {
-      if (profile?.id) {
-        const syncRes = await syncCreditSales(profile.id);
-        if (syncRes?.syncedCount > 0) {
-          toast.success(
-            i18n.language === 'az'
-              ? `${syncRes.syncedCount} yeni kredit müqaviləsi və müştəri sinxronizasiya edildi!`
-              : `${syncRes.syncedCount} новых кредитных договора и клиента успешно синхронизированы!`
-          );
-        } else if (forceSync) {
+      const syncRes = await syncCreditSales(profile?.id);
+      if (syncRes?.syncedCount > 0) {
+        toast.success(
+          i18n.language === 'az'
+            ? `${syncRes.syncedCount} yeni kredit müqaviləsi və müştəri sinxronizasiya edildi!`
+            : `${syncRes.syncedCount} новых кредитных договора и клиента успешно синхронизированы!`
+        );
+      } else if (forceSync) {
+        if (syncRes?.errors && syncRes.errors.length > 0) {
+          toast.error('Xəta: ' + syncRes.errors[0]);
+        } else if (syncRes?.error) {
+          toast.error('Xəta: ' + syncRes.error);
+        } else {
           toast.success(
             i18n.language === 'az' ? 'Bütün kreditlər aktualdır' : 'Все данные актуальны'
           );
         }
       }
 
-      const { data, error } = await supabase
+      // Query customer_credits with fallback in case relation embed fails
+      let creditsData = [];
+      const res = await supabase
         .from('customer_credits')
         .select(`
           *,
@@ -62,13 +77,155 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setCredits(data || []);
+      if (!res.error && res.data) {
+        creditsData = res.data;
+      } else {
+        console.warn('customer_credits join query failed, falling back to raw query:', res.error);
+        const rawRes = await supabase
+          .from('customer_credits')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (rawRes.data && rawRes.data.length > 0) {
+          const custIds = [...new Set(rawRes.data.map(r => r.customer_id).filter(Boolean))];
+          const { data: custData } = await supabase
+            .from('customers')
+            .select('id, name, phone, debt_balance')
+            .in('id', custIds);
+
+          const custMap = new Map((custData || []).map(c => [c.id, c]));
+          creditsData = rawRes.data.map(r => ({
+            ...r,
+            customer: custMap.get(r.customer_id) || null
+          }));
+        }
+      }
+
+      setCredits(creditsData);
+
+      // Load existing customers for selection in modal
+      const { data: cList } = await supabase
+        .from('customers')
+        .select('id, name, phone, debt_balance')
+        .order('name', { ascending: true });
+      if (cList) setExistingCustomers(cList);
+
     } catch (err) {
       toast.error('Error fetching credits: ' + err.message);
     } finally {
       setLoading(false);
       setSyncing(false);
+    }
+  };
+
+  const handleCreateCredit = async (e) => {
+    e.preventDefault();
+    const amountNum = parseFloat(creditAmount);
+    if (!amountNum || amountNum <= 0) {
+      toast.error(i18n.language === 'az' ? 'Məbləğ daxil edin' : 'Введите сумму');
+      return;
+    }
+
+    setAddLoading(true);
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const currentUserId = authData?.user?.id || profile?.id;
+
+      let targetCustomerId = selectedCustomerId;
+
+      // If user typed new customer
+      if (!targetCustomerId) {
+        if (!newCustName.trim()) {
+          toast.error(i18n.language === 'az' ? 'Müştəri adını daxil edin və ya siyahıdan seçin' : 'Выберите клиента или введите имя');
+          setAddLoading(false);
+          return;
+        }
+
+        const { data: newCust, error: custErr } = await supabase
+          .from('customers')
+          .insert([{
+            name: newCustName.trim(),
+            phone: newCustPhone.trim() || null,
+            status: 'Active',
+            type: 'Client',
+            debt_balance: amountNum,
+            user_id: currentUserId
+          }])
+          .select()
+          .single();
+
+        if (custErr) throw custErr;
+        targetCustomerId = newCust.id;
+      } else {
+        // Update existing customer debt balance
+        const existing = existingCustomers.find(c => c.id === targetCustomerId);
+        const newBalance = Number(existing?.debt_balance || 0) + amountNum;
+        await supabase
+          .from('customers')
+          .update({ debt_balance: newBalance })
+          .eq('id', targetCustomerId);
+      }
+
+      const calculatedMonthly = creditMonthly && parseFloat(creditMonthly) > 0
+        ? parseFloat(creditMonthly)
+        : Number((amountNum / creditMonths).toFixed(2));
+
+      // 1. Insert customer_debts
+      await supabase.from('customer_debts').insert([{
+        user_id: currentUserId,
+        customer_id: targetCustomerId,
+        type: 'debt',
+        amount: amountNum,
+        description: `Kredit (${creditBank} - ${creditMonths} ay): Müqavilə: ₼${amountNum.toFixed(2)}, Aylıq: ₼${calculatedMonthly.toFixed(2)}${creditNotes ? ` [${creditNotes}]` : ''}`
+      }]);
+
+      // 2. Insert customer_credits
+      const { data: creditRec, error: creditErr } = await supabase
+        .from('customer_credits')
+        .insert([{
+          user_id: currentUserId,
+          customer_id: targetCustomerId,
+          total_amount: amountNum,
+          months: creditMonths,
+          monthly_payment: calculatedMonthly,
+          remaining_months: creditMonths,
+          notes: creditNotes || `Bank: ${creditBank}, Müqavilə: ₼${amountNum.toFixed(2)}, Aylıq: ₼${calculatedMonthly.toFixed(2)}`,
+          status: 'active'
+        }])
+        .select()
+        .single();
+
+      if (creditErr) throw creditErr;
+
+      // 3. Generate installments
+      const insts = [];
+      const baseDate = new Date();
+      for (let i = 1; i <= creditMonths; i++) {
+        const dueDate = new Date(baseDate);
+        dueDate.setDate(dueDate.getDate() + (30 * i));
+        insts.push({
+          credit_id: creditRec.id,
+          month_number: i,
+          amount: calculatedMonthly,
+          due_date: dueDate.toISOString().split('T')[0],
+          status: 'unpaid'
+        });
+      }
+      await supabase.from('customer_credit_installments').insert(insts);
+
+      toast.success(i18n.language === 'az' ? 'Kredit müqaviləsi yaradıldı!' : 'Кредитный договор создан!');
+      setShowAddModal(false);
+      setSelectedCustomerId('');
+      setNewCustName('');
+      setNewCustPhone('');
+      setCreditAmount('');
+      setCreditMonthly('');
+      setCreditNotes('');
+      fetchCredits();
+    } catch (err) {
+      toast.error('Xəta: ' + err.message);
+    } finally {
+      setAddLoading(false);
     }
   };
 
@@ -198,15 +355,25 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
           )}
         </div>
 
-        <button
-          onClick={() => fetchCredits(true)}
-          disabled={syncing || loading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-merkez-blue text-xs font-bold transition-all disabled:opacity-50"
-          title={i18n.language === 'az' ? 'Anbar satışlarından kreditləri yenilə və sinxron et' : 'Синхронизировать кредиты из продаж склада'}
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-          <span>{syncing ? (i18n.language === 'az' ? 'Sinxron edilir...' : 'Синхронизация...') : (i18n.language === 'az' ? 'Sinxronizasiya' : 'Синхронизировать')}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fetchCredits(true)}
+            disabled={syncing || loading}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-merkez-blue text-xs font-bold transition-all disabled:opacity-50"
+            title={i18n.language === 'az' ? 'Anbar satışlarından kreditləri yenilə və sinxron et' : 'Синхронизировать кредиты из продаж склада'}
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+            <span>{syncing ? (i18n.language === 'az' ? 'Sinxron edilir...' : 'Синхронизация...') : (i18n.language === 'az' ? 'Sinxronizasiya' : 'Синхронизировать')}</span>
+          </button>
+
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-merkez-green hover:bg-green-600 text-white text-xs font-bold transition-all shadow-sm"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{i18n.language === 'az' ? 'Yeni Kredit' : 'Новый кредит'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Credits List */}
@@ -413,6 +580,207 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
                   {i18n.language === 'az' ? 'Təsdiqlə' : 'Подтвердить'}
                 </button>
               </div>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
+
+      {/* Manual Add Credit Agreement Modal */}
+      {showAddModal && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
+            <div 
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-merkez-blue flex items-center justify-center">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900">
+                      {i18n.language === 'az' ? 'Yeni Kredit Müqaviləsi' : 'Новый кредитный договор'}
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {i18n.language === 'az' ? 'Müştəriyə kredit və aylıq ödəniş cədvəli təyin edin' : 'Оформить рассрочку и график платежей'}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateCredit} className="p-6 space-y-4 overflow-y-auto flex-1">
+                {/* Existing Customer Select */}
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                    {i18n.language === 'az' ? 'Mövcud Müştəri' : 'Существующий клиент'}
+                  </label>
+                  <select
+                    value={selectedCustomerId}
+                    onChange={(e) => setSelectedCustomerId(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:bg-white focus:border-merkez-blue"
+                  >
+                    <option value="">{i18n.language === 'az' ? '-- Yeni müştəri daxil et --' : '-- Ввести нового клиента --'}</option>
+                    {existingCustomers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {c.phone ? `(${c.phone})` : ''} — Borc: ₼{Number(c.debt_balance || 0).toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* If no customer selected, enter new customer */}
+                {!selectedCustomerId && (
+                  <div className="grid grid-cols-2 gap-3 p-3 bg-blue-50/40 rounded-xl border border-blue-100/50">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 px-1">
+                        {i18n.language === 'az' ? 'Müştəri Adı *' : 'Имя клиента *'}
+                      </label>
+                      <input
+                        type="text"
+                        required={!selectedCustomerId}
+                        value={newCustName}
+                        onChange={(e) => setNewCustName(e.target.value)}
+                        placeholder="Məs: Ümid Babayev"
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:border-merkez-blue"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 px-1">
+                        {i18n.language === 'az' ? 'Telefon nömrəsi' : 'Номер телефона'}
+                      </label>
+                      <input
+                        type="text"
+                        value={newCustPhone}
+                        onChange={(e) => setNewCustPhone(e.target.value)}
+                        placeholder="+994..."
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:border-merkez-blue"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Bank / Channel */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                      {i18n.language === 'az' ? 'Kredit növü / Bank' : 'Банк / Канал'}
+                    </label>
+                    <select
+                      value={creditBank}
+                      onChange={(e) => setCreditBank(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:bg-white focus:border-merkez-blue"
+                    >
+                      <option value="Birkart">Birkart</option>
+                      <option value="Tamkart">Tamkart</option>
+                      <option value="ABB Kredit">ABB Kredit</option>
+                      <option value="Kapital Kredit 35">Kapital Kredit 35</option>
+                      <option value="Ferrum Standart">Ferrum Standart</option>
+                      <option value="Ferrum Fast">Ferrum Fast</option>
+                      <option value="Digər">Digər / Daxili Kredit</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                      {i18n.language === 'az' ? 'Kredit müddəti' : 'Срок (месяцы)'}
+                    </label>
+                    <select
+                      value={creditMonths}
+                      onChange={(e) => {
+                        const m = Number(e.target.value);
+                        setCreditMonths(m);
+                        if (creditAmount && parseFloat(creditAmount) > 0) {
+                          setCreditMonthly((parseFloat(creditAmount) / m).toFixed(2));
+                        }
+                      }}
+                      className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 outline-none focus:bg-white focus:border-merkez-blue"
+                    >
+                      <option value={3}>3 ay</option>
+                      <option value={6}>6 ay</option>
+                      <option value={9}>9 ay</option>
+                      <option value={12}>12 ay</option>
+                      <option value={18}>18 ay</option>
+                      <option value={24}>24 ay</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Amount & Monthly payment */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                      {i18n.language === 'az' ? 'Müqavilə Cəmi (₼) *' : 'Сумма договора (₼) *'}
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      required
+                      value={creditAmount}
+                      onChange={(e) => {
+                        setCreditAmount(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        if (val > 0 && creditMonths > 0) {
+                          setCreditMonthly((val / creditMonths).toFixed(2));
+                        } else {
+                          setCreditMonthly('');
+                        }
+                      }}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-900 outline-none focus:bg-white focus:border-merkez-blue"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                      {i18n.language === 'az' ? 'Aylıq Ödəniş (₼)' : 'Ежемесячный платеж (₼)'}
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      value={creditMonthly}
+                      onChange={(e) => setCreditMonthly(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-merkez-blue outline-none focus:bg-white focus:border-merkez-blue"
+                    />
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                    {i18n.language === 'az' ? 'Qeyd / Məhsul məlumatı' : 'Примечание / Товар'}
+                  </label>
+                  <input
+                    type="text"
+                    value={creditNotes}
+                    onChange={(e) => setCreditNotes(e.target.value)}
+                    placeholder="Məs: Amber və ya müqavilə nömrəsi"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 outline-none focus:bg-white focus:border-merkez-blue"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={addLoading}
+                    className="px-5 py-2 text-xs font-bold text-white bg-merkez-green hover:bg-green-600 rounded-xl transition-all shadow-md shadow-green-600/10 flex items-center gap-1.5"
+                  >
+                    {addLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    <span>{i18n.language === 'az' ? 'Müqaviləni Yarat' : 'Создать договор'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </ModalPortal>
