@@ -46,13 +46,42 @@ const QuickAddCustomerModal = ({ isOpen, onClose, onCustomerAdded }) => {
         user_id: profile?.id
       };
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('customers')
         .insert([dataToInsert])
         .select('*')
         .single();
 
-      if (error) throw error;
+      if (error && (error.message?.includes('passport_info') || error.message?.includes('schema cache') || error.message?.includes('relatives_info'))) {
+        let fallbackAddress = formData.address.trim();
+        const extraNotes = [];
+        if (combinedPassport) extraNotes.push(`Pasport: ${combinedPassport}`);
+        if (formData.relativesInfo.trim()) extraNotes.push(`Qohumlar: ${formData.relativesInfo.trim()}`);
+        if (extraNotes.length > 0) {
+          fallbackAddress = fallbackAddress ? `${fallbackAddress} | ${extraNotes.join(' | ')}` : extraNotes.join(' | ');
+        }
+
+        const fallbackData = {
+          name: formData.name.trim(),
+          phone: formData.phone.trim() || null,
+          address: fallbackAddress || null,
+          status: 'Active',
+          type: 'Client',
+          user_id: profile?.id
+        };
+
+        const retry = await supabase
+          .from('customers')
+          .insert([fallbackData])
+          .select('*')
+          .single();
+
+        if (retry.error) throw retry.error;
+        data = retry.data;
+        error = null;
+      } else if (error) {
+        throw error;
+      }
 
       toast.success(i18n.language === 'az' ? 'Müştəri uğurla əlavə olundu' : 'Клиент успешно добавлен');
       onCustomerAdded(data);

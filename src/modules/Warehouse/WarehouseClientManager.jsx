@@ -114,7 +114,7 @@ const WarehouseClientManager = () => {
 
       if (editingClient) {
         // Update client
-        const { error } = await supabase
+        let { error } = await supabase
           .from('customers')
           .update({
             name: name.trim(),
@@ -125,11 +125,34 @@ const WarehouseClientManager = () => {
           })
           .eq('id', editingClient.id);
 
-        if (error) throw error;
+        if (error && (error.message?.includes('passport_info') || error.message?.includes('schema cache') || error.message?.includes('relatives_info'))) {
+          let fallbackAddress = address.trim();
+          const extraNotes = [];
+          if (combinedPassport) extraNotes.push(`Pasport: ${combinedPassport}`);
+          if (relativesInfo.trim()) extraNotes.push(`Qohumlar: ${relativesInfo.trim()}`);
+          if (extraNotes.length > 0) {
+            fallbackAddress = fallbackAddress ? `${fallbackAddress} | ${extraNotes.join(' | ')}` : extraNotes.join(' | ');
+          }
+
+          const retry = await supabase
+            .from('customers')
+            .update({
+              name: name.trim(),
+              phone: phone.trim() || null,
+              address: fallbackAddress || null
+            })
+            .eq('id', editingClient.id);
+
+          if (retry.error) throw retry.error;
+          error = null;
+        } else if (error) {
+          throw error;
+        }
+
         toast.success(i18n.language === 'az' ? 'Müştəri məlumatları yeniləndi' : 'Данные клиента обновлены');
       } else {
         // Create new client
-        const { error } = await supabase
+        let { error } = await supabase
           .from('customers')
           .insert([{
             name: name.trim(),
@@ -139,10 +162,35 @@ const WarehouseClientManager = () => {
             relatives_info: relativesInfo.trim() || null,
             status: 'Active',
             type: 'Client',
-            user_id: profile.id
+            user_id: profile?.id
           }]);
 
-        if (error) throw error;
+        if (error && (error.message?.includes('passport_info') || error.message?.includes('schema cache') || error.message?.includes('relatives_info'))) {
+          let fallbackAddress = address.trim();
+          const extraNotes = [];
+          if (combinedPassport) extraNotes.push(`Pasport: ${combinedPassport}`);
+          if (relativesInfo.trim()) extraNotes.push(`Qohumlar: ${relativesInfo.trim()}`);
+          if (extraNotes.length > 0) {
+            fallbackAddress = fallbackAddress ? `${fallbackAddress} | ${extraNotes.join(' | ')}` : extraNotes.join(' | ');
+          }
+
+          const retry = await supabase
+            .from('customers')
+            .insert([{
+              name: name.trim(),
+              phone: phone.trim() || null,
+              address: fallbackAddress || null,
+              status: 'Active',
+              type: 'Client',
+              user_id: profile?.id
+            }]);
+
+          if (retry.error) throw retry.error;
+          error = null;
+        } else if (error) {
+          throw error;
+        }
+
         toast.success(i18n.language === 'az' ? 'Yeni müştəri əlavə edildi' : 'Новый клиент добавлен');
       }
       setIsModalOpen(false);
