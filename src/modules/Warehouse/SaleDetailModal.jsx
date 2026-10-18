@@ -29,6 +29,7 @@ import {
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
+import { printThermalReceipt57mm } from './thermalReceiptService';
 
 export const formatUnitName = (rawUnit, lang = 'az') => {
   if (!rawUnit) return lang === 'az' ? 'əd' : lang === 'ru' ? 'шт.' : 'pcs';
@@ -289,130 +290,37 @@ const SaleDetailModal = ({
   };
 
   const handlePrintReceipt = () => {
-    const printWindow = window.open('', '_blank', 'width=380,height=600');
-    if (!printWindow) {
-      toast.error('Brauzer pəncərənin açılmasına mane oldu. Zəhmət olmasa icazə verin.');
-      return;
-    }
-
-    const receiptHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Qəbz #${sale.id.slice(0, 8)}</title>
-        <style>
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-          body {
-            font-family: 'Courier New', Courier, monospace;
-            width: 76mm;
-            margin: 0 auto;
-            padding: 10px 5px;
-            color: #000;
-            font-size: 12px;
-            line-height: 1.3;
-          }
-          .text-center { text-align: center; }
-          .text-right { text-align: right; }
-          .bold { font-weight: bold; }
-          .divider { border-top: 1px dashed #000; margin: 8px 0; }
-          .double-divider { border-top: 2px dashed #000; margin: 8px 0; }
-          .flex-between { display: flex; justify-content: space-between; }
-          .store-name { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
-          .receipt-title { font-size: 13px; font-weight: bold; margin: 4px 0; }
-          .item-row { margin: 4px 0; }
-          .total-box { font-size: 15px; font-weight: bold; margin-top: 6px; }
-          .footer { font-size: 10px; margin-top: 12px; text-align: center; }
-        </style>
-      </head>
-      <body>
-        <div class="text-center">
-          <div class="store-name">MERKEZ CRM</div>
-          <div>${warehouseName || 'Əsas Anbar / Mağaza'}</div>
-          <div class="divider"></div>
-          <div class="receipt-title">SATIŞ ÇEKİ</div>
-          <div>Çek №: #${sale.id.slice(0, 8).toUpperCase()}</div>
-          <div>Tarix: ${formattedDate} ${formattedTime}</div>
-          <div>Kanal: ${saleInfo.channel}</div>
-        </div>
-
-        <div class="divider"></div>
-
-        ${saleInfo.customerName ? `
-          <div class="flex-between">
-            <span>Müştəri:</span>
-            <span class="bold">${saleInfo.customerName}</span>
-          </div>
-          ${saleInfo.customerPhone ? `
-          <div class="flex-between">
-            <span>Əlaqə:</span>
-            <span>${saleInfo.customerPhone}</span>
-          </div>
-          ` : ''}
-          <div class="divider"></div>
-        ` : ''}
-
-        <div class="item-row">
-          <div class="bold">${prod?.name || 'Məhsul'}</div>
-          ${prod?.barcode ? `<div style="font-size: 10px;">Barkod: ${prod.barcode}</div>` : ''}
-          <div class="flex-between" style="margin-top: 2px;">
-            <span>${quantity} ${unitLabel} x ₼${saleInfo.unitPrice.toFixed(2)}</span>
-            <span class="bold">₼${saleInfo.totalAmount.toFixed(2)}</span>
-          </div>
-        </div>
-
-        <div class="double-divider"></div>
-
-        ${saleInfo.discount > 0 ? `
-          <div class="flex-between">
-            <span>İlkin məbləğ:</span>
-            <span>₼${saleInfo.originalGross.toFixed(2)}</span>
-          </div>
-          <div class="flex-between bold" style="color: #b91c1c;">
-            <span>Endirim:</span>
-            <span>-₼${saleInfo.discount.toFixed(2)}</span>
-          </div>
-          <div class="divider"></div>
-        ` : ''}
-
-        <div class="flex-between total-box">
-          <span>YEKUN:</span>
-          <span>₼${saleInfo.totalAmount.toFixed(2)}</span>
-        </div>
-
-        <div class="flex-between" style="margin-top: 4px;">
-          <span>Ödəniş növü:</span>
-          <span class="bold">${saleInfo.paymentMethod}</span>
-        </div>
-
-        ${saleInfo.months ? `
-        <div class="flex-between">
-          <span>Kredit müddəti:</span>
-          <span>${saleInfo.months} ay</span>
-        </div>
-        ` : ''}
-
-        <div class="divider"></div>
-        <div class="footer">
-          <p class="bold">BİZİ SEÇDİYİNİZ ÜÇÜN TƏŞƏKKÜR EDİRİK!</p>
-          <p>Malı qaytararkən qəbzi təqdim edin.</p>
-        </div>
-        <script>
-          window.onload = function() {
-            window.print();
-            setTimeout(function() { window.close(); }, 500);
-          };
-        </script>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.open();
-    printWindow.document.write(receiptHtml);
-    printWindow.document.close();
+    printThermalReceipt57mm({
+      receiptNumber: `№${sale.id ? sale.id.slice(0, 8).toUpperCase() : Date.now().toString().slice(-6)}`,
+      date: sale.issued_at || sale.created_at || new Date(),
+      warehouseName: warehouseName || 'Əsas Anbar / Mağaza',
+      customerName: saleInfo.customerName || '',
+      customerPhone: saleInfo.customerPhone || '',
+      channel: saleInfo.channel || '',
+      paymentMethod: saleInfo.paymentMethod || 'Nəqd',
+      items: [
+        {
+          name: prod?.name || 'Məhsul',
+          barcode: prod?.barcode || '',
+          quantity,
+          unit: unitLabel,
+          price: saleInfo.unitPrice || 0,
+          total: saleInfo.totalAmount || 0,
+          discount: saleInfo.discount || 0
+        }
+      ],
+      subtotal: saleInfo.originalGross || saleInfo.totalAmount || 0,
+      discountAmount: saleInfo.discount || 0,
+      total: saleInfo.totalAmount || 0,
+      creditDetails: saleInfo.months ? {
+        bank: saleInfo.bank || 'Birkart',
+        months: saleInfo.months,
+        monthlyPayment: (saleInfo.totalAmount || 0) / (saleInfo.months || 1),
+        contractTotal: saleInfo.totalAmount || 0
+      } : null,
+      notes: saleInfo.cleanNote || '',
+      paperWidth: '57mm'
+    });
   };
 
 
@@ -772,7 +680,7 @@ const SaleDetailModal = ({
                 className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 active:scale-95"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>{i18n.language === 'az' ? 'Qəbzi Çap Et' : i18n.language === 'ru' ? 'Распечатать чек' : 'Print Receipt'}</span>
+                <span>{i18n.language === 'az' ? 'Çap Et (57mm)' : i18n.language === 'ru' ? 'Печать чека (57мм)' : 'Print Receipt (57mm)'}</span>
               </button>
 
               <button

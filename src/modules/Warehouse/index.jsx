@@ -30,6 +30,7 @@ import WarehouseFiles from './WarehouseFiles';
 
 import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
+import { printThermalReceipt57mm } from './thermalReceiptService';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
@@ -527,6 +528,46 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       return;
     }
     setDispatchToDelete(dispatch);
+  };
+
+  const handlePrintSaleReceipt = (dispatch) => {
+    if (!dispatch) return;
+    const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+    const qty = Math.abs(parseFloat(dispatch.quantity) || 1);
+    const parsed = parseSaleNote(dispatch.notes, prodObj, qty);
+    const whObj = (warehouses || []).find(w => w.id === dispatch.warehouse_id);
+
+    printThermalReceipt57mm({
+      receiptNumber: `№${(dispatch.id || '').slice(0, 8).toUpperCase()}`,
+      date: dispatch.issued_at || dispatch.created_at || new Date(),
+      warehouseName: whObj?.name || 'Əsas Anbar / Mağaza',
+      customerName: parsed.customerName || '',
+      customerPhone: parsed.customerPhone || '',
+      channel: parsed.channel || '',
+      paymentMethod: parsed.paymentMethod || 'Nəqd',
+      items: [
+        {
+          name: prodObj?.name || 'Məhsul',
+          barcode: prodObj?.barcode || '',
+          quantity: qty,
+          unit: formatUnit(prodObj?.unit),
+          price: parsed.unitPrice || 0,
+          total: parsed.totalAmount || 0,
+          discount: parsed.discount || 0
+        }
+      ],
+      subtotal: parsed.originalGross || parsed.totalAmount || 0,
+      discountAmount: parsed.discount || 0,
+      total: parsed.totalAmount || 0,
+      creditDetails: parsed.months ? {
+        bank: parsed.bank || 'Birkart',
+        months: parsed.months,
+        monthlyPayment: (parsed.totalAmount || 0) / (parsed.months || 1),
+        contractTotal: parsed.totalAmount || 0
+      } : null,
+      notes: parsed.cleanNote || '',
+      paperWidth: '57mm'
+    });
   };
 
   const confirmDeleteDispatch = async () => {
@@ -2510,6 +2551,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                             <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handlePrintSaleReceipt(dispatch)}
+                                  className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                                  title={i18n.language === 'az' ? 'Çeki çap et (57mm)' : i18n.language === 'ru' ? 'Печать чека (57мм)' : 'Print Receipt (57mm)'}
+                                >
+                                  <Printer className="w-4 h-4" />
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => setSelectedSaleDetail(dispatch)}

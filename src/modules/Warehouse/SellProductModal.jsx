@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle, Tag } from 'lucide-react'; 
+import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle, Tag, CheckCircle2, Printer } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
@@ -11,6 +11,7 @@ import QuickAddCustomerModal from './QuickAddCustomerModal';
 import AnimatedNumber from '../../components/Common/AnimatedNumber';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { formatCategoriesHierarchically } from './categoryUtils';
+import { printThermalReceipt57mm } from './thermalReceiptService';
 
 const BANK_RATES = {
   'ABB Kredit': { 1: 0.0, 2: 0.02, 3: 0.03, 6: 0.055, 9: 0.08, 12: 0.10, 18: 0.17, 24: 0.23 },
@@ -55,6 +56,21 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [activeTariff, setActiveTariff] = useState(null);
   const [birmarketCategory, setBirmarketCategory] = useState('Alətlər'); // 'Alətlər' | 'Aksesuarlar'
   const [salesChannel, setSalesChannel] = useState('Mağaza');
+  const [completedSaleReceipt, setCompletedSaleReceipt] = useState(null);
+  const [currentWarehouseName, setCurrentWarehouseName] = useState('Əsas Anbar / Mağaza');
+
+  useEffect(() => {
+    if (!warehouseId) return;
+    const fetchWh = async () => {
+      try {
+        const { data } = await supabase.from('warehouses').select('name').eq('id', warehouseId).maybeSingle();
+        if (data?.name) setCurrentWarehouseName(data.name);
+      } catch (e) {
+        // fallback
+      }
+    };
+    fetchWh();
+  }, [warehouseId]);
 
   // Custom channels — stored in Supabase profiles.custom_channels + localStorage cache
   const STORAGE_KEY = 'crm_custom_sales_channels';
@@ -851,9 +867,55 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         }
       }
 
+      const custObj = customers.find(c => c.id === finalCustomerId);
+      const finalReceiptTotal = paymentMethod === 'credit' ? contractTotal : (paymentMethod === 'birmarket' ? grossAmount : finalTotal);
+      const receiptData = {
+        receiptNumber: `№${Date.now().toString().slice(-6)}`,
+        date: saleDate ? new Date(saleDate) : new Date(),
+        storeName: profile?.company_name || 'MERKEZ CRM',
+        warehouseName: currentWarehouseName || 'Əsas Anbar / Mağaza',
+        customerName: custObj?.name || (finalCustomerId ? 'Müştəri' : ''),
+        customerPhone: custObj?.phone || '',
+        paymentMethod,
+        channel: paymentMethod === 'credit' ? `Kredit - ${selectedBank}` : paymentMethod === 'birmarket' ? 'Birmarket' : salesChannel,
+        items: cart.map(item => {
+          const itemPrice = Number(item.price) || 0;
+          const itemGross = itemPrice * Number(item.quantity || 1);
+          const itemDisc = (discountAmount > 0 && grossCartTotal > 0) ? (itemGross / grossCartTotal) * discountAmount : 0;
+          return {
+            name: item.name || item.productName || 'Məhsul',
+            barcode: item.barcode || '',
+            quantity: item.quantity || 1,
+            unit: item.unit || 'əd',
+            price: itemPrice,
+            total: Math.max(0, itemGross - itemDisc),
+            discount: itemDisc
+          };
+        }),
+        subtotal: grossCartTotal,
+        discountAmount: discountAmount,
+        total: finalReceiptTotal,
+        creditDetails: paymentMethod === 'credit' ? {
+          bank: selectedBank,
+          months: installmentMonths,
+          monthlyPayment: monthlyPayment,
+          markupPercent: effectiveMarkupPercent,
+          contractTotal: contractTotal
+        } : null,
+        notes: notes || '',
+        paperWidth: '57mm'
+      };
+
       toast.success(t('retail.saleSuccess') || 'Satış uğurla başa çatdı');
       onSaleComplete();
-      onClose();
+
+      try {
+        printThermalReceipt57mm(receiptData);
+      } catch (printErr) {
+        console.warn('Auto print notice:', printErr);
+      }
+
+      setCompletedSaleReceipt(receiptData);
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -869,11 +931,16 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     { value: 'birmarket', label: 'Birmarket' }
   ];
 
+  const handleModalClose = () => {
+    setCompletedSaleReceipt(null);
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={onClose}>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={handleModalClose}>
         <div 
           className="bg-white w-screen h-screen overflow-hidden animate-in fade-in flex flex-col"
           onClick={(e) => e.stopPropagation()}
@@ -889,7 +956,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                 <p className="text-xs text-gray-500 font-medium">{i18n.language === 'az' ? 'Məhsul satışını rəsmiləşdirin və anbardan çıxarın' : i18n.language === 'ru' ? 'Оформите продажу товаров со склада' : 'Register warehouse product sale'}</p>
               </div>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
+            <button onClick={handleModalClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -1609,6 +1676,77 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         onScan={handleCameraScan}
         title={i18n.language === 'az' ? 'Məhsul Satışı — Kamera Skanı' : 'Продажа — Сканирование камерой'}
       />
+
+      {/* 57mm Thermal Receipt Confirmation / Print Modal */}
+      {completedSaleReceipt && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[10000] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 text-center animate-in zoom-in-95 duration-200 border border-gray-100">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              <CheckCircle2 className="w-9 h-9" />
+            </div>
+
+            <h3 className="text-xl font-black text-gray-900 tracking-tight mb-1">
+              {i18n.language === 'az' ? 'Satış Uğurla Tamamlandı!' : i18n.language === 'ru' ? 'Продажа успешно завершена!' : 'Sale Completed!'}
+            </h3>
+            <p className="text-xs text-gray-500 font-medium mb-5">
+              {i18n.language === 'az' ? 'Məhsullar anbardan çıxarıldı və qeydiyyata alındı' : i18n.language === 'ru' ? 'Товары списаны со склада, чек готов к печати' : 'Products dispatched successfully'}
+            </p>
+
+            <div className="bg-gray-50/80 rounded-2xl p-4 mb-5 border border-gray-100 text-left space-y-2 text-xs">
+              <div className="flex justify-between items-center text-gray-500">
+                <span>{i18n.language === 'az' ? 'Çek nömrəsi:' : 'Номер чека:'}</span>
+                <span className="font-bold font-mono text-gray-900">{completedSaleReceipt.receiptNumber}</span>
+              </div>
+              {completedSaleReceipt.customerName && (
+                <div className="flex justify-between items-center text-gray-500">
+                  <span>{i18n.language === 'az' ? 'Müştəri:' : 'Клиент:'}</span>
+                  <span className="font-bold text-gray-900">{completedSaleReceipt.customerName}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center text-gray-500">
+                <span>{i18n.language === 'az' ? 'Məhsul sayı:' : 'Позиций в чеке:'}</span>
+                <span className="font-bold text-gray-900">{completedSaleReceipt.items.length} {i18n.language === 'az' ? 'növ' : 'поз.'}</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-500">
+                <span>{i18n.language === 'az' ? 'Ödəniş:' : 'Оплата:'}</span>
+                <span className="font-bold text-gray-900">
+                  {completedSaleReceipt.paymentMethod === 'cash' ? (i18n.language === 'az' ? 'Nəqd' : 'Наличные')
+                    : completedSaleReceipt.paymentMethod === 'card' ? (i18n.language === 'az' ? 'Kart' : 'Карта')
+                    : completedSaleReceipt.paymentMethod === 'credit' ? (i18n.language === 'az' ? 'Kredit' : 'Кредит')
+                    : completedSaleReceipt.paymentMethod === 'debt' ? (i18n.language === 'az' ? 'Nisyə' : 'В долг')
+                    : 'Birmarket'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm font-black text-gray-900 pt-2 border-t border-gray-200">
+                <span>{i18n.language === 'az' ? 'Yekun Məbləğ:' : 'Итого к оплате:'}</span>
+                <span className="text-emerald-600 text-base font-black">₼{Number(completedSaleReceipt.total).toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => printThermalReceipt57mm(completedSaleReceipt)}
+                className="w-full py-3.5 bg-gray-900 hover:bg-black text-white rounded-xl text-sm font-black flex items-center justify-center gap-2.5 shadow-lg shadow-gray-900/20 active:scale-95 transition-all"
+              >
+                <Printer className="w-5 h-5 text-emerald-400" />
+                <span>{i18n.language === 'az' ? 'Çap Et (57mm Xprinter)' : i18n.language === 'ru' ? 'Печать чека (57мм Xprinter)' : 'Print Thermal Receipt (57mm)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCompletedSaleReceipt(null);
+                  onClose();
+                }}
+                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors"
+              >
+                {i18n.language === 'az' ? 'Tamamla və Bağla' : i18n.language === 'ru' ? 'Завершить и закрыть' : 'Done & Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ModalPortal>
   );
 };
