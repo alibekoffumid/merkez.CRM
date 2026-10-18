@@ -325,26 +325,68 @@ export function printThermalReceipt57mm(saleData) {
       <div style="height: 12mm; line-height: 12mm;">&nbsp;</div>
 
       <script>
-        window.onload = function() {
-          setTimeout(function() {
-            window.print();
-          }, 350);
-        };
+        // Only auto-print from inside script if opened as a standalone window
+        if (window.self === window.top) {
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        }
       </script>
     </body>
     </html>
   `;
 
-  const printWindow = window.open('', '_blank', 'width=380,height=600');
-  if (!printWindow) {
-    alert('Brauzer çap pəncərəsinin açılmasına mane oldu. Zəhmət olmasa pop-up icazəsi verin.');
-    return false;
+  try {
+    // Use hidden iframe - NEVER blocked by browser popup blockers!
+    let iframe = document.getElementById('thermal-receipt-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'thermal-receipt-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.top = '-9999px';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '100px';
+      iframe.style.height = '100px';
+      iframe.style.border = 'none';
+      iframe.style.opacity = '0';
+      document.body.appendChild(iframe);
+    }
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(receiptHtml);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          if (iframe.contentWindow) {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          }
+        } catch (printErr) {
+          console.warn('Iframe print error:', printErr);
+        }
+      }, 300);
+
+      return true;
+    }
+  } catch (err) {
+    console.warn('Iframe print setup error, attempting fallback:', err);
   }
 
-  printWindow.document.open();
-  printWindow.document.write(receiptHtml);
-  printWindow.document.close();
-  return true;
+  // Fallback for edge cases
+  const printWindow = window.open('', '_blank', 'width=380,height=600');
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(receiptHtml);
+    printWindow.document.close();
+    return true;
+  }
+
+  return false;
 }
 
 function escapeHtml(str) {
