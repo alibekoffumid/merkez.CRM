@@ -872,7 +872,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       const receiptData = {
         receiptNumber: `№${Date.now().toString().slice(-6)}`,
         date: saleDate ? new Date(saleDate) : new Date(),
-        storeName: profile?.company_name || 'MERKEZ CRM',
+        storeName: 'RAST MUSIC SHOP',
+        website: 'rastmusicshop.com',
+        softwareBrand: 'Merkez Warehouse by Digitall.llc',
         warehouseName: currentWarehouseName || 'Əsas Anbar / Mağaza',
         customerName: custObj?.name || (finalCustomerId ? 'Müştəri' : ''),
         customerPhone: custObj?.phone || '',

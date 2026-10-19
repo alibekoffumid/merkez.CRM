@@ -10,7 +10,9 @@ export function printThermalReceipt57mm(saleData) {
   const {
     receiptNumber = `№${Date.now().toString().slice(-6)}`,
     date = new Date(),
-    storeName = 'MERKEZ CRM',
+    storeName = 'RAST MUSIC SHOP',
+    softwareBrand = 'Merkez Warehouse by Digitall.llc',
+    website = 'rastmusicshop.com',
     warehouseName = 'Əsas Anbar / Mağaza',
     cashierName = '',
     customerName = '',
@@ -96,14 +98,28 @@ export function printThermalReceipt57mm(saleData) {
         .text-left { text-align: left; }
         .bold { font-weight: 900; }
         .store-name {
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 900;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.8px;
           margin-bottom: 2px;
+          text-transform: uppercase;
+        }
+        .store-website {
+          font-size: 10px;
+          font-weight: 700;
+          color: #000;
+          margin-bottom: 2px;
+          letter-spacing: 0.3px;
+        }
+        .software-brand {
+          font-size: 8px;
+          color: #333;
+          margin-bottom: 2px;
+          font-style: italic;
         }
         .store-sub {
-          font-size: 9px;
-          color: #222;
+          font-size: 8.5px;
+          color: #444;
           margin-bottom: 2px;
         }
         .receipt-badge {
@@ -197,7 +213,9 @@ export function printThermalReceipt57mm(saleData) {
 
       <div class="text-center">
         <div class="store-name">${escapeHtml(storeName)}</div>
-        <div class="store-sub">${escapeHtml(warehouseName)}</div>
+        ${website ? `<div class="store-website">${escapeHtml(website)}</div>` : ''}
+        ${softwareBrand ? `<div class="software-brand">${escapeHtml(softwareBrand)}</div>` : ''}
+        ${warehouseName ? `<div class="store-sub">${escapeHtml(warehouseName)}</div>` : ''}
         <div class="receipt-badge">SATIŞ ÇEKİ</div>
         <div class="meta-line">Çek: <span class="bold">${escapeHtml(receiptNumber)}</span></div>
         <div class="meta-line">Tarix: ${escapeHtml(dateStr)} ${escapeHtml(timeStr)}</div>
@@ -318,7 +336,9 @@ export function printThermalReceipt57mm(saleData) {
 
       <div class="footer">
         <div class="bold">BİZİ SEÇDİYİNİZ ÜÇÜN TƏŞƏKKÜR EDİRİK!</div>
+        ${website ? `<div style="margin-top: 2px; font-weight: bold;">${escapeHtml(website)}</div>` : ''}
         <div style="margin-top: 2px;">Malı qaytararkən və ya dəyişdirərkən çeki təqdim edin.</div>
+        ${softwareBrand ? `<div style="font-size: 7.5px; color: #555; margin-top: 4px;">${escapeHtml(softwareBrand)}</div>` : ''}
       </div>
 
       <!-- Feed space for thermal paper cutter -->
