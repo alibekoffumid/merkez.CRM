@@ -899,7 +899,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           bank: selectedBank,
           months: installmentMonths,
           monthlyPayment: monthlyPayment,
-          markupPercent: effectiveMarkupPercent,
+          markupPercent: commissionRateDisplay || 0,
           contractTotal: contractTotal
         } : null,
         notes: notes || '',
