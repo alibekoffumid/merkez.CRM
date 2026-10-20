@@ -105,8 +105,11 @@ const SvgDonutChart = ({ data = [], totalLabel = 'Cəmi', totalValue = '0', size
   });
 
   return (
-    <div className="relative flex flex-col items-center justify-center p-2">
-      <svg width={size} height={size} viewBox="0 0 100 100" className="transform -rotate-90 drop-shadow-sm">
+    <div 
+      className="relative flex flex-col items-center justify-center p-2 w-full"
+      style={{ maxWidth: size, maxHeight: size, aspectRatio: '1 / 1' }}
+    >
+      <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 drop-shadow-sm">
         {/* Background ring */}
         <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#F1F5F9" strokeWidth="15" />
         
@@ -136,22 +139,22 @@ const SvgDonutChart = ({ data = [], totalLabel = 'Cəmi', totalValue = '0', size
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
         {hoveredIdx !== null && segments[hoveredIdx] ? (
           <>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate max-w-[110px]">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider truncate max-w-[150px]">
               {segments[hoveredIdx].label}
             </span>
-            <span className="text-base font-black text-gray-900 tracking-tight">
+            <span className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight my-0.5">
               {segments[hoveredIdx].displayValue || segments[hoveredIdx].value}
             </span>
-            <span className="text-[11px] font-black text-blue-600">
+            <span className="text-xs font-black text-blue-600">
               {(segments[hoveredIdx].percent * 100).toFixed(1)}%
             </span>
           </>
         ) : (
           <>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
               {totalLabel}
             </span>
-            <span className="text-lg font-black text-gray-900 tracking-tight">
+            <span className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight my-0.5">
               {totalValue}
             </span>
           </>
@@ -1160,9 +1163,9 @@ const WarehouseEfficiencyCharts = ({
                       data={categoryDonutSlices}
                       totalLabel={i18n.language === 'az' ? 'Cəmi Satış' : 'Всего'}
                       totalValue={`₼${summary.totalRevenue.toFixed(2)}`}
-                      size={220}
+                      size={320}
                     />
-                    <p className="text-[11px] font-bold text-gray-400 mt-2">
+                    <p className="text-xs font-bold text-gray-400 mt-2">
                       {categoryData.length} {i18n.language === 'az' ? 'kateqoriya üzrə paylanma' : 'категорий товаров'}
                     </p>
                   </div>
