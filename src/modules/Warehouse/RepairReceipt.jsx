@@ -165,7 +165,11 @@ const RepairReceipt = () => {
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Alət / Məhsul</p>
-                <p className="text-gray-900 font-bold">{repair.product?.name || repair.item_name}</p>
+                <p className="text-gray-900 font-bold">
+                  {repair.product?.name 
+                    ? `${repair.product.name}${repair.quantity && Number(repair.quantity) > 1 && !repair.product.name.includes(`(x${repair.quantity})`) ? ` (x${repair.quantity})` : ''}`
+                    : repair.item_name}
+                </p>
               </div>
             </div>
 

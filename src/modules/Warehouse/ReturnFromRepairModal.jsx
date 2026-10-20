@@ -8,7 +8,7 @@ import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
 import MultiImageUpload from '../../components/Common/MultiImageUpload';
 
-const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
+const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess, initialReturnQty }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -20,6 +20,30 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   const [selectedPartId, setSelectedPartId] = useState('');
   const [partQuantity, setPartQuantity] = useState('1');
   const [photoAfter, setPhotoAfter] = useState([]);
+
+  // Compute total repair quantity and clean name
+  const currentTotalQty = (() => {
+    if (repair?.quantity != null && Number(repair.quantity) > 0) {
+      return Math.floor(Number(repair.quantity));
+    }
+    const match = repair?.item_name?.match(/\(x(\d+)\)/);
+    if (match) return parseInt(match[1], 10);
+    return 1;
+  })();
+
+  const cleanItemName = (repair?.item_name || '').replace(/\s*\(x\d+\)\s*/g, '').trim();
+
+  const [returnQty, setReturnQty] = useState(initialReturnQty || (currentTotalQty > 1 ? 1 : 1));
+
+  useEffect(() => {
+    if (repair) {
+      if (initialReturnQty != null) {
+        setReturnQty(Math.min(currentTotalQty, Math.max(1, initialReturnQty)));
+      } else {
+        setReturnQty(currentTotalQty > 1 ? 1 : 1);
+      }
+    }
+  }, [repair, initialReturnQty, currentTotalQty]);
 
   useEffect(() => {
     if (!profile) return;
@@ -72,22 +96,95 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
     
     const returnToStock = repair.targetStatus === 'RECEIVED_FROM_WORKSHOP' && repair.type === 'INTERNAL_STOCK';
-    
+    const parsedReturnQty = Math.min(currentTotalQty, Math.max(1, parseInt(returnQty, 10) || 1));
+    const remainingQty = currentTotalQty - parsedReturnQty;
+
     try {
       const fee = parseFloat(masterFee) || 0;
       let totalPartsCost = 0;
       
-      // 1. Calculate total parts cost and insert them
+      let targetCompletedRepairId = repair.id;
+
+      // 1. Partial Return scenario (remainingQty > 0)
+      if (remainingQty > 0) {
+        const returnCode = `${repair.repair_code}-R${Date.now().toString().slice(-4)}`;
+        const returnedItemName = parsedReturnQty > 1 ? `${cleanItemName} (x${parsedReturnQty})` : cleanItemName;
+        
+        const insertPayload = {
+          user_id: profile.id,
+          repair_code: returnCode,
+          type: repair.type,
+          product_id: repair.product_id || null,
+          item_name: returnedItemName,
+          quantity: parsedReturnQty,
+          serial_number: repair.serial_number || null,
+          master_id: repair.master_id || null,
+          issue_description: `${repair.issue_description || ''}\n[${new Date().toLocaleDateString()}: ${parsedReturnQty} ədəd təhvil alındı]`.trim(),
+          status: repair.targetStatus || 'RECEIVED_FROM_WORKSHOP',
+          master_fee: fee,
+          parts_cost: 0,
+          photo_before: repair.photo_before || null,
+          photo_after: photoAfter && photoAfter.length > 0 ? JSON.stringify(photoAfter) : null
+        };
+
+        let newRepairData = null;
+        const insertRes = await supabase
+          .from('warehouse_repairs')
+          .insert([insertPayload])
+          .select()
+          .single();
+
+        if (insertRes.error && (insertRes.error.code === '42703' || insertRes.error.message?.includes('quantity'))) {
+          const fallbackPayload = { ...insertPayload };
+          delete fallbackPayload.quantity;
+          const retryRes = await supabase
+            .from('warehouse_repairs')
+            .insert([fallbackPayload])
+            .select()
+            .single();
+          if (retryRes.error) throw retryRes.error;
+          newRepairData = retryRes.data;
+        } else if (insertRes.error) {
+          throw insertRes.error;
+        } else {
+          newRepairData = insertRes.data;
+        }
+
+        targetCompletedRepairId = newRepairData?.id || repair.id;
+
+        // Update remaining items on the original repair
+        const remainingItemName = remainingQty > 1 ? `${cleanItemName} (x${remainingQty})` : cleanItemName;
+        const updateRemainingPayload = {
+          item_name: remainingItemName,
+          quantity: remainingQty,
+          issue_description: `${repair.issue_description || ''}\n[${new Date().toLocaleDateString()}: ${parsedReturnQty} ədəd təhvil alındı, qaldı: ${remainingQty} ədəd]`.trim()
+        };
+
+        const updateOrigRes = await supabase
+          .from('warehouse_repairs')
+          .update(updateRemainingPayload)
+          .eq('id', repair.id);
+
+        if (updateOrigRes.error && (updateOrigRes.error.code === '42703' || updateOrigRes.error.message?.includes('quantity'))) {
+          delete updateRemainingPayload.quantity;
+          await supabase
+            .from('warehouse_repairs')
+            .update(updateRemainingPayload)
+            .eq('id', repair.id);
+        }
+      }
+
+      // 2. Calculate parts and insert them
       if (parts.length > 0) {
         const partsDataToInsert = parts.map(p => {
           totalPartsCost += (p.cost_price * p.quantity);
           return {
             user_id: profile.id,
-            repair_id: repair.id,
+            repair_id: targetCompletedRepairId,
             product_id: p.product_id,
             quantity: p.quantity,
             cost_price: p.cost_price
@@ -103,16 +200,25 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
         // Subtract quantities from products
         for (const p of parts) {
           const prod = products.find(x => x.id === p.product_id);
-          const newQty = prod.stock_quantity - p.quantity;
-          
+          if (prod) {
+            const newQty = prod.stock_quantity - p.quantity;
+            await supabase
+              .from('products')
+              .update({ stock_quantity: newQty })
+              .eq('id', p.product_id);
+          }
+        }
+
+        // If partial return, update parts_cost on new record
+        if (remainingQty > 0 && targetCompletedRepairId !== repair.id) {
           await supabase
-            .from('products')
-            .update({ stock_quantity: newQty })
-            .eq('id', p.product_id);
+            .from('warehouse_repairs')
+            .update({ parts_cost: totalPartsCost })
+            .eq('id', targetCompletedRepairId);
         }
       }
 
-      // 2. Add master fee to master's balance
+      // 3. Add master fee to master's balance
       if (fee > 0 && repair.master_id) {
         const { data: masterData } = await supabase
           .from('warehouse_masters')
@@ -128,7 +234,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
           .eq('id', repair.master_id);
       }
 
-      // 3. If INTERNAL_STOCK and returning to stock, update cost_price of the repaired item
+      // 4. If INTERNAL_STOCK and returning to stock, update cost_price of the repaired item
       if (repair.type === 'INTERNAL_STOCK' && returnToStock && repair.product_id) {
         const { data: repairedProd } = await supabase
           .from('products')
@@ -137,11 +243,6 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
           .single();
           
         if (repairedProd) {
-          // Add fee and parts cost to the cost price
-          // In a real accounting system, average cost is recalculated based on quantity
-          // For simplicity and logic of repairing ONE item:
-          // Since only one item is repaired, we just add the absolute extra cost divided by total stock (to average it)
-          // OR we can just add it to the cost_price. It's better to average it or just add flat if qty=1
           const extraCost = fee + totalPartsCost;
           const newCostPrice = parseFloat(repairedProd.cost_price || 0) + (extraCost / (repairedProd.stock_quantity || 1));
           
@@ -152,20 +253,40 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
         }
       }
 
-      // 4. Update repair status
-      const { error: updateError } = await supabase
-        .from('warehouse_repairs')
-        .update({
+      // 5. Full Return scenario (remainingQty === 0)
+      if (remainingQty === 0) {
+        const finalItemName = currentTotalQty > 1 ? `${cleanItemName} (x${currentTotalQty})` : cleanItemName;
+        const updatePayload = {
           status: repair.targetStatus || (returnToStock ? 'RECEIVED_FROM_WORKSHOP' : 'READY'),
-          master_fee: fee,
-          parts_cost: totalPartsCost,
-          photo_after: photoAfter && photoAfter.length > 0 ? JSON.stringify(photoAfter) : null
-        })
-        .eq('id', repair.id);
-        
-      if (updateError) throw updateError;
+          master_fee: (parseFloat(repair.master_fee) || 0) + fee,
+          parts_cost: (parseFloat(repair.parts_cost) || 0) + totalPartsCost,
+          photo_after: photoAfter && photoAfter.length > 0 ? JSON.stringify(photoAfter) : repair.photo_after,
+          quantity: currentTotalQty,
+          item_name: finalItemName
+        };
+
+        let { error: updateError } = await supabase
+          .from('warehouse_repairs')
+          .update(updatePayload)
+          .eq('id', repair.id);
+
+        if (updateError && (updateError.code === '42703' || updateError.message?.includes('quantity'))) {
+          delete updatePayload.quantity;
+          const retry = await supabase
+            .from('warehouse_repairs')
+            .update(updatePayload)
+            .eq('id', repair.id);
+          updateError = retry.error;
+        }
+          
+        if (updateError) throw updateError;
+      }
       
-      toast.success(i18n.language === 'az' ? 'Uğurla tamamlandı' : 'Успешно завершено');
+      const successMsg = remainingQty > 0
+        ? (i18n.language === 'az' ? `${parsedReturnQty} ədəd təhvil alındı, təmirdə ${remainingQty} ədəd qaldı` : i18n.language === 'ru' ? `Принято ${parsedReturnQty} шт., в ремонте осталось ${remainingQty} шт.` : `Received ${parsedReturnQty} pcs, ${remainingQty} pcs remain in repair`)
+        : (i18n.language === 'az' ? 'Bütün alətlər təhvil alındı və təmir tamamlandı' : i18n.language === 'ru' ? 'Все инструменты приняты, ремонт завершен' : 'All tools received and repair completed');
+
+      toast.success(successMsg);
       onSuccess();
     } catch (err) {
       console.error('Error completing repair:', err);
@@ -195,7 +316,7 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
                   {i18n.language === 'az' ? 'Təmirdən Qəbul' : 'Прием из Ремонта'}
                 </h2>
                 <p className="text-xs text-gray-500 font-medium">
-                  {repair.repair_code} • {repair.item_name}
+                  {repair.repair_code} • {cleanItemName} {currentTotalQty > 1 ? `(Cəmi: ${currentTotalQty} ədəd)` : ''}
                 </p>
               </div>
             </div>
@@ -219,7 +340,102 @@ const ReturnFromRepairModal = ({ isOpen, onClose, repair, onSuccess }) => {
               </div>
             </div>
 
-            <form id="returnForm" className="space-y-6">
+            <form id="returnForm" onSubmit={handleSubmit} className="space-y-6">
+              
+              {/* Return Quantity Selector when total in repair > 1 */}
+              {currentTotalQty > 1 && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200/90 rounded-2xl p-4 shadow-xs">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <label className="block text-xs font-black text-orange-950 uppercase tracking-wider">
+                        {i18n.language === 'az' ? 'Qaytarılan Alət Sayı' : i18n.language === 'ru' ? 'Количество возвращаемых инструментов' : 'Quantity Being Returned'}
+                      </label>
+                      <p className="text-xs text-orange-700 font-medium mt-0.5">
+                        {i18n.language === 'az' ? `Təmirdə olan ümumi say: ${currentTotalQty} ədəd` : i18n.language === 'ru' ? `Всего в ремонте: ${currentTotalQty} шт.` : `Total in repair: ${currentTotalQty} pcs`}
+                      </p>
+                    </div>
+                    <div className="flex items-center bg-white border border-orange-200 rounded-xl p-1 shadow-inner">
+                      <button
+                        type="button"
+                        onClick={() => setReturnQty(prev => Math.max(1, prev - 1))}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-orange-100 text-orange-950 font-black text-base transition-all active:scale-95"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        max={currentTotalQty}
+                        value={returnQty}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (isNaN(val)) setReturnQty(1);
+                          else setReturnQty(Math.min(currentTotalQty, Math.max(1, val)));
+                        }}
+                        className="w-14 text-center font-black text-base text-gray-900 bg-transparent outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setReturnQty(prev => Math.min(currentTotalQty, prev + 1))}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-orange-100 text-orange-950 font-black text-base transition-all active:scale-95"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Quick selection chips */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-orange-100/80">
+                    <span className="text-[11px] font-bold text-orange-800">
+                      {i18n.language === 'az' ? 'Tez seçim:' : i18n.language === 'ru' ? 'Быстрый выбор:' : 'Quick pick:'}
+                    </span>
+                    {Array.from({ length: currentTotalQty }, (_, i) => i + 1).map(num => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setReturnQty(num)}
+                        className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                          returnQty === num
+                            ? 'bg-orange-600 text-white shadow-sm ring-2 ring-orange-600/30'
+                            : 'bg-white/90 hover:bg-white text-orange-900 border border-orange-200 shadow-2xs'
+                        }`}
+                      >
+                        {num === currentTotalQty 
+                          ? (i18n.language === 'az' ? `Hamısı (${num})` : i18n.language === 'ru' ? `Все (${num})` : `All (${num})`)
+                          : `${num} ${i18n.language === 'az' ? 'ədəd' : i18n.language === 'ru' ? 'шт.' : 'pcs'}`
+                        }
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Dynamic helper notification */}
+                  <div className="mt-3 p-2.5 bg-white/90 rounded-xl border border-orange-100 text-xs">
+                    {returnQty < currentTotalQty ? (
+                      <span className="font-bold text-amber-900 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
+                        <span>
+                          {i18n.language === 'az' 
+                            ? `${returnQty} ədəd təhvil alınır. Qalan ${currentTotalQty - returnQty} ədəd təmirdə qalmağa davam edəcək.`
+                            : i18n.language === 'ru'
+                            ? `Принимается ${returnQty} шт. Оставшиеся ${currentTotalQty - returnQty} шт. останутся в ремонте у мастера.`
+                            : `Returning ${returnQty} pcs. Remaining ${currentTotalQty - returnQty} pcs will stay in repair.`}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="font-bold text-emerald-800 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                        <span>
+                          {i18n.language === 'az'
+                            ? `Bütün ${currentTotalQty} ədəd alət təhvil alınır və təmir tamamlanır.`
+                            : i18n.language === 'ru'
+                            ? `Все ${currentTotalQty} шт. принимаются, ремонт будет полностью закрыт.`
+                            : `All ${currentTotalQty} pcs returned and repair completed.`}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
               
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">

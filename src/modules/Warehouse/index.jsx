@@ -446,15 +446,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     try {
       const { data, error } = await supabase
         .from('warehouse_repairs')
-        .select('product_id')
+        .select('product_id, quantity, item_name, status')
         .eq('user_id', profile.id)
-        .eq('status', 'SENT_TO_MASTER')
+        .in('status', ['SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'SENT_TO_MASTER', 'RECEIVED_FROM_CUSTOMER'])
         .not('product_id', 'is', null);
         
       if (!error && data) {
         const counts = {};
         data.forEach(r => {
-          counts[r.product_id] = (counts[r.product_id] || 0) + 1;
+          let qty = Number(r.quantity);
+          if (!qty || isNaN(qty)) {
+            const m = r.item_name?.match(/\(x(\d+)\)/);
+            qty = m ? parseInt(m[1], 10) : 1;
+          }
+          counts[r.product_id] = (counts[r.product_id] || 0) + qty;
         });
         setActiveRepairsMap(counts);
       }
