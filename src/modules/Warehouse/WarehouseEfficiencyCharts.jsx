@@ -1153,9 +1153,9 @@ const WarehouseEfficiencyCharts = ({
                 </div>
 
                 {/* Donut Chart + Category Cards Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                   {/* Left: SVG Donut Chart */}
-                  <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-2xl border border-gray-100">
+                  <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-2xl border border-gray-100 lg:sticky lg:top-4">
                     <SvgDonutChart 
                       data={categoryDonutSlices}
                       totalLabel={i18n.language === 'az' ? 'Cəmi Satış' : 'Всего'}
@@ -1167,50 +1167,61 @@ const WarehouseEfficiencyCharts = ({
                     </p>
                   </div>
 
-                  {/* Right: Category Legend & Visual Progress */}
-                  <div className="lg:col-span-7 space-y-3">
-                    {categoryData.map((cat, idx) => (
-                      <div 
-                        key={cat.name || idx}
-                        className="p-4 rounded-xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-4 h-4 rounded-full shrink-0 shadow-sm"
-                              style={{ backgroundColor: cat.color }}
-                            />
-                            <div>
-                              <h5 className="text-sm font-black text-gray-900">{cat.name}</h5>
-                              <p className="text-[10px] text-gray-400 font-bold">
-                                {cat.quantity} {formatUnitName('pcs', i18n.language)} {i18n.language === 'az' ? 'satılıb' : 'продано'} • {cat.count} {i18n.language === 'az' ? 'əməliyyat' : 'чеков'}
-                              </p>
+                  {/* Right: Category Legend & Visual Progress (Scrollable container) */}
+                  <div className="lg:col-span-7 flex flex-col">
+                    <div className="flex items-center justify-between mb-2 px-1 text-xs text-gray-400 font-bold">
+                      <span>{i18n.language === 'az' ? 'Kateqoriyalar Siyahısı' : 'Список категорий'} ({categoryData.length})</span>
+                      <span className="text-[11px] text-gray-400">
+                        {i18n.language === 'az' ? 'Məbləğ / Pay' : 'Сумма / Доля'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+                      {categoryData.map((cat, idx) => (
+                        <div 
+                          key={cat.name || idx}
+                          className="p-3.5 rounded-xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-sm transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-3 min-w-0 pr-2">
+                              <div 
+                                className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
+                                style={{ backgroundColor: cat.color }}
+                              />
+                              <div className="min-w-0">
+                                <h5 className="text-sm font-black text-gray-900 truncate" title={cat.name}>
+                                  {cat.name}
+                                </h5>
+                                <p className="text-[10px] text-gray-400 font-bold">
+                                  {cat.quantity} {formatUnitName('pcs', i18n.language)} {i18n.language === 'az' ? 'satılıb' : 'продано'} • {cat.count} {i18n.language === 'az' ? 'əməliyyat' : 'чеков'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="text-right shrink-0">
+                              <p className="text-sm font-black text-emerald-600">₼{cat.revenue.toFixed(2)}</p>
+                              <span 
+                                className="inline-block px-2 py-0.5 rounded-full text-[10px] font-black text-white"
+                                style={{ backgroundColor: cat.color }}
+                              >
+                                {cat.share.toFixed(1)}%
+                              </span>
                             </div>
                           </div>
 
-                          <div className="text-right">
-                            <p className="text-sm font-black text-emerald-600">₼{cat.revenue.toFixed(2)}</p>
-                            <span 
-                              className="inline-block px-2 py-0.5 rounded-full text-[10px] font-black text-white"
-                              style={{ backgroundColor: cat.color }}
-                            >
-                              {cat.share.toFixed(1)}%
-                            </span>
+                          {/* Visual Bar */}
+                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className="h-full rounded-full transition-all duration-700"
+                              style={{ 
+                                width: `${Math.max(cat.share, 3)}%`,
+                                backgroundColor: cat.color 
+                              }}
+                            />
                           </div>
                         </div>
-
-                        {/* Visual Bar */}
-                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all duration-700"
-                            style={{ 
-                              width: `${Math.max(cat.share, 3)}%`,
-                              backgroundColor: cat.color 
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
