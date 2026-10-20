@@ -26,6 +26,32 @@ import {
 } from 'lucide-react';
 import { formatUnitName } from './SaleDetailModal';
 
+const MONTH_NAMES_SHORT = {
+  az: ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'],
+  ru: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+};
+
+const MONTH_NAMES_FULL = {
+  az: ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'],
+  ru: ['Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря'],
+  en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+};
+
+export const formatChartDate = (date, lang = 'az') => {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return { label: '', fullLabel: '' };
+  const currentLang = (lang || 'az').startsWith('ru') ? 'ru' : (lang || 'az').startsWith('en') ? 'en' : 'az';
+  const monthIdx = d.getMonth();
+  const day = d.getDate();
+  const shortMonth = MONTH_NAMES_SHORT[currentLang]?.[monthIdx] || MONTH_NAMES_SHORT.az[monthIdx];
+  const fullMonth = MONTH_NAMES_FULL[currentLang]?.[monthIdx] || MONTH_NAMES_FULL.az[monthIdx];
+  return {
+    label: `${day} ${shortMonth}`,
+    fullLabel: `${day} ${fullMonth} ${d.getFullYear()}`
+  };
+};
+
 const CHART_COLORS = [
   '#2563EB', // Blue
   '#10B981', // Emerald
@@ -482,12 +508,13 @@ const WarehouseEfficiencyCharts = ({
     filteredSales.forEach(s => {
       const d = s.date;
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const label = d.toLocaleDateString(i18n.language === 'az' ? 'az-AZ' : 'ru-RU', { day: 'numeric', month: 'short' });
+      const { label, fullLabel } = formatChartDate(d, i18n.language);
 
       if (!dateMap.has(key)) {
         dateMap.set(key, {
           dateKey: key,
           label,
+          fullDateLabel: fullLabel,
           revenue: 0,
           quantity: 0,
           profit: 0,
@@ -1077,7 +1104,8 @@ const WarehouseEfficiencyCharts = ({
                         className="flex-1 min-w-[28px] max-w-[64px] flex flex-col items-center group relative h-full justify-end"
                       >
                         {/* Hover Tooltip */}
-                        <div className="opacity-0 group-hover:opacity-100 absolute -top-14 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg whitespace-nowrap pointer-events-none transition-all z-20 shadow-xl">
+                        <div className="opacity-0 group-hover:opacity-100 absolute -top-16 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg whitespace-nowrap pointer-events-none transition-all z-20 shadow-xl border border-gray-800">
+                          <p className="text-gray-300 font-semibold mb-0.5">{day.fullDateLabel || day.label}</p>
                           <p className="text-emerald-400 font-black">₼{day.revenue.toFixed(2)}</p>
                           <p className="text-gray-300">{day.quantity} {formatUnitName('pcs', i18n.language)} ({day.ordersCount} {i18n.language === 'az' ? 'satış' : 'чек.'})</p>
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
@@ -1091,7 +1119,10 @@ const WarehouseEfficiencyCharts = ({
                           />
                         </div>
 
-                        <span className="text-[10px] text-gray-400 font-bold mt-2 truncate w-full text-center">
+                        <span 
+                          title={day.fullDateLabel || day.label}
+                          className="text-[10px] text-gray-500 font-bold mt-2 truncate w-full text-center"
+                        >
                           {day.label}
                         </span>
                       </div>
