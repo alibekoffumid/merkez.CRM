@@ -18,9 +18,11 @@ const WarehouseRepairs = ({ activeTab }) => {
   const { profile, currentStaff } = useUser();
   
   const [repairs, setRepairs] = useState([]);
+  const [masters, setMasters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [masterFilter, setMasterFilter] = useState('ALL');
   
   const [isSendModalOpen, setIsSendModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
@@ -330,11 +332,62 @@ const WarehouseRepairs = ({ activeTab }) => {
     }
   };
 
+  const fetchMasters = async () => {
+    if (!profile) return;
+    try {
+      const { data, error } = await supabase
+        .from('warehouse_masters')
+        .select('id, name, phone, balance')
+        .eq('user_id', profile.id)
+        .order('name');
+      if (!error && data) {
+        setMasters(data);
+      }
+    } catch (err) {
+      console.error('Error fetching masters:', err);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'repairs') {
       fetchRepairs();
+      fetchMasters();
     }
   }, [activeTab, profile]);
+
+  const masterOptions = React.useMemo(() => {
+    const counts = {};
+    const masterMap = new Map();
+
+    masters.forEach(m => {
+      masterMap.set(m.id, m.name);
+    });
+
+    repairs.forEach(r => {
+      if (r.master_id && r.master?.name) {
+        masterMap.set(r.master_id, r.master.name);
+      }
+      const isActive = r.status !== 'RECEIVED_FROM_WORKSHOP' && r.status !== 'DELIVERED_TO_CUSTOMER';
+      if (isActive && (r.master_id || r.master?.name)) {
+        const key = r.master_id || r.master?.name;
+        const qty = getRepairQuantity(r);
+        counts[key] = (counts[key] || 0) + qty;
+      }
+    });
+
+    return Array.from(masterMap.entries()).map(([id, name]) => {
+      const activeCount = counts[id] || counts[name] || 0;
+      const countLabel = activeCount > 0 
+        ? ` (${activeCount} ${i18n.language === 'az' ? 'alət' : i18n.language === 'ru' ? 'инстр.' : 'tools'})` 
+        : '';
+      return {
+        id,
+        name,
+        activeCount,
+        label: `${name}${countLabel}`
+      };
+    }).sort((a, b) => b.activeCount - a.activeCount || a.name.localeCompare(b.name));
+  }, [repairs, masters, i18n.language]);
 
   const filteredRepairs = repairs.filter(r => {
     const matchesSearch = 
@@ -343,13 +396,14 @@ const WarehouseRepairs = ({ activeTab }) => {
       (r.master?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
+    const matchesMaster = masterFilter === 'ALL' || r.master_id === masterFilter || r.master?.name === masterFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesMaster;
   });
 
   const topBarContent = (
-    <div className="flex items-center gap-4 flex-1 min-w-0">
-      <div className="relative w-48 shrink-0 hidden md:block">
+    <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className="relative w-44 shrink-0 hidden md:block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
         <input
           type="text"
@@ -360,7 +414,7 @@ const WarehouseRepairs = ({ activeTab }) => {
         />
       </div>
       
-      <div className="shrink-0 min-w-[160px]">
+      <div className="shrink-0 min-w-[150px]">
         <Dropdown
           value={statusFilter}
           onChange={(val) => setStatusFilter(val)}
@@ -375,6 +429,30 @@ const WarehouseRepairs = ({ activeTab }) => {
             statusFilter === 'ALL' 
               ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50' 
               : (STATUSES[statusFilter]?.color || 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50')
+          }`}
+        />
+      </div>
+
+      {/* Master Filter Dropdown */}
+      <div className="shrink-0 min-w-[170px]">
+        <Dropdown
+          value={masterFilter}
+          onChange={(val) => setMasterFilter(val)}
+          searchable={true}
+          options={[
+            { 
+              value: 'ALL', 
+              label: i18n.language === 'az' ? 'Bütün Ustalar' : i18n.language === 'ru' ? 'Все Мастера' : 'All Masters' 
+            },
+            ...masterOptions.map(m => ({
+              value: m.id,
+              label: m.label
+            }))
+          ]}
+          buttonClassName={`h-[38px] px-3 py-2 text-xs font-bold rounded-lg border focus:outline-none focus:ring-1 focus:ring-merkez-blue cursor-pointer shadow-sm w-full ${
+            masterFilter === 'ALL'
+              ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+              : 'bg-orange-50 text-orange-900 border-orange-200 hover:bg-orange-100 font-black'
           }`}
         />
       </div>
@@ -417,6 +495,30 @@ const WarehouseRepairs = ({ activeTab }) => {
       {topBarTarget && createPortal(topBarContent, topBarTarget)}
       {actionTarget && createPortal(actionButtons, actionTarget)}
       <div className="flex-1 bg-white rounded-lg border border-gray-100 p-4 lg:p-6 flex flex-col min-h-0">
+        
+        {/* Active master filter indicator banner */}
+        {masterFilter !== 'ALL' && (
+          <div className="mb-3 px-3.5 py-2.5 bg-orange-50 border border-orange-200/90 rounded-xl flex items-center justify-between text-xs animate-in fade-in duration-200">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-orange-600 shrink-0" />
+              <span className="font-bold text-orange-950">
+                {i18n.language === 'az' ? 'Seçilmiş Usta:' : i18n.language === 'ru' ? 'Выбранный Мастер:' : 'Selected Master:'}{' '}
+                <span className="font-black underline">{masterOptions.find(m => m.id === masterFilter)?.name || masterFilter}</span>
+              </span>
+              <span className="text-orange-700 font-medium hidden sm:inline">
+                • {filteredRepairs.reduce((sum, r) => sum + getRepairQuantity(r), 0)} {i18n.language === 'az' ? 'alət tapıldı' : i18n.language === 'ru' ? 'инструментов найдено' : 'tools found'}
+              </span>
+            </div>
+            <button
+              onClick={() => setMasterFilter('ALL')}
+              className="text-orange-700 hover:text-orange-950 font-bold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+              {i18n.language === 'az' ? 'Filteri sıfırla' : i18n.language === 'ru' ? 'Сбросить фильтр' : 'Reset'}
+            </button>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto min-h-0">
         {loading ? (
           <div className="flex items-center justify-center h-full">
