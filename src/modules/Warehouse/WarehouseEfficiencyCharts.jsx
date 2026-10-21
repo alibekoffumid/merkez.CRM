@@ -104,6 +104,8 @@ const SvgDonutChart = ({ data = [], totalLabel = 'Cəmi', totalValue = '0', size
     };
   });
 
+  const isLarge = size >= 340;
+
   return (
     <div 
       className="relative flex flex-col items-center justify-center p-2 w-full"
@@ -139,22 +141,22 @@ const SvgDonutChart = ({ data = [], totalLabel = 'Cəmi', totalValue = '0', size
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
         {hoveredIdx !== null && segments[hoveredIdx] ? (
           <>
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider truncate max-w-[150px]">
+            <span className={`font-bold text-gray-400 uppercase tracking-wider truncate ${isLarge ? 'text-xs sm:text-sm max-w-[240px]' : 'text-[11px] max-w-[150px]'}`}>
               {segments[hoveredIdx].label}
             </span>
-            <span className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight my-0.5">
+            <span className={`font-black text-gray-900 tracking-tight my-0.5 ${isLarge ? 'text-2xl sm:text-4xl' : 'text-xl sm:text-2xl'}`}>
               {segments[hoveredIdx].displayValue || segments[hoveredIdx].value}
             </span>
-            <span className="text-xs font-black text-blue-600">
+            <span className={`font-black text-blue-600 ${isLarge ? 'text-sm sm:text-base' : 'text-xs'}`}>
               {(segments[hoveredIdx].percent * 100).toFixed(1)}%
             </span>
           </>
         ) : (
           <>
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+            <span className={`font-bold text-gray-400 uppercase tracking-wider ${isLarge ? 'text-xs sm:text-sm' : 'text-[11px]'}`}>
               {totalLabel}
             </span>
-            <span className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight my-0.5">
+            <span className={`font-black text-gray-900 tracking-tight my-1 ${isLarge ? 'text-3xl sm:text-4xl' : 'text-xl sm:text-2xl'}`}>
               {totalValue}
             </span>
           </>
@@ -1156,22 +1158,22 @@ const WarehouseEfficiencyCharts = ({
                 </div>
 
                 {/* Donut Chart + Category Cards Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                   {/* Left: SVG Donut Chart */}
-                  <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-2xl border border-gray-100 lg:sticky lg:top-4">
+                  <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-2xl border border-gray-100 lg:sticky lg:top-4 h-full min-h-[460px]">
                     <SvgDonutChart 
                       data={categoryDonutSlices}
                       totalLabel={i18n.language === 'az' ? 'Cəmi Satış' : 'Всего'}
                       totalValue={`₼${summary.totalRevenue.toFixed(2)}`}
-                      size={320}
+                      size={460}
                     />
-                    <p className="text-xs font-bold text-gray-400 mt-2">
+                    <p className="text-xs font-bold text-gray-400 mt-3 text-center">
                       {categoryData.length} {i18n.language === 'az' ? 'kateqoriya üzrə paylanma' : 'категорий товаров'}
                     </p>
                   </div>
 
                   {/* Right: Category Legend & Visual Progress (Scrollable container) */}
-                  <div className="lg:col-span-7 flex flex-col">
+                  <div className="lg:col-span-7 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-2 px-1 text-xs text-gray-400 font-bold">
                       <span>{i18n.language === 'az' ? 'Kateqoriyalar Siyahısı' : 'Список категорий'} ({categoryData.length})</span>
                       <span className="text-[11px] text-gray-400">
@@ -1179,7 +1181,7 @@ const WarehouseEfficiencyCharts = ({
                       </span>
                     </div>
 
-                    <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-2 custom-scrollbar">
                       {categoryData.map((cat, idx) => (
                         <div 
                           key={cat.name || idx}

@@ -48,10 +48,13 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
     if (profile?.id && warehouseId) {
       fetchReportData();
     }
-  }, [profile, warehouseId, refreshTrigger]);
+  }, [profile?.id, warehouseId, refreshTrigger]);
 
   const fetchReportData = async () => {
-    setLoading(true);
+    // Only show full-screen loader on initial mount if we don't have products yet
+    if (products.length === 0) {
+      setLoading(true);
+    }
     try {
       // Fetch categories
       const { data: cats } = await supabase
