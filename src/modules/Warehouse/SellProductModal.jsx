@@ -870,11 +870,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       const custObj = customers.find(c => c.id === finalCustomerId);
       const finalReceiptTotal = paymentMethod === 'credit' ? contractTotal : (paymentMethod === 'birmarket' ? grossAmount : finalTotal);
       const receiptData = {
-        receiptNumber: `№${Date.now().toString().slice(-6)}`,
+        receiptNumber: `${Date.now().toString().slice(-4)}`,
         date: saleDate ? new Date(saleDate) : new Date(),
-        storeName: 'RAST MUSIC SHOP',
-        website: 'rastmusicshop.com',
-        softwareBrand: 'Merkez Warehouse by Digitall.llc',
+        storeName: 'RAST MUSIC',
         warehouseName: currentWarehouseName || 'Əsas Anbar / Mağaza',
         customerName: custObj?.name || (finalCustomerId ? 'Müştəri' : ''),
         customerPhone: custObj?.phone || '',
