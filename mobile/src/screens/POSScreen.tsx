@@ -33,6 +33,7 @@ import {
   Edit2,
   Check,
   RotateCcw,
+  Printer,
 } from 'lucide-react-native';
 import { POSCartItem } from '../types';
 import { salesService, POSPaymentMethod } from '../services/salesService';
@@ -42,6 +43,9 @@ import {
   calculateCredit,
   getAvailableMonths,
 } from '../utils/creditCalculator';
+import { PrinterSettingsModal } from '../components/PrinterSettingsModal';
+import { SaleSuccessModal } from '../components/SaleSuccessModal';
+import { receiptService, SaleReceiptData } from '../services/receiptService';
 
 interface POSScreenProps {
   cart: POSCartItem[];
@@ -77,6 +81,11 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  // Printer & Checkout Success Modals
+  const [printerModalVisible, setPrinterModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [completedReceiptData, setCompletedReceiptData] = useState<SaleReceiptData | null>(null);
 
   // Item Price / Discount Editing Modal State
   const [editingItem, setEditingItem] = useState<POSCartItem | null>(null);
@@ -186,22 +195,54 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         }
       );
 
-      const discountMsg =
-        discountAmount > 0
-          ? `\nEndirim: -${discountAmount.toFixed(2)} ₼${discountType === 'percent' ? ` (${discountVal}%)` : ''}`
-          : '';
+      const receiptData: SaleReceiptData = {
+        saleId: res.saleId,
+        date: new Date(),
+        items: cart.map((i) => ({
+          name: i.product.name,
+          quantity: i.quantity,
+          price: getItemEffectivePrice(i),
+          total: getItemEffectivePrice(i) * i.quantity,
+          unit: i.product.unit || 'əd.',
+        })),
+        subtotal,
+        discountAmount,
+        discountType,
+        discountValue: discountVal,
+        total: res.total,
+        paymentMethod:
+          paymentMethod === 'CASH'
+            ? 'Nağd'
+            : paymentMethod === 'CARD'
+            ? 'Kart'
+            : paymentMethod === 'TRANSFER'
+            ? 'Köçürmə'
+            : 'Kredit',
+        creditDetails:
+          paymentMethod === 'CREDIT'
+            ? {
+                bank: selectedBank,
+                months: installmentMonths,
+                contractTotal: creditResult.contractTotal,
+                monthlyPayment: creditResult.monthlyPayment,
+                markupPercent: creditResult.markupPercent,
+              }
+            : undefined,
+        clientName: formattedClient,
+        clientPhone: clientPhone.trim() || undefined,
+      };
 
-      if (paymentMethod === 'CREDIT') {
-        Alert.alert(
-          'Kredit satışı rəsmiləşdirildi!',
-          `#${res.saleId} nömrəli kredit satışı təsdiqləndi.\n\nBank: ${selectedBank}\nMüddət: ${installmentMonths} ay${discountMsg}\nMüqavilə cəmi: ${creditResult.contractTotal.toFixed(2)} ₼\nAylıq ödəniş: ${creditResult.monthlyPayment.toFixed(2)} ₼\n\nAnbar qalıqları yeniləndi.`
-        );
-      } else {
-        Alert.alert(
-          'Satış rəsmiləşdirildi!',
-          `#${res.saleId} nömrəli ${res.total.toFixed(2)} ₼ məbləğində çek uğurla vuruldu.${discountMsg}\nAnbar qalıqları yeniləndi.`
-        );
-      }
+      // Auto-print if enabled in printer config
+      receiptService.getConfig().then((cfg) => {
+        if (cfg.autoPrint) {
+          receiptService.printReceipt(receiptData, cfg).catch((printErr) => {
+            console.warn('Auto-print error:', printErr);
+          });
+        }
+      });
+
+      setCompletedReceiptData(receiptData);
+      setSuccessModalVisible(true);
       onClearCart();
       setDiscountInput('');
       setClientName('');
@@ -261,13 +302,24 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             <Text style={styles.title}>Kassa / Satış</Text>
             <Text style={styles.sub}>Cari çekdə {cart.length} məhsul</Text>
           </View>
-          <TouchableOpacity
-            style={styles.scanBtn}
-            onPress={() => onOpenScanner('pos')}
-          >
-            <Barcode size={20} color="#fff" />
-            <Text style={styles.scanBtnText}>SKAN ET</Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.printerBtn}
+              onPress={() => setPrinterModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Printer size={18} color="#0F172A" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.scanBtn}
+              onPress={() => onOpenScanner('pos')}
+              activeOpacity={0.8}
+            >
+              <Barcode size={18} color="#fff" />
+              <Text style={styles.scanBtnText}>SKAN ET</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Cart items list */}
@@ -801,6 +853,20 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           </View>
         </View>
       </Modal>
+
+      {/* Printer Settings Modal */}
+      <PrinterSettingsModal
+        visible={printerModalVisible}
+        onClose={() => setPrinterModalVisible(false)}
+      />
+
+      {/* Sale Completed & Receipt Print Modal */}
+      <SaleSuccessModal
+        visible={successModalVisible}
+        receiptData={completedReceiptData}
+        onClose={() => setSuccessModalVisible(false)}
+        onOpenPrinterSettings={() => setPrinterModalVisible(true)}
+      />
     </SafeAreaView>
   );
 };
@@ -820,6 +886,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  printerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   title: {
     fontSize: 22,

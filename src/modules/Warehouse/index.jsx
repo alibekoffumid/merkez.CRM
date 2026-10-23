@@ -32,6 +32,7 @@ import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
 import { printThermalReceipt57mm } from './thermalReceiptService';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
+import { parseProductAttributes } from './productAttributesHelper';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
 import WarehouseRepairs from './WarehouseRepairs';
@@ -1539,7 +1540,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       if (term) {
         const nameMatch = (p.name || '').toLowerCase().includes(term);
         const barcodeMatch = (p.barcode || '').toLowerCase().includes(term);
-        if (!nameMatch && !barcodeMatch) return false;
+        const descMatch = (p.description || '').toLowerCase().includes(term);
+        const attrMatch = Array.isArray(p.attributes) && p.attributes.some(a => 
+          (a?.name || '').toLowerCase().includes(term) || (a?.value || '').toLowerCase().includes(term)
+        );
+        if (!nameMatch && !barcodeMatch && !descMatch && !attrMatch) return false;
       }
 
       // Status filter
@@ -3264,6 +3269,23 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                 </span>
                               )}
                             </div>
+                            {(() => {
+                              const attrs = parseProductAttributes(item);
+                              if (!attrs || attrs.length === 0) return null;
+                              return (
+                                <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                                  {attrs.map((attr, aIdx) => (
+                                    <span 
+                                      key={aIdx} 
+                                      className="inline-flex items-center text-[10px] font-medium bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-merkez-blue px-2 py-0.5 rounded-md border border-slate-200/80 transition-colors"
+                                    >
+                                      <span className="text-gray-400 mr-1">{attr.name}:</span>
+                                      <span className="font-bold text-gray-800">{attr.value}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className="px-2 py-4">
                             {item.barcode && item.barcode.trim() !== '' ? (
@@ -3458,6 +3480,23 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               <span className="text-[10px] font-mono text-gray-400 mt-1 block">
                                 {item.barcode || '—'}
                               </span>
+                              {(() => {
+                                const attrs = parseProductAttributes(item);
+                                if (!attrs || attrs.length === 0) return null;
+                                return (
+                                  <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                                    {attrs.map((attr, aIdx) => (
+                                      <span 
+                                        key={aIdx} 
+                                        className="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-700 px-2 py-0.5 rounded border border-slate-200/80"
+                                      >
+                                        <span className="text-gray-400 mr-1">{attr.name}:</span>
+                                        <span className="font-bold text-gray-800">{attr.value}</span>
+                                      </span>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
 

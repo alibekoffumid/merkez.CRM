@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import { Product, Category, Supplier } from '../types';
+import { cleanAttributesForSave, formatAttributesForDescription } from '../utils/productAttributes';
 
 export const DEFAULT_USER_ID = '8929ea5f-d6b8-46e9-9873-dd67e65046f0';
 
@@ -231,12 +232,20 @@ export const productService = {
   async saveProduct(product: Partial<Product>): Promise<Product> {
     const userId = await getActiveUserId();
 
-    let finalDesc = product.description ?? null;
+    const cleanAttrs = cleanAttributesForSave(product.attributes || []);
+    let finalDesc = product.description ?? '';
     if (product.factory_price !== undefined) {
       finalDesc = formatDescriptionWithFactoryPrice(
-        product.description,
+        finalDesc,
         String(product.factory_price)
       );
+    }
+    if (cleanAttrs.length > 0) {
+      const attrDesc = formatAttributesForDescription(cleanAttrs);
+      finalDesc = (finalDesc || '')
+        .replace(/(?:xarakteristika(?:lar)?|xüsusiyyət(?:lər)?|характеристик[аи]|attributes?|specs?)\s*:[\s\S]*/gi, '')
+        .trim();
+      finalDesc = (finalDesc ? finalDesc + '\n' : '') + attrDesc;
     }
 
     const payload: any = {
@@ -251,7 +260,8 @@ export const productService = {
       critical_stock: product.critical_stock ?? 5,
       unit: product.unit || 'pcs',
       supplier_id: product.supplier_id || null,
-      description: finalDesc,
+      description: finalDesc.trim() || null,
+      attributes: cleanAttrs,
       user_id: userId,
       is_deleted: false,
       updated_at: new Date().toISOString(),
@@ -260,13 +270,26 @@ export const productService = {
     let savedProd: Product;
 
     if (product.id) {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('products')
         .update(payload)
         .eq('id', product.id)
         .eq('user_id', userId)
         .select()
         .single();
+
+      if (error && (error.message.includes('attributes') || error.message.includes('schema cache'))) {
+        delete payload.attributes;
+        const retryRes = await supabase
+          .from('products')
+          .update(payload)
+          .eq('id', product.id)
+          .eq('user_id', userId)
+          .select()
+          .single();
+        data = retryRes.data;
+        error = retryRes.error;
+      }
 
       if (error) throw error;
       savedProd = {
@@ -276,6 +299,7 @@ export const productService = {
         sale_price: data.sale_price ?? data.price ?? 0,
         purchase_price: data.purchase_price ?? 0,
         stock_quantity: data.stock_quantity ?? 0,
+        attributes: data.attributes || cleanAttrs,
       };
 
       if (cachedProducts) {
@@ -285,11 +309,22 @@ export const productService = {
       }
     } else {
       payload.created_at = new Date().toISOString();
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('products')
         .insert([payload])
         .select()
         .single();
+
+      if (error && (error.message.includes('attributes') || error.message.includes('schema cache'))) {
+        delete payload.attributes;
+        const retryRes = await supabase
+          .from('products')
+          .insert([payload])
+          .select()
+          .single();
+        data = retryRes.data;
+        error = retryRes.error;
+      }
 
       if (error) throw error;
       savedProd = {
@@ -299,6 +334,7 @@ export const productService = {
         sale_price: data.sale_price ?? data.price ?? 0,
         purchase_price: data.purchase_price ?? 0,
         stock_quantity: data.stock_quantity ?? 0,
+        attributes: data.attributes || cleanAttrs,
       };
 
       if (cachedProducts) {

@@ -11,8 +11,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
-import { Product, Category } from '../types';
+import { Product, Category, ProductAttribute } from '../types';
 import { productService } from '../services/productService';
+import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
+import { parseProductAttributes, cleanAttributesForSave } from '../utils/productAttributes';
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -51,6 +53,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const [priceInput, setPriceInput] = useState(String(product.sale_price ?? product.price ?? 0));
   const [costInput, setCostInput] = useState(String(product.purchase_price ?? 0));
   const [factoryPriceInput, setFactoryPriceInput] = useState(String(product.factory_price ?? ''));
+  const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
 
   useEffect(() => {
     if (product) {
@@ -59,6 +62,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       setPriceInput(String(product.sale_price ?? product.price ?? 0));
       setCostInput(String(product.purchase_price ?? 0));
       setFactoryPriceInput(String(product.factory_price ?? ''));
+      setAttributes(parseProductAttributes(product));
     }
   }, [product]);
 
@@ -111,10 +115,11 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         purchase_price: parseFloat(costInput) || 0,
         factory_price: factoryPriceInput.trim(),
         description: product.description,
+        attributes: cleanAttributesForSave(attributes),
       };
 
       const res = await productService.saveProduct(updatedData);
-      onUpdated({ ...product, ...res, name: updatedData.name || product.name });
+      onUpdated({ ...product, ...res, name: updatedData.name || product.name, attributes: updatedData.attributes });
       Alert.alert('Uğurlu', 'Məhsul məlumatları saxlanıldı');
       onClose();
     } catch (e: any) {
@@ -285,6 +290,13 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 </View>
               )}
             </View>
+
+            {canManageProducts && (
+              <ProductCharacteristicsSection
+                attributes={attributes}
+                onChange={setAttributes}
+              />
+            )}
 
             {canManageProducts && (
               <TouchableOpacity

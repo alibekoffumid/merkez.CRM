@@ -158,7 +158,9 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
         (p) =>
           p.name.toLowerCase().includes(q) ||
           (p.barcode && p.barcode.includes(q)) ||
-          (p.article_number && p.article_number.toLowerCase().includes(q))
+          (p.article_number && p.article_number.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (Array.isArray(p.attributes) && p.attributes.some(a => (a?.name || '').toLowerCase().includes(q) || (a?.value || '').toLowerCase().includes(q)))
       );
     }
 

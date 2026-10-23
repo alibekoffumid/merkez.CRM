@@ -11,8 +11,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { X, Barcode, Sparkles, Check, Plus } from 'lucide-react-native';
-import { Product, Category } from '../types';
+import { Product, Category, ProductAttribute } from '../types';
 import { productService } from '../services/productService';
+import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
 
 interface NewProductModalProps {
   visible: boolean;
@@ -39,6 +40,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   const [criticalStock, setCriticalStock] = useState('5');
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
         stock_quantity: parseFloat(stockQuantity) || 0,
         critical_stock: parseFloat(criticalStock) || 5,
         unit: 'əd.',
+        attributes: attributes.filter(a => a.name.trim() || a.value.trim()),
       });
 
       Alert.alert('Uğur', 'Məhsul uğurla əlavə edildi!');
@@ -91,6 +94,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
       setPurchasePrice('');
       setFactoryPrice('');
       setStockQuantity('0');
+      setAttributes([]);
     } catch (e: any) {
       Alert.alert('Xəta', e.message);
     } finally {
@@ -238,6 +242,12 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
                 />
               </View>
             </View>
+
+            {/* Product Characteristics */}
+            <ProductCharacteristicsSection
+              attributes={attributes}
+              onChange={setAttributes}
+            />
 
             <TouchableOpacity
               style={styles.createBtn}

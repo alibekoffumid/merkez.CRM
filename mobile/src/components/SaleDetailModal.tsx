@@ -9,6 +9,7 @@ import {
   Linking,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {
   X,
@@ -27,10 +28,12 @@ import {
   Building,
   FileText,
   Trash2,
+  Printer,
 } from 'lucide-react-native';
 import { StockSaleItem, StaffPermissions, Product } from '../types';
 import { productService } from '../services/productService';
 import { parseSaleNote, getChannelBadge } from '../utils/saleUtils';
+import { receiptService, SaleReceiptData } from '../services/receiptService';
 
 interface SaleDetailModalProps {
   visible: boolean;
@@ -91,6 +94,42 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
     Linking.openURL(`tel:${cleanPhone}`).catch(() => {
       Alert.alert('Zəng xətası', `Telefon nömrəsi: ${phone}`);
     });
+  };
+
+  const [reprinting, setReprinting] = React.useState(false);
+
+  const handleReprint = async () => {
+    setReprinting(true);
+    try {
+      const receiptData: SaleReceiptData = {
+        saleId: sale.id.slice(-6).toUpperCase(),
+        date: primaryDate,
+        items: [
+          {
+            name: prod?.name || saleInfo.cleanNote || 'Məhsul',
+            quantity,
+            price: saleInfo.effectivePrice,
+            total: saleInfo.totalAmount,
+            unit: unitLabel,
+          },
+        ],
+        subtotal: saleInfo.effectivePrice * quantity,
+        discountAmount:
+          saleInfo.discount && saleInfo.discount > 0
+            ? Math.max(0, saleInfo.effectivePrice * quantity - saleInfo.totalAmount)
+            : 0,
+        total: saleInfo.totalAmount,
+        paymentMethod: saleInfo.paymentMethod || 'Nağd',
+        clientName: saleInfo.clientName || undefined,
+        clientPhone: saleInfo.clientPhone || undefined,
+      };
+
+      await receiptService.printReceipt(receiptData);
+    } catch (e: any) {
+      Alert.alert('Çap Xətası', e.message || 'Çek çap edilə bilmədi');
+    } finally {
+      setReprinting(false);
+    }
   };
 
   return (
@@ -414,13 +453,31 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
               <View />
             )}
 
-            <TouchableOpacity
-              style={styles.closeFooterBtn}
-              onPress={onClose}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.closeFooterBtnText}>Bağla</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                style={styles.reprintBtn}
+                onPress={handleReprint}
+                disabled={reprinting}
+                activeOpacity={0.8}
+              >
+                {reprinting ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Printer size={15} color="#fff" />
+                    <Text style={styles.reprintBtnText}>Çap et</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.closeFooterBtn}
+                onPress={onClose}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.closeFooterBtnText}>Bağla</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -888,11 +945,25 @@ const styles = StyleSheet.create({
   },
   closeFooterBtn: {
     backgroundColor: '#111827',
-    paddingHorizontal: 22,
+    paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 12,
   },
   closeFooterBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  reprintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#10B981',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  reprintBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',

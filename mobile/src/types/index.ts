@@ -1,3 +1,9 @@
+export interface ProductAttribute {
+  id?: string;
+  name: string;
+  value: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -16,6 +22,7 @@ export interface Product {
   unit?: string;
   image_url?: string;
   description?: string;
+  attributes?: ProductAttribute[];
   supplier_id?: string;
   supplier_name?: string;
   user_id?: string;

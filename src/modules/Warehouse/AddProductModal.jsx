@@ -8,6 +8,8 @@ import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
 import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
+import ProductCharacteristicsEditor from './ProductCharacteristicsEditor';
+import { cleanAttributesForSave, formatAttributesForDescription } from './productAttributesHelper';
 
 const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onProductAdded, initialCategoryId, warehouseId }) => {
   const { t, i18n } = useTranslation();
@@ -53,11 +55,13 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
         category_id: initialCategoryId || '',
         unit: parsed?.defaultUnit || (parsed?.availableUnits && parsed.availableUnits[0]) || 'pcs'
       }));
+      setAttributes([]);
     } else {
       setFormData({
         name: '', price: '', purchase_price: '', factory_price: '', barcode: '',
         category_id: '', stock_quantity: '0', critical_stock: '5', supplier_id: '', unit: 'pcs'
       });
+      setAttributes([]);
     }
   }, [isOpen, initialCategoryId]);
   
@@ -73,6 +77,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
     supplier_id: '',
     unit: 'pcs'
   });
+  const [attributes, setAttributes] = useState([]);
 
   if (!isOpen) return null;
 
@@ -137,27 +142,45 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       finalBarcode = `${cleanPrefix}${timestamp}${randomNum}`;
     }
 
+     const cleanAttrs = cleanAttributesForSave(attributes);
      let desc = '';
      if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
+     const attrDesc = formatAttributesForDescription(cleanAttrs);
+     if (attrDesc) {
+       desc += (desc ? '\n' : '') + attrDesc;
+     }
 
-     const { data, error } = await supabase
+     const productPayload = { 
+       name: formData.name, 
+       price: parseFloat(formData.price), 
+       purchase_price: parseFloat(formData.purchase_price || 0),
+       barcode: finalBarcode,
+       category_id: formData.category_id || null,
+       stock_quantity: parseFloat(formData.stock_quantity || 0),
+       critical_stock: parseFloat(formData.critical_stock || 5),
+       description: desc.trim() || null,
+       image_url: imageUrl,
+       supplier_id: formData.supplier_id || null,
+       user_id: profile?.id,
+       warehouse_id: warehouseId,
+       unit: formData.unit,
+       attributes: cleanAttrs
+     };
+
+     let { data, error } = await supabase
        .from('products')
-       .insert([{ 
-         name: formData.name, 
-         price: parseFloat(formData.price), 
-         purchase_price: parseFloat(formData.purchase_price || 0),
-         barcode: finalBarcode,
-         category_id: formData.category_id || null,
-         stock_quantity: parseFloat(formData.stock_quantity || 0),
-         critical_stock: parseFloat(formData.critical_stock || 5),
-         description: desc.trim() || null,
-         image_url: imageUrl,
-         supplier_id: formData.supplier_id || null,
-         user_id: profile?.id,
-         warehouse_id: warehouseId,
-         unit: formData.unit
-       }])
-      .select('*, categories(name)');
+       .insert([productPayload])
+       .select('*, categories(name)');
+
+     if (error && (error.message.includes('attributes') || error.message.includes('schema cache'))) {
+       delete productPayload.attributes;
+       const retryRes = await supabase
+         .from('products')
+         .insert([productPayload])
+         .select('*, categories(name)');
+       data = retryRes.data;
+       error = retryRes.error;
+     }
 
     if (error) {
       toast.error(error.message);
@@ -171,6 +194,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       onClose();
       setImageFile(null);
       setImagePreview(null);
+      setAttributes([]);
     }
   };
 
@@ -178,7 +202,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
     <ModalPortal>
       <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
@@ -193,7 +217,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           <div className="grid grid-cols-1 gap-5">
             <div>
               <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
@@ -348,6 +372,11 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
               )}
             </div>
           </div>
+
+          <ProductCharacteristicsEditor
+            attributes={attributes}
+            onChange={setAttributes}
+          />
 
           <button
             type="submit"

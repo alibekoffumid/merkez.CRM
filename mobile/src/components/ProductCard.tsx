@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Barcode, AlertTriangle, ArrowDownRight, ArrowUpRight, Plus, ShoppingCart } from 'lucide-react-native';
 import { Product } from '../types';
+import { parseProductAttributes } from '../utils/productAttributes';
 
 interface ProductCardProps {
   product: Product;
@@ -70,6 +71,22 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
               </View>
             ) : null}
           </View>
+
+          {/* Characteristics badges */}
+          {(() => {
+            const attrs = parseProductAttributes(product);
+            if (!attrs || attrs.length === 0) return null;
+            return (
+              <View style={styles.attributesRow}>
+                {attrs.map((attr, idx) => (
+                  <View key={idx} style={styles.attributeBadge}>
+                    <Text style={styles.attributeKey}>{attr.name}:</Text>
+                    <Text style={styles.attributeVal}>{attr.value}</Text>
+                  </View>
+                ))}
+              </View>
+            );
+          })()}
         </View>
 
         {/* Stock badge */}
@@ -400,5 +417,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
+  },
+  attributesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 6,
+  },
+  attributeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    gap: 2,
+  },
+  attributeKey: {
+    fontSize: 10,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  attributeVal: {
+    fontSize: 10,
+    color: '#1D4ED8',
+    fontWeight: '700',
   },
 });

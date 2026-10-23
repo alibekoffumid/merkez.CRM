@@ -8,6 +8,13 @@ import Dropdown from '../../components/Common/Dropdown';
 import ModalPortal from '../../components/Common/ModalPortal';
 
 import { formatCategoriesHierarchically, getSupplierCurrency } from './categoryUtils';
+import ProductCharacteristicsEditor from './ProductCharacteristicsEditor';
+import { 
+  parseProductAttributes, 
+  cleanAttributesForSave, 
+  formatAttributesForDescription, 
+  extractAdditionalInfo 
+} from './productAttributesHelper';
 
 const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = [], onProductUpdated }) => {
   const { t, i18n } = useTranslation();
@@ -45,6 +52,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
     unit: 'pcs',
     color: ''
   });
+  const [attributes, setAttributes] = useState([]);
 
   useEffect(() => {
     if (product) {
@@ -60,17 +68,14 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
       const desc = product.description || '';
       let factoryPrice = '';
-      let additionalInfo = '';
       if (desc.includes('Zavod qiyməti:')) {
         factoryPrice = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
       } else if (desc.includes('Zavod qiym?ti:')) {
         factoryPrice = desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
       }
-      if (desc.includes('Əlavə məlumat:')) {
-        additionalInfo = desc.split('Əlavə məlumat:')[1].split('\n')[0].trim();
-      } else if (desc.includes('?lav? m?lumat:')) {
-        additionalInfo = desc.split('?lav? m?lumat:')[1].split('\n')[0].trim();
-      }
+      const additionalInfo = extractAdditionalInfo(desc);
+      const parsedAttrs = parseProductAttributes(product);
+      setAttributes(parsedAttrs);
 
       setFormData({
         name: product.name || '',
@@ -91,8 +96,6 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       setDeleteImage(false);
     }
   }, [product]);
-
-  if (!isOpen || !product) return null;
 
   if (!isOpen || !product) return null;
 
@@ -153,9 +156,12 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       if (uploadedUrl) finalImageUrl = uploadedUrl;
     }
 
+    const cleanAttrs = cleanAttributesForSave(attributes);
     let desc = '';
     if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
-    if (formData.additional_info) desc += 'Əlavə məlumat: ' + formData.additional_info.trim();
+    if (formData.additional_info) desc += 'Əlavə məlumat: ' + formData.additional_info.trim() + '\n';
+    const attrDesc = formatAttributesForDescription(cleanAttrs);
+    if (attrDesc) desc += (desc ? '\n' : '') + attrDesc;
 
     let updatePayload = {
       name: formData.name,
@@ -169,14 +175,16 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       image_url: finalImageUrl,
       supplier_id: formData.supplier_id || null,
       unit: formData.unit,
-      color: formData.color
+      color: formData.color,
+      attributes: cleanAttrs
     };
 
     let res = await supabase.from('products').update(updatePayload).eq('id', product.id).select();
     let data = res.data;
     let error = res.error;
 
-    if (error && (error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
+    if (error && (error.message.includes('attributes') || error.message.includes('color') || error.message.includes('unit') || error.message.includes('schema cache'))) {
+      delete updatePayload.attributes;
       delete updatePayload.unit;
       delete updatePayload.color;
       let fallbackRes = await supabase.from('products').update(updatePayload).eq('id', product.id).select();
@@ -184,7 +192,6 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       error = fallbackRes.error;
       if (!error) {
         toast.success(t('warehouse.productUpdated') || 'Товар обновлен', { icon: '⚠️' });
-        toast('Новые колонки (Цвет / Unit) отсутствуют в БД. Выполните SQL-запрос!', { duration: 6000, icon: '💡' });
       }
     }
 
@@ -420,6 +427,11 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                 />
               </div>
             </div>
+
+            <ProductCharacteristicsEditor
+              attributes={attributes}
+              onChange={setAttributes}
+            />
 
             <button
               type="submit"
