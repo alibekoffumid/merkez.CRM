@@ -167,7 +167,7 @@ export const productService = {
         .select('*, suppliers(name)')
         .eq('user_id', userId)
         .eq('is_deleted', false)
-        .or(`barcode.eq.${cleanBarcode},article_number.eq.${cleanBarcode}`)
+        .eq('barcode', cleanBarcode)
         .limit(1)
         .maybeSingle(),
     ]);
@@ -250,11 +250,9 @@ export const productService = {
 
     const payload: any = {
       name: product.name,
-      article_number: product.article_number || null,
       barcode: product.barcode || null,
       category_id: product.category_id || null,
-      sale_price: product.sale_price ?? product.price ?? 0,
-      price: product.sale_price ?? product.price ?? 0,
+      price: product.price ?? product.sale_price ?? 0,
       purchase_price: product.purchase_price ?? 0,
       stock_quantity: product.stock_quantity ?? 0,
       critical_stock: product.critical_stock ?? 5,
@@ -267,36 +265,49 @@ export const productService = {
       updated_at: new Date().toISOString(),
     };
 
+    if (product.image_url !== undefined) {
+      payload.image_url = product.image_url;
+    }
+    if (product.color !== undefined) {
+      payload.color = product.color;
+    }
+
+    const runWithSchemaCacheFallback = async (queryFn: () => Promise<any>) => {
+      let res = await queryFn();
+      while (res.error && (res.error.message.includes('schema cache') || res.error.message.includes('column'))) {
+        const match = res.error.message.match(/Could not find the '([^']+)' column/i);
+        if (match && match[1] && payload[match[1]] !== undefined) {
+          delete payload[match[1]];
+          res = await queryFn();
+        } else if (payload.attributes !== undefined) {
+          delete payload.attributes;
+          res = await queryFn();
+        } else {
+          break;
+        }
+      }
+      return res;
+    };
+
     let savedProd: Product;
 
     if (product.id) {
-      let { data, error } = await supabase
-        .from('products')
-        .update(payload)
-        .eq('id', product.id)
-        .eq('user_id', userId)
-        .select()
-        .single();
-
-      if (error && (error.message.includes('attributes') || error.message.includes('schema cache'))) {
-        delete payload.attributes;
-        const retryRes = await supabase
+      const { data, error } = await runWithSchemaCacheFallback(() =>
+        supabase
           .from('products')
           .update(payload)
           .eq('id', product.id)
           .eq('user_id', userId)
           .select()
-          .single();
-        data = retryRes.data;
-        error = retryRes.error;
-      }
+          .single()
+      );
 
       if (error) throw error;
       savedProd = {
         ...data,
         factory_price: extractFactoryPrice(data.description),
         price: data.price ?? data.sale_price ?? 0,
-        sale_price: data.sale_price ?? data.price ?? 0,
+        sale_price: data.price ?? data.sale_price ?? 0,
         purchase_price: data.purchase_price ?? 0,
         stock_quantity: data.stock_quantity ?? 0,
         attributes: data.attributes || cleanAttrs,
@@ -309,29 +320,20 @@ export const productService = {
       }
     } else {
       payload.created_at = new Date().toISOString();
-      let { data, error } = await supabase
-        .from('products')
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error && (error.message.includes('attributes') || error.message.includes('schema cache'))) {
-        delete payload.attributes;
-        const retryRes = await supabase
+      const { data, error } = await runWithSchemaCacheFallback(() =>
+        supabase
           .from('products')
           .insert([payload])
           .select()
-          .single();
-        data = retryRes.data;
-        error = retryRes.error;
-      }
+          .single()
+      );
 
       if (error) throw error;
       savedProd = {
         ...data,
         factory_price: extractFactoryPrice(data.description),
         price: data.price ?? data.sale_price ?? 0,
-        sale_price: data.sale_price ?? data.price ?? 0,
+        sale_price: data.price ?? data.sale_price ?? 0,
         purchase_price: data.purchase_price ?? 0,
         stock_quantity: data.stock_quantity ?? 0,
         attributes: data.attributes || cleanAttrs,

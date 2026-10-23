@@ -71,8 +71,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
       setSaving(true);
       const newProd = await productService.saveProduct({
         name: name.trim(),
-        barcode: barcode.trim() || undefined,
-        article_number: article.trim() || undefined,
+        barcode: barcode.trim() || article.trim() || undefined,
         category_id: selectedCategoryId || undefined,
         sale_price: parseFloat(salePrice) || 0,
         purchase_price: parseFloat(purchasePrice) || 0,
