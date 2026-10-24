@@ -328,7 +328,7 @@ const WarehouseAppContent = () => {
     ...(currentStaff?.role !== 'Storeman' ? [{ id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : i18n.language === 'ru' ? 'Ремонт' : 'Repairs' }] : []),
     ...(!isMaster ? [{ id: 'history', icon: Search, label: t('warehouse.history') || 'История' }] : []),
     ...(!isMaster ? [{ id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' }] : []),
-    ...(!currentStaff && !isMaster ? [{ id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null }] : []),
+    ...(!isMaster ? [{ id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null }] : []),
     ...((!currentStaff || currentStaff?.role === 'Manager') && !isMaster ? [
       { id: 'debts', icon: BookOpen, label: t('crm.debtBook') || 'Книга долгов' },
       { id: 'clients', icon: User, label: i18n.language === 'az' ? 'Müştərilər' : i18n.language === 'ru' ? 'Клиенты' : 'Clients' },

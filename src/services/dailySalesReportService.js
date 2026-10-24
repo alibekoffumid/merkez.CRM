@@ -80,17 +80,38 @@ export const formatTimeAz = (dateInput) => {
  * Translate payment method to Azerbaijani
  */
 export const translatePaymentMethodAz = (method) => {
-  switch (String(method || '').toLowerCase()) {
+  const m = String(method || '').toLowerCase().trim();
+  switch (m) {
     case 'cash':
+    case 'nağd':
+    case 'nagd':
       return 'Nağd';
     case 'card':
-      return 'Kart / Nağdsız';
+    case 'kart':
+    case 'pos':
+    case 'terminal':
+      return 'Karta / POS';
     case 'split':
       return 'Qarışıq (Bölünmüş)';
     case 'credit':
+    case 'kredit':
+    case 'installment':
+    case 'taksit':
+    case 'birmarket':
+      return 'Kredit';
     case 'debt':
-      return 'Nisyə (Kredit)';
+    case 'nisyə':
+    case 'nisye':
+    case 'borc':
+      return 'Nisyə';
+    case 'deposit':
+    case 'beh':
+    case 'avans':
+    case 'advance':
+    case 'zalog':
+      return 'Beh (Avans)';
     case 'transfer':
+    case 'bank':
       return 'Bank Köçürməsi';
     default:
       return method || 'Digər';
@@ -110,11 +131,17 @@ export const isCancelledOrDeleted = (record) => {
 
 /**
  * Fetch and aggregate all sales data for a specific day
+ * Security (RBAC):
+ * When currentStaff is provided and role is NOT Admin, cost/purchase prices and profit margins
+ * are NEVER queried from Supabase and are stripped from the returned DTO to protect business margins.
  */
-export const fetchDailySalesReportData = async (supabase, userId, selectedDateInput, includeHidden = false) => {
+export const fetchDailySalesReportData = async (supabase, userId, selectedDateInput, includeHidden = false, currentStaff = null) => {
   if (!supabase || !userId) {
     throw new Error('Supabase client və İstifadəçi ID mütləqdir');
   }
+
+  // RBAC Permission Check: Only Owner (!currentStaff) or Admin role can view cost prices & profits
+  const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
 
   // Determine target date YYYY-MM-DD
   let dateStr = '';
@@ -166,16 +193,20 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     }
   }
 
-  // 2. Fetch ALL products for cost price & category mapping using range pagination
+  // 2. Fetch products - if !isAdmin, STRICTLY EXCLUDE purchase_price from query to prevent network tab inspection
   let allProducts = [];
   let pFrom = 0;
   const pStep = 1000;
   let pHasMore = true;
 
+  const productSelectFields = isAdmin
+    ? 'id, name, barcode, purchase_price, price, category_id, unit'
+    : 'id, name, barcode, price, category_id, unit';
+
   while (pHasMore) {
     const { data: prodsChunk, error: pErr } = await supabase
       .from('products')
-      .select('id, name, barcode, purchase_price, price, category_id, unit')
+      .select(productSelectFields)
       .eq('user_id', userId)
       .range(pFrom, pFrom + pStep - 1);
 
@@ -268,12 +299,19 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   });
 
   // Compute Aggregations strictly for VALID sales
+  // Payment Breakdown - 5 Distinct Categories:
+  // 1. Nağd (Cash)
+  // 2. Karta / POS (Card / POS Terminal / Bank Transfer)
+  // 3. Kredit (Credit / Installments / Birmarket)
+  // 4. Nisyə (Debt / Consignment)
+  // 5. Beh (Deposit / Advance / Zadatak)
   let totalRevenue = 0;
   let totalCash = 0;
   let totalCard = 0;
-  let totalSplit = 0;
   let totalCredit = 0;
-  let totalOther = 0;
+  let totalDebt = 0;
+  let totalDeposit = 0;
+  let totalSplit = 0;
   let totalDiscounts = 0;
   let totalItemsCount = 0;
   let totalCostPrice = 0;
@@ -293,27 +331,97 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   validSalesList.forEach((sale, index) => {
     const saleAmount = Number(sale.total_amount || 0);
     const saleDiscount = Number(sale.discount_amount || 0);
-    const paymentMethod = String(sale.payment_method || 'cash').toLowerCase();
+    const paymentMethodRaw = String(sale.payment_method || 'cash').toLowerCase().trim();
+    const notesRaw = String(sale.notes || '').toLowerCase();
     const saleDate = new Date(sale.created_at);
 
     totalRevenue += saleAmount;
     totalDiscounts += saleDiscount;
 
-    // Payment methods breakdown
-    if (paymentMethod === 'cash') {
-      totalCash += saleAmount;
-    } else if (paymentMethod === 'card') {
-      totalCard += saleAmount;
-    } else if (paymentMethod === 'split') {
+    // Categorize transaction into strictly one of 5 payment categories (or split amongst them)
+    if (paymentMethodRaw === 'split') {
       totalSplit += saleAmount;
-      const splitCash = Number(sale.split_cash || 0);
-      const splitCard = Number(sale.split_card || 0);
-      totalCash += splitCash;
-      totalCard += splitCard;
-    } else if (paymentMethod === 'credit' || paymentMethod === 'debt') {
+      let sCash = Number(sale.split_cash || 0);
+      let sCard = Number(sale.split_card || 0);
+      let sCredit = Number(sale.split_credit || 0);
+      let sDebt = Number(sale.split_debt || 0);
+      let sDeposit = Number(sale.split_deposit || sale.split_beh || 0);
+
+      const splitSum = sCash + sCard + sCredit + sDebt + sDeposit;
+      if (splitSum === 0) {
+        // Fallback: If split without details, allocate to cash
+        totalCash += saleAmount;
+      } else if (Math.abs(splitSum - saleAmount) > 0.001) {
+        // Adjust precision difference into cash or card so total remains strictly balanced
+        const diff = saleAmount - splitSum;
+        if (sCard > 0 && sCash === 0) {
+          sCard += diff;
+        } else {
+          sCash += diff;
+        }
+        totalCash += sCash;
+        totalCard += sCard;
+        totalCredit += sCredit;
+        totalDebt += sDebt;
+        totalDeposit += sDeposit;
+      } else {
+        totalCash += sCash;
+        totalCard += sCard;
+        totalCredit += sCredit;
+        totalDebt += sDebt;
+        totalDeposit += sDeposit;
+      }
+    } else if (
+      paymentMethodRaw === 'deposit' || 
+      paymentMethodRaw === 'beh' || 
+      paymentMethodRaw === 'avans' || 
+      paymentMethodRaw === 'advance' || 
+      paymentMethodRaw === 'zalog' ||
+      notesRaw.includes('beh') || 
+      notesRaw.includes('avans') ||
+      notesRaw.includes('zadatak')
+    ) {
+      totalDeposit += saleAmount;
+    } else if (
+      paymentMethodRaw === 'debt' || 
+      paymentMethodRaw === 'nisyə' || 
+      paymentMethodRaw === 'nisye' || 
+      paymentMethodRaw === 'borc' || 
+      notesRaw.includes('nisyə') || 
+      notesRaw.includes('nisye') || 
+      notesRaw.includes('borc') ||
+      notesRaw.includes('realizasiya')
+    ) {
+      totalDebt += saleAmount;
+    } else if (
+      paymentMethodRaw === 'credit' || 
+      paymentMethodRaw === 'kredit' || 
+      paymentMethodRaw === 'installment' || 
+      paymentMethodRaw === 'taksit' || 
+      paymentMethodRaw === 'birmarket' || 
+      paymentMethodRaw === 'birkart' || 
+      paymentMethodRaw === 'tamkart' || 
+      paymentMethodRaw === 'ferrum' || 
+      notesRaw.includes('kredit') || 
+      notesRaw.includes('taksit') || 
+      notesRaw.includes('birmarket')
+    ) {
       totalCredit += saleAmount;
+    } else if (
+      paymentMethodRaw === 'card' || 
+      paymentMethodRaw === 'kart' || 
+      paymentMethodRaw === 'pos' || 
+      paymentMethodRaw === 'terminal' || 
+      paymentMethodRaw === 'transfer' || 
+      paymentMethodRaw === 'bank' || 
+      notesRaw.includes('kart') || 
+      notesRaw.includes('pos terminal') ||
+      notesRaw.includes('köçürmə')
+    ) {
+      totalCard += saleAmount;
     } else {
-      totalOther += saleAmount;
+      // Default: Nağd (Cash)
+      totalCash += saleAmount;
     }
 
     // Hourly aggregation
@@ -362,13 +470,17 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
 
       const unit = productMeta.unit || item.unit || 'ədəd';
       const barcode = productMeta.barcode || itemBarcode || '-';
-      const costPrice = Number(productMeta.purchase_price || item.cost_price || 0);
+      
+      // Cost calculation strictly protected by RBAC
+      const costPrice = isAdmin ? Number(productMeta.purchase_price || item.cost_price || 0) : null;
       const categoryName = (productMeta.category_id && categoriesMap.get(productMeta.category_id))
         || item.category_name
         || item.category
         || 'Ümumi';
 
-      totalCostPrice += (costPrice * qty);
+      if (isAdmin && costPrice != null) {
+        totalCostPrice += (costPrice * qty);
+      }
 
       // Aggregate Product Sales - group by matching product ID or clean name
       const prodKey = productMeta.id || item.product_id || productName;
@@ -381,7 +493,9 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
           quantity: 0,
           unit: unit,
           totalRevenue: 0,
-          totalCost: 0,
+          totalCost: isAdmin ? 0 : null,
+          costPrice: isAdmin ? costPrice : null,
+          profit: isAdmin ? 0 : null,
           totalDiscount: 0,
           avgPrice: price
         });
@@ -389,7 +503,11 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       const pAgg = productAggregationMap.get(prodKey);
       pAgg.quantity += qty;
       pAgg.totalRevenue += itemTotal;
-      pAgg.totalCost += (costPrice * qty);
+      if (isAdmin && costPrice != null) {
+        pAgg.totalCost += (costPrice * qty);
+        pAgg.profit = pAgg.totalRevenue - pAgg.totalCost;
+        pAgg.costPrice = costPrice;
+      }
       pAgg.totalDiscount += itemDiscount;
       pAgg.avgPrice = pAgg.quantity > 0 ? (pAgg.totalRevenue / pAgg.quantity) : price;
 
@@ -428,6 +546,13 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       total: saleAmount
     });
   });
+
+  // Strict Mathematical Check: Total Revenue === Cash + Card + Credit + Debt + Deposit
+  const computedSum = totalCash + totalCard + totalCredit + totalDebt + totalDeposit;
+  const balanceDiff = Number((totalRevenue - computedSum).toFixed(2));
+  if (balanceDiff !== 0 && totalRevenue > 0) {
+    totalCash = Number((totalCash + balanceDiff).toFixed(2));
+  }
 
   // Compute Independent Audit for CANCELLED / DELETED Sales (does NOT affect revenue)
   let cancelledRevenue = 0;
@@ -494,8 +619,8 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     });
   });
 
-  const grossProfit = totalRevenue - totalCostPrice;
-  const marginPercent = totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100) : 0;
+  const grossProfit = isAdmin ? (totalRevenue - totalCostPrice) : null;
+  const marginPercent = isAdmin && totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100) : null;
   const receiptsCount = validSalesList.length;
   const averageTicket = receiptsCount > 0 ? (totalRevenue / receiptsCount) : 0;
 
@@ -529,15 +654,22 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     salesCount: receiptsCount,
     totalItemsCount: Number(totalItemsCount.toFixed(2)),
     totalRevenue: Number(totalRevenue.toFixed(2)),
+    
+    // 5 Payment Categories (Airtight Mathematics: totalRevenue === cash + card + credit + debt + deposit)
     totalCash: Number(totalCash.toFixed(2)),
     totalCard: Number(totalCard.toFixed(2)),
-    totalSplit: Number(totalSplit.toFixed(2)),
     totalCredit: Number(totalCredit.toFixed(2)),
-    totalOther: Number(totalOther.toFixed(2)),
+    totalDebt: Number(totalDebt.toFixed(2)),
+    totalDeposit: Number(totalDeposit.toFixed(2)),
+    totalSplit: Number(totalSplit.toFixed(2)),
+    totalOther: 0,
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
-    totalCostPrice: Number(totalCostPrice.toFixed(2)),
-    grossProfit: Number(grossProfit.toFixed(2)),
-    marginPercent: Number(marginPercent.toFixed(1)),
+
+    // Strict Security RBAC: null for non-admin roles (cashier, seller, manager)
+    isAdmin,
+    totalCostPrice: isAdmin ? Number(totalCostPrice.toFixed(2)) : null,
+    grossProfit: isAdmin ? Number(grossProfit.toFixed(2)) : null,
+    marginPercent: isAdmin ? Number(marginPercent.toFixed(1)) : null,
     averageTicket: Number(averageTicket.toFixed(2)),
     products: aggregatedProducts,
     categories: aggregatedCategories,
@@ -735,17 +867,29 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
         <div class="divider"></div>
 
         <div class="row">
-          <span>Nağd Satış:</span>
+          <span>Nağd (Kassa):</span>
           <span class="bold">${data.totalCash.toFixed(2)} AZN</span>
         </div>
         <div class="row">
-          <span>Kart / Nağdsız:</span>
+          <span>Karta / POS:</span>
           <span class="bold">${data.totalCard.toFixed(2)} AZN</span>
         </div>
         ${data.totalCredit > 0 ? `
         <div class="row">
-          <span>Nisyə / Kredit:</span>
+          <span>Kredit:</span>
           <span class="bold">${data.totalCredit.toFixed(2)} AZN</span>
+        </div>
+        ` : ''}
+        ${data.totalDebt > 0 ? `
+        <div class="row">
+          <span>Nisyə (Borc):</span>
+          <span class="bold">${data.totalDebt.toFixed(2)} AZN</span>
+        </div>
+        ` : ''}
+        ${data.totalDeposit > 0 ? `
+        <div class="row">
+          <span>Beh (Avans):</span>
+          <span class="bold">${data.totalDeposit.toFixed(2)} AZN</span>
         </div>
         ` : ''}
         ${data.totalDiscounts > 0 ? `
@@ -1322,28 +1466,30 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             <div class="payment-item-val">${data.totalCash.toFixed(2)} AZN</div>
           </div>
           <div class="payment-item">
-            <div class="payment-item-title">Kart / Nağdsız</div>
+            <div class="payment-item-title">Karta / POS</div>
             <div class="payment-item-val">${data.totalCard.toFixed(2)} AZN</div>
           </div>
-          ${data.totalSplit > 0 ? `
           <div class="payment-item">
-            <div class="payment-item-title">Bölünmüş (Split)</div>
-            <div class="payment-item-val">${data.totalSplit.toFixed(2)} AZN</div>
-          </div>
-          ` : ''}
-          ${data.totalCredit > 0 ? `
-          <div class="payment-item">
-            <div class="payment-item-title">Nisyə / Kredit</div>
+            <div class="payment-item-title">Kredit</div>
             <div class="payment-item-val">${data.totalCredit.toFixed(2)} AZN</div>
           </div>
-          ` : ''}
           <div class="payment-item">
-            <div class="payment-item-title">Verilmiş Endirimlər</div>
-            <div class="payment-item-val">${data.totalDiscounts > 0 ? `-${data.totalDiscounts.toFixed(2)}` : '0.00'} AZN</div>
+            <div class="payment-item-title">Nisyə (Borc)</div>
+            <div class="payment-item-val">${data.totalDebt.toFixed(2)} AZN</div>
           </div>
-          ${mergedOptions.showProfit !== false && data.totalCostPrice > 0 ? `
           <div class="payment-item">
-            <div class="payment-item-title">Təxmini Xalis Mənfəət</div>
+            <div class="payment-item-title">Beh (Avans)</div>
+            <div class="payment-item-val">${data.totalDeposit.toFixed(2)} AZN</div>
+          </div>
+          ${data.totalDiscounts > 0 ? `
+          <div class="payment-item">
+            <div class="payment-item-title">Endirimlər</div>
+            <div class="payment-item-val" style="color: #dc2626;">-${data.totalDiscounts.toFixed(2)} AZN</div>
+          </div>
+          ` : ''}
+          ${(data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null) ? `
+          <div class="payment-item">
+            <div class="payment-item-title">Xalis Mənfəət</div>
             <div class="payment-item-val" style="color: #059669;">${data.grossProfit.toFixed(2)} AZN (${data.marginPercent}%)</div>
           </div>
           ` : ''}
@@ -1781,55 +1927,69 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
     // 2. Financial KPI Summary Box
     doc.setDrawColor(229, 231, 235);
     doc.setFillColor(249, 250, 251);
-    doc.roundedRect(14, 44, 182, 32, 2, 2, 'FD');
+    doc.roundedRect(14, 44, 182, 38, 2, 2, 'FD');
 
     // Cəmi Satış Box
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(37, 99, 235);
     doc.text('CƏMİ DÖVRİYYƏ', 20, 51);
-    doc.setFontSize(14);
+    doc.setFontSize(13);
     doc.setTextColor(17, 24, 39);
-    doc.text(`${data.totalRevenue.toFixed(2)} AZN`, 20, 58);
-    doc.setFontSize(7.5);
+    doc.text(`${data.totalRevenue.toFixed(2)} AZN`, 20, 57);
+    doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text(`${data.salesCount} ədəd satış çeki`, 20, 64);
+    doc.text(`${data.salesCount} ədəd satış çeki`, 20, 62);
 
     // Nağd Satış
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(75, 85, 99);
-    doc.text('NAĞD KASSA', 70, 51);
-    doc.setFontSize(13);
+    doc.text('NAĞD KASSA', 68, 51);
+    doc.setFontSize(12);
     doc.setTextColor(17, 24, 39);
-    doc.text(`${data.totalCash.toFixed(2)} AZN`, 70, 58);
-    doc.setFontSize(7.5);
+    doc.text(`${data.totalCash.toFixed(2)} AZN`, 68, 57);
+    doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text('Nağd qəbul edilən', 70, 64);
+    doc.text('Nağd ödəniş', 68, 62);
 
     // Kart Satışı
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(75, 85, 99);
-    doc.text('KART / NAĞDSIZ', 118, 51);
-    doc.setFontSize(13);
+    doc.text('KARTA / POS', 114, 51);
+    doc.setFontSize(12);
     doc.setTextColor(17, 24, 39);
-    doc.text(`${data.totalCard.toFixed(2)} AZN`, 118, 58);
-    doc.setFontSize(7.5);
+    doc.text(`${data.totalCard.toFixed(2)} AZN`, 114, 57);
+    doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text('POS-Terminal ilə', 118, 64);
+    doc.text('POS-Terminal / Kart', 114, 62);
 
     // Statistika
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(75, 85, 99);
-    doc.text('ORTA ÇEK', 162, 51);
-    doc.setFontSize(13);
+    doc.text('ORTA ÇEK', 160, 51);
+    doc.setFontSize(12);
     doc.setTextColor(17, 24, 39);
-    doc.text(`${data.averageTicket.toFixed(2)} AZN`, 162, 58);
-    doc.setFontSize(7.5);
+    doc.text(`${data.averageTicket.toFixed(2)} AZN`, 160, 57);
+    doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text(`Cəmi ${data.totalItemsCount} ədəd mal`, 162, 64);
+    doc.text(`Cəmi ${data.totalItemsCount} ədəd`, 160, 62);
+
+    // Bottom strip of the KPI box: Credit, Debt, Deposit, Discounts
+    doc.setDrawColor(229, 231, 235);
+    doc.line(18, 66, 192, 66);
+
+    doc.setFont('Roboto', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(75, 85, 99);
+    doc.text(`Kredit: ${data.totalCredit.toFixed(2)} AZN  •  Nisyə: ${data.totalDebt.toFixed(2)} AZN  •  Beh: ${data.totalDeposit.toFixed(2)} AZN  •  Endirim: -${data.totalDiscounts.toFixed(2)} AZN`, 20, 74);
+    if (data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null) {
+      doc.setFont('Roboto', 'bold');
+      doc.setTextColor(5, 150, 105);
+      doc.text(`Xalis: ${data.grossProfit.toFixed(2)} AZN (${data.marginPercent}%)`, 146, 74);
+    }
 
     // 3. Products Table
     const tableData = data.products.map((p, idx) => [
@@ -1843,7 +2003,7 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
     ]);
 
     autoTable(doc, {
-      startY: 82,
+      startY: 88,
       head: [['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Qiymət', 'Məbləğ']],
       body: tableData.length > 0 ? tableData : [['-', 'Gündəlik satış qeydə alınmayıb', '-', '-', '-', '-', '0.00 AZN']],
       theme: 'grid',
@@ -2083,6 +2243,8 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
 
     // Detailed Report (All figures)
     // 1. Summary Sheet
+    const canShowProfit = data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null;
+
     const summaryAoa = [
       ['MƏRKƏZ CRM - GÜN SONU SATIŞ HESABATI'],
       ['Müəssisə:', businessInfo.businessName || businessInfo.company_name || 'Mərkəz CRM'],
@@ -2092,17 +2254,21 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       [],
       ['GÖSTƏRİCİ', 'MƏBLƏĞ / MİQDAR', 'VALYUTA / VAHİD'],
       ['Ümumi Dövriyyə (Cəmi Satış)', data.totalRevenue, 'AZN'],
-      ['Nağd Satışlar', data.totalCash, 'AZN'],
-      ['Kart / Nağdsız Satışlar', data.totalCard, 'AZN'],
+      ['1. Nağd Satışlar (Nağd)', data.totalCash, 'AZN'],
+      ['2. Karta / POS Satışlar (Karta / POS)', data.totalCard, 'AZN'],
+      ['3. Kredit Satışları (Kredit)', data.totalCredit, 'AZN'],
+      ['4. Nisyə Satışlar (Nisyə / Borc)', data.totalDebt, 'AZN'],
+      ['5. Beh / Avans (Beh)', data.totalDeposit, 'AZN'],
       ['Bölünmüş (Qarışıq) Satışlar', data.totalSplit, 'AZN'],
-      ['Nisyə / Kredit', data.totalCredit, 'AZN'],
       ['Cəmi Endirimlər', data.totalDiscounts, 'AZN'],
       ['Satış Çeklərinin Sayı', data.salesCount, 'ədəd'],
       ['Satılmış Məhsul Sayı', data.totalItemsCount, 'ədəd'],
       ['Orta Çek Məbləği', data.averageTicket, 'AZN'],
-      ['Maya Dəyəri', data.totalCostPrice, 'AZN'],
-      ['Təxmini Xalis Mənfəət', data.grossProfit, 'AZN'],
-      ['Rentabellik (%)', data.marginPercent, '%'],
+      ...(canShowProfit ? [
+        ['Maya Dəyəri', data.totalCostPrice, 'AZN'],
+        ['Təxmini Xalis Mənfəət', data.grossProfit, 'AZN'],
+        ['Rentabellik (%)', data.marginPercent, '%']
+      ] : []),
       [],
       ['AUDİT: LƏĞV EDİLMİŞ / SİLİNMİŞ ƏMƏLİYYATLAR (Dövriyyəyə daxil deyil)', '', ''],
       ['Ləğv Edilmiş Çek Sayı', data.cancelledCount || 0, 'ədəd'],
@@ -2112,12 +2278,17 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryAoa);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Maliyyə Xülasəsi');
 
-    // 2. Products Sheet
-    const productsAoa = [
-      ['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Vahid', 'Orta Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ (AZN)', 'Maya Dəyəri (AZN)', 'Mənfəət (AZN)']
+    // 2. Products Sheet (Strictly exclude cost and profit columns if !isAdmin)
+    const productsHeader = [
+      '№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Vahid', 'Orta Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ (AZN)'
     ];
+    if (canShowProfit) {
+      productsHeader.push('Maya Dəyəri (AZN)', 'Mənfəət (AZN)');
+    }
+
+    const productsAoa = [productsHeader];
     data.products.forEach((p, idx) => {
-      productsAoa.push([
+      const row = [
         idx + 1,
         p.name,
         p.barcode || '',
@@ -2126,10 +2297,12 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
         p.unit || 'ədəd',
         p.avgPrice,
         p.totalDiscount || 0,
-        p.totalRevenue,
-        p.totalCost || 0,
-        Number((p.totalRevenue - (p.totalCost || 0)).toFixed(2))
-      ]);
+        p.totalRevenue
+      ];
+      if (canShowProfit) {
+        row.push(p.totalCost || 0, Number((p.totalRevenue - (p.totalCost || 0)).toFixed(2)));
+      }
+      productsAoa.push(row);
     });
     const wsProducts = XLSX.utils.aoa_to_sheet(productsAoa);
     XLSX.utils.book_append_sheet(wb, wsProducts, 'Satılan Məhsullar');

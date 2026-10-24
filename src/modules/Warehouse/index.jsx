@@ -27,6 +27,7 @@ import WarehouseStocktake from './WarehouseStocktake';
 import WarehouseReports from './WarehouseReports';
 import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
+import DailySalesReportModal from '../../components/Reports/DailySalesReportModal';
 
 import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
@@ -81,9 +82,11 @@ export const getFactoryPrice = (item, suppliers = []) => {
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules, currentStaff } = useUser();
+  const canSeeCostAndFactoryPrices = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
   const isAdmin = !currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin';
   const canDeleteHistory = !currentStaff || currentStaff?.role === 'Admin';
   const isRestaurantActive = activeModules.includes('restaurant');
+  const [showDailySalesReportModal, setShowDailySalesReportModal] = useState(false);
   const [localActiveTab, localSetActiveTab] = useState('finished');
   const activeTab = propActiveTab || localActiveTab;
   const setActiveTab = propSetActiveTab || localSetActiveTab;
@@ -916,7 +919,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const handleBulkPriceUpdate = async () => {
     if (selectedItems.length === 0) return;
-    const isManager = !currentStaff || currentStaff.role === 'Manager';
+    const isManager = canSeeCostAndFactoryPrices;
 
     if (bulkPriceTab === 'exact') {
       const hasPrice = bulkExactPrices.price !== '' && !isNaN(parseFloat(bulkExactPrices.price));
@@ -1253,10 +1256,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       const step = 1000;
       let hasMore = true;
 
+      const productSelectCols = canSeeCostAndFactoryPrices
+        ? '*, categories(name)'
+        : 'id, user_id, warehouse_id, category_id, name, barcode, price, stock_quantity, critical_stock, unit, image_url, description, is_deleted, created_at, updated_at, categories(name)';
+
       while (hasMore) {
         const { data, error } = await supabase
           .from('products')
-          .select('*, categories(name)')
+          .select(productSelectCols)
           .eq('is_deleted', false)
           .eq('user_id', pId)
           .eq('warehouse_id', wId)
@@ -1269,6 +1276,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         }
 
         if (data && data.length > 0) {
+          if (!canSeeCostAndFactoryPrices) {
+            data.forEach(p => {
+              delete p.purchase_price;
+              delete p.factory_price;
+              if (p.description) {
+                p.description = p.description.replace(/Zavod qiym[ə\?]ti:[^\n]+\n?/gi, '').trim();
+              }
+            });
+          }
           allProducts = [...allProducts, ...data];
           if (data.length < step) {
             hasMore = false;
@@ -2040,6 +2056,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <span className="hidden xl:inline">{t('common.clearFilters') || 'Təmizlə'}</span>
                 </button>
               )}
+              {historyTab === 'sales' && (
+                <button 
+                  type="button"
+                  onClick={() => setShowDailySalesReportModal(true)}
+                  className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 h-[38px] shrink-0 shadow-sm active:scale-95"
+                  title={i18n.language === 'az' ? 'Gün Sonu Satış Hesabatı (Z-Hesabat)' : 'Z-Отчет за смену'}
+                >
+                  <Receipt className="w-4 h-4" />
+                  <span className="hidden sm:inline">{i18n.language === 'az' ? 'Z-Hesabat' : 'Z-Отчет'}</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -2203,8 +2230,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.quantity')}</th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice')}</th>}
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Итого'}</th>}
-                    {historyTab === 'sales' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('warehouse.unitPrice') || 'Qiymət'}</th>}
-                    {historyTab === 'sales' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{t('common.total') || 'Məbləğ'}</th>}
+                    {historyTab === 'sales' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{i18n.language === 'az' ? 'Faktiki Satış Qiyməti' : i18n.language === 'ru' ? 'Цена реализации' : 'Sale Price'}</th>}
+                    {historyTab === 'sales' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap">{i18n.language === 'az' ? 'Yekun Məbləğ' : i18n.language === 'ru' ? 'Итоговая сумма' : 'Total Amount'}</th>}
                     {((historyTab === 'receipts' || historyTab === 'dispatches') && canDeleteHistory) && (
                       <th className="px-4 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right whitespace-nowrap"></th>
                     )}
@@ -2553,7 +2580,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       }).map(dispatch => {
                         const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
                         const qty = Math.abs(parseFloat(dispatch.quantity) || 1);
-                        const parsed = parseSaleNote(dispatch.notes, prodObj, qty);
+                        const parsed = parseSaleNote(dispatch.notes, prodObj, qty, canSeeCostAndFactoryPrices);
 
                         return (
                           <tr 
@@ -2591,6 +2618,17 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                     </span>
                                   );
                                 })()}
+                                {parsed.paymentMethod && (
+                                  <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-100">
+                                    {parsed.paymentMethod}
+                                  </span>
+                                )}
+                                {parsed.sellerName && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                                    <User className="w-2.5 h-2.5 text-blue-600" />
+                                    {parsed.sellerName}
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -3286,10 +3324,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         {isAdmin && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
                         )}
-                        {(!currentStaff || currentStaff?.role === 'Manager') && (
+                        {canSeeCostAndFactoryPrices && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}</th>
                         )}
-                        {(!currentStaff || currentStaff?.role === 'Manager') && (
+                        {canSeeCostAndFactoryPrices && (
                           <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
                         )}
                         <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
@@ -3442,12 +3480,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               </div>
                             </td>
                           )}
-                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          {canSeeCostAndFactoryPrices && (
                             <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
                               {getFactoryPrice(item, suppliers) || '—'}
                             </td>
                           )}
-                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          {canSeeCostAndFactoryPrices && (
                             <td className="px-2 py-4 text-sm text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</td>
                           )}
                           <td className="px-2 py-4 text-sm font-bold text-gray-900">₼{parseFloat(item.price).toFixed(2)}</td>
@@ -3622,13 +3660,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         </div>
 
                         <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
-                          {(!currentStaff || currentStaff?.role === 'Manager') && getFactoryPrice(item, suppliers) && (
+                          {canSeeCostAndFactoryPrices && getFactoryPrice(item, suppliers) && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">Zavod</span>
                               <span className="text-xs font-bold text-gray-900">{getFactoryPrice(item, suppliers)}</span>
                             </div>
                           )}
-                          {(!currentStaff || currentStaff?.role === 'Manager') && (
+                          {canSeeCostAndFactoryPrices && (
                             <div>
                               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
                               <span className="text-xs font-bold text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</span>
@@ -4042,6 +4080,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         currentStaff={currentStaff}
       />
 
+      {showDailySalesReportModal && (
+        <DailySalesReportModal
+          isOpen={showDailySalesReportModal}
+          onClose={() => setShowDailySalesReportModal(false)}
+        />
+      )}
+
       <WarehouseTour 
         isOpen={showTour}
         onClose={() => setShowTour(false)}
@@ -4265,7 +4310,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </div>
                     </div>
 
-                    {(!currentStaff || currentStaff?.role === 'Manager') && (
+                    {canSeeCostAndFactoryPrices && (
                       <>
                         <div>
                           <label className="block text-xs font-bold text-gray-700 mb-1.5">
@@ -4306,7 +4351,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   </div>
                 ) : (
                   <div className="w-full flex flex-col gap-4 text-left mb-6">
-                    {(!currentStaff || currentStaff?.role === 'Manager') && (
+                    {canSeeCostAndFactoryPrices && (
                       <div>
                         <label className="block text-xs font-bold text-gray-700 mb-1.5">
                           {i18n.language === 'az' ? 'Hansı qiymət?' : i18n.language === 'ru' ? 'Какая цена?' : 'Target Price'}

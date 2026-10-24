@@ -97,20 +97,21 @@ export const getChannelBadge = (channel) => {
   return { bg: 'bg-blue-50 text-blue-700 border-blue-200', label: channel || 'Mağaza' };
 };
 
-export const parseSaleNote = (note = '', product = null, quantity = 1) => {
+export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin = true) => {
   const qty = Math.abs(parseFloat(quantity) || 1);
   const prodPrice = product?.price ? Number(product.price) : 0;
-  const prodCost = product?.purchase_price ? Number(product.purchase_price) : 0;
+  const prodCost = isAdmin && product?.purchase_price ? Number(product.purchase_price) : null;
 
   const info = {
     channel: 'Mağaza',
-    paymentMethod: 'Nəqd',
+    paymentMethod: 'Nağd',
+    sellerName: null,
     customerName: null,
     customerPhone: null,
     unitPrice: prodPrice,
     totalAmount: prodPrice * qty,
     costPrice: prodCost,
-    totalCost: prodCost * qty,
+    totalCost: prodCost !== null ? prodCost * qty : null,
     profit: null,
     kassaAmount: null,
     months: null,
@@ -121,7 +122,9 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
   };
 
   if (!note) {
-    info.profit = (info.totalAmount - info.totalCost);
+    if (isAdmin && info.totalCost !== null) {
+      info.profit = (info.totalAmount - info.totalCost);
+    }
     return info;
   }
 
@@ -132,6 +135,12 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
     if (info.channel.toLowerCase().startsWith('kredit - ')) {
       info.bank = info.channel.replace(/kredit - /i, '').trim();
     }
+  }
+
+  // 1.5. Seller / Cashier
+  const sellerMatch = note.match(/\[(?:Satıcı|Kassir|Seller):\s*([^\]]+)\]/i);
+  if (sellerMatch) {
+    info.sellerName = sellerMatch[1].trim();
   }
 
   // 2. Customer
@@ -151,6 +160,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
   const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
   if (payMatch) {
     info.paymentMethod = payMatch[1].trim();
+  } else if (/beh|avans|deposit/i.test(note)) {
+    info.paymentMethod = 'Beh';
   } else if (/birmarket/i.test(note) || /birmarket/i.test(info.channel)) {
     info.paymentMethod = 'Birmarket';
   } else if (/kredit/i.test(note) || /kredit/i.test(info.channel)) {
@@ -159,8 +170,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
     info.paymentMethod = 'Nisyə';
   } else if (/kart/i.test(note)) {
     info.paymentMethod = 'Kart';
-  } else if (/nəqd/i.test(note)) {
-    info.paymentMethod = 'Nəqd';
+  } else if (/nəqd|nağd/i.test(note)) {
+    info.paymentMethod = 'Nağd';
   }
 
   // 4. Stored price / total if saved in note
@@ -231,6 +242,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
   // Extract clean custom note (strip metadata brackets)
   info.cleanNote = note
     .replace(/\[Kanal:[^\]]+\]/gi, '')
+    .replace(/\[Satıcı:[^\]]+\]/gi, '')
+    .replace(/\[Kassir:[^\]]+\]/gi, '')
     .replace(/\[Müştəri:[^\]]+\]/gi, '')
     .replace(/\[Qiymət:[^\]]+\]/gi, '')
     .replace(/\[Endirim:[^\]]+\]/gi, '')
@@ -238,6 +251,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1) => {
     .replace(/\[Discount:[^\]]+\]/gi, '')
     .replace(/\[Məbləğ:[^\]]+\]/gi, '')
     .replace(/\[Cəmi:[^\]]+\]/gi, '')
+    .replace(/\[SaleID:[^\]]+\]/gi, '')
     .replace(/^Məhsul Satışı\s*\(Ödəniş:[^)]+\)/gi, '')
     .trim();
 
@@ -257,14 +271,14 @@ const SaleDetailModal = ({
   const { t, i18n } = useTranslation();
   const [copiedField, setCopiedField] = useState(null);
 
-  // Only Admin (no staff = owner, or role === 'Admin') can see financial KPIs
-  const isAdmin = !currentStaff || currentStaff?.role === 'Admin';
+  // Strictly Owner (!currentStaff) or Admin role can view cost prices & profits
+  const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
 
   if (!isOpen || !sale) return null;
 
   const prod = sale.products;
   const quantity = Math.abs(parseFloat(sale.quantity) || 1);
-  const saleInfo = parseSaleNote(sale.notes, prod, quantity);
+  const saleInfo = parseSaleNote(sale.notes, prod, quantity, isAdmin);
   const unitLabel = formatUnitName(prod?.unit, i18n.language);
   
   // Format Date and Time
@@ -325,8 +339,6 @@ const SaleDetailModal = ({
     });
   };
 
-
-
   const channelBadge = getChannelBadge(saleInfo.channel);
 
   return (
@@ -358,13 +370,22 @@ const SaleDetailModal = ({
                       {i18n.language === 'az' ? 'Tamamlandı' : i18n.language === 'ru' ? 'Завершена' : 'Completed'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 font-medium">
+                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 font-medium flex-wrap">
                     <span className="font-mono text-gray-300 font-bold">#{sale.id.slice(0, 8).toUpperCase()}</span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-gray-400" />
                       {formattedDate} {formattedTime}
                     </span>
+                    {saleInfo.sellerName && (
+                      <>
+                        <span>•</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30 font-bold text-[11px]">
+                          <User className="w-3 h-3 text-blue-400" />
+                          {i18n.language === 'az' ? 'Satıcı:' : i18n.language === 'ru' ? 'Продавец:' : 'Seller:'} {saleInfo.sellerName}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -381,68 +402,68 @@ const SaleDetailModal = ({
           {/* Modal Body */}
           <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
             
-            {/* 1. Top Financial KPI Cards — Admin only */}
-            {isAdmin && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {/* Total Sale Amount */}
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50/40 border border-emerald-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-emerald-600 mb-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider">
-                      {i18n.language === 'az' ? 'Cəmi Məbləğ' : i18n.language === 'ru' ? 'Итого' : 'Total'}
-                    </span>
-                    <DollarSign className="w-4 h-4" />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight flex items-baseline gap-1.5 flex-wrap">
-                    <span>₼{saleInfo.totalAmount.toFixed(2)}</span>
-                    {saleInfo.discount > 0 && (
-                      <span className="text-xs line-through text-gray-400 font-semibold">
-                        ₼{saleInfo.originalGross.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600/80 mt-1">
-                    <span>₼{saleInfo.unitPrice.toFixed(2)} / {unitLabel}</span>
-                    {saleInfo.discount > 0 && (
-                      <span className="px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-700">
-                        -{saleInfo.discount.toFixed(2)} ₼
-                      </span>
-                    )}
-                  </div>
+            {/* 1. Top Financial KPI Cards */}
+            <div className={`grid grid-cols-2 ${isAdmin && saleInfo.totalCost !== null ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
+              {/* Total Sale Amount (Faktiki Satış Məbləği) */}
+              <div className="bg-gradient-to-br from-emerald-50 to-green-50/40 border border-emerald-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-emerald-600 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider">
+                    {i18n.language === 'az' ? 'Faktiki Satış Məbləği' : i18n.language === 'ru' ? 'Сумма реализации' : 'Total'}
+                  </span>
+                  <DollarSign className="w-4 h-4" />
                 </div>
-
-                {/* Quantity */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 border border-blue-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-blue-600 mb-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider">
-                      {i18n.language === 'az' ? 'Miqdar' : i18n.language === 'ru' ? 'Количество' : 'Quantity'}
+                <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight flex items-baseline gap-1.5 flex-wrap">
+                  <span>₼{saleInfo.totalAmount.toFixed(2)}</span>
+                  {saleInfo.discount > 0 && (
+                    <span className="text-xs line-through text-gray-400 font-semibold">
+                      ₼{saleInfo.originalGross.toFixed(2)}
                     </span>
-                    <Package className="w-4 h-4" />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-black text-blue-700 tracking-tight">
-                    {quantity} <span className="text-sm font-bold">{unitLabel}</span>
-                  </div>
-                  <div className="text-[10px] font-bold text-blue-600/80 mt-1 truncate">
-                    {i18n.language === 'az' ? `Qalıq: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}` : `Остаток: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}`}
-                  </div>
+                  )}
                 </div>
-
-                {/* Payment Method */}
-                <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50/40 border border-purple-100/80 rounded-xl p-3.5 flex flex-col justify-between">
-                  <div className="flex items-center justify-between text-purple-600 mb-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider">
-                      {i18n.language === 'az' ? 'Ödəniş' : i18n.language === 'ru' ? 'Оплата' : 'Payment'}
+                <div className="flex items-center justify-between text-[10px] font-bold text-emerald-600/80 mt-1">
+                  <span>₼{saleInfo.unitPrice.toFixed(2)} / {unitLabel}</span>
+                  {saleInfo.discount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded font-black bg-rose-100 text-rose-700">
+                      -{saleInfo.discount.toFixed(2)} ₼
                     </span>
-                    <CreditCard className="w-4 h-4" />
-                  </div>
-                  <div className="text-base sm:text-lg font-black text-purple-700 truncate tracking-tight">
-                    {saleInfo.paymentMethod}
-                  </div>
-                  <div className="text-[10px] font-bold text-purple-600/80 mt-1 truncate">
-                    {saleInfo.channel}
-                  </div>
+                  )}
                 </div>
+              </div>
 
-                {/* Profit / Cost */}
+              {/* Quantity */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50/40 border border-blue-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-blue-600 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider">
+                    {i18n.language === 'az' ? 'Miqdar' : i18n.language === 'ru' ? 'Количество' : 'Quantity'}
+                  </span>
+                  <Package className="w-4 h-4" />
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-blue-700 tracking-tight">
+                  {quantity} <span className="text-sm font-bold">{unitLabel}</span>
+                </div>
+                <div className="text-[10px] font-bold text-blue-600/80 mt-1 truncate">
+                  {i18n.language === 'az' ? `Qalıq: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}` : `Остаток: ${prod?.stock_quantity ?? '—'} ${prod?.stock_quantity != null ? unitLabel : ''}`}
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50/40 border border-purple-100/80 rounded-xl p-3.5 flex flex-col justify-between">
+                <div className="flex items-center justify-between text-purple-600 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider">
+                    {i18n.language === 'az' ? 'Ödəniş' : i18n.language === 'ru' ? 'Оплата' : 'Payment'}
+                  </span>
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div className="text-base sm:text-lg font-black text-purple-700 truncate tracking-tight">
+                  {saleInfo.paymentMethod}
+                </div>
+                <div className="text-[10px] font-bold text-purple-600/80 mt-1 truncate">
+                  {saleInfo.channel}
+                </div>
+              </div>
+
+              {/* Profit / Cost (strictly Admin/Owner only) */}
+              {isAdmin && saleInfo.totalCost !== null && (
                 <div className="bg-gradient-to-br from-amber-50 to-orange-50/40 border border-amber-100/80 rounded-xl p-3.5 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-amber-600 mb-1">
                     <span className="text-[10px] font-black uppercase tracking-wider">
@@ -457,8 +478,8 @@ const SaleDetailModal = ({
                     {i18n.language === 'az' ? `Maya: ₼${saleInfo.totalCost.toFixed(2)}` : `Себест.: ₼${saleInfo.totalCost.toFixed(2)}`}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* 2. Product Information Card */}
             <div className="bg-gray-50/70 border border-gray-100 rounded-xl p-4 sm:p-5">
@@ -572,6 +593,17 @@ const SaleDetailModal = ({
                     {channelBadge.label}
                   </span>
                 </div>
+                {saleInfo.sellerName && (
+                  <div className="pt-2 mt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium">
+                    <span className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-blue-500" />
+                      {i18n.language === 'az' ? 'Məsul Satıcı:' : 'Ответственный продавец:'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      {saleInfo.sellerName}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Payment Details Box */}

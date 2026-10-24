@@ -57,7 +57,8 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
   onClose,
   initialDate
 }) => {
-  const { profile } = useUser() as any;
+  const { profile, currentStaff } = useUser() as any;
+  const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
   
   // Format today as YYYY-MM-DD
   const getTodayStr = () => {
@@ -90,13 +91,13 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
   const [reportMode, setReportMode] = useState<'detailed' | 'products_only'>('detailed');
   const [showSettingsDrawer, setShowSettingsDrawer] = useState<boolean>(false);
 
-  // Granular section options
+  // Granular section options (showProfit forced to false if not admin)
   const [customSections, setCustomSections] = useState({
     showPrices: true,
     showFinancialSummary: true,
     showPaymentBreakdown: true,
     showReceipts: true,
-    showProfit: true,
+    showProfit: isAdmin,
     showBarcodes: true,
     showCategories: true,
     showSignatures: true,
@@ -180,7 +181,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
     if (!profile?.id) return;
     setLoading(true);
     try {
-      const data = await fetchDailySalesReportData(supabase, profile.id, selectedDate);
+      const data = await fetchDailySalesReportData(supabase, profile.id, selectedDate, false, currentStaff);
       setReportData(data);
     } catch (err: any) {
       console.error('Hesabat yüklənərkən xəta:', err);
@@ -563,15 +564,17 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                     <span className={customSections.showReceipts ? 'font-bold text-white' : ''}>Çeklərin Reyestri</span>
                   </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-white">
-                    <input
-                      type="checkbox"
-                      checked={customSections.showProfit}
-                      onChange={() => toggleSection('showProfit')}
-                      className="rounded accent-blue-600 cursor-pointer"
-                    />
-                    <span className={customSections.showProfit ? 'font-bold text-white' : ''}>Maya Dəyəri və Qazanc</span>
-                  </label>
+                  {isAdmin && (
+                    <label className="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-white">
+                      <input
+                        type="checkbox"
+                        checked={customSections.showProfit}
+                        onChange={() => toggleSection('showProfit')}
+                        className="rounded accent-blue-600 cursor-pointer"
+                      />
+                      <span className={customSections.showProfit ? 'font-bold text-white' : ''}>Maya Dəyəri və Qazanc</span>
+                    </label>
+                  )}
 
                   <label className="flex items-center gap-2 cursor-pointer select-none text-slate-300 hover:text-white">
                     <input
@@ -831,16 +834,16 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Cost & Profit Section (if cost available) */}
-                    {customSections.showProfit && reportData.totalCostPrice > 0 && (
+                    {/* Cost & Profit Section (Only for Admin / Owner) */}
+                    {isAdmin && customSections.showProfit && reportData.totalCostPrice > 0 && (
                       <div className="bg-emerald-50/70 border border-emerald-100 rounded-3xl p-5">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div>
                             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-md">
-                              Mənfəət Göstəriciləri
+                              Mənfəət Göstəriciləri (Admin)
                             </span>
                             <h3 className="text-lg font-black text-emerald-950 mt-1">
-                              Təxmini Xalis Qazanc: {reportData.grossProfit.toFixed(2)} ₼
+                              Təxmini Xalis Qazanc: {reportData.grossProfit?.toFixed(2)} ₼
                             </h3>
                             <p className="text-xs text-emerald-700 mt-0.5">
                               Məhsul maya dəyəri çıxıldıqdan sonra qalan ümumi gəlir (Rentabellik: {reportData.marginPercent}%)
@@ -849,7 +852,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                           <div className="flex items-center gap-6 self-start sm:self-auto">
                             <div>
                               <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Ümumi Maya</div>
-                              <div className="text-base font-black text-emerald-900">{reportData.totalCostPrice.toFixed(2)} ₼</div>
+                              <div className="text-base font-black text-emerald-900">{reportData.totalCostPrice?.toFixed(2)} ₼</div>
                             </div>
                             <div className="h-8 w-px bg-emerald-200" />
                             <div>
@@ -861,14 +864,15 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                       </div>
                     )}
 
-                    {/* Payment Breakdown Bar & Visuals */}
+                    {/* Payment Breakdown Bar & Visuals: 5 Separate Categories */}
                     {customSections.showPaymentBreakdown && (
                       <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
                         <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 mb-4 flex items-center justify-between">
-                          <span>Ödəniş Metodları Üzrə Dövriyyə Bölgüsü</span>
-                          <span className="text-gray-400 font-bold">Cəmi: {reportData.totalRevenue.toFixed(2)} ₼</span>
+                          <span>Ödəniş Metodları Üzrə Dövriyyə Bölgüsü (5 Növ Ödəniş)</span>
+                          <span className="text-blue-600 font-black">Cəmi: {reportData.totalRevenue.toFixed(2)} ₼</span>
                         </h4>
 
+                        {/* 5-Color Segmented Visual Bar */}
                         <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden flex mb-4">
                           {reportData.totalCash > 0 && (
                             <div 
@@ -881,50 +885,89 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                             <div 
                               style={{ width: `${(reportData.totalCard / reportData.totalRevenue) * 100}%` }}
                               className="bg-purple-600 h-full transition-all"
-                              title={`Kart: ${reportData.totalCard.toFixed(2)} ₼`}
+                              title={`Karta / POS: ${reportData.totalCard.toFixed(2)} ₼`}
                             />
                           )}
                           {reportData.totalCredit > 0 && (
                             <div 
                               style={{ width: `${(reportData.totalCredit / reportData.totalRevenue) * 100}%` }}
+                              className="bg-blue-500 h-full transition-all"
+                              title={`Kredit: ${reportData.totalCredit.toFixed(2)} ₼`}
+                            />
+                          )}
+                          {reportData.totalDebt > 0 && (
+                            <div 
+                              style={{ width: `${(reportData.totalDebt / reportData.totalRevenue) * 100}%` }}
                               className="bg-amber-500 h-full transition-all"
-                              title={`Nisyə: ${reportData.totalCredit.toFixed(2)} ₼`}
+                              title={`Nisyə: ${reportData.totalDebt.toFixed(2)} ₼`}
+                            />
+                          )}
+                          {reportData.totalDeposit > 0 && (
+                            <div 
+                              style={{ width: `${(reportData.totalDeposit / reportData.totalRevenue) * 100}%` }}
+                              className="bg-teal-500 h-full transition-all"
+                              title={`Beh: ${reportData.totalDeposit.toFixed(2)} ₼`}
                             />
                           )}
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                          <div className="flex items-center gap-2.5">
+                        {/* 5 Distinct Payment Method Cards Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                          {/* 1. Cash */}
+                          <div className="p-3 rounded-2xl bg-emerald-50/50 border border-emerald-100/80 flex items-center gap-2.5">
                             <div className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
-                            <div>
-                              <div className="text-[10px] font-bold text-gray-400 uppercase">Nağd Satış</div>
-                              <div className="text-sm font-black text-gray-900">{reportData.totalCash.toFixed(2)} ₼</div>
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">1. Nağd</div>
+                              <div className="text-sm font-black text-gray-900 truncate">{reportData.totalCash.toFixed(2)} ₼</div>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2.5">
+                          {/* 2. Card / POS */}
+                          <div className="p-3 rounded-2xl bg-purple-50/50 border border-purple-100/80 flex items-center gap-2.5">
                             <div className="w-3 h-3 rounded-full bg-purple-600 shrink-0" />
-                            <div>
-                              <div className="text-[10px] font-bold text-gray-400 uppercase">Kart (POS-Terminal)</div>
-                              <div className="text-sm font-black text-gray-900">{reportData.totalCard.toFixed(2)} ₼</div>
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">2. Karta / POS</div>
+                              <div className="text-sm font-black text-gray-900 truncate">{reportData.totalCard.toFixed(2)} ₼</div>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2.5">
+                          {/* 3. Credit */}
+                          <div className="p-3 rounded-2xl bg-blue-50/50 border border-blue-100/80 flex items-center gap-2.5">
+                            <div className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">3. Kredit</div>
+                              <div className="text-sm font-black text-gray-900 truncate">{reportData.totalCredit.toFixed(2)} ₼</div>
+                            </div>
+                          </div>
+
+                          {/* 4. Debt / Nisye */}
+                          <div className="p-3 rounded-2xl bg-amber-50/50 border border-amber-100/80 flex items-center gap-2.5">
                             <div className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
-                            <div>
-                              <div className="text-[10px] font-bold text-gray-400 uppercase">Nisyə / Kredit</div>
-                              <div className="text-sm font-black text-gray-900">{reportData.totalCredit.toFixed(2)} ₼</div>
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">4. Nisyə (Borc)</div>
+                              <div className="text-sm font-black text-gray-900 truncate">{reportData.totalDebt.toFixed(2)} ₼</div>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-3 h-3 rounded-full bg-red-400 shrink-0" />
-                            <div>
-                              <div className="text-[10px] font-bold text-gray-400 uppercase">Endirimlər</div>
-                              <div className="text-sm font-black text-red-500">-{reportData.totalDiscounts.toFixed(2)} ₼</div>
+                          {/* 5. Deposit / Beh */}
+                          <div className="p-3 rounded-2xl bg-teal-50/50 border border-teal-100/80 flex items-center gap-2.5">
+                            <div className="w-3 h-3 rounded-full bg-teal-500 shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">5. Beh (Avans)</div>
+                              <div className="text-sm font-black text-gray-900 truncate">{reportData.totalDeposit.toFixed(2)} ₼</div>
                             </div>
                           </div>
+                        </div>
+
+                        {/* Mathematical Integrity Verification Bar */}
+                        <div className="mt-3.5 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+                          <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+                            <span>Riyazi Dəqiqlik: Cəmi Dövriyyə = Nağd + Karta + Kredit + Nisyə + Beh</span>
+                          </span>
+                          <span className="text-gray-600 font-bold font-mono">
+                            {(reportData.totalCash + reportData.totalCard + reportData.totalCredit + reportData.totalDebt + reportData.totalDeposit).toFixed(2)} ₼ ≡ {reportData.totalRevenue.toFixed(2)} ₼
+                          </span>
                         </div>
                       </div>
                     )}

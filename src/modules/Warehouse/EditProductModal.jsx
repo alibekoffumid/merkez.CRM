@@ -35,6 +35,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
   const [imageFile, setImageFile] = useState(null);
   const [deleteImage, setDeleteImage] = useState(false);
   const { profile, currentStaff } = useUser();
+  const canSeeCostAndFactoryPrices = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
   const isAdmin = !currentStaff || currentStaff?.role === 'Manager' || currentStaff?.role === 'Admin';
   const [availableUnits, setAvailableUnits] = useState(['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2']);
 
@@ -68,10 +69,12 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
       const desc = product.description || '';
       let factoryPrice = '';
-      if (desc.includes('Zavod qiyməti:')) {
-        factoryPrice = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
-      } else if (desc.includes('Zavod qiym?ti:')) {
-        factoryPrice = desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
+      if (canSeeCostAndFactoryPrices) {
+        if (desc.includes('Zavod qiyməti:')) {
+          factoryPrice = desc.split('Zavod qiyməti:')[1].split('\n')[0].trim();
+        } else if (desc.includes('Zavod qiym?ti:')) {
+          factoryPrice = desc.split('Zavod qiym?ti:')[1].split('\n')[0].trim();
+        }
       }
       const additionalInfo = extractAdditionalInfo(desc);
       const parsedAttrs = parseProductAttributes(product);
@@ -80,7 +83,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       setFormData({
         name: product.name || '',
         price: product.price || '',
-        purchase_price: product.purchase_price || '',
+        purchase_price: canSeeCostAndFactoryPrices ? (product.purchase_price || '') : '',
         factory_price: factoryPrice,
         additional_info: additionalInfo,
         barcode: product.barcode || '',
@@ -95,7 +98,7 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       setImageFile(null);
       setDeleteImage(false);
     }
-  }, [product]);
+  }, [product, canSeeCostAndFactoryPrices]);
 
   if (!isOpen || !product) return null;
 
@@ -158,7 +161,14 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
 
     const cleanAttrs = cleanAttributesForSave(attributes);
     let desc = '';
-    if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
+    if (canSeeCostAndFactoryPrices) {
+      if (formData.factory_price) desc += 'Zavod qiyməti: ' + formData.factory_price.trim() + '\n';
+    } else {
+      // Preserve existing factory price note when non-admin edits
+      const origDesc = product.description || '';
+      const factoryLineMatch = origDesc.match(/Zavod qiym[ə\?]ti:[^\n]+/i);
+      if (factoryLineMatch) desc += factoryLineMatch[0] + '\n';
+    }
     if (formData.additional_info) desc += 'Əlavə məlumat: ' + formData.additional_info.trim() + '\n';
     const attrDesc = formatAttributesForDescription(cleanAttrs);
     if (attrDesc) desc += (desc ? '\n' : '') + attrDesc;
@@ -166,7 +176,6 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
     let updatePayload = {
       name: formData.name,
       price: parseFloat(formData.price),
-      purchase_price: parseFloat(formData.purchase_price || 0),
       barcode: formData.barcode,
       category_id: formData.category_id || null,
       stock_quantity: parseFloat(formData.stock_quantity || 0),
@@ -178,6 +187,10 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       color: formData.color,
       attributes: cleanAttrs
     };
+
+    if (canSeeCostAndFactoryPrices) {
+      updatePayload.purchase_price = parseFloat(formData.purchase_price || 0);
+    }
 
     let res = await supabase.from('products').update(updatePayload).eq('id', product.id).select();
     let data = res.data;
@@ -288,47 +301,51 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-5">
-                <div>
-                  {(() => {
-                    const currentSup = (suppliers || []).find(s => s.id === formData.supplier_id);
-                    const curr = getSupplierCurrency(currentSup?.name || currentSup?.company_name);
-                    return (
-                      <>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                          ZAVOD QİYMƏTİ {curr ? `(${curr})` : ''}
-                        </label>
-                        <div className="relative">
-                          {curr && (
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">
-                              {curr}
-                            </span>
-                          )}
-                          <input
-                            type="text"
-                            placeholder={curr ? `${curr} 0.00` : 'məs. $15.00 / 12 ₼ / ￥100'}
-                            className={`w-full ${curr ? 'pl-9' : 'px-5'} pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold`}
-                            value={formData.factory_price}
-                            onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
-                          />
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                      value={formData.purchase_price}
-                      onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
-                    />
-                  </div>
-                </div>
+              <div className={`grid ${canSeeCostAndFactoryPrices ? 'grid-cols-3' : 'grid-cols-1'} gap-5`}>
+                {canSeeCostAndFactoryPrices && (
+                  <>
+                    <div>
+                      {(() => {
+                        const currentSup = (suppliers || []).find(s => s.id === formData.supplier_id);
+                        const curr = getSupplierCurrency(currentSup?.name || currentSup?.company_name);
+                        return (
+                          <>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                              ZAVOD QİYMƏTİ {curr ? `(${curr})` : ''}
+                            </label>
+                            <div className="relative">
+                              {curr && (
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">
+                                  {curr}
+                                </span>
+                              )}
+                              <input
+                                type="text"
+                                placeholder={curr ? `${curr} 0.00` : 'məs. $15.00 / 12 ₼ / ￥100'}
+                                className={`w-full ${curr ? 'pl-9' : 'px-5'} pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold`}
+                                value={formData.factory_price}
+                                onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                              />
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                          value={formData.purchase_price}
+                          onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
                   <div className="relative">

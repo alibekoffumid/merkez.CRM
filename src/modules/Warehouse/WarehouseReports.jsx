@@ -23,7 +23,8 @@ import DailySalesReportModal from '../../components/Reports/DailySalesReportModa
 
 const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrigger = 0 }) => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
+  const canSeeCostAndFactoryPrices = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
   
   const [loading, setLoading] = useState(true);
   const [reportType, setReportType] = useState('product'); // 'product' or 'ingredient'
@@ -76,10 +77,14 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
       const step = 1000;
       let hasMore = true;
 
-        while (hasMore) {
+      const productCols = canSeeCostAndFactoryPrices
+        ? 'id, name, barcode, stock_quantity, critical_stock, purchase_price, price, category_id, supplier_id, unit'
+        : 'id, name, barcode, stock_quantity, critical_stock, price, category_id, supplier_id, unit';
+
+      while (hasMore) {
         const { data: prods, error: prodErr } = await supabase
           .from('products')
-          .select('id, name, barcode, stock_quantity, critical_stock, purchase_price, price, category_id, supplier_id, unit')
+          .select(productCols)
           .eq('user_id', profile.id)
           .eq('warehouse_id', warehouseId)
           .eq('is_deleted', false)
@@ -132,12 +137,12 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
   // Recalculate stats whenever products, ingredients or reportType change
   useEffect(() => {
     if (reportType === 'product') {
-      const totalCost = products.reduce((sum, p) => {
+      const totalCost = canSeeCostAndFactoryPrices ? products.reduce((sum, p) => {
         const qty = parseFloat(p.stock_quantity || 0);
         const price = parseFloat(p.purchase_price || 0);
         if (qty > 1000000 || price > 1000000) return sum;
         return sum + (qty * price);
-      }, 0);
+      }, 0) : null;
 
       const totalRetail = products.reduce((sum, p) => {
         const qty = parseFloat(p.stock_quantity || 0);
@@ -151,23 +156,23 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
       setStats({
         totalCost,
         totalRetail,
-        potentialProfit: totalRetail - totalCost,
+        potentialProfit: canSeeCostAndFactoryPrices && totalCost !== null ? totalRetail - totalCost : null,
         totalItems: products.length,
         lowStockItemsCount: lowStock.length
       });
     } else {
-      const totalCost = ingredients.reduce((sum, i) => sum + (parseFloat(i.quantity || 0) * parseFloat(i.cost_price || 0)), 0);
+      const totalCost = canSeeCostAndFactoryPrices ? ingredients.reduce((sum, i) => sum + (parseFloat(i.quantity || 0) * parseFloat(i.cost_price || 0)), 0) : null;
       const lowStock = ingredients.filter(i => parseFloat(i.quantity || 0) < parseFloat(i.min_quantity || 10));
       
       setStats({
         totalCost,
         totalRetail: 0, // Ingredients don't have retail price
-        potentialProfit: 0,
+        potentialProfit: null,
         totalItems: ingredients.length,
         lowStockItemsCount: lowStock.length
       });
     }
-  }, [reportType, products, ingredients]);
+  }, [reportType, products, ingredients, canSeeCostAndFactoryPrices]);
 
   const getLowStockList = () => {
     if (reportType === 'product') {
@@ -196,17 +201,19 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
     let text = `MƏRKƏZ ANBAR - SİFARİŞ SİYAHISI\nTarix: ${new Date().toLocaleDateString()}\n\n`;
     
     if (reportType === 'product') {
-      text += `Məhsul Adı | Barkod | Anbarda | Kritik Hədd | Cari Qiymət | Təchizatçı\n`;
+      text += `Məhsul Adı | Barkod | Anbarda | Kritik Hədd | ${canSeeCostAndFactoryPrices ? 'Cari Qiymət | ' : ''}Təchizatçı\n`;
       text += `--------------------------------------------------------------------------\n`;
       list.forEach(item => {
         const supName = suppliers.find(s => s.id === item.supplier_id)?.name || '-';
-        text += `${item.name} | ${item.barcode || '-'} | ${item.stock_quantity} | ${item.critical_stock} | ₼${item.purchase_price || 0} | ${supName}\n`;
+        const priceCol = canSeeCostAndFactoryPrices ? `₼${item.purchase_price || 0} | ` : '';
+        text += `${item.name} | ${item.barcode || '-'} | ${item.stock_quantity} | ${item.critical_stock} | ${priceCol}${supName}\n`;
       });
     } else {
-      text += `İnqrediyent Adı | Anbarda | Kritik Hədd | Cari Qiymət\n`;
+      text += `İnqrediyent Adı | Anbarda | Kritik Hədd${canSeeCostAndFactoryPrices ? ' | Cari Qiymət' : ''}\n`;
       text += `--------------------------------------------------------\n`;
       list.forEach(item => {
-        text += `${item.name} | ${item.quantity} | ${item.min_quantity} | ₼${item.cost_price || 0}\n`;
+        const priceCol = canSeeCostAndFactoryPrices ? ` | ₼${item.cost_price || 0}` : '';
+        text += `${item.name} | ${item.quantity} | ${item.min_quantity}${priceCol}\n`;
       });
     }
 
@@ -255,21 +262,28 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
           dispatches={dispatches}
           products={products}
           categories={categories}
+          canSeeCostAndProfitProp={canSeeCostAndFactoryPrices}
         />
       )}
 
       {/* Dashboard Cards in One Line */}
-      <div className={`grid gap-3.5 sm:gap-4 ${reportType === 'product' ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
-        {/* Cost */}
-        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-            <DollarSign className="w-5 h-5" />
+      <div className={`grid gap-3.5 sm:gap-4 ${
+        reportType === 'product' 
+          ? (canSeeCostAndFactoryPrices ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3') 
+          : (canSeeCostAndFactoryPrices ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2')
+      }`}>
+        {/* Cost (Admin / Owner only) */}
+        {canSeeCostAndFactoryPrices && (
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+            <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 overflow-hidden">
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Məhsul Mayası</p>
+              <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{(stats.totalCost || 0).toFixed(2)}</h4>
+            </div>
           </div>
-          <div className="min-w-0 overflow-hidden">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Məhsul Mayası</p>
-            <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{stats.totalCost.toFixed(2)}</h4>
-          </div>
-        </div>
+        )}
 
         {/* Retail */}
         {reportType === 'product' && (
@@ -284,16 +298,18 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
               </div>
             </div>
 
-            {/* Profit */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 text-merkez-blue flex items-center justify-center shrink-0">
-                <DollarSign className="w-5 h-5" />
+            {/* Profit (Admin / Owner only) */}
+            {canSeeCostAndFactoryPrices && (
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/90 shadow-sm flex items-center gap-3.5 sm:gap-4 hover:shadow-md transition-all">
+                <div className="w-11 h-11 rounded-xl bg-blue-50 text-merkez-blue flex items-center justify-center shrink-0">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 overflow-hidden">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Gözlənilən Qazanc</p>
+                  <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{(stats.potentialProfit || 0).toFixed(2)}</h4>
+                </div>
               </div>
-              <div className="min-w-0 overflow-hidden">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1 truncate">Gözlənilən Qazanc</p>
-                <h4 className="text-lg sm:text-xl font-black text-gray-900 truncate">₼{stats.potentialProfit.toFixed(2)}</h4>
-              </div>
-            </div>
+            )}
           </>
         )}
 

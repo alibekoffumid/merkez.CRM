@@ -25,7 +25,7 @@ const BANK_RATES = {
 
 const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, activeRepairsMap = {}, initialProducts = [] }) => {
   const { t, i18n } = useTranslation();
-  const { profile } = useUser();
+  const { profile, currentStaff } = useUser();
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -737,6 +737,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           channelPrefix = `[Kanal: ${salesChannel}] `;
         }
 
+        const payName = paymentMethod === 'cash' ? 'Nağd' :
+          paymentMethod === 'card' ? 'Kart' :
+          paymentMethod === 'debt' ? 'Nisyə' :
+          paymentMethod === 'deposit' ? 'Beh' :
+          paymentMethod === 'credit' ? 'Kredit' : paymentMethod;
+
         let dispatchNote = notes;
         if (!dispatchNote) {
           if (paymentMethod === 'birmarket') {
@@ -744,8 +750,15 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           } else if (paymentMethod === 'credit') {
             dispatchNote = `Kredit Satışı (${installmentMonths} ay): Müqavilə: ₼${contractTotal.toFixed(2)}, Aylıq: ₼${monthlyPayment.toFixed(2)}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
           } else {
-            dispatchNote = `Məhsul Satışı (Ödəniş: ${paymentMethod === 'cash' ? 'Nəqd' : paymentMethod === 'card' ? 'Kart' : 'Nisyə'})`;
+            dispatchNote = `Məhsul Satışı (Ödəniş: ${payName})`;
           }
+        }
+
+        // Append seller info if authenticated staff
+        if (currentStaff?.name) {
+          dispatchNote += ` [Satıcı: ${currentStaff.name}]`;
+        } else if (currentStaff?.username) {
+          dispatchNote += ` [Satıcı: ${currentStaff.username}]`;
         }
 
         // Append customer info if selected
@@ -937,10 +950,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   };
 
   const paymentMethods = [
-    { value: 'cash', label: i18n.language === 'az' ? 'Nəqd' : i18n.language === 'ru' ? 'Наличные' : 'Cash' },
-    { value: 'card', label: i18n.language === 'az' ? 'Kart' : i18n.language === 'ru' ? 'Карта' : 'Card' },
-    { value: 'debt', label: i18n.language === 'az' ? 'Nisyə / Borc' : i18n.language === 'ru' ? 'В долг' : 'Debt' },
-    { value: 'credit', label: i18n.language === 'az' ? 'Hissə-hissə (Kredit)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
+    { value: 'cash', label: i18n.language === 'az' ? 'Nağd' : i18n.language === 'ru' ? 'Наличные' : 'Cash' },
+    { value: 'card', label: i18n.language === 'az' ? 'Karta / POS Terminal' : i18n.language === 'ru' ? 'Перевод / Терминал' : 'Card / POS' },
+    { value: 'credit', label: i18n.language === 'az' ? 'Kredit (Hissə-hissə)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
+    { value: 'debt', label: i18n.language === 'az' ? 'Nisyə (Borc / Realizasiya)' : i18n.language === 'ru' ? 'В долг / Под реализацию' : 'Debt' },
+    { value: 'deposit', label: i18n.language === 'az' ? 'Beh (Zadatak / Avans)' : i18n.language === 'ru' ? 'Задаток / аванс' : 'Deposit' },
     { value: 'birmarket', label: 'Birmarket' }
   ];
 
@@ -1023,7 +1037,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                     />
                   </div>
 
-                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt') && (
+                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt' || paymentMethod === 'deposit') && (
                     <div>
                       <div className="flex items-center justify-between mb-2 px-1">
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">

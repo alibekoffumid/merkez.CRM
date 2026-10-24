@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useUser } from '../../core/UserContext';
 import { 
   TrendingUp, 
   BarChart3, 
@@ -273,14 +274,33 @@ const VerticalColumnChart = ({
 const WarehouseEfficiencyCharts = ({ 
   dispatches = [], 
   products = [], 
-  categories = [] 
+  categories = [],
+  canSeeCostAndProfitProp
 }) => {
   const { i18n } = useTranslation();
+  const { currentStaff } = useUser();
+  const canSeeCostAndProfit = canSeeCostAndProfitProp !== undefined 
+    ? canSeeCostAndProfitProp 
+    : (!currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner');
+
+  const availableTabs = useMemo(() => {
+    return TABS.filter(tab => canSeeCostAndProfit || tab.id !== 'margins');
+  }, [canSeeCostAndProfit]);
+
   const [selectedPeriod, setSelectedPeriod] = useState('30days');
   const [activeTab, setActiveTab] = useState('top_products');
   const [topSortBy, setTopSortBy] = useState('quantity'); // 'quantity' | 'revenue' | 'profit'
   const [topChartView, setTopChartView] = useState('columns'); // 'columns' | 'bars'
   const [searchQuery, setSearchQuery] = useState('');
+
+  React.useEffect(() => {
+    if (!canSeeCostAndProfit && activeTab === 'margins') {
+      setActiveTab('top_products');
+    }
+    if (!canSeeCostAndProfit && topSortBy === 'profit') {
+      setTopSortBy('quantity');
+    }
+  }, [canSeeCostAndProfit, activeTab, topSortBy]);
 
   // 1. Process all sales dispatches with product information
   const parsedSales = useMemo(() => {
@@ -307,7 +327,7 @@ const WarehouseEfficiencyCharts = ({
         const prod = d.products || prodMap.get(d.product_id) || {};
         const qty = Math.abs(parseFloat(d.quantity) || 1);
         const prodPrice = parseFloat(prod.price) || 0;
-        const purchasePrice = parseFloat(prod.purchase_price) || 0;
+        const purchasePrice = canSeeCostAndProfit ? (parseFloat(prod.purchase_price) || 0) : 0;
         const note = d.notes || '';
 
         // Extract metadata from notes if present
@@ -699,7 +719,7 @@ const WarehouseEfficiencyCharts = ({
       </div>
 
       {/* 2. Key Sales Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-px bg-gray-100 border-b border-gray-100">
+      <div className={`grid grid-cols-2 ${canSeeCostAndProfit ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-px bg-gray-100 border-b border-gray-100`}>
         {/* Total Turnover */}
         <div className="bg-white p-4 sm:p-5">
           <div className="flex items-center justify-between text-emerald-600 mb-1">
@@ -732,21 +752,23 @@ const WarehouseEfficiencyCharts = ({
           </p>
         </div>
 
-        {/* Net Profit */}
-        <div className="bg-white p-4 sm:p-5">
-          <div className="flex items-center justify-between text-amber-600 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-              {i18n.language === 'az' ? 'Xalis Mənfəət' : i18n.language === 'ru' ? 'Чистая прибыль' : 'Net Profit'}
-            </span>
-            <TrendingUp className="w-4 h-4 text-amber-500" />
+        {/* Net Profit (Admin / Owner only) */}
+        {canSeeCostAndProfit && (
+          <div className="bg-white p-4 sm:p-5">
+            <div className="flex items-center justify-between text-amber-600 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                {i18n.language === 'az' ? 'Xalis Mənfəət' : i18n.language === 'ru' ? 'Чистая прибыль' : 'Net Profit'}
+              </span>
+              <TrendingUp className="w-4 h-4 text-amber-500" />
+            </div>
+            <div className={`text-lg sm:text-2xl font-black tracking-tight ${summary.totalProfit >= 0 ? 'text-amber-600' : 'text-rose-600'}`}>
+              {summary.totalProfit >= 0 ? '+' : ''}₼{summary.totalProfit.toFixed(2)}
+            </div>
+            <p className="text-[10px] font-bold text-emerald-600 mt-0.5">
+              {summary.overallMargin.toFixed(1)}% {i18n.language === 'az' ? 'rentabellik' : 'маржа'}
+            </p>
           </div>
-          <div className={`text-lg sm:text-2xl font-black tracking-tight ${summary.totalProfit >= 0 ? 'text-amber-600' : 'text-rose-600'}`}>
-            {summary.totalProfit >= 0 ? '+' : ''}₼{summary.totalProfit.toFixed(2)}
-          </div>
-          <p className="text-[10px] font-bold text-emerald-600 mt-0.5">
-            {summary.overallMargin.toFixed(1)}% {i18n.language === 'az' ? 'rentabellik' : 'маржа'}
-          </p>
-        </div>
+        )}
 
         {/* Average Ticket */}
         <div className="bg-white p-4 sm:p-5">
@@ -784,7 +806,7 @@ const WarehouseEfficiencyCharts = ({
       {/* 3. Interactive Chart Switcher Tabs */}
       <div className="px-5 pt-4 bg-gray-50/60 border-b border-gray-100 flex items-center justify-between gap-3 overflow-x-auto">
         <div className="flex items-center gap-2">
-          {TABS.map(tab => {
+          {availableTabs.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             const label = i18n.language === 'az' ? tab.labelAz : i18n.language === 'ru' ? tab.labelRu : tab.labelEn;
@@ -859,16 +881,18 @@ const WarehouseEfficiencyCharts = ({
                     >
                       {i18n.language === 'az' ? 'Dövriyyə Məbləği (₼)' : 'По сумме (₼)'}
                     </button>
-                    <button
-                      onClick={() => setTopSortBy('profit')}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                        topSortBy === 'profit'
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {i18n.language === 'az' ? 'Mənfəət (₼)' : 'По прибыли (₼)'}
-                    </button>
+                    {canSeeCostAndProfit && (
+                      <button
+                        onClick={() => setTopSortBy('profit')}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                          topSortBy === 'profit'
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {i18n.language === 'az' ? 'Mənfəət (₼)' : 'По прибыли (₼)'}
+                      </button>
+                    )}
                   </div>
 
                   {/* Toggle between Column Chart and Rank List */}
@@ -985,14 +1009,16 @@ const WarehouseEfficiencyCharts = ({
                               </p>
                             </div>
 
-                            <div className="min-w-[70px] hidden md:block">
-                              <p className={`text-xs font-black ${prod.profit >= 0 ? 'text-amber-600' : 'text-rose-600'}`}>
-                                {prod.profit >= 0 ? '+' : ''}₼{prod.profit.toFixed(2)}
-                              </p>
-                              <p className="text-[10px] font-semibold text-gray-400">
-                                {prod.margin.toFixed(1)}% {i18n.language === 'az' ? 'marja' : 'маржа'}
-                              </p>
-                            </div>
+                            {canSeeCostAndProfit && (
+                              <div className="min-w-[70px] hidden md:block">
+                                <p className={`text-xs font-black ${prod.profit >= 0 ? 'text-amber-600' : 'text-rose-600'}`}>
+                                  {prod.profit >= 0 ? '+' : ''}₼{prod.profit.toFixed(2)}
+                                </p>
+                                <p className="text-[10px] font-semibold text-gray-400">
+                                  {prod.margin.toFixed(1)}% {i18n.language === 'az' ? 'marja' : 'маржа'}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1044,8 +1070,12 @@ const WarehouseEfficiencyCharts = ({
                             <th className="p-3">{i18n.language === 'az' ? 'Kateqoriya' : 'Категория'}</th>
                             <th className="p-3 text-right">{i18n.language === 'az' ? 'Satış Miqdarı' : 'Продано'}</th>
                             <th className="p-3 text-right">{i18n.language === 'az' ? 'Cəmi Məbləğ' : 'Сумма'}</th>
-                            <th className="p-3 text-right">{i18n.language === 'az' ? 'Xalis Mənfəət' : 'Прибыль'}</th>
-                            <th className="p-3 text-right">{i18n.language === 'az' ? 'Marja' : 'Маржа'}</th>
+                            {canSeeCostAndProfit && (
+                              <>
+                                <th className="p-3 text-right">{i18n.language === 'az' ? 'Xalis Mənfəət' : 'Прибыль'}</th>
+                                <th className="p-3 text-right">{i18n.language === 'az' ? 'Marja' : 'Маржа'}</th>
+                              </>
+                            )}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50 font-medium">
@@ -1063,12 +1093,16 @@ const WarehouseEfficiencyCharts = ({
                               <td className="p-3 text-right font-black text-emerald-600">
                                 ₼{p.revenue.toFixed(2)}
                               </td>
-                              <td className="p-3 text-right font-black text-amber-600">
-                                {p.profit >= 0 ? '+' : ''}₼{p.profit.toFixed(2)}
-                              </td>
-                              <td className="p-3 text-right font-bold text-gray-500">
-                                {p.margin.toFixed(1)}%
-                              </td>
+                              {canSeeCostAndProfit && (
+                                <>
+                                  <td className="p-3 text-right font-black text-amber-600">
+                                    {p.profit >= 0 ? '+' : ''}₼{p.profit.toFixed(2)}
+                                  </td>
+                                  <td className="p-3 text-right font-bold text-gray-500">
+                                    {p.margin.toFixed(1)}%
+                                  </td>
+                                </>
+                              )}
                             </tr>
                           ))}
                         </tbody>
@@ -1235,8 +1269,8 @@ const WarehouseEfficiencyCharts = ({
               </div>
             )}
 
-            {/* TAB 4: PROFIT & MARGINS - COMPARATIVE VISUAL BARS */}
-            {activeTab === 'margins' && (
+            {/* TAB 4: PROFIT & MARGINS - COMPARATIVE VISUAL BARS (Admin / Owner only) */}
+            {canSeeCostAndProfit && activeTab === 'margins' && (
               <div className="space-y-6">
                 <div>
                   <h4 className="text-sm font-black text-gray-900">
