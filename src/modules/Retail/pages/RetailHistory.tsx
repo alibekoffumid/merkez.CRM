@@ -143,7 +143,11 @@ const RetailHistory: React.FC = () => {
     try {
       const { error } = await supabase
         .from('retail_sales')
-        .update({ is_hidden: true })
+        .update({ 
+          is_hidden: true, 
+          is_deleted: true, 
+          status: 'cancelled' 
+        })
         .in('id', selectedIds);
       if (error) throw error;
       toast.success(t('retail.history.hiddenSuccess'));
@@ -162,7 +166,11 @@ const RetailHistory: React.FC = () => {
     try {
       const { error } = await supabase
         .from('retail_sales')
-        .update({ is_hidden: false })
+        .update({ 
+          is_hidden: false, 
+          is_deleted: false, 
+          status: 'completed' 
+        })
         .eq('user_id', profile?.id)
         .eq('is_hidden', true);
       if (error) throw error;
@@ -181,7 +189,11 @@ const RetailHistory: React.FC = () => {
     try {
       const { error } = await supabase
         .from('retail_sales')
-        .update({ is_hidden: false })
+        .update({ 
+          is_hidden: false, 
+          is_deleted: false, 
+          status: 'completed' 
+        })
         .in('id', selectedIds);
       if (error) throw error;
       toast.success(t('retail.history.restoredSuccess'));

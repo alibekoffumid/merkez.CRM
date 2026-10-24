@@ -292,6 +292,8 @@ const SaleDetailModal = ({
   const handlePrintReceipt = () => {
     printThermalReceipt57mm({
       receiptNumber: `№${sale.id ? sale.id.slice(0, 8).toUpperCase() : Date.now().toString().slice(-6)}`,
+      transactionId: sale.id,
+      storeName: 'Rast musiqi alətləri mağazası',
       date: sale.issued_at || sale.created_at || new Date(),
       warehouseName: warehouseName || 'Əsas Anbar / Mağaza',
       customerName: saleInfo.customerName || '',

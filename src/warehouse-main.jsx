@@ -28,7 +28,7 @@ const WarehouseAppContent = () => {
   
   // Set activeTab to repairs if the user is a Master
   useEffect(() => {
-    if (currentStaff?.role === 'Master') {
+    if (currentStaff?.role?.toLowerCase() === 'master') {
       setActiveTab('repairs');
     }
   }, [currentStaff?.role]);
@@ -318,7 +318,7 @@ const WarehouseAppContent = () => {
   }
 
   // 3. Authenticated State: Main Warehouse Module View
-  const isMaster = currentStaff?.role === 'Master';
+  const isMaster = currentStaff?.role?.toLowerCase() === 'master';
 
   const navTabs = [
     ...(!isMaster ? [{ id: 'finished', icon: Package, label: t('warehouse.finishedGoods') || 'Готовые товары' }] : []),

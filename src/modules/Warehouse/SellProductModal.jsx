@@ -676,7 +676,56 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
       const totalAmount = calculateTotal();
 
-      // 1. Process each item in database
+      // 1. Sync sale to retail_sales for unified CRM reporting & analytics first
+      let createdSaleId = null;
+      try {
+        if (profile?.id) {
+          const { data: saleRec, error: saleErr } = await supabase
+            .from('retail_sales')
+            .insert([{
+              user_id: profile.id,
+              total_amount: finalTotal,
+              tax_amount: 0,
+              payment_method: paymentMethod,
+              discount_amount: discountAmount,
+              discount_type: discountType,
+              status: 'completed',
+              is_deleted: false,
+              is_hidden: false,
+              created_at: new Date().toISOString(),
+            }])
+            .select('id')
+            .maybeSingle();
+
+          if (!saleErr && saleRec?.id) {
+            createdSaleId = saleRec.id;
+            const saleItems = cart.map(it => {
+              const itPrice = Number(it.price) || 0;
+              const itGross = itPrice * Number(it.quantity || 1);
+              const itDisc = (discountAmount > 0 && grossCartTotal > 0) ? (itGross / grossCartTotal) * discountAmount : 0;
+              return {
+                sale_id: saleRec.id,
+                product_id: it.product_id,
+                product_name: it.productName,
+                quantity: it.quantity,
+                price_at_sale: Math.max(0, itPrice - (itDisc / (Number(it.quantity) || 1))),
+                base_price: itPrice,
+                discount_amount: itDisc,
+                discount_type: discountType,
+                total: Math.max(0, itGross - itDisc),
+                status: 'completed',
+                is_deleted: false,
+                created_at: new Date().toISOString(),
+              };
+            });
+            await supabase.from('retail_sale_items').insert(saleItems);
+          }
+        }
+      } catch (e) {
+        console.warn('retail_sales sync optional write error:', e);
+      }
+
+      // 2. Process each item in stock_dispatches and decrement stock
       for (const item of cart) {
         // Log dispatch transaction (with reason 'sale')
         let channelPrefix = '';
@@ -721,6 +770,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           dispatchNote += ` [Məbləğ: ₼${itemGross.toFixed(2)}]`;
         }
 
+        // Link with created retail_sales ID for deletion & cancellation synchronization
+        if (createdSaleId) {
+          dispatchNote += ` [SaleID: ${createdSaleId}]`;
+        }
+
         dispatchNote = channelPrefix + dispatchNote;
 
         const { error: dispatchError } = await supabase
@@ -744,48 +798,6 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           .eq('id', item.product_id);
 
         if (updateError) throw updateError;
-      }
-
-      // Sync sale to retail_sales for unified CRM reporting & analytics
-      try {
-        if (profile?.id) {
-          const { data: saleRec, error: saleErr } = await supabase
-            .from('retail_sales')
-            .insert([{
-              user_id: profile.id,
-              total_amount: finalTotal,
-              tax_amount: 0,
-              payment_method: paymentMethod,
-              discount_amount: discountAmount,
-              discount_type: discountType,
-              created_at: new Date().toISOString(),
-            }])
-            .select('id')
-            .maybeSingle();
-
-          if (!saleErr && saleRec?.id) {
-            const saleItems = cart.map(it => {
-              const itPrice = Number(it.price) || 0;
-              const itGross = itPrice * Number(it.quantity || 1);
-              const itDisc = (discountAmount > 0 && grossCartTotal > 0) ? (itGross / grossCartTotal) * discountAmount : 0;
-              return {
-                sale_id: saleRec.id,
-                product_id: it.product_id,
-                product_name: it.productName,
-                quantity: it.quantity,
-                price_at_sale: Math.max(0, itPrice - (itDisc / (Number(it.quantity) || 1))),
-                base_price: itPrice,
-                discount_amount: itDisc,
-                discount_type: discountType,
-                total: Math.max(0, itGross - itDisc),
-                created_at: new Date().toISOString(),
-              };
-            });
-            await supabase.from('retail_sale_items').insert(saleItems);
-          }
-        }
-      } catch (e) {
-        console.warn('retail_sales sync optional write error:', e);
       }
 
       // 2. If payment method is Debt or Credit, update customer balance & log debt transaction
@@ -871,8 +883,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
       const finalReceiptTotal = paymentMethod === 'credit' ? contractTotal : (paymentMethod === 'birmarket' ? grossAmount : finalTotal);
       const receiptData = {
         receiptNumber: `${Date.now().toString().slice(-4)}`,
+        transactionId: createdSaleId || Date.now().toString().slice(-6),
         date: saleDate ? new Date(saleDate) : new Date(),
-        storeName: 'RAST MUSIC',
+        storeName: 'Rast musiqi alətləri mağazası',
         warehouseName: currentWarehouseName || 'Əsas Anbar / Mağaza',
         customerName: custObj?.name || (finalCustomerId ? 'Müştəri' : ''),
         customerPhone: custObj?.phone || '',

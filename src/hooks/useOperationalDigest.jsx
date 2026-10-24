@@ -37,13 +37,18 @@ export const useOperationalDigest = () => {
         
         const { data: salesToday, error: salesError } = await supabase
           .from('retail_sales')
-          .select('total_amount')
+          .select('total_amount, status, is_deleted, is_hidden')
           .eq('user_id', user.id)
           .gte('created_at', startOfDay.toISOString());
 
         let totalSales = 0;
         if (salesToday) {
-          totalSales = salesToday.reduce((sum, sale) => sum + Number(sale.total_amount), 0);
+          const validSales = salesToday.filter(sale => {
+            if (sale.is_deleted === true || sale.is_hidden === true) return false;
+            const st = String(sale.status || '').toLowerCase().trim();
+            return !['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(st);
+          });
+          totalSales = validSales.reduce((sum, sale) => sum + Number(sale.total_amount || 0), 0);
         }
 
         // Filter actual critical items

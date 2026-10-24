@@ -31,7 +31,8 @@ import {
   ClipboardList,
   Sparkles,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Ban
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
@@ -79,7 +80,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
   const [selectedDate, setSelectedDate] = useState<string>(initialDate || getTodayStr());
   const [loading, setLoading] = useState<boolean>(true);
   const [reportData, setReportData] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'summary' | 'products' | 'transactions' | 'preview'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'products' | 'transactions' | 'cancelled' | 'preview'>('summary');
   const [printFormat, setPrintFormat] = useState<'a4' | 'thermal'>('a4');
   const [searchProductQuery, setSearchProductQuery] = useState('');
   const [isExportingPDF, setIsExportingPDF] = useState(false);
@@ -118,7 +119,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
         showNotesColumn: true
       });
       // Switch active tab to products list or preview
-      if (activeTab === 'summary' || activeTab === 'transactions') {
+      if (activeTab === 'summary' || activeTab === 'transactions' || activeTab === 'cancelled') {
         setActiveTab('products');
       }
     } else {
@@ -429,6 +430,28 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                   </button>
                 )}
 
+                {/* Independent Cancellations Audit Tab */}
+                <button
+                  onClick={() => setActiveTab('cancelled')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'cancelled'
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700/40'
+                  }`}
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  Ləğv Edilmişlər (Audit)
+                  {reportData?.cancelledCount > 0 ? (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-black animate-pulse">
+                      {reportData.cancelledCount}
+                    </span>
+                  ) : (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
+                      0
+                    </span>
+                  )}
+                </button>
+
                 <button
                   onClick={() => setActiveTab('preview')}
                   className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
@@ -670,6 +693,33 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                 {/* TAB 1: SUMMARY & FINANCIAL METRICS (Only in detailed mode) */}
                 {activeTab === 'summary' && reportMode === 'detailed' && (
                   <div className="space-y-6">
+                    {/* Cancellations Audit Banner */}
+                    {reportData.cancelledCount > 0 && (
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-50 via-red-50 to-orange-50 border border-rose-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                            <Ban className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-rose-950 flex items-center gap-2">
+                              <span>Audit Qeydi: {reportData.cancelledCount} çek ləğv edilmişdir</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] bg-rose-200 text-rose-800 font-bold">Dövriyyədən çıxarılıb</span>
+                            </h4>
+                            <p className="text-xs text-rose-700 mt-0.5">
+                              Ləğv edilən məbləğ: <strong>{reportData.cancelledRevenue.toFixed(2)} ₼</strong> ({reportData.cancelledItemsCount} məhsul). Bu məbləğ kassa dövriyyəsinə və yekun balansa təsir etmir.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setActiveTab('cancelled')}
+                          className="px-3.5 py-1.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-all shadow-sm shrink-0 flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Ləğv Edilənlərə Bax
+                        </button>
+                      </div>
+                    )}
+
                     {/* Primary KPI Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       {/* Total Revenue */}
@@ -1056,6 +1106,105 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                                   </td>
                                   <td className="py-3 px-4 text-right font-black text-gray-900">
                                     {t.total.toFixed(2)} ₼
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB: CANCELLED TRANSACTIONS AUDIT */}
+                {activeTab === 'cancelled' && (
+                  <div className="space-y-6">
+                    {/* Cancellation KPI Header */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5 rounded-3xl shadow-lg shadow-rose-500/15">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-rose-100 mb-1">
+                          Ləğv Edilən Çek Sayı
+                        </div>
+                        <div className="text-3xl font-black">{reportData.cancelledCount || 0} çek</div>
+                        <p className="text-[11px] text-rose-100/90 font-medium mt-1">Dövriyyəyə daxil edilməyib</p>
+                      </div>
+
+                      <div className="bg-white p-5 rounded-3xl border border-rose-100 shadow-sm">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-1">
+                          Ləğv Edilmiş Məhsul Sayı
+                        </div>
+                        <div className="text-3xl font-black text-rose-700">{reportData.cancelledItemsCount || 0} ədəd</div>
+                        <p className="text-[11px] text-gray-500 font-medium mt-1">Geri qaytarılan / silinən mallar</p>
+                      </div>
+
+                      <div className="bg-white p-5 rounded-3xl border border-rose-100 shadow-sm">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-1">
+                          Ləğv Edilmiş Cəmi Məbləğ
+                        </div>
+                        <div className="text-3xl font-black text-rose-700">{(reportData.cancelledRevenue || 0).toFixed(2)} ₼</div>
+                        <p className="text-[11px] text-emerald-600 font-bold mt-1">Kassa balansından tam çıxarılıb</p>
+                      </div>
+                    </div>
+
+                    {/* Notice */}
+                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-3">
+                      <div className="p-1 rounded-lg bg-amber-200/60 text-amber-800 shrink-0">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <strong>Müstəqil Audit Bölməsi:</strong> Bu bölmədə gün ərzində silinmiş və ya ləğv edilmiş əməliyyatlar audit və nəzarət məqsədilə saxlanılır. Bu əməliyyatlar gün sonu Z-hesabatın ümumi dövriyyəsinə, qazancına və kassa təhvil məbləğinə qətiyyən təsir etmir.
+                      </div>
+                    </div>
+
+                    {/* Cancelled Transactions Table */}
+                    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                        <h4 className="text-base font-black text-gray-900 flex items-center gap-2">
+                          <Ban className="w-5 h-5 text-rose-600" />
+                          Ləğv Edilmiş Çeklər Siyahısı ({reportData.cancelledCount || 0})
+                        </h4>
+                        <span className="text-xs font-bold text-gray-400">
+                          Cəmi: {(reportData.cancelledRevenue || 0).toFixed(2)} ₼
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="bg-rose-50/70 text-rose-900 border-b border-rose-100">
+                              <th className="py-3 px-4 font-black">Ləğv Çek №</th>
+                              <th className="py-3 px-4 font-black">Saat</th>
+                              <th className="py-3 px-4 font-black">Məhsullar</th>
+                              <th className="py-3 px-4 font-black">Ödəniş Üsulu</th>
+                              <th className="py-3 px-4 font-black text-center">Say</th>
+                              <th className="py-3 px-4 font-black text-right">Ləğv Məbləği</th>
+                              <th className="py-3 px-4 font-black text-center">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {(!reportData.cancelledTransactions || reportData.cancelledTransactions.length === 0) ? (
+                              <tr>
+                                <td colSpan={7} className="py-12 text-center text-gray-400 font-bold">
+                                  Bu gün üçün ləğv edilmiş heç bir əməliyyat yoxdur. Bütün satışlar uğurludur.
+                                </td>
+                              </tr>
+                            ) : (
+                              reportData.cancelledTransactions.map((t: any) => (
+                                <tr key={t.id || t.receiptNumber} className="hover:bg-rose-50/30 transition-colors">
+                                  <td className="py-3 px-4 font-black text-rose-600">{t.receiptNumber}</td>
+                                  <td className="py-3 px-4 text-gray-500 font-medium">{t.time}</td>
+                                  <td className="py-3 px-4 text-gray-800 font-medium max-w-xs truncate" title={t.itemsSummary}>
+                                    {t.itemsSummary || '-'}
+                                  </td>
+                                  <td className="py-3 px-4 text-gray-600">{t.paymentMethod}</td>
+                                  <td className="py-3 px-4 text-center font-bold text-gray-800">{t.itemsCount}</td>
+                                  <td className="py-3 px-4 text-right font-black text-rose-600">
+                                    {Number(t.total || 0).toFixed(2)} ₼
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 uppercase">
+                                      {t.status}
+                                    </span>
                                   </td>
                                 </tr>
                               ))

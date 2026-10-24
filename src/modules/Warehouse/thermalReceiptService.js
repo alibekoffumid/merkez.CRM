@@ -4,6 +4,10 @@
  * Styled after official Azerbaijani POS/fiscal cash register receipts.
  */
 
+import React from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { renderToStaticMarkup } from 'react-dom/server';
+
 /**
  * Generates clean HTML matching official fiscal thermal receipt layout and prints via hidden iframe.
  */
@@ -11,14 +15,15 @@ export function printThermalReceipt57mm(saleData) {
   const {
     receiptNumber = Date.now().toString().slice(-4),
     date = new Date(),
-    storeName = 'RAST MUSIC',
-    tsName = 'MUSİQİ ALƏTLƏRİN SƏRGİSİ VƏ TƏMİRİ',
+    storeName = 'Rast musiqi alətləri mağazası',
+    tsName = 'MUSİQİ ALƏTLƏRİ SATIŞI VƏ TƏMİRİ',
     tsAddress = 'AZ1142 BAKI ŞƏHƏRİ XƏTAİ RAYONU ev.18A m.92',
     voName = 'ŞƏKƏROV KAMRAN MUSA OĞLU',
     voen = '5501238362',
     objectCode = '5501238362-20001',
     kassaNumber = 'V1E0969392',
-    cashierName = 'Default Clerk',
+    cashierName = 'Kassir',
+    warehouseName = '',
     customerName = '',
     customerPhone = '',
     paymentMethod = 'Nağd',
@@ -29,11 +34,16 @@ export function printThermalReceipt57mm(saleData) {
     taxAmount = 0,
     creditDetails = null, // { bank, months, monthlyPayment, markupPercent, contractTotal }
     notes = '',
-    paperWidth = '57mm' // '57mm' | '80mm'
+    transactionId = '',
+    saleId = '',
+    qrUrl = '',
+    paperWidth = '57mm' // '57mm' | '58mm' | '80mm'
   } = saleData;
 
-  const widthMm = paperWidth === '80mm' ? '72mm' : '48mm';
-  const pageSize = paperWidth === '80mm' ? '80mm auto' : '58mm auto';
+  const is80mm = paperWidth === '80mm';
+  const widthMm = is80mm ? '72mm' : '48mm';
+  const pageSize = is80mm ? '80mm auto' : '58mm auto';
+  const qrSvgSize = is80mm ? 135 : 105;
 
   // Format date and time matching fiscal receipt: DD/MM/YYYY and HH:mm:ss
   let dateObj = date instanceof Date ? date : new Date(date);
@@ -53,6 +63,32 @@ export function printThermalReceipt57mm(saleData) {
 
   // Clean receipt number (remove leading № or #)
   const cleanReceiptNumber = String(receiptNumber || '').replace(/^[№#]\s*/, '') || Date.now().toString().slice(-4);
+  const cleanTxId = String(transactionId || saleId || cleanReceiptNumber);
+
+  // Construct Verification / Electronic Receipt URL for QR code
+  let targetQrUrl = qrUrl;
+  if (!targetQrUrl) {
+    const origin = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://rastmusic.az';
+    targetQrUrl = `${origin}/receipt/${encodeURIComponent(cleanTxId)}?num=${encodeURIComponent(cleanReceiptNumber)}&sum=${Number(total).toFixed(2)}`;
+  }
+
+  // Generate crisp pure SVG QR code HTML
+  let qrSvgHtml = '';
+  try {
+    qrSvgHtml = renderToStaticMarkup(
+      React.createElement(QRCodeSVG, {
+        value: targetQrUrl,
+        size: qrSvgSize,
+        level: 'M',
+        marginSize: 1,
+        style: { margin: '0 auto', display: 'block' }
+      })
+    );
+  } catch (err) {
+    console.warn('QR code generation failed:', err);
+  }
 
   // Normalize payment method
   let paymentTitle = 'Nağd';
@@ -90,7 +126,7 @@ export function printThermalReceipt57mm(saleData) {
             width: ${widthMm} !important;
             max-width: ${widthMm} !important;
             margin: 0 auto !important;
-            padding: 1.5mm 1mm 10mm 1mm !important;
+            padding: ${is80mm ? '2mm 2mm 10mm 2mm' : '1.5mm 1mm 10mm 1mm'} !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
@@ -105,10 +141,10 @@ export function printThermalReceipt57mm(saleData) {
           width: ${widthMm};
           max-width: ${widthMm};
           margin: 0 auto;
-          padding: 2.5mm 1mm 12mm 1mm;
+          padding: ${is80mm ? '3mm 2mm 12mm 2mm' : '2.5mm 1mm 12mm 1mm'};
           color: #000;
           background: #fff;
-          font-size: 10.5px;
+          font-size: ${is80mm ? '11px' : '10px'};
           line-height: 1.25;
           -webkit-font-smoothing: antialiased;
         }
@@ -117,44 +153,64 @@ export function printThermalReceipt57mm(saleData) {
         .text-left { text-align: left; }
         .bold { font-weight: 700; }
         
+        /* Store Top Header */
+        .store-top-header {
+          text-align: center;
+          margin-bottom: 4px;
+        }
+        .store-main-title {
+          font-size: ${is80mm ? '14px' : '12.5px'};
+          font-weight: 900;
+          letter-spacing: -0.2px;
+          line-height: 1.2;
+          text-transform: uppercase;
+          margin-bottom: 1px;
+        }
+        .store-sub-title {
+          font-size: ${is80mm ? '10px' : '9px'};
+          font-weight: 600;
+          color: #000;
+        }
+
         .header-section {
-          font-size: 10px;
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
           line-height: 1.25;
           text-align: left;
-          margin-bottom: 5px;
+          margin-bottom: 4px;
         }
         .header-line {
           margin: 1px 0;
         }
         .title-block {
           text-align: center;
-          margin: 4px 0 6px 0;
+          margin: 4px 0 5px 0;
         }
         .receipt-title {
-          font-size: 13px;
-          font-weight: 700;
+          font-size: ${is80mm ? '14px' : '12.5px'};
+          font-weight: 800;
+          letter-spacing: 0.5px;
           margin-bottom: 2px;
         }
         .receipt-number {
-          font-size: 11.5px;
+          font-size: ${is80mm ? '12px' : '11px'};
           font-weight: 700;
           margin-bottom: 2px;
         }
         .receipt-datetime {
-          font-size: 10px;
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
         }
         .store-block {
           margin: 4px 0;
-          font-size: 10px;
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
           line-height: 1.25;
         }
         .store-name-title {
-          font-size: 11.5px;
+          font-size: ${is80mm ? '12px' : '11px'};
           font-weight: 700;
           margin-bottom: 2px;
         }
         .divider-stars {
-          font-size: 10px;
+          font-size: 9.5px;
           line-height: 1;
           letter-spacing: 0.5px;
           margin: 3px 0;
@@ -164,7 +220,7 @@ export function printThermalReceipt57mm(saleData) {
           user-select: none;
         }
         .divider-dash {
-          font-size: 10px;
+          font-size: 9.5px;
           line-height: 1;
           letter-spacing: 0.5px;
           margin: 3px 0;
@@ -175,21 +231,21 @@ export function printThermalReceipt57mm(saleData) {
         }
         .items-header {
           display: grid;
-          grid-template-columns: 1fr 28px 40px 42px;
+          grid-template-columns: ${is80mm ? '1fr 34px 54px 56px' : '1fr 26px 40px 42px'};
           column-gap: 2px;
-          font-size: 10px;
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
           font-weight: 700;
           padding: 1px 0;
           line-height: 1.2;
         }
         .item-row {
           display: grid;
-          grid-template-columns: 1fr 28px 40px 42px;
+          grid-template-columns: ${is80mm ? '1fr 34px 54px 56px' : '1fr 26px 40px 42px'};
           column-gap: 2px;
           align-items: start;
-          font-size: 10px;
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
           line-height: 1.25;
-          margin: 2.5px 0;
+          margin: 2px 0;
         }
         .col-name {
           text-align: left;
@@ -209,7 +265,7 @@ export function printThermalReceipt57mm(saleData) {
           font-weight: 700;
         }
         .item-extra {
-          font-size: 9px;
+          font-size: 8.5px;
           color: #000;
           margin: 1px 0 2px 0;
           padding-left: 2px;
@@ -221,12 +277,12 @@ export function printThermalReceipt57mm(saleData) {
           width: 100%;
         }
         .total-box {
-          font-size: 13px;
+          font-size: ${is80mm ? '14px' : '12.5px'};
           font-weight: 800;
           margin: 3px 0 1px 0;
         }
         .meta-line {
-          font-size: 10px;
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
           line-height: 1.25;
           margin: 1.5px 0;
         }
@@ -240,6 +296,53 @@ export function printThermalReceipt57mm(saleData) {
           padding: 2px 4px;
           margin: 3px 0;
         }
+
+        /* Fiscal QR Code Footer Section */
+        .qr-fiscal-section {
+          text-align: center;
+          margin-top: 4px;
+          padding-top: 2px;
+        }
+        .qr-title {
+          font-size: ${is80mm ? '11px' : '10px'};
+          letter-spacing: 0.5px;
+          margin-bottom: 1px;
+        }
+        .qr-subtitle {
+          font-size: 8.5px;
+          margin-bottom: 5px;
+          color: #000;
+        }
+        .qr-code-wrapper {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin: 4px auto 5px auto;
+        }
+        .qr-code-wrapper svg {
+          shape-rendering: crispEdges;
+          display: block;
+          margin: 0 auto;
+        }
+        .qr-id-line {
+          font-size: 9px;
+          margin-top: 2px;
+          letter-spacing: 0.3px;
+        }
+        .qr-doc-line {
+          font-size: 9px;
+          margin-top: 1px;
+        }
+        .qr-thanks {
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
+          margin-top: 5px;
+          letter-spacing: 0.5px;
+        }
+        .qr-subthanks {
+          font-size: 8.5px;
+          margin-top: 1px;
+        }
+
         .btn-print {
           background: #000;
           color: #fff;
@@ -259,9 +362,17 @@ export function printThermalReceipt57mm(saleData) {
         <button class="btn-print" onclick="window.print()">🖨️ Çap et (Print)</button>
       </div>
 
+      <!-- Top Store Brand Header -->
+      <div class="store-top-header">
+        <div class="store-main-title">Rast musiqi alətləri mağazası</div>
+        <div class="store-sub-title">Musiqi Alətlərinin Satışı və Təmiri</div>
+      </div>
+
+      <div class="divider-dash">------------------------------------------------------------</div>
+
       <!-- Top Fiscal Merchant Header -->
       <div class="header-section">
-        <div class="header-line">TS Adı: ${escapeHtml(tsName)}</div>
+        <div class="header-line">TS Adı: ${escapeHtml(tsName || 'Rast musiqi alətləri mağazası')}</div>
         <div class="header-line">TS Ünvanı: ${escapeHtml(tsAddress)}</div>
         <div class="header-line">VÖ Adı: ${escapeHtml(voName)}</div>
         <div class="header-line">VÖEN: ${escapeHtml(voen)}</div>
@@ -270,14 +381,15 @@ export function printThermalReceipt57mm(saleData) {
 
       <!-- Document Title & Number -->
       <div class="title-block">
-        <div class="receipt-title">Satış</div>
+        <div class="receipt-title">SATIŞ ÇEKİ</div>
         <div class="receipt-number">Çek nömrəsi: ${escapeHtml(cleanReceiptNumber)}</div>
         <div class="receipt-datetime">Tarix: ${escapeHtml(dateStr)} &nbsp; Vaxt: ${escapeHtml(timeStr)}</div>
       </div>
 
       <!-- Store & Cashier Details -->
       <div class="store-block">
-        <div class="store-name-title">${escapeHtml(storeName)}</div>
+        <div class="store-name-title">Rast musiqi alətləri mağazası</div>
+        ${warehouseName ? `<div class="meta-line">Filial: ${escapeHtml(warehouseName)}</div>` : ''}
         <div class="meta-line">Kassa nömrəsi: ${escapeHtml(kassaNumber)}</div>
         <div class="meta-line">Kassir: ${escapeHtml(cashierName)}</div>
       </div>
@@ -298,7 +410,7 @@ export function printThermalReceipt57mm(saleData) {
         const itemPrice = Number(item.price) || 0;
         const itemTotal = Number(item.total) || (itemQty * itemPrice);
         const itemUnit = item.unit ? `(${item.unit})` : '';
-        const itemDisplayName = `${escapeHtml(item.name || 'Məhsul')}${itemUnit ? `${escapeHtml(itemUnit)}` : ''}`;
+        const itemDisplayName = `${escapeHtml(item.name || item.productName || 'Məhsul')}${itemUnit ? ` ${escapeHtml(itemUnit)}` : ''}`;
         const qtyFormatted = Number.isInteger(itemQty) ? itemQty.toFixed(1) : itemQty.toString();
 
         return `
@@ -368,10 +480,23 @@ export function printThermalReceipt57mm(saleData) {
       ` : ''}
 
       ${notes ? `
-        <div class="meta-line" style="font-size: 9px; margin-top: 2px;">Qeyd: ${escapeHtml(notes)}</div>
+        <div class="meta-line" style="font-size: 8.5px; margin-top: 2px;">Qeyd: ${escapeHtml(notes)}</div>
       ` : ''}
 
       <div class="divider-stars">************************************************************</div>
+
+      <!-- Fiscal QR Code & Verification Block -->
+      <div class="qr-fiscal-section">
+        <div class="qr-title bold">ELEKTRON ÇEK / YOXLAMA</div>
+        <div class="qr-subtitle">Elektron versiya və yoxlama üçün skan edin</div>
+        <div class="qr-code-wrapper">
+          ${qrSvgHtml}
+        </div>
+        <div class="qr-id-line">ID: <span class="bold">${escapeHtml(cleanTxId)}</span></div>
+        <div class="qr-doc-line">Fiskal / Qeydiyyat №: ${escapeHtml(cleanReceiptNumber)}</div>
+        <div class="qr-thanks bold">TİCARƏTİNİZ XEYİRLİ OLSUN!</div>
+        <div class="qr-subthanks">Bizi seçdiyiniz üçün təşəkkür edirik!</div>
+      </div>
 
       <!-- Cutter Feed Space -->
       <div style="height: 12mm; line-height: 12mm;">&nbsp;</div>

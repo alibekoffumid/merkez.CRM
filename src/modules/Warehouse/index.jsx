@@ -545,6 +545,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
     printThermalReceipt57mm({
       receiptNumber: `№${(dispatch.id || '').slice(0, 8).toUpperCase()}`,
+      transactionId: dispatch.id,
+      storeName: 'Rast musiqi alətləri mağazası',
       date: dispatch.issued_at || dispatch.created_at || new Date(),
       warehouseName: whObj?.name || 'Əsas Anbar / Mağaza',
       customerName: parsed.customerName || '',
@@ -584,12 +586,68 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       return;
     }
     try {
+      // 1. Delete dispatch record from stock_dispatches
       const { error: delErr } = await supabase
         .from('stock_dispatches')
         .delete()
         .eq('id', dispatchToDelete.id);
 
       if (delErr) throw delErr;
+
+      // 2. Synchronously cancel / delete linked retail_sales to exclude from end-of-day reports
+      try {
+        const noteStr = dispatchToDelete.notes || '';
+        const saleIdMatch = noteStr.match(/\[SaleID:\s*([a-zA-Z0-9_-]+)\]/i);
+        let linkedSaleId = saleIdMatch ? saleIdMatch[1] : null;
+
+        // If no explicit SaleID tag, check if dispatch is a sale and locate matching retail_sales
+        if (!linkedSaleId && (dispatchToDelete.reason === 'sale' || /satış|продажа|sale|qiymət|məbləğ/i.test(noteStr))) {
+          const dispatchDate = new Date(dispatchToDelete.issued_at || dispatchToDelete.created_at || Date.now());
+          const timeWindowStart = new Date(dispatchDate.getTime() - 15 * 60 * 1000).toISOString();
+          const timeWindowEnd = new Date(dispatchDate.getTime() + 15 * 60 * 1000).toISOString();
+          
+          let candidateQuery = supabase
+            .from('retail_sales')
+            .select('id, created_at, retail_sale_items(product_id, quantity)')
+            .gte('created_at', timeWindowStart)
+            .lte('created_at', timeWindowEnd);
+
+          if (dispatchToDelete.user_id) {
+            candidateQuery = candidateQuery.eq('user_id', dispatchToDelete.user_id);
+          }
+
+          const { data: candidates } = await candidateQuery;
+          if (candidates && candidates.length > 0) {
+            const matched = candidates.find(c => 
+              (c.retail_sale_items || []).some(it => it.product_id === dispatchToDelete.product_id)
+            );
+            if (matched) {
+              linkedSaleId = matched.id;
+            }
+          }
+        }
+
+        if (linkedSaleId) {
+          await supabase
+            .from('retail_sales')
+            .update({ 
+              status: 'cancelled', 
+              is_deleted: true, 
+              is_hidden: true 
+            })
+            .eq('id', linkedSaleId);
+
+          await supabase
+            .from('retail_sale_items')
+            .update({ 
+              status: 'cancelled', 
+              is_deleted: true 
+            })
+            .eq('sale_id', linkedSaleId);
+        }
+      } catch (syncErr) {
+        console.warn('Could not sync cancellation to retail_sales:', syncErr);
+      }
 
       const qtyToAdd = parseFloat(dispatchToDelete.quantity || 0);
 
@@ -1989,7 +2047,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
-            {currentStaff?.role !== 'Storeman' && currentStaff?.role !== 'Master' && activeTab === 'finished' && (
+            {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
               <button 
                 onClick={() => setShowSellProduct(true)} 
                 className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
@@ -2009,7 +2067,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               </button>
             )}
             
-            {currentStaff?.role !== 'Cashier' && currentStaff?.role !== 'Master' && activeTab === 'finished' && (
+            {currentStaff?.role !== 'Cashier' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
               <>
                 <button 
                   id="tour-receive-btn"

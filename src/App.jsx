@@ -22,6 +22,7 @@ import ScannerModule from './modules/Scanner';
 import HotelsModule from './modules/Hotels';
 import CyberCafeModule from './modules/CyberCafe';
 import RepairReceipt from './modules/Warehouse/RepairReceipt';
+import SaleReceipt from './modules/Warehouse/SaleReceipt';
 import ModuleStore from './pages/ModuleStore';
 import Landing from './pages/Landing';
 import { MODULE_REGISTRY } from './config/moduleRegistry';
@@ -205,6 +206,7 @@ function App() {
       <Routes>
         {/* Digital Receipt Routes */}
         <Route path="/repair-receipt/:id" element={<RepairReceipt />} />
+        <Route path="/receipt/:id" element={<SaleReceipt />} />
         
         {/* Public Routes */}
         <Route path="/" element={isAppDomain ? <Navigate to="/dashboard" replace /> : <Landing />} />

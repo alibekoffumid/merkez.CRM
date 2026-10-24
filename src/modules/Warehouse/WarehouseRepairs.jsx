@@ -459,7 +459,7 @@ const WarehouseRepairs = ({ activeTab }) => {
     </div>
   );
 
-  const actionButtons = currentStaff?.role !== 'Master' && (
+  const actionButtons = currentStaff?.role?.toLowerCase() !== 'master' && (
     <div className="flex items-center gap-2 shrink-0">
       <button 
         onClick={() => setIsMastersModalOpen(true)}

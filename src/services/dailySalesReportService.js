@@ -98,6 +98,17 @@ export const translatePaymentMethodAz = (method) => {
 };
 
 /**
+ * Helper to identify if a sale or item has been cancelled, deleted, refunded, or hidden
+ */
+export const isCancelledOrDeleted = (record) => {
+  if (!record) return false;
+  if (record.is_deleted === true) return true;
+  if (record.is_hidden === true) return true;
+  const status = String(record.status || '').toLowerCase().trim();
+  return ['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(status);
+};
+
+/**
  * Fetch and aggregate all sales data for a specific day
  */
 export const fetchDailySalesReportData = async (supabase, userId, selectedDateInput, includeHidden = false) => {
@@ -121,14 +132,14 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   const startOfDay = new Date(`${dateStr}T00:00:00.000`);
   const endOfDay = new Date(`${dateStr}T23:59:59.999`);
 
-  // 1. Fetch sales with items (with pagination to support busy shifts with >1000 sales)
+  // 1. Fetch sales with items (fetching all daily records so cancelled ones can be audited independently)
   let salesList = [];
   let sFrom = 0;
   const sStep = 1000;
   let sHasMore = true;
 
   while (sHasMore) {
-    let salesQuery = supabase
+    const salesQuery = supabase
       .from('retail_sales')
       .select('*, retail_sale_items(*)')
       .eq('user_id', userId)
@@ -136,10 +147,6 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       .lte('created_at', endOfDay.toISOString())
       .order('created_at', { ascending: true })
       .range(sFrom, sFrom + sStep - 1);
-
-    if (!includeHidden) {
-      salesQuery = salesQuery.or('is_hidden.is.null,is_hidden.eq.false');
-    }
 
     const { data: salesChunk, error: salesError } = await salesQuery;
     if (salesError) {
@@ -248,7 +255,19 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     }
   });
 
-  // Compute Aggregations
+  // Separate valid sales from cancelled / deleted sales
+  const validSalesList = [];
+  const cancelledSalesList = [];
+
+  salesList.forEach(sale => {
+    if (isCancelledOrDeleted(sale)) {
+      cancelledSalesList.push(sale);
+    } else {
+      validSalesList.push(sale);
+    }
+  });
+
+  // Compute Aggregations strictly for VALID sales
   let totalRevenue = 0;
   let totalCash = 0;
   let totalCard = 0;
@@ -271,7 +290,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
 
   const transactionsList = [];
 
-  salesList.forEach((sale, index) => {
+  validSalesList.forEach((sale, index) => {
     const saleAmount = Number(sale.total_amount || 0);
     const saleDiscount = Number(sale.discount_amount || 0);
     const paymentMethod = String(sale.payment_method || 'cash').toLowerCase();
@@ -305,12 +324,14 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     hourData.revenue += saleAmount;
     hourlyAggregationMap.set(hourSlotKey, hourData);
 
-    // Process Sale Items
+    // Process Sale Items (skipping any deleted items if flagged individually)
     const items = sale.retail_sale_items || [];
     let saleItemNames = [];
     let saleItemsQuantity = 0;
 
     items.forEach(item => {
+      if (isCancelledOrDeleted(item)) return;
+
       const qty = Number(item.quantity || 1);
       const price = Number(item.price_at_sale || item.base_price || 0);
       const itemTotal = Number(item.total || qty * price);
@@ -408,9 +429,74 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     });
   });
 
+  // Compute Independent Audit for CANCELLED / DELETED Sales (does NOT affect revenue)
+  let cancelledRevenue = 0;
+  let cancelledDiscounts = 0;
+  let cancelledItemsCount = 0;
+  const cancelledTransactionsList = [];
+  const cancelledProductMap = new Map();
+
+  cancelledSalesList.forEach((sale, index) => {
+    const saleAmount = Number(sale.total_amount || 0);
+    const saleDiscount = Number(sale.discount_amount || 0);
+    cancelledRevenue += saleAmount;
+    cancelledDiscounts += saleDiscount;
+
+    const items = sale.retail_sale_items || [];
+    let saleItemNames = [];
+    let saleItemsQuantity = 0;
+
+    items.forEach(item => {
+      const qty = Number(item.quantity || 1);
+      const price = Number(item.price_at_sale || item.base_price || 0);
+      const itemTotal = Number(item.total || qty * price);
+      const productName = (item.product_name || 'Naməlum Məhsul').trim();
+
+      cancelledItemsCount += qty;
+      saleItemsQuantity += qty;
+      saleItemNames.push(`${productName} (${qty})`);
+
+      const prodKey = item.product_id || productName;
+      if (!cancelledProductMap.has(prodKey)) {
+        cancelledProductMap.set(prodKey, {
+          id: prodKey,
+          name: productName,
+          barcode: item.barcode || '-',
+          quantity: 0,
+          totalRevenue: 0,
+          unit: item.unit || 'ədəd'
+        });
+      }
+      const cProd = cancelledProductMap.get(prodKey);
+      cProd.quantity += qty;
+      cProd.totalRevenue += itemTotal;
+    });
+
+    cancelledTransactionsList.push({
+      receiptNumber: `№L-${String(index + 1).padStart(4, '0')}`,
+      id: sale.id,
+      shortId: sale.id ? sale.id.substring(0, 8).toUpperCase() : `CAN-${index + 1}`,
+      time: formatTimeAz(sale.created_at),
+      dateTime: formatDateTimeAz(sale.created_at),
+      itemsCount: saleItemsQuantity,
+      itemsSummary: saleItemNames.slice(0, 3).join(', ') + (saleItemNames.length > 3 ? ` və daha ${saleItemNames.length - 3}` : ''),
+      paymentMethod: translatePaymentMethodAz(sale.payment_method),
+      paymentMethodRaw: sale.payment_method,
+      discount: saleDiscount,
+      total: saleAmount,
+      status: sale.status || 'Ləğv edilib',
+      items: items.map(it => ({
+        name: it.product_name,
+        quantity: it.quantity,
+        price: it.price_at_sale || it.base_price,
+        total: it.total
+      }))
+    });
+  });
+
   const grossProfit = totalRevenue - totalCostPrice;
   const marginPercent = totalRevenue > 0 ? ((grossProfit / totalRevenue) * 100) : 0;
-  const receiptsCount = salesList.length;
+  const receiptsCount = validSalesList.length;
   const averageTicket = receiptsCount > 0 ? (totalRevenue / receiptsCount) : 0;
 
   // Sorted product list (highest revenue first, or by quantity)
@@ -422,12 +508,15 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   // Hourly list filtered to hours that had activity
   const activeHours = Array.from(hourlyAggregationMap.values()).filter(h => h.count > 0);
 
-  // Shift working interval (first sale to last sale)
+  // Shift working interval (first valid sale to last valid sale)
   let shiftStartTime = '-';
   let shiftEndTime = '-';
-  if (salesList.length > 0) {
-    shiftStartTime = formatTimeAz(salesList[0].created_at);
-    shiftEndTime = formatTimeAz(salesList[salesList.length - 1].created_at);
+  if (validSalesList.length > 0) {
+    shiftStartTime = formatTimeAz(validSalesList[0].created_at);
+    shiftEndTime = formatTimeAz(validSalesList[validSalesList.length - 1].created_at);
+  } else if (cancelledSalesList.length > 0) {
+    shiftStartTime = formatTimeAz(cancelledSalesList[0].created_at);
+    shiftEndTime = formatTimeAz(cancelledSalesList[cancelledSalesList.length - 1].created_at);
   }
 
   return {
@@ -453,7 +542,15 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     products: aggregatedProducts,
     categories: aggregatedCategories,
     activeHours,
-    transactions: transactionsList
+    transactions: transactionsList,
+
+    // Dedicated Independent Cancellation Audit Section (does NOT affect financial balance)
+    cancelledCount: cancelledSalesList.length,
+    cancelledRevenue: Number(cancelledRevenue.toFixed(2)),
+    cancelledItemsCount: Number(cancelledItemsCount.toFixed(2)),
+    cancelledDiscounts: Number(cancelledDiscounts.toFixed(2)),
+    cancelledTransactions: cancelledTransactionsList,
+    cancelledProducts: Array.from(cancelledProductMap.values()).sort((a, b) => b.quantity - a.quantity)
   };
 };
 
@@ -690,6 +787,26 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             `).join('')}
           </tbody>
         </table>
+
+        ${data.cancelledCount > 0 ? `
+        <div class="divider"></div>
+        <div class="bold text-center" style="margin-bottom: 3px; font-size: 11px;">LƏĞV EDİLMİŞ ÇEKLƏR (AUDİT)</div>
+        <div class="row">
+          <span>Ləğv Çek Sayı:</span>
+          <span class="bold">${data.cancelledCount} ədəd</span>
+        </div>
+        <div class="row">
+          <span>Ləğv Malların Sayı:</span>
+          <span>${data.cancelledItemsCount} ədəd</span>
+        </div>
+        <div class="row">
+          <span>Ləğv Edilən Məbləğ:</span>
+          <span class="bold">${data.cancelledRevenue.toFixed(2)} AZN</span>
+        </div>
+        <div style="font-size: 8.5px; color: #444; text-align: center; margin-top: 2px; font-style: italic;">
+          * Bu məbləğ kassa dövriyyəsindən tamamilə çıxarılıb
+        </div>
+        ` : ''}
 
         <div class="double-divider"></div>
         <div class="signature-box">
@@ -1325,6 +1442,48 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
         </table>
         ` : ''}
 
+        <!-- Cancelled Transactions Independent Audit Section (Does NOT affect shift balance) -->
+        ${data.cancelledCount > 0 ? `
+        <div class="section-header" style="color: #991b1b; border-bottom: 2px solid #f87171; margin-top: 20px;">
+          <span>Ləğv Edilmiş / Silinmiş Əməliyyatlar (Müstəqil Audit Bölməsi — ${data.cancelledCount} çek)</span>
+          <span style="font-size: 10px; font-weight: normal; color: #b91c1c;">Ümumi dövriyyəyə daxil deyil • Cəmi: ${data.cancelledRevenue.toFixed(2)} AZN (${data.cancelledItemsCount} məhsul)</span>
+        </div>
+        <table class="data-table" style="border: 1px solid #fee2e2; margin-bottom: 12px;">
+          <thead>
+            <tr style="background: #fef2f2;">
+              <th style="width: 8%; color: #991b1b;">Çek №</th>
+              <th style="width: 10%; color: #991b1b;">Saat</th>
+              <th style="width: 42%; color: #991b1b;">Ləğv Edilmiş Məhsullar</th>
+              <th style="width: 15%; color: #991b1b;">Ödəniş Üsulu</th>
+              <th class="text-center" style="width: 10%; color: #991b1b;">Say</th>
+              <th class="text-right" style="width: 15%; color: #991b1b;">Ləğv Məbləği</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.cancelledTransactions.map(t => `
+              <tr style="background: #fffafa;">
+                <td class="bold text-center" style="color: #b91c1c;">${t.receiptNumber}</td>
+                <td style="color: #64748b;">${t.time}</td>
+                <td style="color: #334155; font-size: 9.5px;">${t.itemsSummary || '-'}</td>
+                <td style="color: #64748b;">${t.paymentMethod}</td>
+                <td class="text-center bold" style="color: #b91c1c;">${t.itemsCount}</td>
+                <td class="text-right bold" style="color: #b91c1c;">${t.total.toFixed(2)} AZN</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background: #fef2f2;">
+              <td colspan="4" class="bold" style="color: #991b1b;">CƏMİ LƏĞV EDİLMİŞ ƏMƏLİYYATLAR:</td>
+              <td class="text-center bold" style="color: #991b1b;">${data.cancelledItemsCount}</td>
+              <td class="text-right bold" style="color: #b91c1c;">${data.cancelledRevenue.toFixed(2)} AZN</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="font-size: 9.5px; color: #991b1b; background: #fff1f2; border: 1px solid #fecdd3; padding: 6px 10px; border-radius: 6px; margin-bottom: 16px;">
+          <strong>Audit Qeydi:</strong> Yuxarıdakı ${data.cancelledCount} əməliyyat kassa və ya anbar arxivindən ləğv edilmiş / silinmişdir. Bu məbləğ kassanın ümumi dövriyyəsinə və yekun maliyyə balansına <strong>qətiyyən təsir etmir</strong>.
+        </div>
+        ` : ''}
+
         <!-- Signatures & Verification -->
         ${mergedOptions.showSignatures !== false ? `
         <div class="signatures-container no-break">
@@ -1772,6 +1931,63 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
       }
     }
 
+    // Cancelled / Deleted Transactions Independent Audit Table (does NOT affect total revenue)
+    if (data.cancelledCount > 0) {
+      if (currentY > 210) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      const cancelledData = (data.cancelledTransactions || []).slice(0, 30).map(t => [
+        t.receiptNumber,
+        t.time,
+        t.itemsSummary || '-',
+        t.paymentMethod,
+        `${t.itemsCount} ədəd`,
+        `${t.total.toFixed(2)} AZN`
+      ]);
+
+      doc.setFont('Roboto', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(185, 28, 28); // Red
+      doc.text(`Ləğv Edilmiş Əməliyyatlar — Audit Bölməsi (${data.cancelledCount} çek, Cəmi: ${data.cancelledRevenue.toFixed(2)} AZN)`, 14, currentY + 8);
+      doc.setFont('Roboto', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(107, 114, 128);
+      doc.text('* Bu əməliyyatlar kassa dövriyyəsindən çıxarılıb və yekun balansa təsir etmir', 14, currentY + 12);
+
+      autoTable(doc, {
+        startY: currentY + 15,
+        head: [['Ləğv №', 'Saat', 'Məhsullar', 'Ödəniş Üsulu', 'Say', 'Ləğv Məbləği']],
+        body: cancelledData,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [185, 28, 28],
+          textColor: 255,
+          font: 'Roboto',
+          fontStyle: 'bold',
+          fontSize: 8
+        },
+        styles: {
+          font: 'Roboto',
+          fontStyle: 'normal',
+          fontSize: 7.5,
+          cellPadding: 1.8
+        },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 16 },
+          1: { halign: 'center', cellWidth: 16 },
+          2: { cellWidth: 80 },
+          3: { cellWidth: 30 },
+          4: { halign: 'center', cellWidth: 18 },
+          5: { halign: 'right', cellWidth: 22 }
+        },
+        margin: { left: 14, right: 14 }
+      });
+
+      currentY = doc.lastAutoTable?.finalY || currentY + 30;
+    }
+
     // Signature Block
     if (currentY > 250) {
       doc.addPage();
@@ -1886,7 +2102,12 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       ['Orta Çek Məbləği', data.averageTicket, 'AZN'],
       ['Maya Dəyəri', data.totalCostPrice, 'AZN'],
       ['Təxmini Xalis Mənfəət', data.grossProfit, 'AZN'],
-      ['Rentabellik (%)', data.marginPercent, '%']
+      ['Rentabellik (%)', data.marginPercent, '%'],
+      [],
+      ['AUDİT: LƏĞV EDİLMİŞ / SİLİNMİŞ ƏMƏLİYYATLAR (Dövriyyəyə daxil deyil)', '', ''],
+      ['Ləğv Edilmiş Çek Sayı', data.cancelledCount || 0, 'ədəd'],
+      ['Ləğv Edilmiş Məhsul Sayı', data.cancelledItemsCount || 0, 'ədəd'],
+      ['Ləğv Edilmiş Məbləğ', data.cancelledRevenue || 0, 'AZN']
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryAoa);
     XLSX.utils.book_append_sheet(wb, wsSummary, 'Maliyyə Xülasəsi');
@@ -1931,6 +2152,34 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
     });
     const wsReceipts = XLSX.utils.aoa_to_sheet(receiptsAoa);
     XLSX.utils.book_append_sheet(wb, wsReceipts, 'Günün Çekləri');
+
+    // 4. Cancelled Sheet (Audit)
+    if (data.cancelledCount > 0) {
+      const cancelledAoa = [
+        ['MƏRKƏZ CRM - LƏĞV EDİLMİŞ / SİLİNMİŞ ƏMƏLİYYATLAR (AUDİT)'],
+        ['Hesabat Tarixi:', data.formattedDate],
+        ['Qeyd:', 'Bu əməliyyatlar kassa dövriyyəsindən çıxarılıb və yekun balansa təsir etmir.'],
+        ['Cəmi Ləğv Çek:', data.cancelledCount],
+        ['Cəmi Ləğv Məbləğ:', data.cancelledRevenue, 'AZN'],
+        [],
+        ['Ləğv Çek №', 'ID', 'Saat', 'Tarix', 'Ödəniş Üsulu', 'Məhsullar', 'Məhsul Sayı', 'Ləğv Məbləği (AZN)', 'Status']
+      ];
+      data.cancelledTransactions.forEach(t => {
+        cancelledAoa.push([
+          t.receiptNumber,
+          t.shortId,
+          t.time,
+          t.dateTime,
+          t.paymentMethod,
+          t.itemsSummary || '-',
+          t.itemsCount,
+          t.total,
+          t.status
+        ]);
+      });
+      const wsCancelled = XLSX.utils.aoa_to_sheet(cancelledAoa);
+      XLSX.utils.book_append_sheet(wb, wsCancelled, 'Ləğv Edilmişlər (Audit)');
+    }
 
     const filename = `Gun_Sonu_Etrafli_Satis_Hesabati_${data.dateStr}.xlsx`;
     XLSX.writeFile(wb, filename);
