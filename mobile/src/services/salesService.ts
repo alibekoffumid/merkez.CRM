@@ -32,10 +32,18 @@ export const salesService = {
     discountOrOptions: number | ProcessSaleOptions = 0,
     clientNameArg?: string,
     creditDetailsArg?: CreditSaleDetails
-  ): Promise<{ success: boolean; saleId: string; total: number; discountAmount: number }> {
+  ): Promise<{
+    success: boolean;
+    saleId: string;
+    transactionId?: string;
+    receiptNumber?: string;
+    total: number;
+    discountAmount: number;
+  }> {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
     const saleId = `SALE-${Date.now().toString().slice(-6)}`;
+    let createdSaleId: string | undefined;
 
     // Parse arguments supporting both object options and legacy positional params
     let discountAmount = 0;
@@ -256,6 +264,7 @@ export const salesService = {
           .maybeSingle();
 
         if (!saleErr && saleRow?.id) {
+          createdSaleId = saleRow.id;
           const saleItems = items.map((i) => {
             const effPrice = i.customPrice ?? i.product.sale_price ?? i.product.price ?? 0;
             const basePrice = i.product.sale_price ?? i.product.price ?? effPrice;
@@ -296,7 +305,23 @@ export const salesService = {
       console.warn('scanner_cart_events optional write error:', e);
     }
 
-    return { success: true, saleId, total, discountAmount };
+    const transactionId =
+      createdSaleId ||
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+    const receiptNumber = 'D' + transactionId.replace(/-/g, '').slice(0, 7).toUpperCase();
+
+    return {
+      success: true,
+      saleId,
+      transactionId,
+      receiptNumber,
+      total,
+      discountAmount,
+    };
   },
 };
 

@@ -217,8 +217,21 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         }
       );
 
+      const methodLabel =
+        paymentMethod === 'CASH'
+          ? 'Nağd'
+          : paymentMethod === 'CARD'
+          ? 'Kartdan karta(Hesab)'
+          : paymentMethod === 'TRANSFER'
+          ? 'Köçürmə'
+          : paymentMethod === 'DEPOSIT'
+          ? 'Beh (Avans)'
+          : 'Kredit';
+
       const receiptData: SaleReceiptData = {
         saleId: res.saleId,
+        receiptNumber: res.receiptNumber,
+        transactionId: res.transactionId || res.saleId,
         date: new Date(),
         items: cart.map((i) => ({
           name: i.product.name,
@@ -232,16 +245,10 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         discountType,
         discountValue: discountVal,
         total: res.total,
-        paymentMethod:
-          paymentMethod === 'CASH'
-            ? 'Nağd'
-            : paymentMethod === 'CARD'
-            ? 'Kartdan karta(Hesab)'
-            : paymentMethod === 'TRANSFER'
-            ? 'Köçürmə'
-            : paymentMethod === 'DEPOSIT'
-            ? 'Beh (Avans)'
-            : 'Kredit',
+        paymentMethod: methodLabel,
+        cashierName: 'Kassir',
+        warehouseName: 'DÜKKAN - ƏHMƏDLİ',
+        notes: `POS Satış #${res.receiptNumber || res.saleId} (Ödəniş: ${methodLabel})`,
         creditDetails:
           paymentMethod === 'CREDIT'
             ? {

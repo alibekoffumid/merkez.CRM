@@ -210,18 +210,51 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                     style={styles.input}
                     value={config.storeName}
                     onChangeText={(txt: string) => setConfig({ ...config, storeName: txt })}
-                    placeholder="RAST MUSIC"
+                    placeholder="RAST MUSİQİ ALƏTLƏRİ MAĞAZASI"
                     placeholderTextColor="#9CA3AF"
                   />
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Ünvan</Text>
+                  <Text style={styles.label}>Fəaliyyət Sahəsi (Alt Başlıq)</Text>
                   <TextInput
                     style={styles.input}
-                    value={config.storeAddress}
-                    onChangeText={(txt: string) => setConfig({ ...config, storeAddress: txt })}
-                    placeholder="Bakı ş., Xətai r."
+                    value={config.storeSubtitle}
+                    onChangeText={(txt: string) => setConfig({ ...config, storeSubtitle: txt })}
+                    placeholder="Musiqi Alətlərinin Satışı və Təmiri"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>TS Adı</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={config.tsName}
+                    onChangeText={(txt: string) => setConfig({ ...config, tsName: txt })}
+                    placeholder="MUSİQİ ALƏTLƏRİ SATIŞI VƏ TƏMİRİ"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>TS Ünvanı</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={config.tsAddress}
+                    onChangeText={(txt: string) => setConfig({ ...config, tsAddress: txt })}
+                    placeholder="AZ1142 BAKI ŞƏHƏRİ XƏTAİ RAYONU ev.18A m.92"
+                    placeholderTextColor="#9CA3AF"
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>VÖ Adı (Vergi Ödəyicisi)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={config.voName}
+                    onChangeText={(txt: string) => setConfig({ ...config, voName: txt })}
+                    placeholder="ŞƏKƏROV KAMRAN MUSA OĞLU"
                     placeholderTextColor="#9CA3AF"
                   />
                 </View>
@@ -240,16 +273,51 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                   </View>
 
                   <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>Telefon</Text>
+                    <Text style={styles.label}>Obyektin Kodu</Text>
                     <TextInput
                       style={styles.input}
-                      value={config.phone}
-                      onChangeText={(txt: string) => setConfig({ ...config, phone: txt })}
-                      placeholder="+994 50..."
+                      value={config.objectCode}
+                      onChangeText={(txt: string) => setConfig({ ...config, objectCode: txt })}
+                      placeholder="5501238362-20001"
                       placeholderTextColor="#9CA3AF"
-                      keyboardType="phone-pad"
                     />
                   </View>
+                </View>
+
+                <View style={styles.row}>
+                  <View style={[styles.inputGroup, { flex: 1, marginRight: 10 }]}>
+                    <Text style={styles.label}>Kassa Nömrəsi</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={config.kassaNumber}
+                      onChangeText={(txt: string) => setConfig({ ...config, kassaNumber: txt })}
+                      placeholder="V1E0969392"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  </View>
+
+                  <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <Text style={styles.label}>Filial</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={config.filialName}
+                      onChangeText={(txt: string) => setConfig({ ...config, filialName: txt })}
+                      placeholder="DÜKKAN - ƏHMƏDLİ"
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Telefon</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={config.phone}
+                    onChangeText={(txt: string) => setConfig({ ...config, phone: txt })}
+                    placeholder="+994 50 123 45 67"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="phone-pad"
+                  />
                 </View>
 
                 <View style={styles.inputGroup}>
@@ -292,7 +360,7 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                   </Text>
 
                   <Text style={styles.guideStep}>
-                    <Text style={styles.guideBold}>2. RawBT tətbiqi:</Text> Android telefonunuza Google Play-dən pulsuz <Text style={styles.guideBold}>RawBT print service</Text> quraşdırın. RawBT-də Settings → Connection: <Text style={styles.guideBold}>WiFi / Ethernet</Text> seçin, yuxarıdakı IP ünvanını və 9100 portunu yazın.
+                    <Text style={styles.guideBold}>2. RawBT tətbiqi:</Text> Android telefonunuza Google Play-dən pulsuz <Text style={styles.guideBold}>RawBT print service</Text> quraşdırın. RawBT elektron fiskal çeki və yoxlama üçün QR kodu dəqiq qrafik rejimdə birbaşa termoprinterə ötürür.
                   </Text>
 
                   <Text style={styles.guideStep}>

@@ -102,8 +102,12 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
     setReprinting(true);
     try {
       const receiptData: SaleReceiptData = {
-        saleId: sale.id.slice(-6).toUpperCase(),
+        saleId: sale.id,
+        receiptNumber: sale.id ? `D${sale.id.replace(/-/g, '').slice(0, 7).toUpperCase()}` : undefined,
+        transactionId: sale.id,
         date: primaryDate,
+        warehouseName: (sale as any).warehouse_name || 'DÜKKAN - ƏHMƏDLİ',
+        cashierName: 'Kassir',
         items: [
           {
             name: prod?.name || saleInfo.cleanNote || 'Məhsul',
@@ -120,6 +124,7 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
             : 0,
         total: saleInfo.totalAmount,
         paymentMethod: saleInfo.paymentMethod || 'Nağd',
+        notes: saleInfo.cleanNote || `POS Satış #${sale.id.slice(0, 8).toUpperCase()}`,
         depositDetails: saleInfo.advanceAmount ? {
           advanceAmount: saleInfo.advanceAmount,
           advanceRecipient: saleInfo.advanceRecipient || undefined,
