@@ -108,20 +108,25 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
           {
             name: prod?.name || saleInfo.cleanNote || 'Məhsul',
             quantity,
-            price: saleInfo.effectivePrice,
+            price: saleInfo.unitPrice,
             total: saleInfo.totalAmount,
             unit: unitLabel,
           },
         ],
-        subtotal: saleInfo.effectivePrice * quantity,
+        subtotal: saleInfo.unitPrice * quantity,
         discountAmount:
           saleInfo.discount && saleInfo.discount > 0
-            ? Math.max(0, saleInfo.effectivePrice * quantity - saleInfo.totalAmount)
+            ? Math.max(0, saleInfo.unitPrice * quantity - saleInfo.totalAmount)
             : 0,
         total: saleInfo.totalAmount,
         paymentMethod: saleInfo.paymentMethod || 'Nağd',
-        clientName: saleInfo.clientName || undefined,
-        clientPhone: saleInfo.clientPhone || undefined,
+        depositDetails: saleInfo.advanceAmount ? {
+          advanceAmount: saleInfo.advanceAmount,
+          advanceRecipient: saleInfo.advanceRecipient || undefined,
+          remainingBalance: Math.max(0, saleInfo.totalAmount - saleInfo.advanceAmount)
+        } : undefined,
+        clientName: saleInfo.customerName || undefined,
+        clientPhone: saleInfo.customerPhone || undefined,
       };
 
       await receiptService.printReceipt(receiptData);
@@ -412,6 +417,28 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
                   <Text style={styles.totalLabel}>Yekun ödənən məbləğ:</Text>
                   <Text style={styles.totalVal}>₼{saleInfo.totalAmount.toFixed(2)}</Text>
                 </View>
+
+                {saleInfo.advanceAmount ? (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.dataRow}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#D97706' }}>Ödənilən Avans:</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '900', color: '#D97706' }}>₼{saleInfo.advanceAmount.toFixed(2)}</Text>
+                    </View>
+                    {saleInfo.advanceRecipient ? (
+                      <View style={styles.dataRow}>
+                        <Text style={styles.dataLabel}>Avans alan (İşçi/Usta):</Text>
+                        <Text style={styles.dataValBold}>{saleInfo.advanceRecipient}</Text>
+                      </View>
+                    ) : null}
+                    <View style={styles.dataRow}>
+                      <Text style={styles.dataLabel}>Qalıq borc:</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '900', color: '#2563EB' }}>
+                        ₼{Math.max(0, saleInfo.totalAmount - saleInfo.advanceAmount).toFixed(2)}
+                      </Text>
+                    </View>
+                  </>
+                ) : null}
               </View>
             </View>
 

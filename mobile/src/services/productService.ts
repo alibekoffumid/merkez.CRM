@@ -268,11 +268,11 @@ export const productService = {
     if (product.image_url !== undefined) {
       payload.image_url = product.image_url;
     }
-    if (product.color !== undefined) {
-      payload.color = product.color;
+    if ((product as any).color !== undefined) {
+      payload.color = (product as any).color;
     }
 
-    const runWithSchemaCacheFallback = async (queryFn: () => Promise<any>) => {
+    const runWithSchemaCacheFallback = async (queryFn: () => PromiseLike<any>) => {
       let res = await queryFn();
       while (res.error && (res.error.message.includes('schema cache') || res.error.message.includes('column'))) {
         const match = res.error.message.match(/Could not find the '([^']+)' column/i);
@@ -293,13 +293,15 @@ export const productService = {
 
     if (product.id) {
       const { data, error } = await runWithSchemaCacheFallback(() =>
-        supabase
-          .from('products')
-          .update(payload)
-          .eq('id', product.id)
-          .eq('user_id', userId)
-          .select()
-          .single()
+        Promise.resolve(
+          supabase
+            .from('products')
+            .update(payload)
+            .eq('id', product.id)
+            .eq('user_id', userId)
+            .select()
+            .single()
+        )
       );
 
       if (error) throw error;
@@ -321,11 +323,13 @@ export const productService = {
     } else {
       payload.created_at = new Date().toISOString();
       const { data, error } = await runWithSchemaCacheFallback(() =>
-        supabase
-          .from('products')
-          .insert([payload])
-          .select()
-          .single()
+        Promise.resolve(
+          supabase
+            .from('products')
+            .insert([payload])
+            .select()
+            .single()
+        )
       );
 
       if (error) throw error;

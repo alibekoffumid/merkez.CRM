@@ -526,6 +526,18 @@ export function printThermalReceipt57mm(saleData) {
     </html>
   `;
 
+  // On mobile browsers (Android/iOS), hidden iframes cannot invoke print dialogs reliably
+  const isMobile = typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  if (isMobile) {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(receiptHtml);
+      printWindow.document.close();
+      return true;
+    }
+  }
+
   try {
     let iframe = document.getElementById('thermal-receipt-iframe');
     if (!iframe) {

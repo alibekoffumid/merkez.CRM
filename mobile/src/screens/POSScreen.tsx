@@ -80,6 +80,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   // Client info for Credit sales
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [advanceAmountInput, setAdvanceAmountInput] = useState('');
+  const [advanceRecipientInput, setAdvanceRecipientInput] = useState('');
   const [processing, setProcessing] = useState(false);
 
   // Printer & Checkout Success Modals
@@ -165,6 +167,22 @@ export const POSScreen: React.FC<POSScreenProps> = ({
       return;
     }
 
+    if (paymentMethod === 'DEPOSIT') {
+      const advNum = parseFloat(advanceAmountInput);
+      if (!advanceAmountInput || isNaN(advNum) || advNum <= 0) {
+        Alert.alert('Avans məbləği daxil edilməlidir', 'Zəhmət olmasa ödənilən avans məbləğini qeyd edin');
+        return;
+      }
+      if (advNum > total) {
+        Alert.alert('Xəta', 'Avans məbləği ümumi satış məbləğindən çox ola bilməz');
+        return;
+      }
+      if (!advanceRecipientInput.trim()) {
+        Alert.alert('Avans alan şəxs qeyd edilməlidir', 'Avansın kimə verildiyini (işçi və ya usta) qeyd edin');
+        return;
+      }
+    }
+
     try {
       setProcessing(true);
       const creditDetails =
@@ -192,6 +210,10 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           clientName: formattedClient,
           clientPhone: clientPhone.trim() || undefined,
           creditDetails,
+          depositDetails: paymentMethod === 'DEPOSIT' ? {
+            advanceAmount: parseFloat(advanceAmountInput) || 0,
+            advanceRecipient: advanceRecipientInput.trim(),
+          } : undefined,
         }
       );
 
@@ -214,9 +236,11 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           paymentMethod === 'CASH'
             ? 'Nağd'
             : paymentMethod === 'CARD'
-            ? 'Kart'
+            ? 'Kartdan karta(Hesab)'
             : paymentMethod === 'TRANSFER'
             ? 'Köçürmə'
+            : paymentMethod === 'DEPOSIT'
+            ? 'Beh (Avans)'
             : 'Kredit',
         creditDetails:
           paymentMethod === 'CREDIT'
@@ -226,6 +250,14 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 contractTotal: creditResult.contractTotal,
                 monthlyPayment: creditResult.monthlyPayment,
                 markupPercent: creditResult.markupPercent,
+              }
+            : undefined,
+        depositDetails:
+          paymentMethod === 'DEPOSIT'
+            ? {
+                advanceAmount: parseFloat(advanceAmountInput) || 0,
+                advanceRecipient: advanceRecipientInput.trim(),
+                remainingBalance: Math.max(0, res.total - (parseFloat(advanceAmountInput) || 0)),
               }
             : undefined,
         clientName: formattedClient,
@@ -247,6 +279,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
       setDiscountInput('');
       setClientName('');
       setClientPhone('');
+      setAdvanceAmountInput('');
+      setAdvanceRecipientInput('');
     } catch (e: any) {
       Alert.alert('Rəsmiləşdirmə xətası', e.message);
     } finally {
@@ -422,8 +456,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         {/* Footer Checkout Panel */}
         {cart.length > 0 && (
           <View style={styles.footer}>
-            {/* 4 Payment Methods: Nəqd | Kart | Köçürmə | Kredit */}
-            <View style={styles.methodTabs}>
+            {/* 5 Payment Methods: Nəğd | Kartdan karta | Beh | Köçürmə | Kredit */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.methodTabs}>
               <TouchableOpacity
                 style={[styles.methodTab, paymentMethod === 'CASH' && styles.methodTabActive]}
                 onPress={() => setPaymentMethod('CASH')}
@@ -450,7 +484,22 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     paymentMethod === 'CARD' && styles.methodTabTextActive,
                   ]}
                 >
-                  Kart
+                  Kartdan karta
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.methodTab, paymentMethod === 'DEPOSIT' && styles.methodTabActiveAmber]}
+                onPress={() => setPaymentMethod('DEPOSIT')}
+              >
+                <Tag size={15} color={paymentMethod === 'DEPOSIT' ? '#D97706' : '#6B7280'} />
+                <Text
+                  style={[
+                    styles.methodTabText,
+                    paymentMethod === 'DEPOSIT' && styles.methodTabTextActiveAmber,
+                  ]}
+                >
+                  Beh (Avans)
                 </Text>
               </TouchableOpacity>
 
@@ -483,7 +532,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   Kredit
                 </Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
 
             {/* If CREDIT: Render live Credit Calculator */}
             {paymentMethod === 'CREDIT' && (
@@ -598,6 +647,56 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       onChangeText={setClientPhone}
                       keyboardType="phone-pad"
                     />
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* If DEPOSIT: Render Advance inputs */}
+            {paymentMethod === 'DEPOSIT' && (
+              <View style={styles.depositCalcBox}>
+                <Text style={styles.depositSectionLabel}>Avans / Beh Parametrləri:</Text>
+
+                <View style={styles.clientInputWrapper}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#B45309', paddingLeft: 4 }}>₼</Text>
+                  <TextInput
+                    style={styles.clientInput}
+                    placeholder="Avans məbləği (₼) *"
+                    placeholderTextColor="#9CA3AF"
+                    value={advanceAmountInput}
+                    onChangeText={setAdvanceAmountInput}
+                    keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={[styles.clientInputWrapper, { marginTop: 8 }]}>
+                  <User size={14} color="#9CA3AF" />
+                  <TextInput
+                    style={styles.clientInput}
+                    placeholder="Avans kimə verilir (İşçi / Usta) *"
+                    placeholderTextColor="#9CA3AF"
+                    value={advanceRecipientInput}
+                    onChangeText={setAdvanceRecipientInput}
+                  />
+                </View>
+
+                {/* Balance display */}
+                <View style={styles.depositSummaryBox}>
+                  <View style={styles.metricRow}>
+                    <Text style={styles.metricLabel}>Ümumi satış:</Text>
+                    <Text style={styles.metricValBold}>{total.toFixed(2)} ₼</Text>
+                  </View>
+                  <View style={styles.metricRow}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#D97706' }}>Ödənilən avans:</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '900', color: '#D97706' }}>
+                      {(parseFloat(advanceAmountInput) || 0).toFixed(2)} ₼
+                    </Text>
+                  </View>
+                  <View style={[styles.metricRow, { borderTopWidth: 1, borderTopColor: '#FEF3C7', paddingTop: 4, marginTop: 2 }]}>
+                    <Text style={styles.metricLabel}>Qalıq borc:</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '900', color: '#2563EB' }}>
+                      {Math.max(0, total - (parseFloat(advanceAmountInput) || 0)).toFixed(2)} ₼
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -1096,6 +1195,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2563EB',
   },
+  methodTabActiveAmber: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
   methodTabText: {
     fontSize: 12,
     fontWeight: '700',
@@ -1108,6 +1212,33 @@ const styles = StyleSheet.create({
   methodTabTextActiveBlue: {
     color: '#2563EB',
     fontWeight: '800',
+  },
+  methodTabTextActiveAmber: {
+    color: '#D97706',
+    fontWeight: '800',
+  },
+  depositCalcBox: {
+    backgroundColor: '#FFFBEB',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  depositSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 6,
+  },
+  depositSummaryBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    marginTop: 8,
+    gap: 4,
   },
   creditCalcBox: {
     backgroundColor: '#F8FAFC',

@@ -10,7 +10,7 @@ export interface CreditSaleDetails {
   markupPercent: number;
 }
 
-export type POSPaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'CREDIT';
+export type POSPaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT';
 
 export interface ProcessSaleOptions {
   discountAmount?: number;
@@ -19,6 +19,10 @@ export interface ProcessSaleOptions {
   clientName?: string;
   clientPhone?: string;
   creditDetails?: CreditSaleDetails;
+  depositDetails?: {
+    advanceAmount: number;
+    advanceRecipient?: string;
+  };
 }
 
 export const salesService = {
@@ -39,6 +43,7 @@ export const salesService = {
     let discountValue = 0;
     let clientName = clientNameArg;
     let creditDetails = creditDetailsArg;
+    let depositDetails: { advanceAmount: number; advanceRecipient?: string } | undefined;
 
     if (typeof discountOrOptions === 'object' && discountOrOptions !== null) {
       discountAmount = discountOrOptions.discountAmount || 0;
@@ -46,6 +51,7 @@ export const salesService = {
       discountValue = discountOrOptions.discountValue ?? discountAmount;
       clientName = discountOrOptions.clientName ?? clientNameArg;
       creditDetails = discountOrOptions.creditDetails ?? creditDetailsArg;
+      depositDetails = discountOrOptions.depositDetails;
     } else {
       discountAmount = Number(discountOrOptions) || 0;
       discountValue = discountAmount;
@@ -75,8 +81,16 @@ export const salesService = {
     if (paymentMethod === 'CREDIT' && creditDetails) {
       channelPrefix = `[Kanal: Kredit - ${creditDetails.bank}] `;
       saleDetailsNote = `Kredit Satışı (${creditDetails.months} ay): Müqavilə: ₼${creditDetails.contractTotal.toFixed(2)}, Aylıq: ₼${creditDetails.monthlyPayment.toFixed(2)}, Faiz: ${creditDetails.markupPercent.toFixed(1)}%`;
+    } else if (paymentMethod === 'DEPOSIT') {
+      saleDetailsNote = `Məhsul Satışı (Ödəniş: Beh)`;
+      if (depositDetails?.advanceAmount) {
+        saleDetailsNote += ` [Avans: ₼${Number(depositDetails.advanceAmount).toFixed(2)}]`;
+      }
+      if (depositDetails?.advanceRecipient) {
+        saleDetailsNote += ` [Avans Alan: ${depositDetails.advanceRecipient}]`;
+      }
     } else {
-      const methodLabel = paymentMethod === 'CASH' ? 'Nağd' : paymentMethod === 'CARD' ? 'Kart' : 'Köçürmə';
+      const methodLabel = paymentMethod === 'CASH' ? 'Nağd' : paymentMethod === 'CARD' ? 'Kartdan karta(Hesab)' : 'Köçürmə';
       saleDetailsNote = `POS Satış #${saleId} (Ödəniş: ${methodLabel})`;
     }
 

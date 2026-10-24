@@ -52,6 +52,11 @@ export interface SaleReceiptData {
     markupPercent?: number;
     contractTotal: number;
   };
+  depositDetails?: {
+    advanceAmount: number;
+    advanceRecipient?: string;
+    remainingBalance: number;
+  };
   clientName?: string;
   clientPhone?: string;
   cashierName?: string;
@@ -137,9 +142,10 @@ export const receiptService = {
 
     let payTitle = 'Nağd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
-    if (lowerPay.includes('card') || lowerPay.includes('kart')) payTitle = 'Kartla';
+    if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kartdan karta(Hesab)';
     else if (lowerPay.includes('transfer') || lowerPay.includes('köçürmə')) payTitle = 'Köçürmə';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kreditlə';
+    else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';
 
     const lines: string[] = [];
 
@@ -205,6 +211,18 @@ export const receiptService = {
       lines.push(padRow('Müqavilə cəmi:', `${Number(data.creditDetails.contractTotal).toFixed(2)} ₼`, width));
     }
 
+    // Advance (Beh / Avans) breakdown if applicable
+    if (data.depositDetails) {
+      lines.push(dividerSingle);
+      lines.push(padCenter('AVANS / BEH MƏLUMATLARI', width));
+      lines.push(padRow('Ümumi məbləğ:', `${Number(data.total).toFixed(2)} ₼`, width));
+      lines.push(padRow('Ödənilən avans:', `${Number(data.depositDetails.advanceAmount).toFixed(2)} ₼`, width));
+      if (data.depositDetails.advanceRecipient) {
+        lines.push(padRow('Avans alan:', data.depositDetails.advanceRecipient, width));
+      }
+      lines.push(padRow('Qalıq borc:', `${Number(data.depositDetails.remainingBalance).toFixed(2)} ₼`, width));
+    }
+
     lines.push(dividerDouble);
     if (config.footerNote) {
       lines.push(padCenter(config.footerNote, width));
@@ -234,9 +252,10 @@ export const receiptService = {
 
     let payTitle = 'Nağd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
-    if (lowerPay.includes('card') || lowerPay.includes('kart')) payTitle = 'Kart';
+    if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kartdan karta(Hesab)';
     else if (lowerPay.includes('transfer') || lowerPay.includes('köçürmə')) payTitle = 'Köçürmə';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
+    else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';
 
     const itemsHtml = data.items
       .map(
@@ -313,6 +332,19 @@ export const receiptService = {
           <div class="row"><span>Müddət:</span> <span>${data.creditDetails.months} ay</span></div>
           <div class="row"><span>Aylıq:</span> <span>${Number(data.creditDetails.monthlyPayment).toFixed(2)} ₼</span></div>
           <div class="row bold"><span>Müqavilə cəmi:</span> <span>${Number(data.creditDetails.contractTotal).toFixed(2)} ₼</span></div>
+        `
+            : ''
+        }
+
+        ${
+          data.depositDetails
+            ? `
+          <div class="divider"></div>
+          <div class="center bold" style="font-size: 10px;">AVANS / BEH MƏLUMATLARI</div>
+          <div class="row"><span>Ümumi məbləğ:</span> <span>${Number(data.total).toFixed(2)} ₼</span></div>
+          <div class="row"><span>Ödənilən avans:</span> <span class="bold">${Number(data.depositDetails.advanceAmount).toFixed(2)} ₼</span></div>
+          ${data.depositDetails.advanceRecipient ? `<div class="row"><span>Avans alan:</span> <span>${data.depositDetails.advanceRecipient}</span></div>` : ''}
+          <div class="row bold"><span>Qalıq borc:</span> <span>${Number(data.depositDetails.remainingBalance).toFixed(2)} ₼</span></div>
         `
             : ''
         }

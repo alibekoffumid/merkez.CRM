@@ -17,6 +17,8 @@ export interface ParsedSaleInfo {
   months: number | null;
   bank: string | null;
   birmarketCategory: string | null;
+  advanceAmount: number | null;
+  advanceRecipient: string | null;
   rawNotes: string;
   cleanNote: string;
 }
@@ -72,6 +74,8 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
     months: null,
     bank: null,
     birmarketCategory: null,
+    advanceAmount: null,
+    advanceRecipient: null,
     rawNotes: note || '',
     cleanNote: '',
   };
@@ -106,17 +110,36 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
   // 3. Payment Method
   const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
   if (payMatch) {
-    info.paymentMethod = payMatch[1].trim();
+    const rawPay = payMatch[1].trim();
+    if (/kart/i.test(rawPay)) {
+      info.paymentMethod = 'Kartdan karta(Hesab)';
+    } else if (/beh|avans/i.test(rawPay)) {
+      info.paymentMethod = 'Beh (Avans)';
+    } else {
+      info.paymentMethod = rawPay;
+    }
   } else if (/birmarket/i.test(note) || /birmarket/i.test(info.channel)) {
     info.paymentMethod = 'Birmarket';
   } else if (/kredit/i.test(note) || /kredit/i.test(info.channel)) {
     info.paymentMethod = 'Kredit';
+  } else if (/beh|avans/i.test(note)) {
+    info.paymentMethod = 'Beh (Avans)';
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
   } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kart';
+    info.paymentMethod = 'Kartdan karta(Hesab)';
   } else if (/nəqd/i.test(note)) {
     info.paymentMethod = 'Nəqd';
+  }
+
+  // Advance detection
+  const avansMatch = note.match(/\[Avans:\s*₼?([0-9.,]+)\]/i);
+  if (avansMatch) {
+    info.advanceAmount = parseFloat(avansMatch[1].replace(',', '.'));
+  }
+  const alanMatch = note.match(/\[Avans Alan:\s*([^\]]+)\]/i);
+  if (alanMatch) {
+    info.advanceRecipient = alanMatch[1].trim();
   }
 
   // 4. Stored price / total if saved in note
@@ -194,6 +217,9 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
     .replace(/\[Discount:[^\]]+\]/gi, '')
     .replace(/\[Məbləğ:[^\]]+\]/gi, '')
     .replace(/\[Cəmi:[^\]]+\]/gi, '')
+    .replace(/\[Avans:[^\]]+\]/gi, '')
+    .replace(/\[Avans Alan:[^\]]+\]/gi, '')
+    .replace(/\[SaleID:[^\]]+\]/gi, '')
     .replace(/^Məhsul Satışı\s*\(Ödəniş:[^)]+\)/gi, '')
     .replace(/^POS Satış\s*#[A-Z0-9-]+\s*\(Ödəniş:[^)]+\)/gi, '')
     .trim();
