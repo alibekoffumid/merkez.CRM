@@ -293,6 +293,7 @@ const WarehouseEfficiencyCharts = ({
   const [topSortBy, setTopSortBy] = useState('quantity'); // 'quantity' | 'revenue' | 'profit'
   const [topChartView, setTopChartView] = useState('columns'); // 'columns' | 'bars'
   const [searchQuery, setSearchQuery] = useState('');
+  const [hoveredTimelineDay, setHoveredTimelineDay] = useState(null);
 
   React.useEffect(() => {
     if (!canSeeCostAndProfit && activeTab === 'margins') {
@@ -1132,31 +1133,45 @@ const WarehouseEfficiencyCharts = ({
                       </button>
                     </div>
 
-                    <div className="text-right pl-2 border-l border-gray-100">
+                    <div className="text-right pl-3 border-l border-gray-100 min-w-[140px]">
                       <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
-                        {i18n.language === 'az' ? 'Ən Yüksək Gün' : 'Пиковый день'}
+                        {hoveredTimelineDay 
+                          ? (hoveredTimelineDay.label)
+                          : (i18n.language === 'az' ? 'Ən Yüksək Gün' : 'Пиковый день')}
                       </span>
-                      <p className="text-sm font-black text-emerald-600">
-                        {timelineData.length > 0 
+                      <p className="text-sm font-black text-emerald-600 transition-all">
+                        {hoveredTimelineDay 
                           ? (timelineMetric === 'orders'
-                              ? `${Math.max(...timelineData.map(d => d.ordersCount))} ${i18n.language === 'az' ? 'satış' : 'чек.'}`
-                              : `₼${Math.max(...timelineData.map(d => d.revenue)).toFixed(2)}`)
-                          : '0'}
+                              ? `${hoveredTimelineDay.ordersCount} ${i18n.language === 'az' ? 'satış' : 'чек.'} (₼${hoveredTimelineDay.revenue.toFixed(2)})`
+                              : `₼${hoveredTimelineDay.revenue.toFixed(2)} (${hoveredTimelineDay.ordersCount} ${i18n.language === 'az' ? 'satış' : 'чек.'})`)
+                          : (timelineData.length > 0 
+                              ? (timelineMetric === 'orders'
+                                  ? `${Math.max(...timelineData.map(d => d.ordersCount))} ${i18n.language === 'az' ? 'satış' : 'чек.'}`
+                                  : `₼${Math.max(...timelineData.map(d => d.revenue)).toFixed(2)}`)
+                              : '0')}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 {/* Timeline Bar Chart */}
-                <div className="w-full pt-8 pb-2">
-                  <div className="flex items-end gap-1.5 sm:gap-3 h-64 border-b border-gray-100 pb-3 w-full overflow-x-auto">
+                <div className="w-full pt-4 pb-2">
+                  <div className="flex items-end gap-1.5 sm:gap-3 h-72 border-b border-gray-100 pb-3 w-full overflow-x-auto relative">
                     {timelineData.map((day, idx) => (
                       <div 
                         key={day.dateKey || idx} 
+                        onMouseEnter={() => setHoveredTimelineDay(day)}
+                        onMouseLeave={() => setHoveredTimelineDay(null)}
                         className="flex-1 min-w-[28px] max-w-[64px] flex flex-col items-center group relative h-full justify-end"
                       >
-                        {/* Hover Tooltip */}
-                        <div className="opacity-0 group-hover:opacity-100 absolute -top-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-2 px-3 rounded-xl whitespace-nowrap pointer-events-none transition-all z-20 shadow-2xl border border-gray-800">
+                        {/* Hover Tooltip (Positioned inside container bounds with z-30 to prevent any clipping) */}
+                        <div className={`opacity-0 group-hover:opacity-100 absolute top-2 ${
+                          idx === 0 
+                            ? 'left-0' 
+                            : idx === timelineData.length - 1 
+                            ? 'right-0' 
+                            : 'left-1/2 -translate-x-1/2'
+                        } bg-gray-900/95 backdrop-blur-md text-white text-[10px] font-bold py-2 px-3 rounded-xl whitespace-nowrap pointer-events-none transition-all duration-150 z-30 shadow-2xl border border-gray-700/80`}>
                           <p className="text-gray-300 font-semibold mb-0.5">{day.fullDateLabel || day.label}</p>
                           <p className="text-emerald-400 font-black text-xs">₼{day.revenue.toFixed(2)}</p>
                           <p className="text-blue-300 font-black">
@@ -1165,7 +1180,6 @@ const WarehouseEfficiencyCharts = ({
                           <p className="text-gray-400 text-[9px]">
                             {day.quantity} {formatUnitName('pcs', i18n.language)}
                           </p>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                         </div>
 
                         {/* Bar background */}
@@ -1176,7 +1190,7 @@ const WarehouseEfficiencyCharts = ({
                                 ? 'bg-gradient-to-t from-emerald-600 to-teal-500 group-hover:from-blue-600 group-hover:to-indigo-500'
                                 : 'bg-gradient-to-t from-blue-600 to-indigo-500 group-hover:from-emerald-500 group-hover:to-teal-400'
                             }`}
-                            style={{ height: `${Math.max(day.heightPercent, 5)}%` }}
+                            style={{ height: `${Math.max(day.heightPercent * 0.76, 5)}%` }}
                           />
                         </div>
 
