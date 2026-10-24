@@ -788,7 +788,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                       <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-[11px] font-black uppercase tracking-wider text-gray-400">
-                            Kart / Nağdsız
+                            Kartdan karta(Hesab)
                           </span>
                           <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
                             <CreditCard className="w-4 h-4" />
@@ -948,7 +948,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                           <div className="p-3 rounded-2xl bg-purple-50/50 border border-purple-100/80 flex items-center gap-2.5">
                             <div className="w-3 h-3 rounded-full bg-purple-600 shrink-0" />
                             <div className="min-w-0">
-                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">2. Karta / POS</div>
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">2. Kartdan karta(Hesab)</div>
                               <div className="text-sm font-black text-gray-900 truncate">{reportData.totalCard.toFixed(2)} ₼</div>
                             </div>
                           </div>
@@ -1159,9 +1159,17 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                                     {t.itemsSummary || '-'}
                                   </td>
                                   <td className="py-3 px-4">
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
-                                      {t.paymentMethod}
-                                    </span>
+                                    <div className="flex flex-col gap-1 items-start">
+                                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
+                                        {t.paymentMethod}
+                                      </span>
+                                      {t.advanceAmount && (
+                                        <div className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                                          Avans: <span className="font-bold">₼{Number(t.advanceAmount).toFixed(2)}</span>
+                                          {t.advanceRecipient && <span className="text-gray-600 block text-[9px] mt-0.5">Alan: {t.advanceRecipient}</span>}
+                                        </div>
+                                      )}
+                                    </div>
                                   </td>
                                   <td className="py-3 px-4 text-center font-bold text-gray-800">
                                     {t.itemsCount}

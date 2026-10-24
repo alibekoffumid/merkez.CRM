@@ -33,6 +33,7 @@ export function printThermalReceipt57mm(saleData) {
     total = 0,
     taxAmount = 0,
     creditDetails = null, // { bank, months, monthlyPayment, markupPercent, contractTotal }
+    depositDetails = null, // { advanceAmount, advanceRecipient, remainingBalance }
     notes = '',
     transactionId = '',
     saleId = '',
@@ -96,8 +97,11 @@ export function printThermalReceipt57mm(saleData) {
   const lowerMethod = String(paymentMethod || '').toLowerCase();
 
   if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
-    paymentTitle = 'Kart';
-    paidLabel = 'kart';
+    paymentTitle = 'Kartdan karta(Hesab)';
+    paidLabel = 'kartdan karta';
+  } else if (lowerMethod.includes('deposit') || lowerMethod.includes('beh') || lowerMethod.includes('avans')) {
+    paymentTitle = 'Beh (Avans)';
+    paidLabel = 'avans';
   } else if (lowerMethod.includes('credit') || lowerMethod.includes('kredit')) {
     const bankName = creditDetails?.bank || 'Bank';
     paymentTitle = `Kredit (${bankName})`;
@@ -469,6 +473,14 @@ export function printThermalReceipt57mm(saleData) {
             <div>Müddət: ${escapeHtml(creditDetails.months)} ay</div>
             <div>Aylıq ödəniş: ${Number(creditDetails.monthlyPayment || 0).toFixed(2)}</div>
             ${creditDetails.contractTotal ? `<div>Müqavilə cəmi: ${Number(creditDetails.contractTotal).toFixed(2)}</div>` : ''}
+          </div>
+        ` : ''}
+
+        ${depositDetails ? `
+          <div class="credit-info" style="margin-top: 4px; padding: 3px 0; border-top: 1px dashed #000;">
+            <div>Avans məbləği: ${Number(depositDetails.advanceAmount || 0).toFixed(2)} AZN</div>
+            ${depositDetails.advanceRecipient ? `<div>Avans alan: ${escapeHtml(depositDetails.advanceRecipient)}</div>` : ''}
+            <div>Qalıq borc: ${Number(depositDetails.remainingBalance || 0).toFixed(2)} AZN</div>
           </div>
         ` : ''}
       </div>

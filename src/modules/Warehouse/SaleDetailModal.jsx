@@ -117,6 +117,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     months: null,
     bank: null,
     birmarketCategory: null,
+    advanceAmount: null,
+    advanceRecipient: null,
     rawNotes: note || '',
     cleanNote: ''
   };
@@ -169,7 +171,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
   } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kart';
+    info.paymentMethod = 'Kartdan karta(Hesab)';
   } else if (/nəqd|nağd/i.test(note)) {
     info.paymentMethod = 'Nağd';
   }
@@ -234,6 +236,16 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     info.profit = parseFloat(creditMatch[3].replace(',', '.'));
   }
 
+  // 8. Advance / Beh details
+  const advMatch = note.match(/\[(?:Avans|Beh):\s*₼?([0-9.,]+)\]/i);
+  if (advMatch) {
+    info.advanceAmount = parseFloat(advMatch[1].replace(',', '.'));
+  }
+  const advRecipMatch = note.match(/\[(?:Avans Alan|Usta\/İşçi|Usta|İşçi):\s*([^\]]+)\]/i);
+  if (advRecipMatch) {
+    info.advanceRecipient = advRecipMatch[1].trim();
+  }
+
   // Fallback profit calculation if not parsed
   if (info.profit === null) {
     info.profit = info.totalAmount - info.totalCost;
@@ -251,6 +263,10 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     .replace(/\[Discount:[^\]]+\]/gi, '')
     .replace(/\[Məbləğ:[^\]]+\]/gi, '')
     .replace(/\[Cəmi:[^\]]+\]/gi, '')
+    .replace(/\[Avans:[^\]]+\]/gi, '')
+    .replace(/\[Beh:[^\]]+\]/gi, '')
+    .replace(/\[Avans Alan:[^\]]+\]/gi, '')
+    .replace(/\[Usta\/İşçi:[^\]]+\]/gi, '')
     .replace(/\[SaleID:[^\]]+\]/gi, '')
     .replace(/^Məhsul Satışı\s*\(Ödəniş:[^)]+\)/gi, '')
     .trim();
@@ -647,6 +663,22 @@ const SaleDetailModal = ({
                           <span className="text-xs font-black">-₼{saleInfo.discount.toFixed(2)}</span>
                         </div>
                       </>
+                    )}
+
+                    {saleInfo.advanceAmount != null && (
+                      <div className="flex items-center justify-between pt-1 border-t border-teal-200/60 bg-teal-50/70 p-2 rounded-lg border border-teal-100 font-bold">
+                        <span className="text-teal-800">{i18n.language === 'az' ? 'Ödənilən Avans:' : 'Внесенный аванс:'}</span>
+                        <span className="text-xs font-black text-teal-900">₼{saleInfo.advanceAmount.toFixed(2)}</span>
+                      </div>
+                    )}
+
+                    {saleInfo.advanceRecipient && (
+                      <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
+                        <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'Avans alan (İşçi/Usta):' : 'Кому выдан аванс:'}</span>
+                        <span className="font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                          {saleInfo.advanceRecipient}
+                        </span>
+                      </div>
                     )}
 
                     {saleInfo.months && (

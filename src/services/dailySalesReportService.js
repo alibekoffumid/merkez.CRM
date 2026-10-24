@@ -90,7 +90,7 @@ export const translatePaymentMethodAz = (method) => {
     case 'kart':
     case 'pos':
     case 'terminal':
-      return 'Karta / POS';
+      return 'Kartdan karta(Hesab)';
     case 'split':
       return 'Qarışıq (Bölünmüş)';
     case 'credit':
@@ -301,6 +301,36 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       categoriesMap.set(c.id, c.name);
     }
   });
+
+  // 4. Fetch daily dispatches to enrich advance (beh) payment details & recipient
+  const dayDispatchesMap = new Map();
+  try {
+    const { data: dispatchesChunk } = await supabase
+      .from('stock_dispatches')
+      .select('id, notes, created_at')
+      .eq('user_id', userId)
+      .eq('reason', 'sale')
+      .gte('created_at', startOfDay.toISOString())
+      .lte('created_at', endOfDay.toISOString());
+
+    (dispatchesChunk || []).forEach(d => {
+      const n = d.notes || '';
+      const saleIdMatch = n.match(/\[SaleID:\s*([^\]]+)\]/i);
+      const avansMatch = n.match(/\[Avans:\s*[^0-9\s]*\s*([\d.,]+)\s*[^\]\d]*\]/i);
+      const alanMatch = n.match(/\[Avans Alan:\s*([^\]]+)\]/i);
+
+      const parsed = {
+        advanceAmount: avansMatch ? parseFloat(avansMatch[1].replace(',', '.')) : null,
+        advanceRecipient: alanMatch ? alanMatch[1].trim() : null
+      };
+
+      if (saleIdMatch && saleIdMatch[1]) {
+        dayDispatchesMap.set(saleIdMatch[1].trim(), parsed);
+      }
+    });
+  } catch (dispErr) {
+    console.warn('Error fetching stock_dispatches for advance enrichment:', dispErr);
+  }
 
   // Separate valid sales from cancelled / deleted sales
   const validSalesList = [];
@@ -548,6 +578,8 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       cAgg.totalRevenue += itemTotal;
     });
 
+    const dispatchMeta = dayDispatchesMap.get(sale.id);
+
     transactionsList.push({
       receiptNumber: `№${String(index + 1).padStart(4, '0')}`,
       id: sale.id,
@@ -559,7 +591,9 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       paymentMethod: translatePaymentMethodAz(sale.payment_method),
       paymentMethodRaw: sale.payment_method,
       discount: saleDiscount,
-      total: saleAmount
+      total: saleAmount,
+      advanceAmount: dispatchMeta?.advanceAmount ?? null,
+      advanceRecipient: dispatchMeta?.advanceRecipient ?? null
     });
   });
 
@@ -887,7 +921,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
           <span class="bold">${data.totalCash.toFixed(2)} AZN</span>
         </div>
         <div class="row">
-          <span>Karta / POS:</span>
+          <span>Kartdan karta(Hesab):</span>
           <span class="bold">${data.totalCard.toFixed(2)} AZN</span>
         </div>
         ${data.totalCredit > 0 ? `
@@ -1462,9 +1496,9 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             <div class="kpi-sub">Nağd ödənişlər</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Kart / Nağdsız</div>
+            <div class="kpi-label">Kartdan karta(Hesab)</div>
             <div class="kpi-value">${data.totalCard.toFixed(2)} AZN</div>
-            <div class="kpi-sub">POS-Terminal vasitəsilə</div>
+            <div class="kpi-sub">Kartdan karta köçürmə / POS</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Çek / Əməliyyat Sayı</div>
@@ -1482,7 +1516,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             <div class="payment-item-val">${data.totalCash.toFixed(2)} AZN</div>
           </div>
           <div class="payment-item">
-            <div class="payment-item-title">Karta / POS</div>
+            <div class="payment-item-title">Kartdan karta(Hesab)</div>
             <div class="payment-item-val">${data.totalCard.toFixed(2)} AZN</div>
           </div>
           <div class="payment-item">
@@ -1588,6 +1622,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
                 <td style="color: #374151; font-size: 9.5px;">${t.itemsSummary || '-'}</td>
                 <td>
                   <span style="font-weight: 600;">${t.paymentMethod}</span>
+                  ${t.advanceAmount ? `<div style="font-size: 8.5px; color: #b45309; margin-top: 1px; font-weight: 600;">Avans: ₼${Number(t.advanceAmount).toFixed(2)}${t.advanceRecipient ? ` (${t.advanceRecipient})` : ''}</div>` : ''}
                 </td>
                 <td class="text-center">${t.itemsCount}</td>
                 <td class="text-right bold">${t.total.toFixed(2)} AZN</td>
@@ -1973,13 +2008,13 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(75, 85, 99);
-    doc.text('KARTA / POS', 114, 51);
+    doc.text('KARTDAN KARTA', 114, 51);
     doc.setFontSize(12);
     doc.setTextColor(17, 24, 39);
     doc.text(`${data.totalCard.toFixed(2)} AZN`, 114, 57);
     doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text('POS-Terminal / Kart', 114, 62);
+    doc.text('Kartdan karta(Hesab)', 114, 62);
 
     // Statistika
     doc.setFont('Roboto', 'bold');
@@ -2271,7 +2306,7 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       ['GÖSTƏRİCİ', 'MƏBLƏĞ / MİQDAR', 'VALYUTA / VAHİD'],
       ['Ümumi Dövriyyə (Cəmi Satış)', data.totalRevenue, 'AZN'],
       ['1. Nağd Satışlar (Nağd)', data.totalCash, 'AZN'],
-      ['2. Karta / POS Satışlar (Karta / POS)', data.totalCard, 'AZN'],
+      ['2. Kartdan karta(Hesab) Satışlar', data.totalCard, 'AZN'],
       ['3. Kredit Satışları (Kredit)', data.totalCredit, 'AZN'],
       ['4. Nisyə Satışlar (Nisyə / Borc)', data.totalDebt, 'AZN'],
       ['5. Beh / Avans (Beh)', data.totalDeposit, 'AZN'],
@@ -2325,7 +2360,7 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
 
     // 3. Transactions Sheet
     const receiptsAoa = [
-      ['Çek №', 'ID', 'Saat', 'Tarix', 'Ödəniş Üsulu', 'Məhsul Sayı', 'Endirim (AZN)', 'Yekun Məbləğ (AZN)']
+      ['Çek №', 'ID', 'Saat', 'Tarix', 'Ödəniş Üsulu', 'Məhsul Sayı', 'Avans Məbləği (AZN)', 'Avans Alan', 'Endirim (AZN)', 'Yekun Məbləğ (AZN)']
     ];
     data.transactions.forEach(t => {
       receiptsAoa.push([
@@ -2335,6 +2370,8 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
         t.dateTime,
         t.paymentMethod,
         t.itemsCount,
+        t.advanceAmount || '',
+        t.advanceRecipient || '',
         t.discount || 0,
         t.total
       ]);
