@@ -82,7 +82,7 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
         : 'id, name, barcode, stock_quantity, critical_stock, price, category_id, supplier_id, unit';
 
       while (hasMore) {
-        const { data: prods, error: prodErr } = await supabase
+        let { data: prods, error: prodErr } = await supabase
           .from('products')
           .select(productCols)
           .eq('user_id', profile.id)
@@ -90,9 +90,27 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
           .eq('is_deleted', false)
           .range(from, from + step - 1);
 
+        if (prodErr && !canSeeCostAndFactoryPrices) {
+          const fallbackRes = await supabase
+            .from('products')
+            .select('*')
+            .eq('user_id', profile.id)
+            .eq('warehouse_id', warehouseId)
+            .eq('is_deleted', false)
+            .range(from, from + step - 1);
+          prods = fallbackRes.data;
+          prodErr = fallbackRes.error;
+        }
+
         if (prodErr) break;
 
         if (prods && prods.length > 0) {
+          if (!canSeeCostAndFactoryPrices) {
+            prods.forEach(p => {
+              delete p.purchase_price;
+              delete p.factory_price;
+            });
+          }
           allProducts = [...allProducts, ...prods];
           if (prods.length < step) {
             hasMore = false;

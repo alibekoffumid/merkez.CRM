@@ -204,11 +204,21 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     : 'id, name, barcode, price, category_id, unit';
 
   while (pHasMore) {
-    const { data: prodsChunk, error: pErr } = await supabase
+    let { data: prodsChunk, error: pErr } = await supabase
       .from('products')
       .select(productSelectFields)
       .eq('user_id', userId)
       .range(pFrom, pFrom + pStep - 1);
+
+    if (pErr) {
+      const fallbackChunk = await supabase
+        .from('products')
+        .select('*')
+        .eq('user_id', userId)
+        .range(pFrom, pFrom + pStep - 1);
+      prodsChunk = fallbackChunk.data;
+      pErr = fallbackChunk.error;
+    }
 
     if (pErr) {
       console.warn('Error fetching products chunk in dailySalesReportService:', pErr);
@@ -216,6 +226,12 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     }
 
     if (prodsChunk && prodsChunk.length > 0) {
+      if (!isAdmin) {
+        prodsChunk.forEach(p => {
+          delete p.purchase_price;
+          delete p.factory_price;
+        });
+      }
       allProducts.push(...prodsChunk);
       if (prodsChunk.length < pStep) {
         pHasMore = false;

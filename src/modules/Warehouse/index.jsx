@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -1258,10 +1258,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       const productSelectCols = canSeeCostAndFactoryPrices
         ? '*, categories(name)'
-        : 'id, user_id, warehouse_id, category_id, name, barcode, price, stock_quantity, critical_stock, unit, image_url, description, is_deleted, created_at, updated_at, categories(name)';
+        : 'id, user_id, warehouse_id, category_id, supplier_id, name, barcode, price, stock_quantity, critical_stock, unit, image_url, description, is_deleted, created_at, categories(name)';
 
       while (hasMore) {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from('products')
           .select(productSelectCols)
           .eq('is_deleted', false)
@@ -1269,6 +1269,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           .eq('warehouse_id', wId)
           .order('created_at', { ascending: false })
           .range(from, from + step - 1);
+
+        if (error && !canSeeCostAndFactoryPrices) {
+          const fallbackRes = await supabase
+            .from('products')
+            .select('*, categories(name)')
+            .eq('is_deleted', false)
+            .eq('user_id', pId)
+            .eq('warehouse_id', wId)
+            .order('created_at', { ascending: false })
+            .range(from, from + step - 1);
+          data = fallbackRes.data;
+          error = fallbackRes.error;
+        }
 
         if (error) {
           console.error('Error fetching products batch:', error);
