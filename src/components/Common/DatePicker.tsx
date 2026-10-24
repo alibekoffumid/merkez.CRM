@@ -8,9 +8,43 @@ interface DatePickerProps {
   onChange: (value: string) => void;
   label?: string;
   position?: 'top' | 'bottom' | 'auto';
+  className?: string;
+  buttonClassName?: string;
+  placeholder?: string;
+  customTrigger?: (props: {
+    isOpen: boolean;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    toggle: () => void;
+    value: string;
+    displayDate: string;
+  }) => React.ReactNode;
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, position = 'auto' }) => {
+const parseDateSafe = (val: string) => {
+  if (!val) return new Date();
+  const parts = String(val).split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+      return new Date(y, m, d);
+    }
+  }
+  const parsed = new Date(val);
+  return isNaN(parsed.getTime()) ? new Date() : parsed;
+};
+
+const DatePicker: React.FC<DatePickerProps> = ({ 
+  value, 
+  onChange, 
+  label, 
+  position = 'auto',
+  className,
+  buttonClassName,
+  placeholder,
+  customTrigger
+}) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'date' | 'year'>('date');
@@ -19,16 +53,16 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
   const [coords, setCoords] = useState({ top: 0, left: 0, isTop: false });
 
   // Use state for the calendar view date (independent of selected value)
-  const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
+  const [viewDate, setViewDate] = useState(value ? parseDateSafe(value) : new Date());
   
   // Ensure viewDate updates if value changes and modal is closed
   useEffect(() => {
     if (!isOpen && value) {
-      setViewDate(new Date(value));
+      setViewDate(parseDateSafe(value));
     }
   }, [value, isOpen]);
 
-  const selectedDate = value ? new Date(value) : null;
+  const selectedDate = value ? parseDateSafe(value) : null;
 
   const updateCoords = () => {
     if (containerRef.current) {
@@ -132,30 +166,43 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, positio
   }
 
   return (
-    <div className="relative w-full" ref={containerRef}>
+    <div className={`relative ${className || 'w-full'}`} ref={containerRef}>
       {label && (
         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-2 block">
           {label}
         </label>
       )}
-      <button
-        type="button"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          setViewMode('date');
-        }}
-        className="w-full p-4 pl-14 bg-gray-50 border border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left relative group shadow-sm"
-      >
-        <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
-        <span className="font-black tracking-tight">
-          {selectedDate ? getDisplayDate(selectedDate) : t('common.selectDate', 'Tarix seçin')}
-        </span>
-      </button>
+      {customTrigger ? (
+        customTrigger({
+          isOpen,
+          setIsOpen,
+          toggle: () => {
+            setIsOpen(!isOpen);
+            setViewMode('date');
+          },
+          value,
+          displayDate: selectedDate ? getDisplayDate(selectedDate) : (placeholder || t('common.selectDate', 'Tarix seçin'))
+        })
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(!isOpen);
+            setViewMode('date');
+          }}
+          className={buttonClassName || "w-full p-4 pl-14 bg-gray-50 border border-gray-100 rounded-2xl hover:border-blue-500 hover:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all text-sm font-bold text-gray-900 text-left relative group shadow-sm"}
+        >
+          <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+          <span className="font-black tracking-tight">
+            {selectedDate ? getDisplayDate(selectedDate) : (placeholder || t('common.selectDate', 'Tarix seçin'))}
+          </span>
+        </button>
+      )}
 
       {isOpen && createPortal(
         <div 
           ref={popupRef}
-          className={`fixed z-[99999] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-gray-100 p-6 w-[320px] animate-in zoom-in-95 fade-in duration-150 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'}`}
+          className={`fixed z-[999999] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.25)] border border-gray-100 p-6 w-[320px] animate-in zoom-in-95 fade-in duration-150 ${coords.isTop ? 'slide-in-from-bottom-2 origin-bottom' : 'slide-in-from-top-2 origin-top'}`}
           style={{
             top: coords.isTop ? 'auto' : `${coords.top + 8}px`,
             bottom: coords.isTop ? `${window.innerHeight - coords.top + 8}px` : 'auto',

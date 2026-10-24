@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ModalPortal from '../Common/ModalPortal';
+import DatePicker from '../Common/DatePicker';
 import { 
   Printer, 
   Download, 
@@ -316,13 +317,34 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                   >
                     Dünən
                   </button>
-                  <div className="relative flex items-center pl-1.5 pr-2 py-0.5">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
-                    <input
-                      type="date"
+                  <div className="pl-1 pr-0.5">
+                    <DatePicker
                       value={selectedDate}
-                      onChange={(e) => e.target.value && setSelectedDate(e.target.value)}
-                      className="pl-7 pr-2 py-1 bg-slate-900/80 text-white text-xs font-bold rounded-lg border border-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+                      onChange={(newDate) => {
+                        if (newDate) setSelectedDate(newDate);
+                      }}
+                      className="inline-block"
+                      customTrigger={({ isOpen, toggle, value }) => {
+                        const [y, m, d] = (value || '').split('-');
+                        const formattedDisplay = y && m && d ? `${d}.${m}.${y}` : value;
+                        const isCustom = value !== getTodayStr() && value !== getYesterdayStr();
+
+                        return (
+                          <button
+                            type="button"
+                            onClick={toggle}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                              isOpen || isCustom
+                                ? 'bg-slate-900 text-white border-blue-500 shadow-md ring-2 ring-blue-500/20'
+                                : 'bg-slate-900/80 text-slate-200 border-slate-700/80 hover:text-white hover:border-slate-500'
+                            }`}
+                            title="Təqvimdən tarix seçin"
+                          >
+                            <Calendar className={`w-3.5 h-3.5 transition-colors ${isOpen ? 'text-blue-400' : 'text-slate-400'}`} />
+                            <span className="font-mono tracking-tight font-black">{formattedDisplay}</span>
+                          </button>
+                        );
+                      }}
                     />
                   </div>
                 </div>
