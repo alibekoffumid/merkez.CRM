@@ -5,12 +5,77 @@ import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
 import { 
   Users, Plus, Trash2, Edit3, Search, 
-  Loader2, CheckCircle, AlertCircle, Save, X 
+  Loader2, CheckCircle, AlertCircle, Save, X,
+  LayoutGrid, List, Phone, Lock, Wrench, Shield,
+  Wallet, UserCheck, Briefcase
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
 import StaffSalaryModal from './StaffSalaryModal';
+
+const AVATAR_GRADIENTS = [
+  'from-blue-600 to-indigo-600',
+  'from-emerald-600 to-teal-700',
+  'from-violet-600 to-purple-700',
+  'from-amber-500 to-orange-600',
+  'from-rose-500 to-pink-600',
+  'from-cyan-600 to-blue-700',
+  'from-teal-600 to-emerald-700',
+  'from-fuchsia-600 to-purple-700',
+];
+
+const getAvatarGradient = (name = '') => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_GRADIENTS.length;
+  return AVATAR_GRADIENTS[index];
+};
+
+const getInitials = (name = '') => {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
+const getRoleConfig = (role, lang = 'az') => {
+  switch (role) {
+    case 'Master':
+      return {
+        label: lang === 'az' ? 'Usta' : 'Мастер',
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
+        icon: Wrench,
+      };
+    case 'Manager':
+      return {
+        label: lang === 'az' ? 'Menecer' : 'Менеджер',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
+        icon: Shield,
+      };
+    case 'Cashier':
+      return {
+        label: lang === 'az' ? 'Kassir' : 'Кассир',
+        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        icon: Wallet,
+      };
+    case 'Storeman':
+      return {
+        label: lang === 'az' ? 'Anbardar' : 'Кладовщик',
+        badgeClass: 'bg-purple-50 text-purple-800 border-purple-200/80',
+        icon: Briefcase,
+      };
+    case 'Staff':
+    default:
+      return {
+        label: lang === 'az' ? 'İşçi' : 'Сотрудник',
+        badgeClass: 'bg-slate-50 text-slate-800 border-slate-200/80',
+        icon: UserCheck,
+      };
+  }
+};
 
 const WarehouseStaffManager = () => {
   const { t, i18n } = useTranslation();
@@ -18,6 +83,7 @@ const WarehouseStaffManager = () => {
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -227,12 +293,13 @@ const WarehouseStaffManager = () => {
   };
 
   const filteredStaff = staffList.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (s.role || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.role || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.phone || '').includes(searchTerm)
   );
 
   const topBarContent = (
-    <div className="flex flex-col sm:flex-row gap-4 w-full">
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full items-stretch sm:items-center">
       {isAdmin && (
         <div className="flex bg-gray-100 p-1 rounded-lg w-max shrink-0">
           <button 
@@ -256,8 +323,24 @@ const WarehouseStaffManager = () => {
           placeholder={i18n.language === 'az' ? 'İşçi axtar...' : 'Поиск сотрудников...'}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors outline-none"
+          className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors outline-none font-medium"
         />
+      </div>
+      <div className="flex bg-gray-100 p-1 rounded-lg shrink-0 items-center">
+        <button
+          onClick={() => setViewMode('cards')}
+          title={i18n.language === 'az' ? 'Kart görünüşü' : 'Вид карточек'}
+          className={`p-1.5 rounded-md transition-all ${viewMode === 'cards' ? 'bg-white shadow-sm text-merkez-blue font-bold' : 'text-gray-400 hover:text-gray-700'}`}
+        >
+          <LayoutGrid className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => setViewMode('table')}
+          title={i18n.language === 'az' ? 'Cədvəl görünüşü' : 'Вид таблицы'}
+          className={`p-1.5 rounded-md transition-all ${viewMode === 'table' ? 'bg-white shadow-sm text-merkez-blue font-bold' : 'text-gray-400 hover:text-gray-700'}`}
+        >
+          <List className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
@@ -265,7 +348,7 @@ const WarehouseStaffManager = () => {
   const actionContent = (
     <button
       onClick={handleOpenAdd}
-      className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent uppercase"
+      className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent uppercase active:scale-95"
     >
       <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
       {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
@@ -287,7 +370,7 @@ const WarehouseStaffManager = () => {
       {portalTarget && createPortal(topBarContent, portalTarget)}
       {actionTarget && createPortal(actionContent, actionTarget)}
 
-      {/* Grid List */}
+      {/* Main Staff Container */}
       <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
@@ -299,7 +382,179 @@ const WarehouseStaffManager = () => {
             <Users className="w-10 h-10 text-gray-200" />
             <p className="text-xs font-bold">{i18n.language === 'az' ? 'Heç bir işçi tapılmadı.' : 'Сотрудники не найдены.'}</p>
           </div>
+        ) : viewMode === 'cards' ? (
+          /* Cards with Avatars Grid View */
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-gray-50/30">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+              {filteredStaff.map((staff) => {
+                const roleConfig = getRoleConfig(staff.role, i18n.language);
+                const RoleIcon = roleConfig.icon;
+                const isActive = staff.status === 'Active';
+
+                return (
+                  <div
+                    key={staff.id}
+                    className="bg-white rounded-2xl border border-gray-150 hover:border-merkez-blue/40 shadow-sm hover:shadow-md transition-all duration-200 p-5 flex flex-col justify-between group relative overflow-hidden"
+                  >
+                    {/* Top Section: Avatar, Status & Quick Action Buttons */}
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-3.5">
+                        {/* Avatar with Status badge */}
+                        <div className="relative shrink-0">
+                          <div
+                            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getAvatarGradient(staff.name)} flex items-center justify-center text-white font-black text-lg shadow-sm tracking-wider select-none`}
+                          >
+                            {getInitials(staff.name)}
+                          </div>
+                          <span
+                            title={isActive ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
+                            className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${
+                              isActive ? 'bg-emerald-500' : 'bg-rose-500'
+                            }`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                          </span>
+                        </div>
+
+                        {/* Edit & Delete Action Buttons */}
+                        <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleOpenEdit(staff)}
+                            title={i18n.language === 'az' ? 'Redaktə et' : 'Редактировать'}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-merkez-blue hover:bg-blue-50 transition-colors"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmDelete(staff)}
+                            title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Staff Name & Role Badges */}
+                      <div className="space-y-1.5 mb-3.5">
+                        <h3
+                          title={staff.name}
+                          className="font-bold text-gray-900 text-base leading-snug line-clamp-1 group-hover:text-merkez-blue transition-colors"
+                        >
+                          {staff.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold border ${roleConfig.badgeClass}`}
+                          >
+                            <RoleIcon className="w-3 h-3 shrink-0" />
+                            <span>{roleConfig.label}</span>
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                              isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+                            }`}
+                          >
+                            {isActive ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Contact & Security Info */}
+                      <div className="pt-2.5 border-t border-gray-100 space-y-1.5 text-xs text-gray-500 mb-4">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                          {staff.phone ? (
+                            <a
+                              href={`tel:${staff.phone}`}
+                              className="font-semibold text-gray-700 hover:text-merkez-blue transition-colors font-mono"
+                            >
+                              {staff.phone}
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 italic">
+                              {i18n.language === 'az' ? 'Telefon qeyd edilməyib' : 'Телефон не указан'}
+                            </span>
+                          )}
+                        </div>
+
+                        {staff.pin && (
+                          <div className="flex items-center gap-2 text-gray-400 text-[11px]">
+                            <Lock className="w-3.5 h-3.5 shrink-0" />
+                            <span>PIN: ••••</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom Row / Salary & Management Actions */}
+                    {activeSubTab === 'salaries' ? (
+                      <div className="pt-3 border-t border-gray-100 flex flex-col gap-2.5 mt-auto">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                            {i18n.language === 'az' ? 'Cari Balans' : 'Баланс'}
+                          </span>
+                          <span
+                            className={`font-black text-sm ${
+                              staff.balance < 0 ? 'text-red-600' : 'text-gray-900'
+                            }`}
+                          >
+                            {staff.balance ? parseFloat(staff.balance).toFixed(2) : '0.00'} ₼
+                          </span>
+                        </div>
+                        {isAdmin && (
+                          <button
+                            onClick={() => {
+                              setSelectedStaffForSalary(staff);
+                              setIsSalaryModalOpen(true);
+                            }}
+                            className="w-full py-2 bg-merkez-blue hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                          >
+                            <Wallet className="w-3.5 h-3.5" />
+                            <span>{i18n.language === 'az' ? 'Məvacibi İdarə Et' : 'Управление зарплатой'}</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      isAdmin && (
+                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+                          <div>
+                            <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                              {i18n.language === 'az' ? 'Maaş' : 'Оклад'}
+                            </div>
+                            <div className="font-bold text-xs text-gray-800">
+                              {staff.salary_amount && parseFloat(staff.salary_amount) > 0
+                                ? `${parseFloat(staff.salary_amount).toFixed(2)} ₼ / ${
+                                    staff.salary_type === 'daily'
+                                      ? i18n.language === 'az' ? 'gün' : 'день'
+                                      : staff.salary_type === 'weekly'
+                                      ? i18n.language === 'az' ? 'həftə' : 'нед'
+                                      : i18n.language === 'az' ? 'ay' : 'мес'
+                                  }`
+                                : '—'}
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              setSelectedStaffForSalary(staff);
+                              setIsSalaryModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-gray-50 hover:bg-merkez-blue hover:text-white text-gray-700 border border-gray-200 hover:border-transparent rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                          >
+                            <Wallet className="w-3.5 h-3.5" />
+                            <span>{i18n.language === 'az' ? 'Maaş' : 'Зарплата'}</span>
+                          </button>
+                        </div>
+                      )
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         ) : (
+          /* Table View with Mini Avatars */
           <div className="flex-1 overflow-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-50/50 border-b border-gray-100 sticky top-0 z-10">
@@ -313,72 +568,79 @@ const WarehouseStaffManager = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filteredStaff.map(staff => (
-                  <tr key={staff.id} className="hover:bg-gray-50/30 transition-colors group">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-gray-900">{staff.name}</span>
-                    </td>
-                    {activeSubTab === 'staff' && (
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-gray-500">{staff.phone || '—'}</span>
+                {filteredStaff.map(staff => {
+                  const roleConfig = getRoleConfig(staff.role, i18n.language);
+                  const RoleIcon = roleConfig.icon;
+                  const isActive = staff.status === 'Active';
+
+                  return (
+                    <tr key={staff.id} className="hover:bg-gray-50/30 transition-colors group">
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${getAvatarGradient(staff.name)} flex items-center justify-center text-white font-bold text-xs shadow-xs tracking-wider shrink-0 select-none`}>
+                            {getInitials(staff.name)}
+                          </div>
+                          <span className="text-sm font-bold text-gray-900 group-hover:text-merkez-blue transition-colors">{staff.name}</span>
+                        </div>
                       </td>
-                    )}
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
-                        {staff.role === 'Manager' ? (i18n.language === 'az' ? 'Menecer' : 'Менеджер') :
-                         staff.role === 'Storeman' ? (i18n.language === 'az' ? 'Anbardar' : 'Кладовщик') :
-                         staff.role === 'Cashier' ? (i18n.language === 'az' ? 'Kassir' : 'Кассир') :
-                         staff.role === 'Staff' ? (i18n.language === 'az' ? 'İşçi' : 'Сотрудник') :
-                         staff.role === 'Master' ? (i18n.language === 'az' ? 'Usta' : 'Мастер') :
-                         staff.role}
-                      </span>
-                    </td>
-                    {activeSubTab === 'staff' && (
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                          staff.status === 'Active' ? 'bg-green-50 text-merkez-green' : 'bg-red-50 text-red-500'
-                        }`}>
-                          {staff.status === 'Active' ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
+                      {activeSubTab === 'staff' && (
+                        <td className="px-6 py-3.5">
+                          <span className="text-sm font-medium text-gray-600 font-mono">{staff.phone || '—'}</span>
+                        </td>
+                      )}
+                      <td className="px-6 py-3.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${roleConfig.badgeClass}`}>
+                          <RoleIcon className="w-3 h-3 shrink-0" />
+                          <span>{roleConfig.label}</span>
                         </span>
                       </td>
-                    )}
-                    {(isAdmin && activeSubTab === 'salaries') && (
-                      <td className="px-6 py-4 text-right">
-                        <span className={`text-sm font-black ${staff.balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-                          {staff.balance ? parseFloat(staff.balance).toFixed(2) : '0.00'} ₼
-                        </span>
+                      {activeSubTab === 'staff' && (
+                        <td className="px-6 py-3.5">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'
+                          }`}>
+                            {isActive ? (i18n.language === 'az' ? 'Aktiv' : 'Активен') : (i18n.language === 'az' ? 'Deaktiv' : 'Неактивен')}
+                          </span>
+                        </td>
+                      )}
+                      {(isAdmin && activeSubTab === 'salaries') && (
+                        <td className="px-6 py-3.5 text-right">
+                          <span className={`text-sm font-black ${staff.balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                            {staff.balance ? parseFloat(staff.balance).toFixed(2) : '0.00'} ₼
+                          </span>
+                        </td>
+                      )}
+                      <td className="px-6 py-3.5 text-right">
+                        <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
+                          {(isAdmin && activeSubTab === 'salaries') && (
+                            <button 
+                              onClick={() => { setSelectedStaffForSalary(staff); setIsSalaryModalOpen(true); }}
+                              className="px-3 py-1.5 bg-merkez-blue text-white hover:bg-blue-600 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center whitespace-nowrap shadow-sm"
+                            >
+                              {i18n.language === 'az' ? 'İdarə et' : 'Управление'}
+                            </button>
+                          )}
+                          {activeSubTab === 'staff' && (
+                            <>
+                              <button 
+                                onClick={() => handleOpenEdit(staff)} 
+                                className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => setConfirmDelete(staff)} 
+                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
-                    )}
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                        {(isAdmin && activeSubTab === 'salaries') && (
-                          <button 
-                            onClick={() => { setSelectedStaffForSalary(staff); setIsSalaryModalOpen(true); }}
-                            className="px-3 py-1.5 bg-merkez-blue text-white hover:bg-blue-600 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center justify-center whitespace-nowrap shadow-sm"
-                          >
-                            {i18n.language === 'az' ? 'İdarə et' : 'Управление'}
-                          </button>
-                        )}
-                        {activeSubTab === 'staff' && (
-                          <>
-                            <button 
-                              onClick={() => handleOpenEdit(staff)} 
-                              className="p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-colors"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button 
-                              onClick={() => setConfirmDelete(staff)} 
-                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
