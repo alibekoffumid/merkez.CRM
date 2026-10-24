@@ -25,7 +25,7 @@ import {
   LayoutGrid,
   BarChart2
 } from 'lucide-react';
-import { formatUnitName } from './SaleDetailModal';
+import { formatUnitName, parseSaleNote } from './SaleDetailModal';
 
 const MONTH_NAMES_SHORT = {
   az: ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'],
@@ -289,6 +289,7 @@ const WarehouseEfficiencyCharts = ({
 
   const [selectedPeriod, setSelectedPeriod] = useState('30days');
   const [activeTab, setActiveTab] = useState('top_products');
+  const [timelineMetric, setTimelineMetric] = useState('revenue'); // 'revenue' | 'orders'
   const [topSortBy, setTopSortBy] = useState('quantity'); // 'quantity' | 'revenue' | 'profit'
   const [topChartView, setTopChartView] = useState('columns'); // 'columns' | 'bars'
   const [searchQuery, setSearchQuery] = useState('');
@@ -326,46 +327,15 @@ const WarehouseEfficiencyCharts = ({
       .map(d => {
         const prod = d.products || prodMap.get(d.product_id) || {};
         const qty = Math.abs(parseFloat(d.quantity) || 1);
-        const prodPrice = parseFloat(prod.price) || 0;
-        const purchasePrice = canSeeCostAndProfit ? (parseFloat(prod.purchase_price) || 0) : 0;
-        const note = d.notes || '';
+        const parsed = parseSaleNote(d.notes || '', prod, qty, canSeeCostAndProfit);
 
-        // Extract metadata from notes if present
-        let unitPrice = prodPrice;
-        const priceMatch = note.match(/\[Qiymət:\s*([\d.,]+)\s*₼\]/i);
-        if (priceMatch) {
-          unitPrice = parseFloat(priceMatch[1].replace(',', '.')) || prodPrice;
-        }
-
-        let discount = 0;
-        const discMatch = note.match(/\[(?:Endirim|Скидка|Discount):\s*([\d.,]+)\s*₼\]/i);
-        if (discMatch) {
-          discount = parseFloat(discMatch[1].replace(',', '.')) || 0;
-        }
-
-        let totalAmount = 0;
-        const totalMatch = note.match(/\[(?:Cəmi|Məbləğ):\s*([\d.,]+)\s*₼\]/i);
-        if (totalMatch) {
-          totalAmount = parseFloat(totalMatch[1].replace(',', '.')) || 0;
-        } else {
-          totalAmount = Math.max(0, (unitPrice * qty) - discount);
-        }
-
-        let paymentMethod = 'Nəqd';
-        const payMatch = note.match(/Ödəniş:\s*([^,\])]+)/i);
-        if (payMatch) {
-          paymentMethod = payMatch[1].trim();
-        }
-
-        let channel = 'Mağaza';
-        const chanMatch = note.match(/\[Kanal:\s*([^\]]+)\]/i);
-        if (chanMatch) {
-          channel = chanMatch[1].trim();
-        }
-
-        const costTotal = purchasePrice * qty;
-        const netProfit = totalAmount - costTotal;
-        const profitMargin = totalAmount > 0 ? (netProfit / totalAmount) * 100 : 0;
+        const purchasePrice = canSeeCostAndProfit ? (parsed.costPrice || 0) : 0;
+        const costTotal = canSeeCostAndProfit ? (parsed.totalCost || 0) : 0;
+        const totalAmount = parsed.totalAmount;
+        const unitPrice = parsed.unitPrice;
+        const discount = parsed.discount || 0;
+        const netProfit = canSeeCostAndProfit ? (parsed.profit ?? (totalAmount - costTotal)) : 0;
+        const profitMargin = totalAmount > 0 && canSeeCostAndProfit ? (netProfit / totalAmount) * 100 : 0;
 
         const dateObj = new Date(d.issued_at || d.created_at || Date.now());
 
@@ -387,11 +357,11 @@ const WarehouseEfficiencyCharts = ({
           costTotal,
           netProfit,
           profitMargin,
-          paymentMethod,
-          channel
+          paymentMethod: parsed.paymentMethod || 'Nağd',
+          channel: parsed.channel || 'Mağaza'
         };
       });
-  }, [dispatches, products, categories]);
+  }, [dispatches, products, categories, canSeeCostAndProfit]);
 
   // 2. Filter sales by selected time period
   const filteredSales = useMemo(() => {
@@ -558,12 +528,17 @@ const WarehouseEfficiencyCharts = ({
 
     const sortedDays = Array.from(dateMap.values()).sort((a, b) => a.dateKey.localeCompare(b.dateKey));
     const maxDayRev = Math.max(...sortedDays.map(d => d.revenue), 1);
+    const maxDayOrders = Math.max(...sortedDays.map(d => d.ordersCount), 1);
 
     return sortedDays.map(d => ({
       ...d,
-      heightPercent: (d.revenue / maxDayRev) * 100
+      revenuePercent: (d.revenue / maxDayRev) * 100,
+      ordersPercent: (d.ordersCount / maxDayOrders) * 100,
+      heightPercent: timelineMetric === 'orders' 
+        ? (d.ordersCount / maxDayOrders) * 100 
+        : (d.revenue / maxDayRev) * 100
     }));
-  }, [filteredSales, i18n.language]);
+  }, [filteredSales, i18n.language, timelineMetric]);
 
   // 6. Aggregate by Category for Donut & Breakdown
   const categoryData = useMemo(() => {
@@ -1116,24 +1091,59 @@ const WarehouseEfficiencyCharts = ({
             {/* TAB 2: SALES DYNAMICS / TIMELINE */}
             {activeTab === 'timeline' && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h4 className="text-sm font-black text-gray-900">
-                      {i18n.language === 'az' ? 'Günlər üzrə Satış Dövriyyəsi' : 'Динамика продаж по дням'}
+                      {timelineMetric === 'orders'
+                        ? (i18n.language === 'az' ? 'Günlər üzrə Satış Əməliyyatları' : 'Количество продаж по дням')
+                        : (i18n.language === 'az' ? 'Günlər üzrə Satış Dövriyyəsi' : 'Динамика продаж по дням')}
                     </h4>
                     <p className="text-xs text-gray-400 font-medium">
-                      {i18n.language === 'az' ? 'Gündəlik satış məbləğləri və trend' : 'Суммы продаж и тенденции'}
+                      {timelineMetric === 'orders'
+                        ? (i18n.language === 'az' ? 'Gündəlik qeydə alınmış çek və əməliyyat sayı' : 'Количество пробитых чеков по дням')
+                        : (i18n.language === 'az' ? 'Gündəlik satış məbləğləri və trend' : 'Суммы продаж и тенденции')}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
-                      {i18n.language === 'az' ? 'Ən Yüksək Gün' : 'Пиковый день'}
-                    </span>
-                    <p className="text-sm font-black text-emerald-600">
-                      {timelineData.length > 0 
-                        ? `₼${Math.max(...timelineData.map(d => d.revenue)).toFixed(2)}` 
-                        : '0.00 ₼'}
-                    </p>
+
+                  <div className="flex items-center gap-3">
+                    {/* Switcher: Revenue vs Orders */}
+                    <div className="flex items-center p-0.5 bg-gray-100 rounded-xl border border-gray-200/60">
+                      <button
+                        type="button"
+                        onClick={() => setTimelineMetric('revenue')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                          timelineMetric === 'revenue' 
+                            ? 'bg-white text-blue-600 shadow-sm' 
+                            : 'text-gray-500 hover:text-gray-900'
+                        }`}
+                      >
+                        {i18n.language === 'az' ? 'Dövriyyə (₼)' : 'Выручка (₼)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTimelineMetric('orders')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${
+                          timelineMetric === 'orders' 
+                            ? 'bg-white text-blue-600 shadow-sm' 
+                            : 'text-gray-500 hover:text-gray-900'
+                        }`}
+                      >
+                        {i18n.language === 'az' ? 'Satış Sayı (Çek)' : 'Кол-во продаж'}
+                      </button>
+                    </div>
+
+                    <div className="text-right pl-2 border-l border-gray-100">
+                      <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                        {i18n.language === 'az' ? 'Ən Yüksək Gün' : 'Пиковый день'}
+                      </span>
+                      <p className="text-sm font-black text-emerald-600">
+                        {timelineData.length > 0 
+                          ? (timelineMetric === 'orders'
+                              ? `${Math.max(...timelineData.map(d => d.ordersCount))} ${i18n.language === 'az' ? 'satış' : 'чек.'}`
+                              : `₼${Math.max(...timelineData.map(d => d.revenue)).toFixed(2)}`)
+                          : '0'}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -1146,18 +1156,27 @@ const WarehouseEfficiencyCharts = ({
                         className="flex-1 min-w-[28px] max-w-[64px] flex flex-col items-center group relative h-full justify-end"
                       >
                         {/* Hover Tooltip */}
-                        <div className="opacity-0 group-hover:opacity-100 absolute -top-16 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg whitespace-nowrap pointer-events-none transition-all z-20 shadow-xl border border-gray-800">
+                        <div className="opacity-0 group-hover:opacity-100 absolute -top-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-2 px-3 rounded-xl whitespace-nowrap pointer-events-none transition-all z-20 shadow-2xl border border-gray-800">
                           <p className="text-gray-300 font-semibold mb-0.5">{day.fullDateLabel || day.label}</p>
-                          <p className="text-emerald-400 font-black">₼{day.revenue.toFixed(2)}</p>
-                          <p className="text-gray-300">{day.quantity} {formatUnitName('pcs', i18n.language)} ({day.ordersCount} {i18n.language === 'az' ? 'satış' : 'чек.'})</p>
+                          <p className="text-emerald-400 font-black text-xs">₼{day.revenue.toFixed(2)}</p>
+                          <p className="text-blue-300 font-black">
+                            {day.ordersCount} {i18n.language === 'az' ? 'satış əməliyyatı' : 'продаж'}
+                          </p>
+                          <p className="text-gray-400 text-[9px]">
+                            {day.quantity} {formatUnitName('pcs', i18n.language)}
+                          </p>
                           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                         </div>
 
                         {/* Bar background */}
                         <div className="w-full h-full bg-blue-50/40 rounded-t-xl relative flex items-end overflow-hidden hover:bg-blue-100/60 transition-colors">
                           <div 
-                            className="w-full bg-gradient-to-t from-blue-600 to-indigo-500 rounded-t-xl transition-all duration-700 ease-out group-hover:from-emerald-500 group-hover:to-teal-400"
-                            style={{ height: `${Math.max(day.heightPercent, 4)}%` }}
+                            className={`w-full rounded-t-xl transition-all duration-700 ease-out ${
+                              timelineMetric === 'orders'
+                                ? 'bg-gradient-to-t from-emerald-600 to-teal-500 group-hover:from-blue-600 group-hover:to-indigo-500'
+                                : 'bg-gradient-to-t from-blue-600 to-indigo-500 group-hover:from-emerald-500 group-hover:to-teal-400'
+                            }`}
+                            style={{ height: `${Math.max(day.heightPercent, 5)}%` }}
                           />
                         </div>
 
@@ -1174,8 +1193,22 @@ const WarehouseEfficiencyCharts = ({
 
                 <div className="flex items-center justify-between text-xs text-gray-400 pt-2 font-medium">
                   <span>← {timelineData[0]?.label || ''}</span>
-                  <span className="text-gray-500 font-bold">
-                    {i18n.language === 'az' ? 'Gündəlik orta satış:' : 'Среднесуточный объем:'} ₼{(summary.totalRevenue / Math.max(timelineData.length, 1)).toFixed(2)}
+                  <span className="text-gray-600 font-bold">
+                    {timelineMetric === 'orders' ? (
+                      <>
+                        {i18n.language === 'az' ? 'Gündəlik orta satış sayı:' : 'Среднее кол-во продаж в день:'}{' '}
+                        <span className="text-emerald-600 font-black">
+                          {(timelineData.reduce((sum, d) => sum + d.ordersCount, 0) / Math.max(timelineData.length, 1)).toFixed(1)} {i18n.language === 'az' ? 'satış' : 'чек.'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        {i18n.language === 'az' ? 'Gündəlik orta satış:' : 'Среднесуточный объем:'}{' '}
+                        <span className="text-blue-600 font-black">
+                          ₼{(summary.totalRevenue / Math.max(timelineData.length, 1)).toFixed(2)}
+                        </span>
+                      </>
+                    )}
                   </span>
                   <span>{timelineData[timelineData.length - 1]?.label || ''} →</span>
                 </div>
