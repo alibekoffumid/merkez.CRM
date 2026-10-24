@@ -265,7 +265,7 @@ const WarehouseClientManager = () => {
   const actionContent = activeSubTab === 'clients' && (
     <button
       onClick={handleOpenAdd}
-      className="bg-merkez-green text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-green-600 transition-all flex items-center shadow-lg shadow-green-600/10 active:scale-95 shrink-0"
+      className="btn-gradient-primary px-4 py-2 h-[38px] rounded-lg text-xs font-bold uppercase tracking-wider flex items-center justify-center whitespace-nowrap active:scale-95 shrink-0"
     >
       <Plus className="w-4 h-4 mr-2" />
       {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
@@ -338,7 +338,7 @@ const WarehouseClientManager = () => {
           {activeSubTab === 'clients' && (
             <button
               onClick={handleOpenAdd}
-              className="w-full sm:w-auto bg-merkez-green text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-green-600 transition-all flex items-center justify-center shadow-md shadow-green-600/10 active:scale-95 shrink-0"
+              className="w-full sm:w-auto btn-gradient-primary px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center active:scale-95 shrink-0"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               {i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}
@@ -590,7 +590,7 @@ const WarehouseClientManager = () => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-merkez-blue text-white rounded-lg font-bold shadow-lg shadow-blue-600/10 hover:bg-blue-600 disabled:opacity-50 transition-all text-xs flex items-center justify-center"
+                    className="btn-gradient-primary px-6 py-2.5 rounded-lg font-bold text-xs flex items-center justify-center"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                     {t('common.save')}

@@ -348,7 +348,7 @@ const WarehouseStaffManager = () => {
   const actionContent = (
     <button
       onClick={handleOpenAdd}
-      className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap shrink-0 border border-transparent uppercase active:scale-95"
+      className="btn-gradient-primary px-4 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap shrink-0 uppercase active:scale-95"
     >
       <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" />
       {i18n.language === 'az' ? 'Yeni İşçi' : 'Новый сотрудник'}
@@ -788,7 +788,7 @@ const WarehouseStaffManager = () => {
                   <button 
                     type="submit"
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-merkez-blue text-white rounded-lg font-bold hover:bg-blue-600 transition-all text-xs flex items-center justify-center"
+                    className="btn-gradient-primary px-6 py-2.5 rounded-lg font-bold text-xs flex items-center justify-center"
                   >
                     {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                     {t('common.save') || 'Yadda saxla'}

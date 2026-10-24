@@ -386,7 +386,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-merkez-blue text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-600/20 flex items-center justify-center disabled:opacity-50 mt-4"
+            className="w-full btn-gradient-primary py-3.5 rounded-xl text-sm font-bold flex items-center justify-center disabled:opacity-50 mt-4"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin mr-2" />

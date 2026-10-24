@@ -470,7 +470,7 @@ const WarehouseRepairs = ({ activeTab }) => {
       </button>
       <button 
         onClick={() => setIsSendModalOpen(true)}
-        className="flex items-center justify-center gap-2 h-[38px] bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg font-bold text-xs transition-all shadow-sm shadow-orange-500/20 active:scale-95 border border-transparent"
+        className="flex items-center justify-center gap-2 h-[38px] btn-gradient-primary px-3 py-2 rounded-lg font-bold text-xs uppercase active:scale-95"
       >
         <Plus className="w-3.5 h-3.5" />
         {i18n.language === 'az' ? 'Təmirə Göndər' : i18n.language === 'ru' ? 'Передать в ремонт' : 'Send to repair'}

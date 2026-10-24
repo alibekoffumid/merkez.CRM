@@ -199,7 +199,7 @@ const AddCategoryModal = ({ isOpen, onClose, onCategoryAdded }) => {
                   <button 
                     type="submit" 
                     disabled={loading} 
-                    className="flex-[2] py-3 bg-merkez-green text-white rounded-xl font-bold shadow-lg shadow-green-500/15 hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                    className="flex-[2] py-3 btn-gradient-primary rounded-xl font-bold flex items-center justify-center gap-2"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     {t('warehouse.addCategory')}

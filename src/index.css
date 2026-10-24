@@ -94,6 +94,31 @@
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite linear;
   }
+
+  /* Premium Emerald-Teal Gradient Button */
+  .btn-gradient-primary {
+    background: linear-gradient(135deg, #10b981 0%, #0d9488 50%, #059669 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.35) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .btn-gradient-primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #0f766e 50%, #047857 100%) !important;
+    box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.45) !important;
+    transform: translateY(-1px);
+  }
+  .btn-gradient-primary:active:not(:disabled) {
+    transform: scale(0.97) translateY(0) !important;
+    box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.25) !important;
+  }
+  .btn-gradient-primary:disabled,
+  .btn-gradient-primary[disabled] {
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
 }
 
 .print-only-container {

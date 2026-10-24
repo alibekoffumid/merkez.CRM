@@ -302,7 +302,7 @@ const DebtBook = () => {
 
             <button
               onClick={() => setShowAddCustomer(true)}
-              className="px-4 py-2 h-[38px] rounded-lg text-xs font-black uppercase tracking-wider bg-merkez-blue text-white hover:bg-blue-600 transition-all flex items-center justify-center gap-2 shadow-sm shrink-0"
+              className="px-4 py-2 h-[38px] rounded-lg text-xs font-black uppercase tracking-wider btn-gradient-primary flex items-center justify-center gap-2 shrink-0 active:scale-95"
             >
               <UserPlus className="w-4 h-4" />
               <span>{i18n.language === 'az' ? 'Müştəri əlavə et' : i18n.language === 'ru' ? 'Добавить клиента' : 'Add Client'}</span>

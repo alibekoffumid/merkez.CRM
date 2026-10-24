@@ -2090,7 +2090,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
               <button 
                 onClick={() => setShowSellProduct(true)} 
-                className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent"
+                className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap w-full uppercase active:scale-95"
               >
                 <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
                 {selectedItems.length > 0 && (
@@ -2102,7 +2102,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             )}
             
             {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
-              <button onClick={() => setShowAddSupplier(true)} className="bg-merkez-green text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-600 transition-colors flex items-center justify-center shadow-md shadow-green-600/10 whitespace-nowrap w-full border border-transparent">
+              <button onClick={() => setShowAddSupplier(true)} className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap w-full uppercase active:scale-95">
                 <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addSupplier')}
               </button>
             )}
@@ -3180,13 +3180,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               )}
 
               {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
                 </button>
               )}
 
               {activeTab === 'raw' && isRestaurantActive && currentStaff?.role !== 'Cashier' && (
-                <button onClick={() => setShowAddIngredient(true)} className="bg-merkez-green text-white px-4 py-2 rounded-lg text-sm font-medium border border-transparent hover:bg-green-600 transition-colors flex items-center justify-center shadow-sm shrink-0">
+                <button onClick={() => setShowAddIngredient(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
                   <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
                 </button>
               )}
@@ -3705,7 +3705,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
                   <FolderTree className="w-12 h-12 text-gray-200" />
                   <p className="font-medium">{t('warehouse.noIngredientsFound')}</p>
-                  <button onClick={() => setShowAddIngredient(true)} className="px-4 py-2 bg-merkez-green text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors shadow-sm">
+                  <button onClick={() => setShowAddIngredient(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
                     <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
                   </button>
                 </div>

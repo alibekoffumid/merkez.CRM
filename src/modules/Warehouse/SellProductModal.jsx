@@ -1832,7 +1832,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                 type="button" 
                 disabled={loading || cart.length === 0}
                 onClick={handleSubmit}
-                className="px-6 sm:px-8 py-3 bg-merkez-blue text-white rounded-xl font-bold shadow-lg shadow-blue-600/10 hover:bg-blue-600 disabled:opacity-50 transition-all text-sm flex items-center justify-center gap-2"
+                className="px-6 sm:px-8 py-3 btn-gradient-primary rounded-xl font-bold disabled:opacity-50 text-sm flex items-center justify-center gap-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>

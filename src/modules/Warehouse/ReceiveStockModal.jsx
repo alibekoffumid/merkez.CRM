@@ -683,7 +683,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
             <button 
               onClick={handleSubmit}
               disabled={loading || items.length === 0} 
-              className="flex-[2] py-4 bg-merkez-green text-white rounded-2xl font-black shadow-lg shadow-green-500/20 hover:bg-green-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-[2] py-4 btn-gradient-primary rounded-2xl font-black flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
               {t('warehouse.completeReceipt') || 'Завершить приемку'}
