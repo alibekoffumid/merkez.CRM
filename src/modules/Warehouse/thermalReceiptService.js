@@ -415,10 +415,12 @@ export function printThermalReceipt57mm(saleData) {
       <!-- Items List -->
       ${items.map((item) => {
         const itemQty = Number(item.quantity) || 1;
-        const itemPrice = Number(item.price) || 0;
-        const itemTotal = Number(item.total) || (itemQty * itemPrice);
+        const isGift = Boolean(item.isGift);
+        const itemPrice = isGift ? 0 : (Number(item.price) || 0);
+        const itemTotal = isGift ? 0 : (Number(item.total) || (itemQty * itemPrice));
         const itemUnit = item.unit ? `(${item.unit})` : '';
-        const itemDisplayName = `${escapeHtml(item.name || item.productName || 'Məhsul')}${itemUnit ? ` ${escapeHtml(itemUnit)}` : ''}`;
+        const rawName = item.name || item.productName || 'Məhsul';
+        const itemDisplayName = `${isGift ? '[HƏDİYYƏ] ' : ''}${escapeHtml(rawName)}${itemUnit ? ` ${escapeHtml(itemUnit)}` : ''}`;
         const qtyFormatted = Number.isInteger(itemQty) ? itemQty.toFixed(1) : itemQty.toString();
 
         return `
@@ -426,10 +428,12 @@ export function printThermalReceipt57mm(saleData) {
             <div class="item-row">
               <span class="col-name">${itemDisplayName}</span>
               <span class="col-qty">${qtyFormatted}</span>
-              <span class="col-price">${itemPrice.toFixed(2)}</span>
-              <span class="col-total">${itemTotal.toFixed(2)}</span>
+              <span class="col-price">${isGift ? '0.00' : itemPrice.toFixed(2)}</span>
+              <span class="col-total">${isGift ? '0.00' : itemTotal.toFixed(2)}</span>
             </div>
-            ${item.discount > 0 ? `
+            ${isGift ? `
+              <div class="item-extra" style="font-weight: 700; color: #000;">*** MAĞAZADAN HƏDİYYƏ (0.00 AZN) ***</div>
+            ` : item.discount > 0 ? `
               <div class="item-extra">(Endirim: -${Number(item.discount).toFixed(2)})</div>
             ` : ''}
             ${item.taxRate ? `

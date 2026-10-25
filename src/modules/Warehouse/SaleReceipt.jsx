@@ -271,19 +271,33 @@ const SaleReceipt = () => {
                 {i18n.language === 'az' ? 'Məhsullar' : 'Товары'}
               </div>
               <div className="divide-y divide-gray-100 border-y border-gray-100">
-                {sale.items.map((it, idx) => (
-                  <div key={idx} className="py-2.5 flex justify-between items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-gray-900 truncate">{it.name}</div>
-                      <div className="text-xs text-gray-400">
-                        {it.quantity} əd x ₼{Number(it.price || 0).toFixed(2)}
+                {sale.items.map((it, idx) => {
+                  const isGift = it.name?.includes('Hədiyyə') || Number(it.price || 0) === 0;
+                  return (
+                    <div key={idx} className="py-2.5 flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-1.5 flex-wrap">
+                          <span>{it.name}</span>
+                          {isGift && (
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                              🎁 {i18n.language === 'az' ? 'Hədiyyə' : 'Подарок'}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {it.quantity} əd x ₼{Number(it.price || 0).toFixed(2)}
+                        </div>
+                      </div>
+                      <div className="text-sm font-black text-right">
+                        {isGift ? (
+                          <span className="text-purple-600 font-black">0.00 ₼</span>
+                        ) : (
+                          <span className="text-gray-900">₼{Number(it.total || 0).toFixed(2)}</span>
+                        )}
                       </div>
                     </div>
-                    <div className="text-sm font-black text-gray-900 text-right">
-                      ₼{Number(it.total || 0).toFixed(2)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

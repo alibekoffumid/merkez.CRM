@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle, Tag, CheckCircle2, Printer, Receipt } from 'lucide-react'; 
+import { X, Minus, Plus, Save, Package, User, Calendar, AlertCircle, Loader2, Trash2, ShoppingCart, Search, CreditCard, DollarSign, Camera, PlusCircle, Tag, CheckCircle2, Printer, Receipt, Gift } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
@@ -199,6 +199,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             quantity: 1,
             productName: p.name,
             price: Number(p.price || p.sale_price || 0),
+            originalPrice: Number(p.price || p.sale_price || 0),
+            isGift: false,
             currentStock: p.stock_quantity
           }));
           setCart(initialCart);
@@ -459,6 +461,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             quantity: 1,
             productName: product.name,
             price: Number(product.price || 0),
+            originalPrice: Number(product.price || 0),
+            isGift: false,
             currentStock: product.stock_quantity
           }];
         }
@@ -501,6 +505,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             quantity: 1,
             productName: product.name,
             price: Number(product.price || 0),
+            originalPrice: Number(product.price || 0),
+            isGift: false,
             currentStock: product.stock_quantity
           }];
         }
@@ -557,6 +563,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         quantity: qty,
         productName: product.name,
         price: Number(product.price || 0),
+        originalPrice: Number(product.price || 0),
+        isGift: false,
         currentStock: product.stock_quantity
       }]);
     }
@@ -569,6 +577,27 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   const removeFromCart = (index) => {
     setCart(cart.filter((_, i) => i !== index));
+  };
+
+  const toggleGift = (index) => {
+    setCart(prev => {
+      const newCart = [...prev];
+      const item = { ...newCart[index] };
+      if (item.isGift) {
+        item.isGift = false;
+        item.price = item.originalPrice !== undefined ? item.originalPrice : (products.find(p => p.id === item.product_id)?.price || 0);
+        toast.success(i18n.language === 'az' ? `${item.productName}: Hədiyyə ləğv edildi` : `${item.productName}: Подарок отменен`);
+      } else {
+        item.isGift = true;
+        if (item.originalPrice === undefined || item.originalPrice === 0) {
+          item.originalPrice = item.price > 0 ? item.price : (products.find(p => p.id === item.product_id)?.price || 0);
+        }
+        item.price = 0;
+        toast.success(i18n.language === 'az' ? `🎁 ${item.productName} hədiyyə olaraq qeyd edildi!` : `🎁 ${item.productName} оформлен как подарок!`);
+      }
+      newCart[index] = item;
+      return newCart;
+    });
   };
 
   const [discount, setDiscount] = useState('0');
@@ -778,13 +807,13 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               return {
                 sale_id: saleRec.id,
                 product_id: it.product_id,
-                product_name: it.productName,
+                product_name: it.isGift ? `[🎁 Hədiyyə] ${it.productName}` : it.productName,
                 quantity: it.quantity,
-                price_at_sale: Math.max(0, itPrice - (itDisc / (Number(it.quantity) || 1))),
-                base_price: itPrice,
-                discount_amount: itDisc,
-                discount_type: discountType,
-                total: Math.max(0, itGross - itDisc),
+                price_at_sale: it.isGift ? 0 : Math.max(0, itPrice - (itDisc / (Number(it.quantity) || 1))),
+                base_price: it.isGift ? Number(it.originalPrice || 0) : itPrice,
+                discount_amount: it.isGift ? Number(it.originalPrice || 0) * Number(it.quantity || 1) : itDisc,
+                discount_type: it.isGift ? 'gift' : discountType,
+                total: it.isGift ? 0 : Math.max(0, itGross - itDisc),
                 status: 'completed',
                 is_deleted: false,
                 created_at: new Date().toISOString(),
@@ -854,6 +883,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         const itemDiscount = (totalDiscount > 0 && grossCartTotal > 0) ? (itemGross / grossCartTotal) * totalDiscount : 0;
         const itemFinalTotal = Math.max(0, itemGross - itemDiscount);
 
+        if (item.isGift) {
+          dispatchNote += ` [🎁 HƏDİYYƏ (Dəyəri: ₼${Number(item.originalPrice || 0).toFixed(2)})]`;
+        }
         dispatchNote += ` [Qiymət: ₼${itemPrice.toFixed(2)}]`;
         if (itemDiscount > 0) {
           dispatchNote += ` [Endirim: ₼${itemDiscount.toFixed(2)}] [Məbləğ: ₼${itemFinalTotal.toFixed(2)}]`;
@@ -992,8 +1024,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             quantity: item.quantity || 1,
             unit: item.unit || 'əd',
             price: itemPrice,
-            total: Math.max(0, itemGross - itemDisc),
-            discount: itemDisc
+            originalPrice: item.originalPrice || itemPrice,
+            isGift: Boolean(item.isGift),
+            total: item.isGift ? 0 : Math.max(0, itemGross - itemDisc),
+            discount: item.isGift ? (item.originalPrice || itemPrice) : itemDisc
           };
         }),
         subtotal: grossCartTotal,
@@ -1573,29 +1607,53 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       </thead>
                       <tbody className="divide-y divide-gray-50">
                         {cart.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50/30">
+                          <tr key={idx} className={`hover:bg-gray-50/30 transition-colors ${item.isGift ? 'bg-purple-50/20' : ''}`}>
                             <td className="px-6 py-4">
-                              <span className="text-sm font-bold text-gray-900">{item.productName}</span>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-gray-900">{item.productName}</span>
+                                {item.isGift && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs">
+                                    🎁 {i18n.language === 'az' ? 'HƏDİYYƏ' : 'ПОДАРОК'}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-center">
-                              <div className="relative inline-flex items-center justify-center">
-                                <span className="absolute left-2 text-[10px] font-bold text-gray-400">₼</span>
-                                <input 
-                                  type="number"
-                                  step="any"
-                                  value={item.price}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setCart(prev => {
-                                      const newCart = [...prev];
-                                      newCart[idx].price = val === '' ? '' : (parseFloat(val) || 0);
-                                      return newCart;
-                                    });
-                                  }}
-                                  onFocus={(e) => e.target.select()}
-                                  className="w-24 bg-gray-50 border border-gray-200 rounded-lg pl-5 pr-2 py-1 text-xs font-bold text-right outline-none focus:border-merkez-blue focus:bg-white"
-                                />
-                              </div>
+                              {item.isGift ? (
+                                <div className="flex flex-col items-center">
+                                  {Number(item.originalPrice || 0) > 0 && (
+                                    <span className="text-[10px] line-through text-gray-400 font-bold">
+                                      ₼{Number(item.originalPrice).toFixed(2)}
+                                    </span>
+                                  )}
+                                  <span className="text-xs font-black text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-lg border border-purple-200 shadow-2xs">
+                                    0.00 ₼
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="relative inline-flex items-center justify-center">
+                                  <span className="absolute left-2 text-[10px] font-bold text-gray-400">₼</span>
+                                  <input 
+                                    type="number"
+                                    step="any"
+                                    value={item.price}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      setCart(prev => {
+                                        const newCart = [...prev];
+                                        const parsed = val === '' ? '' : (parseFloat(val) || 0);
+                                        newCart[idx].price = parsed;
+                                        if (parsed !== '') {
+                                          newCart[idx].originalPrice = parsed;
+                                        }
+                                        return newCart;
+                                      });
+                                    }}
+                                    onFocus={(e) => e.target.select()}
+                                    className="w-24 bg-gray-50 border border-gray-200 rounded-lg pl-5 pr-2 py-1 text-xs font-bold text-right outline-none focus:border-merkez-blue focus:bg-white"
+                                  />
+                                </div>
+                              )}
                             </td>
                             <td className="px-6 py-4 text-center">
                               <input 
@@ -1614,7 +1672,18 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               />
                             </td>
                             <td className="px-6 py-4 text-right">
-                              {discountAmount > 0 && grossCartTotal > 0 ? (
+                              {item.isGift ? (
+                                <div className="flex flex-col items-end">
+                                  {Number(item.originalPrice || 0) > 0 && (
+                                    <span className="text-xs line-through text-gray-400 font-medium">
+                                      ₼{(Number(item.originalPrice) * Number(item.quantity || 1)).toFixed(2)}
+                                    </span>
+                                  )}
+                                  <span className="text-xs font-black text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                                    0.00 ₼ ({i18n.language === 'az' ? 'Hədiyyə' : 'Подарок'})
+                                  </span>
+                                </div>
+                              ) : discountAmount > 0 && grossCartTotal > 0 ? (
                                 <div className="flex flex-col items-end">
                                   <span className="text-xs line-through text-gray-400 font-medium">
                                     ₼{((parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 0)).toFixed(2)}
@@ -1633,9 +1702,26 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               )}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <button onClick={() => removeFromCart(idx)} className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-all">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleGift(idx)}
+                                  title={item.isGift ? (i18n.language === 'az' ? 'Hədiyyəni ləğv et' : 'Отменить подарок') : (i18n.language === 'az' ? 'Hədiyyə et (0 ₼)' : 'Сделать подарком (0 ₼)')}
+                                  className={`p-1.5 rounded-xl transition-all flex items-center gap-1 text-xs font-bold ${
+                                    item.isGift
+                                      ? 'bg-purple-100 text-purple-700 hover:bg-purple-200 ring-1 ring-purple-300 shadow-2xs'
+                                      : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'
+                                  }`}
+                                >
+                                  <Gift className="w-4 h-4" />
+                                  <span className="hidden sm:inline text-[11px]">
+                                    {item.isGift ? (i18n.language === 'az' ? 'Hədiyyə' : 'Подарок') : (i18n.language === 'az' ? '+ Hədiyyə' : '+ Подарок')}
+                                  </span>
+                                </button>
+                                <button onClick={() => removeFromCart(idx)} className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-all" title={i18n.language === 'az' ? 'Sil' : 'Удалить'}>
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
