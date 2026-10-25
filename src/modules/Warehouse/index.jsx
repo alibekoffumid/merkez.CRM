@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -31,6 +31,7 @@ import DailySalesReportModal from '../../components/Reports/DailySalesReportModa
 
 import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
+import ProductReturnModal from './ProductReturnModal';
 import { printThermalReceipt57mm } from './thermalReceiptService';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import { parseProductAttributes } from './productAttributesHelper';
@@ -219,6 +220,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [receiptToDelete, setReceiptToDelete] = useState(null);
   const [dispatchToDelete, setDispatchToDelete] = useState(null);
   const [selectedSaleDetail, setSelectedSaleDetail] = useState(null);
+  const [saleToReturn, setSaleToReturn] = useState(null);
   const [reportsRefreshTrigger, setReportsRefreshTrigger] = useState(0);
   const [mainBarcodeMode, setMainBarcodeMode] = useState(() => {
     try {
@@ -575,6 +577,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         months: parsed.months,
         monthlyPayment: (parsed.totalAmount || 0) / (parsed.months || 1),
         contractTotal: parsed.totalAmount || 0
+      } : null,
+      expenseDetails: parsed.expenseCategory ? {
+        category: parsed.expenseCategory,
+        description: parsed.expenseDescription || '',
+        recipient: parsed.expenseRecipient || '',
+        amount: parsed.totalAmount || 0
       } : null,
       notes: parsed.cleanNote || '',
       paperWidth: '57mm'
@@ -2620,9 +2628,23 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col gap-1 items-start">
-                                <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-50 text-merkez-green">
-                                  {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
-                                </span>
+                                <div className="flex items-center gap-1 flex-wrap">
+                                  <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-green-50 text-merkez-green">
+                                    {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
+                                  </span>
+                                  {parsed.status === 'refunded' && (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                                      <RotateCcw className="w-2.5 h-2.5" />
+                                      {i18n.language === 'az' ? 'Qaytarılıb' : 'Возврат'}
+                                    </span>
+                                  )}
+                                  {parsed.status === 'exchanged' && (
+                                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300">
+                                      <ArrowLeftRight className="w-2.5 h-2.5" />
+                                      {i18n.language === 'az' ? 'Dəyişdirilib' : 'Обмен'}
+                                    </span>
+                                  )}
+                                </div>
                                 {parsed.channel && (() => {
                                   const badge = getChannelBadge(parsed.channel);
                                   return (
@@ -2670,6 +2692,16 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                             <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-end gap-1">
+                                {parsed.status !== 'refunded' && parsed.status !== 'exchanged' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSaleToReturn(dispatch)}
+                                    className="p-1.5 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors"
+                                    title={i18n.language === 'az' ? 'Məhsulu Qaytar və ya Dəyişdir' : i18n.language === 'ru' ? 'Возврат или обмен товара' : 'Return or Exchange'}
+                                  >
+                                    <RotateCcw className="w-4 h-4" />
+                                  </button>
+                                )}
                                 <button
                                   type="button"
                                   onClick={() => handlePrintSaleReceipt(dispatch)}
@@ -4091,6 +4123,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         onDelete={handleDeleteDispatch}
         canDelete={canDeleteHistory}
         currentStaff={currentStaff}
+        onOpenReturnModal={(sale) => setSaleToReturn(sale)}
+      />
+
+      <ProductReturnModal
+        isOpen={!!saleToReturn}
+        onClose={() => setSaleToReturn(null)}
+        sale={saleToReturn}
+        warehouseId={currentWarehouseId}
+        currentStaff={currentStaff}
+        availableProducts={products}
+        onReturnComplete={() => {
+          fetchDispatches();
+          fetchProducts();
+          fetchReceipts();
+          fetchAll();
+        }}
       />
 
       {showDailySalesReportModal && (

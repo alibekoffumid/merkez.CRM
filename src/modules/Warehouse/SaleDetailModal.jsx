@@ -24,7 +24,9 @@ import {
   Coins,
   ArrowUpRight,
   ShieldCheck,
-  Receipt
+  Receipt,
+  RotateCcw,
+  ArrowLeftRight
 } from 'lucide-react';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useTranslation } from 'react-i18next';
@@ -119,6 +121,9 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     birmarketCategory: null,
     advanceAmount: null,
     advanceRecipient: null,
+    expenseCategory: null,
+    expenseDescription: null,
+    expenseRecipient: null,
     rawNotes: note || '',
     cleanNote: ''
   };
@@ -162,6 +167,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
   const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
   if (payMatch) {
     info.paymentMethod = payMatch[1].trim();
+  } else if (/xərc|расход|expense/i.test(note)) {
+    info.paymentMethod = 'Digər xərclər';
   } else if (/beh|avans|deposit/i.test(note)) {
     info.paymentMethod = 'Beh';
   } else if (/birmarket/i.test(note) || /birmarket/i.test(info.channel)) {
@@ -246,9 +253,57 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     info.advanceRecipient = advRecipMatch[1].trim();
   }
 
+  // 8.5. Other Expense (Digər xərclər) details
+  const expCatMatch = note.match(/\[Xərc:\s*([^\]]+)\]/i);
+  if (expCatMatch) {
+    info.expenseCategory = expCatMatch[1].trim();
+    if (!info.paymentMethod || info.paymentMethod === 'Nağd') {
+      info.paymentMethod = 'Digər xərclər';
+    }
+  }
+  const expDescMatch = note.match(/\[İzah:\s*([^\]]+)\]/i);
+  if (expDescMatch) {
+    info.expenseDescription = expDescMatch[1].trim();
+  }
+  const expRecipMatch = note.match(/\[(?:Xərcləyən|Xərc Alan):\s*([^\]]+)\]/i);
+  if (expRecipMatch) {
+    info.expenseRecipient = expRecipMatch[1].trim();
+  }
+
   // Fallback profit calculation if not parsed
   if (info.profit === null) {
     info.profit = info.totalAmount - info.totalCost;
+  }
+
+  // 9. Status & Return / Exchange detection
+  info.status = 'completed';
+  if (/\[STATUS:\s*REFUNDED\]/i.test(note) || /\[Qaytarıldı:/i.test(note)) {
+    info.status = 'refunded';
+  } else if (/\[STATUS:\s*EXCHANGED\]/i.test(note) || /\[Dəyişdirildi:/i.test(note)) {
+    info.status = 'exchanged';
+  } else if (/\[STATUS:\s*CANCELLED\]/i.test(note)) {
+    info.status = 'cancelled';
+  }
+
+  if (info.status === 'refunded' || info.status === 'exchanged') {
+    const reasonMatch = note.match(/\[Səbəb:\s*([^\]]+)\]/i);
+    const returnQtyMatch = note.match(/\[Qaytarılan Miqdar:\s*([0-9.,]+)\]/i) || note.match(/\[Qaytarıldı:\s*([0-9.,]+)\s*əd/i);
+    const returnAmtMatch = note.match(/\[Qaytarılan Məbləğ:\s*₼?([0-9.,]+)\]/i) || note.match(/\[Qaytarıldı:[^\]]*₼([0-9.,]+)/i);
+    const methodMatch = note.match(/\[Üsul:\s*([^\]]+)\]/i) || note.match(/\[Qaytarılma Üsulu:\s*([^\]]+)\]/i);
+    const exchangeProdMatch = note.match(/\[Dəyişdirilən Məhsul:\s*([^\]]+)\]/i) || note.match(/\[Dəyişdirildi:\s*([^\]]+)\]/i);
+    const diffMatch = note.match(/\[Fərq:\s*₼?([0-9.,+-]+)\]/i);
+    const returnDateMatch = note.match(/\[(?:Qaytarılma|Dəyişdirilmə) Tarixi:\s*([^\]]+)\]/i);
+
+    info.returnInfo = {
+      type: info.status,
+      reason: reasonMatch ? reasonMatch[1].trim() : null,
+      returnQuantity: returnQtyMatch ? parseFloat(returnQtyMatch[1].replace(',', '.')) : null,
+      refundAmount: returnAmtMatch ? parseFloat(returnAmtMatch[1].replace(',', '.')) : null,
+      refundMethod: methodMatch ? methodMatch[1].trim() : null,
+      exchangeProductName: exchangeProdMatch ? exchangeProdMatch[1].trim() : null,
+      priceDifference: diffMatch ? parseFloat(diffMatch[1].replace(',', '.')) : null,
+      returnDate: returnDateMatch ? returnDateMatch[1].trim() : null,
+    };
   }
 
   // Extract clean custom note (strip metadata brackets)
@@ -268,6 +323,17 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     .replace(/\[Avans Alan:[^\]]+\]/gi, '')
     .replace(/\[Usta\/İşçi:[^\]]+\]/gi, '')
     .replace(/\[SaleID:[^\]]+\]/gi, '')
+    .replace(/\[STATUS:[^\]]+\]/gi, '')
+    .replace(/\[Qaytarıldı:[^\]]+\]/gi, '')
+    .replace(/\[Dəyişdirildi:[^\]]+\]/gi, '')
+    .replace(/\[Səbəb:[^\]]+\]/gi, '')
+    .replace(/\[Qaytarılan Miqdar:[^\]]+\]/gi, '')
+    .replace(/\[Qaytarılan Məbləğ:[^\]]+\]/gi, '')
+    .replace(/\[Üsul:[^\]]+\]/gi, '')
+    .replace(/\[Qaytarılma Üsulu:[^\]]+\]/gi, '')
+    .replace(/\[Dəyişdirilən Məhsul:[^\]]+\]/gi, '')
+    .replace(/\[Fərq:[^\]]+\]/gi, '')
+    .replace(/\[(?:Qaytarılma|Dəyişdirilmə) Tarixi:[^\]]+\]/gi, '')
     .replace(/^Məhsul Satışı\s*\(Ödəniş:[^)]+\)/gi, '')
     .trim();
 
@@ -282,7 +348,8 @@ const SaleDetailModal = ({
   categoryName, 
   onDelete, 
   canDelete = false,
-  currentStaff
+  currentStaff,
+  onOpenReturnModal
 }) => {
   const { t, i18n } = useTranslation();
   const [copiedField, setCopiedField] = useState(null);
@@ -381,10 +448,22 @@ const SaleDetailModal = ({
                        i18n.language === 'ru' ? 'Полная информация о продаже' : 
                        'Sale Full Details'}
                     </h2>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      <CheckCircle2 className="w-3 h-3" />
-                      {i18n.language === 'az' ? 'Tamamlandı' : i18n.language === 'ru' ? 'Завершена' : 'Completed'}
-                    </span>
+                    {saleInfo.status === 'refunded' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <RotateCcw className="w-3 h-3" />
+                        {i18n.language === 'az' ? 'Qaytarılıb' : i18n.language === 'ru' ? 'Возвращен' : 'Refunded'}
+                      </span>
+                    ) : saleInfo.status === 'exchanged' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                        <ArrowLeftRight className="w-3 h-3" />
+                        {i18n.language === 'az' ? 'Dəyişdirilib' : i18n.language === 'ru' ? 'Обменен' : 'Exchanged'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <CheckCircle2 className="w-3 h-3" />
+                        {i18n.language === 'az' ? 'Tamamlandı' : i18n.language === 'ru' ? 'Завершена' : 'Completed'}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 font-medium flex-wrap">
                     <span className="font-mono text-gray-300 font-bold">#{sale.id.slice(0, 8).toUpperCase()}</span>
@@ -418,6 +497,63 @@ const SaleDetailModal = ({
           {/* Modal Body */}
           <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
             
+            {/* RETURN / EXCHANGE AUDIT BANNER IF APPLICABLE */}
+            {saleInfo.status === 'refunded' && (
+              <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 shadow-sm animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 text-amber-900 font-black text-sm mb-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+                    <RotateCcw className="w-4 h-4" />
+                  </div>
+                  <span>{i18n.language === 'az' ? 'Məhsul Qaytarılıb (Geri Qaytarış Rəsmiləşdirilib)' : 'Товар возвращен (Оформлен возврат)'}</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/80 p-3 rounded-xl border border-amber-200/60 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Səbəb' : 'Причина'}:</span>
+                    <span className="font-bold text-gray-800">{saleInfo.returnInfo?.reason || '—'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Qaytarılan Məbləğ' : 'Сумма возврата'}:</span>
+                    <span className="font-black text-amber-700">₼{(saleInfo.returnInfo?.refundAmount ?? saleInfo.totalAmount).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Qaytarılma Üsulu' : 'Способ возврата'}:</span>
+                    <span className="font-bold text-gray-800">{saleInfo.returnInfo?.refundMethod || saleInfo.paymentMethod}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {saleInfo.status === 'exchanged' && (
+              <div className="bg-blue-50 border border-blue-200/90 rounded-2xl p-4 shadow-sm animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 text-blue-900 font-black text-sm mb-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center text-blue-700">
+                    <ArrowLeftRight className="w-4 h-4" />
+                  </div>
+                  <span>{i18n.language === 'az' ? 'Məhsul Dəyişdirilib (Mübadilə Rəsmiləşdirilib)' : 'Товар обменен на другой (Оформлен обмен)'}</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/80 p-3 rounded-xl border border-blue-200/60 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Yeni Məhsul' : 'Новый товар'}:</span>
+                    <span className="font-bold text-blue-900">{saleInfo.returnInfo?.exchangeProductName || '—'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Səbəb' : 'Причина'}:</span>
+                    <span className="font-bold text-gray-800">{saleInfo.returnInfo?.reason || '—'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Qiymət Fərqi' : 'Разница цен'}:</span>
+                    <span className={`font-black ${
+                      (saleInfo.returnInfo?.priceDifference || 0) > 0 ? 'text-amber-700' : 
+                      (saleInfo.returnInfo?.priceDifference || 0) < 0 ? 'text-emerald-700' : 'text-gray-700'
+                    }`}>
+                      {(saleInfo.returnInfo?.priceDifference || 0) > 0 ? `+₼${saleInfo.returnInfo.priceDifference.toFixed(2)}` :
+                       (saleInfo.returnInfo?.priceDifference || 0) < 0 ? `-₼${Math.abs(saleInfo.returnInfo.priceDifference).toFixed(2)}` : '₼0.00'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* 1. Top Financial KPI Cards */}
             <div className={`grid grid-cols-2 ${isAdmin && saleInfo.totalCost !== null ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-3`}>
               {/* Total Sale Amount (Faktiki Satış Məbləği) */}
@@ -681,6 +817,29 @@ const SaleDetailModal = ({
                       </div>
                     )}
 
+                    {saleInfo.expenseCategory && (
+                      <div className="flex items-center justify-between pt-1 border-t border-orange-200/60 bg-orange-50/70 p-2 rounded-lg border border-orange-100 font-bold">
+                        <span className="text-orange-900">{i18n.language === 'az' ? 'Xərc Kateqoriyası:' : 'Категория расхода:'}</span>
+                        <span className="text-xs font-black text-orange-950">{saleInfo.expenseCategory}</span>
+                      </div>
+                    )}
+
+                    {saleInfo.expenseDescription && (
+                      <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
+                        <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'Xərc İzahı:' : 'Описание расхода:'}</span>
+                        <span className="font-bold text-gray-800">{saleInfo.expenseDescription}</span>
+                      </div>
+                    )}
+
+                    {saleInfo.expenseRecipient && (
+                      <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
+                        <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'Xərcləyən / Təhvil alan:' : 'Потратил / получил:'}</span>
+                        <span className="font-bold text-orange-800 bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                          {saleInfo.expenseRecipient}
+                        </span>
+                      </div>
+                    )}
+
                     {saleInfo.months && (
                       <div className="flex items-center justify-between pt-1 border-t border-gray-200/60">
                         <span className="text-gray-500 font-medium">{i18n.language === 'az' ? 'Kredit müddəti:' : 'Срок кредита:'}</span>
@@ -740,6 +899,20 @@ const SaleDetailModal = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {saleInfo.status !== 'refunded' && saleInfo.status !== 'exchanged' && onOpenReturnModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenReturnModal(sale);
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                  <span>{i18n.language === 'az' ? 'Məhsulu Qaytar / Dəyişdir' : i18n.language === 'ru' ? 'Возврат / Обмен товара' : 'Return / Exchange'}</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={handlePrintReceipt}

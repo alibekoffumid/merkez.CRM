@@ -113,6 +113,13 @@ export const translatePaymentMethodAz = (method) => {
     case 'transfer':
     case 'bank':
       return 'Bank Köçürməsi';
+    case 'expense':
+    case 'xərc':
+    case 'xerc':
+    case 'rasxod':
+    case 'digər':
+    case 'diger':
+      return 'Digər xərclər';
     default:
       return method || 'Digər';
   }
@@ -126,7 +133,10 @@ export const isCancelledOrDeleted = (record) => {
   if (record.is_deleted === true) return true;
   if (record.is_hidden === true) return true;
   const status = String(record.status || '').toLowerCase().trim();
-  return ['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(status);
+  if (['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(status)) return true;
+  const notes = String(record.notes || '');
+  if (/\[STATUS:\s*(?:REFUNDED|CANCELLED|LƏĞV|QAYTARILIB)\]/i.test(notes)) return true;
+  return false;
 };
 
 /**
@@ -351,12 +361,14 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   // 3. Kredit (Credit / Installments / Birmarket)
   // 4. Nisyə (Debt / Consignment)
   // 5. Beh (Deposit / Advance / Zadatak)
+  // 6. Digər xərclər (Other Expenses - Taxi, Food, Courier, etc.)
   let totalRevenue = 0;
   let totalCash = 0;
   let totalCard = 0;
   let totalCredit = 0;
   let totalDebt = 0;
   let totalDeposit = 0;
+  let totalExpense = 0;
   let totalSplit = 0;
   let totalDiscounts = 0;
   let totalItemsCount = 0;
@@ -465,6 +477,17 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       notesRaw.includes('köçürmə')
     ) {
       totalCard += saleAmount;
+    } else if (
+      paymentMethodRaw === 'expense' || 
+      paymentMethodRaw === 'xərc' || 
+      paymentMethodRaw === 'xerc' || 
+      paymentMethodRaw === 'rasxod' || 
+      notesRaw.includes('xərc') || 
+      notesRaw.includes('xerc') || 
+      notesRaw.includes('rasxod') ||
+      notesRaw.includes('digər xərc')
+    ) {
+      totalExpense += saleAmount;
     } else {
       // Default: Nağd (Cash)
       totalCash += saleAmount;
@@ -597,8 +620,8 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     });
   });
 
-  // Strict Mathematical Check: Total Revenue === Cash + Card + Credit + Debt + Deposit
-  const computedSum = totalCash + totalCard + totalCredit + totalDebt + totalDeposit;
+  // Strict Mathematical Check: Total Revenue === Cash + Card + Credit + Debt + Deposit + Expense
+  const computedSum = totalCash + totalCard + totalCredit + totalDebt + totalDeposit + totalExpense;
   const balanceDiff = Number((totalRevenue - computedSum).toFixed(2));
   if (balanceDiff !== 0 && totalRevenue > 0) {
     totalCash = Number((totalCash + balanceDiff).toFixed(2));
@@ -705,14 +728,15 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     totalItemsCount: Number(totalItemsCount.toFixed(2)),
     totalRevenue: Number(totalRevenue.toFixed(2)),
     
-    // 5 Payment Categories (Airtight Mathematics: totalRevenue === cash + card + credit + debt + deposit)
+    // Payment Categories (Airtight Mathematics: totalRevenue === cash + card + credit + debt + deposit + expense)
     totalCash: Number(totalCash.toFixed(2)),
     totalCard: Number(totalCard.toFixed(2)),
     totalCredit: Number(totalCredit.toFixed(2)),
     totalDebt: Number(totalDebt.toFixed(2)),
     totalDeposit: Number(totalDeposit.toFixed(2)),
+    totalExpense: Number(totalExpense.toFixed(2)),
     totalSplit: Number(totalSplit.toFixed(2)),
-    totalOther: 0,
+    totalOther: Number(totalExpense.toFixed(2)),
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
 
     // Strict Security RBAC: null for non-admin roles (cashier, seller, manager)
@@ -940,6 +964,12 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
         <div class="row">
           <span>Beh (Avans):</span>
           <span class="bold">${data.totalDeposit.toFixed(2)} AZN</span>
+        </div>
+        ` : ''}
+        ${data.totalExpense > 0 ? `
+        <div class="row">
+          <span>Digər xərclər (Taksi, Yemək və s.):</span>
+          <span class="bold">${data.totalExpense.toFixed(2)} AZN</span>
         </div>
         ` : ''}
         ${data.totalDiscounts > 0 ? `
@@ -1531,6 +1561,12 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             <div class="payment-item-title">Beh (Avans)</div>
             <div class="payment-item-val">${data.totalDeposit.toFixed(2)} AZN</div>
           </div>
+          ${data.totalExpense > 0 ? `
+          <div class="payment-item">
+            <div class="payment-item-title">Digər xərclər</div>
+            <div class="payment-item-val" style="color: #ea580c;">${data.totalExpense.toFixed(2)} AZN</div>
+          </div>
+          ` : ''}
           ${data.totalDiscounts > 0 ? `
           <div class="payment-item">
             <div class="payment-item-title">Endirimlər</div>
@@ -2035,7 +2071,7 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
     doc.setFont('Roboto', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(75, 85, 99);
-    doc.text(`Kredit: ${data.totalCredit.toFixed(2)} AZN  •  Nisyə: ${data.totalDebt.toFixed(2)} AZN  •  Beh: ${data.totalDeposit.toFixed(2)} AZN  •  Endirim: -${data.totalDiscounts.toFixed(2)} AZN`, 20, 74);
+    doc.text(`Kredit: ${data.totalCredit.toFixed(2)} AZN  •  Nisyə: ${data.totalDebt.toFixed(2)} AZN  •  Beh: ${data.totalDeposit.toFixed(2)} AZN  •  Xərc: ${(data.totalExpense || 0).toFixed(2)} AZN  •  Endirim: -${data.totalDiscounts.toFixed(2)} AZN`, 20, 74);
     if (data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null) {
       doc.setFont('Roboto', 'bold');
       doc.setTextColor(5, 150, 105);
@@ -2310,6 +2346,7 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       ['3. Kredit Satışları (Kredit)', data.totalCredit, 'AZN'],
       ['4. Nisyə Satışlar (Nisyə / Borc)', data.totalDebt, 'AZN'],
       ['5. Beh / Avans (Beh)', data.totalDeposit, 'AZN'],
+      ['6. Digər Xərclər (Taksi, Yemək və s.)', data.totalExpense || 0, 'AZN'],
       ['Bölünmüş (Qarışıq) Satışlar', data.totalSplit, 'AZN'],
       ['Cəmi Endirimlər', data.totalDiscounts, 'AZN'],
       ['Satış Çeklərinin Sayı', data.salesCount, 'ədəd'],

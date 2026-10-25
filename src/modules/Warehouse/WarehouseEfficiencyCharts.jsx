@@ -321,6 +321,7 @@ const WarehouseEfficiencyCharts = ({
         if (d.is_deleted === true || d.is_hidden === true) return false;
         const st = String(d.status || '').toLowerCase().trim();
         if (['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(st)) return false;
+        if (/\[STATUS:\s*(?:REFUNDED|CANCELLED|LƏĞV|QAYTARILIB)\]/i.test(d.notes || '')) return false;
         const isSaleReason = !d.reason || d.reason === 'sale';
         const qty = Math.abs(parseFloat(d.quantity) || 0);
         return isSaleReason && qty > 0;

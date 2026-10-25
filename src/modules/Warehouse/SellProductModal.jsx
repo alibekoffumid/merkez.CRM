@@ -45,9 +45,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   // Sale metadata
   const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedCustomerId, setSelectedCustomerId] = useState(''); // Empty string = Walk-in guest
-  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'card' | 'debt'
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'card' | 'debt' | 'deposit' | 'expense'
   const [advanceAmount, setAdvanceAmount] = useState('');
   const [advanceRecipient, setAdvanceRecipient] = useState('');
+  const [expenseCategory, setExpenseCategory] = useState('Taksi');
+  const [expenseDescription, setExpenseDescription] = useState('');
+  const [expenseRecipient, setExpenseRecipient] = useState('');
   const [staffAndMasters, setStaffAndMasters] = useState([]);
   const [notes, setNotes] = useState('');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -748,6 +751,14 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         }
       }
 
+      // Validate expense inputs if payment method is expense (Digər xərclər)
+      if (paymentMethod === 'expense') {
+        if (!expenseCategory) {
+          toast.error(i18n.language === 'az' ? 'Xərc kateqoriyasını seçin' : 'Выберите категорию расхода');
+          return;
+        }
+      }
+
       // 1. Sync sale to retail_sales for unified CRM reporting & analytics first
       let createdSaleId = null;
       try {
@@ -813,7 +824,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           paymentMethod === 'card' ? 'Kart' :
           paymentMethod === 'debt' ? 'Nisyə' :
           paymentMethod === 'deposit' ? 'Beh' :
-          paymentMethod === 'credit' ? 'Kredit' : paymentMethod;
+          paymentMethod === 'credit' ? 'Kredit' :
+          paymentMethod === 'expense' ? 'Digər xərclər' : paymentMethod;
 
         let dispatchNote = notes;
         if (!dispatchNote) {
@@ -830,6 +842,17 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         if (paymentMethod === 'deposit') {
           const advNum = parseFloat(advanceAmount) || 0;
           dispatchNote += ` [Avans: ₼${advNum.toFixed(2)}] [Avans Alan: ${advanceRecipient}]`;
+        }
+
+        // Append expense details if other expenses
+        if (paymentMethod === 'expense') {
+          dispatchNote += ` [Xərc: ${expenseCategory}]`;
+          if (expenseDescription && expenseDescription.trim()) {
+            dispatchNote += ` [İzah: ${expenseDescription.trim()}]`;
+          }
+          if (expenseRecipient) {
+            dispatchNote += ` [Xərcləyən: ${expenseRecipient}]`;
+          }
         }
 
         // Append seller info if authenticated staff
@@ -1012,6 +1035,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           advanceRecipient: advanceRecipient || '',
           remainingBalance: Math.max(0, finalReceiptTotal - (parseFloat(advanceAmount) || 0))
         } : null,
+        expenseDetails: paymentMethod === 'expense' ? {
+          category: expenseCategory,
+          description: expenseDescription,
+          recipient: expenseRecipient,
+          amount: finalReceiptTotal
+        } : null,
         paperWidth: '57mm'
       };
 
@@ -1038,7 +1067,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     { value: 'credit', label: i18n.language === 'az' ? 'Kredit (Hissə-hissə)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
     { value: 'debt', label: i18n.language === 'az' ? 'Nisyə (Borc / Realizasiya)' : i18n.language === 'ru' ? 'В долг / Под реализацию' : 'Debt' },
     { value: 'deposit', label: i18n.language === 'az' ? 'Beh (Zadatak / Avans)' : i18n.language === 'ru' ? 'Задаток / аванс' : 'Deposit' },
-    { value: 'birmarket', label: 'Birmarket' }
+    { value: 'birmarket', label: 'Birmarket' },
+    { value: 'expense', label: i18n.language === 'az' ? 'Digər xərclər' : i18n.language === 'ru' ? 'Прочие расходы' : 'Other expenses' }
   ];
 
   const handleModalClose = () => {
@@ -1194,7 +1224,93 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                     </div>
                   )}
 
-                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt' || paymentMethod === 'deposit') && (
+                  {paymentMethod === 'expense' && (
+                    <div className="bg-orange-50/70 border border-orange-200/80 p-4 rounded-2xl space-y-3.5 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center justify-between pb-1 border-b border-orange-200/50">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-orange-900 flex items-center gap-1.5">
+                          <Receipt className="w-3.5 h-3.5 text-orange-600" />
+                          {i18n.language === 'az' ? 'Digər Xərc Parametrləri' : 'Параметры прочих расходов'}
+                        </span>
+                        <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-2 py-0.5 rounded-full">
+                          {i18n.language === 'az' ? 'Taksi, Yemək, Kuryer və s.' : 'Такси, еда, курьер и т.д.'}
+                        </span>
+                      </div>
+
+                      {/* Expense Category Chips */}
+                      <div>
+                        <label className="block text-[10px] font-black text-orange-950 uppercase tracking-widest mb-1.5 px-1">
+                          {i18n.language === 'az' ? 'Xərc Kateqoriyası' : 'Категория расхода'} *
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            { id: 'Taksi', icon: '🚕', labelAz: 'Taksi / Nəqliyyat', labelRu: 'Такси / Транспорт' },
+                            { id: 'Yemək', icon: '🍔', labelAz: 'Yemək / Qida', labelRu: 'Обед / Еда' },
+                            { id: 'Kuryer', icon: '📦', labelAz: 'Kuryer / Çatdırılma', labelRu: 'Курьер / Доставка' },
+                            { id: 'Təsərrüfat', icon: '🛠️', labelAz: 'Təsərrüfat / Xırdavat', labelRu: 'Хоз. расходы' },
+                            { id: 'Digər', icon: '📝', labelAz: 'Digər xərc', labelRu: 'Другое' },
+                          ].map(cat => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setExpenseCategory(cat.id)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                expenseCategory === cat.id
+                                  ? 'bg-orange-600 text-white shadow-sm ring-2 ring-orange-300'
+                                  : 'bg-white text-gray-700 border border-orange-200 hover:bg-orange-50'
+                              }`}
+                            >
+                              <span>{cat.icon}</span>
+                              <span>{i18n.language === 'az' ? cat.labelAz : cat.labelRu}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Expense Description */}
+                        <div>
+                          <label className="block text-[10px] font-black text-orange-950 uppercase tracking-widest mb-1.5 px-1">
+                            {i18n.language === 'az' ? 'Xərcin izahı / Təyinatı' : 'Описание / Назначение расхода'}
+                          </label>
+                          <input
+                            type="text"
+                            value={expenseDescription}
+                            onChange={(e) => setExpenseDescription(e.target.value)}
+                            placeholder={i18n.language === 'az' ? 'Məs: Çatdırılma üçün taksi, ustaların çayı...' : 'Напр: Такси для доставки, чай мастерам...'}
+                            className="w-full px-3 py-2.5 bg-white border border-orange-200 rounded-xl text-xs font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 shadow-sm"
+                          />
+                        </div>
+
+                        {/* Who made the expense / staff */}
+                        <div>
+                          <label className="block text-[10px] font-black text-orange-950 uppercase tracking-widest mb-1.5 px-1">
+                            {i18n.language === 'az' ? 'Xərcləyən / Təhvil alan şəxs' : 'Кто потратил / получил средства'}
+                          </label>
+                          <Dropdown
+                            value={expenseRecipient}
+                            onChange={(val) => setExpenseRecipient(val)}
+                            buttonClassName="w-full rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 bg-white border border-orange-200 hover:border-orange-500 shadow-sm"
+                            options={[
+                              { value: '', label: i18n.language === 'az' ? 'Şəxsi seçin (və ya boş saxlayın)...' : 'Выберите сотрудника (или оставьте пустым)...' },
+                              ...staffAndMasters.map(sm => ({
+                                value: sm.name,
+                                label: sm.displayName
+                              }))
+                            ]}
+                            searchable={true}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Total expense notice */}
+                      <div className="bg-white/90 border border-orange-100 p-3 rounded-xl flex items-center justify-between text-xs font-bold text-gray-600">
+                        <span>{i18n.language === 'az' ? 'Xərcə yazılacaq məbləğ:' : 'Сумма списываемая на расходы:'}</span>
+                        <span className="text-orange-700 font-black text-sm">₼<AnimatedNumber value={finalTotal} /></span>
+                      </div>
+                    </div>
+                  )}
+
+                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt' || paymentMethod === 'deposit' || paymentMethod === 'expense') && (
                     <div>
                       <div className="flex items-center justify-between mb-2 px-1">
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">

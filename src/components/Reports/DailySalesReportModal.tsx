@@ -890,11 +890,11 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                     {customSections.showPaymentBreakdown && (
                       <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
                         <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 mb-4 flex items-center justify-between">
-                          <span>Ödəniş Metodları Üzrə Dövriyyə Bölgüsü (5 Növ Ödəniş)</span>
+                          <span>Ödəniş Metodları Üzrə Dövriyyə Bölgüsü (6 Növ Ödəniş)</span>
                           <span className="text-blue-600 font-black">Cəmi: {reportData.totalRevenue.toFixed(2)} ₼</span>
                         </h4>
 
-                        {/* 5-Color Segmented Visual Bar */}
+                        {/* 6-Color Segmented Visual Bar */}
                         <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden flex mb-4">
                           {reportData.totalCash > 0 && (
                             <div 
@@ -931,10 +931,17 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                               title={`Beh: ${reportData.totalDeposit.toFixed(2)} ₼`}
                             />
                           )}
+                          {(reportData.totalExpense || 0) > 0 && (
+                            <div 
+                              style={{ width: `${((reportData.totalExpense || 0) / reportData.totalRevenue) * 100}%` }}
+                              className="bg-orange-500 h-full transition-all"
+                              title={`Digər xərclər: ${(reportData.totalExpense || 0).toFixed(2)} ₼`}
+                            />
+                          )}
                         </div>
 
-                        {/* 5 Distinct Payment Method Cards Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                        {/* 6 Distinct Payment Method Cards Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                           {/* 1. Cash */}
                           <div className="p-3 rounded-2xl bg-emerald-50/50 border border-emerald-100/80 flex items-center gap-2.5">
                             <div className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
@@ -979,16 +986,25 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                               <div className="text-sm font-black text-gray-900 truncate">{reportData.totalDeposit.toFixed(2)} ₼</div>
                             </div>
                           </div>
+
+                          {/* 6. Digər xərclər */}
+                          <div className="p-3 rounded-2xl bg-orange-50/50 border border-orange-100/80 flex items-center gap-2.5">
+                            <div className="w-3 h-3 rounded-full bg-orange-500 shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-[10px] font-bold text-gray-500 uppercase truncate">6. Digər xərclər</div>
+                              <div className="text-sm font-black text-gray-900 truncate">{(reportData.totalExpense || 0).toFixed(2)} ₼</div>
+                            </div>
+                          </div>
                         </div>
 
                         {/* Mathematical Integrity Verification Bar */}
                         <div className="mt-3.5 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
                           <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
                             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
-                            <span>Riyazi Dəqiqlik: Cəmi Dövriyyə = Nağd + Karta + Kredit + Nisyə + Beh</span>
+                            <span>Riyazi Dəqiqlik: Cəmi Dövriyyə = Nağd + Karta + Kredit + Nisyə + Beh + Digər xərclər</span>
                           </span>
                           <span className="text-gray-600 font-bold font-mono">
-                            {(reportData.totalCash + reportData.totalCard + reportData.totalCredit + reportData.totalDebt + reportData.totalDeposit).toFixed(2)} ₼ ≡ {reportData.totalRevenue.toFixed(2)} ₼
+                            {(reportData.totalCash + reportData.totalCard + reportData.totalCredit + reportData.totalDebt + reportData.totalDeposit + (reportData.totalExpense || 0)).toFixed(2)} ₼ ≡ {reportData.totalRevenue.toFixed(2)} ₼
                           </span>
                         </div>
                       </div>

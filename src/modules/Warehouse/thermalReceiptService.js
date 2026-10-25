@@ -34,6 +34,7 @@ export function printThermalReceipt57mm(saleData) {
     taxAmount = 0,
     creditDetails = null, // { bank, months, monthlyPayment, markupPercent, contractTotal }
     depositDetails = null, // { advanceAmount, advanceRecipient, remainingBalance }
+    expenseDetails = null, // { category, description, recipient, amount }
     notes = '',
     transactionId = '',
     saleId = '',
@@ -112,6 +113,9 @@ export function printThermalReceipt57mm(saleData) {
   } else if (lowerMethod.includes('debt') || lowerMethod.includes('nisyə') || lowerMethod.includes('borc')) {
     paymentTitle = 'Nisyə (Borc)';
     paidLabel = 'nisyə';
+  } else if (lowerMethod.includes('expense') || lowerMethod.includes('xərc') || lowerMethod.includes('rasxod') || lowerMethod.includes('digər')) {
+    paymentTitle = 'Digər xərclər';
+    paidLabel = 'xərc';
   }
 
   const receiptHtml = `
@@ -483,6 +487,14 @@ export function printThermalReceipt57mm(saleData) {
             <div>Qalıq borc: ${Number(depositDetails.remainingBalance || 0).toFixed(2)} AZN</div>
           </div>
         ` : ''}
+
+        ${expenseDetails ? `
+          <div class="credit-info" style="margin-top: 4px; padding: 3px 0; border-top: 1px dashed #000;">
+            <div>Xərc kateqoriyası: ${escapeHtml(expenseDetails.category || 'Xərc')}</div>
+            ${expenseDetails.description ? `<div>İzah: ${escapeHtml(expenseDetails.description)}</div>` : ''}
+            ${expenseDetails.recipient ? `<div>Təhvil alan: ${escapeHtml(expenseDetails.recipient)}</div>` : ''}
+          </div>
+        ` : ''}
       </div>
 
       ${customerName ? `
@@ -577,6 +589,400 @@ export function printThermalReceipt57mm(saleData) {
   }
 
   // Fallback for edge cases
+  const printWindow = window.open('', '_blank', 'width=380,height=600');
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(receiptHtml);
+    printWindow.document.close();
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Specialized thermal receipt printing for Product Returns and Exchanges (57mm / 80mm)
+ */
+export function printThermalReturnReceipt57mm(returnData) {
+  const {
+    receiptNumber = Date.now().toString().slice(-4),
+    originalReceiptNumber = '',
+    date = new Date(),
+    storeName = 'Rast musiqi alətləri mağazası',
+    tsName = 'MUSİQİ ALƏTLƏRİ SATIŞI VƏ TƏMİRİ',
+    tsAddress = 'AZ1142 BAKI ŞƏHƏRİ XƏTAİ RAYONU ev.18A m.92',
+    voName = 'ŞƏKƏROV KAMRAN MUSA OĞLU',
+    voen = '5501238362',
+    objectCode = '5501238362-20001',
+    kassaNumber = 'V1E0969392',
+    cashierName = 'Kassir',
+    warehouseName = '',
+    customerName = '',
+    customerPhone = '',
+    operationType = 'refund', // 'refund' | 'exchange'
+    reason = '',
+    returnedItem = null, // { name, barcode, quantity, unit, price, total }
+    refundAmount = 0,
+    refundMethod = 'Nağd',
+    exchangeItem = null, // { name, barcode, quantity, unit, price, total }
+    priceDifference = 0,
+    diffPaymentMethod = 'Nağd',
+    notes = '',
+    transactionId = '',
+    paperWidth = '57mm'
+  } = returnData;
+
+  const isExchange = operationType === 'exchange';
+  const is80mm = paperWidth === '80mm';
+  const widthMm = is80mm ? '72mm' : '48mm';
+  const pageSize = is80mm ? '80mm auto' : '58mm auto';
+  const qrSvgSize = is80mm ? 130 : 100;
+
+  let dateObj = date instanceof Date ? date : new Date(date);
+  if (isNaN(dateObj.getTime())) dateObj = new Date();
+
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
+  const dateStr = `${day}/${month}/${year}`;
+
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+  const timeStr = `${hours}:${minutes}:${seconds}`;
+
+  const cleanReceiptNumber = String(receiptNumber || '').replace(/^[№#]\s*/, '') || Date.now().toString().slice(-4);
+  const cleanOriginalNumber = String(originalReceiptNumber || '').replace(/^[№#]\s*/, '');
+  const cleanTxId = String(transactionId || cleanReceiptNumber);
+
+  const origin = typeof window !== 'undefined' && window.location?.origin ? window.location.origin : 'https://rastmusic.az';
+  const targetQrUrl = `${origin}/receipt/${encodeURIComponent(cleanTxId)}?type=${operationType}&num=${encodeURIComponent(cleanReceiptNumber)}`;
+
+  let qrSvgHtml = '';
+  try {
+    qrSvgHtml = renderToStaticMarkup(
+      React.createElement(QRCodeSVG, {
+        value: targetQrUrl,
+        size: qrSvgSize,
+        level: 'M',
+        marginSize: 1,
+        style: { margin: '0 auto', display: 'block' }
+      })
+    );
+  } catch (err) {
+    console.warn('QR code generation failed:', err);
+  }
+
+  const receiptHtml = `
+    <!DOCTYPE html>
+    <html lang="az">
+    <head>
+      <meta charset="utf-8">
+      <title>${isExchange ? 'Məhsul Dəyişdirmə Çeki' : 'Məhsul Qaytarılma Çeki'} ${cleanReceiptNumber}</title>
+      <style>
+        @page {
+          size: ${pageSize};
+          margin: 0;
+        }
+        @media print {
+          html, body {
+            width: ${widthMm} !important;
+            max-width: ${widthMm} !important;
+            margin: 0 auto !important;
+            padding: ${is80mm ? '2mm 2mm 10mm 2mm' : '1.5mm 1mm 10mm 1mm'} !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print { display: none !important; }
+        }
+        * { box-sizing: border-box; word-break: break-word; }
+        body {
+          font-family: Arial, "Helvetica Neue", Helvetica, "Segoe UI", sans-serif;
+          width: ${widthMm};
+          max-width: ${widthMm};
+          margin: 0 auto;
+          padding: ${is80mm ? '3mm 2mm 12mm 2mm' : '2.5mm 1mm 12mm 1mm'};
+          color: #000;
+          background: #fff;
+          font-size: ${is80mm ? '11px' : '10px'};
+          line-height: 1.25;
+          -webkit-font-smoothing: antialiased;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .bold { font-weight: 700; }
+        .black { font-weight: 900; }
+        
+        .store-top-header { text-align: center; margin-bottom: 4px; }
+        .store-main-title {
+          font-size: ${is80mm ? '14px' : '12px'};
+          font-weight: 900;
+          letter-spacing: -0.2px;
+          text-transform: uppercase;
+        }
+        .operation-badge {
+          display: block;
+          margin: 4px auto;
+          padding: 3px 6px;
+          background: #000;
+          color: #fff;
+          font-size: ${is80mm ? '11px' : '10px'};
+          font-weight: 900;
+          text-transform: uppercase;
+          border-radius: 2px;
+          letter-spacing: 0.5px;
+        }
+        .dashed-sep {
+          border-top: 1px dashed #000;
+          margin: 4px 0;
+        }
+        .solid-sep {
+          border-top: 1.5px solid #000;
+          margin: 5px 0;
+        }
+        .meta-line {
+          display: flex;
+          justify-content: space-between;
+          font-size: ${is80mm ? '10px' : '9px'};
+          line-height: 1.35;
+        }
+        .box-section {
+          background: #f7f7f7;
+          border: 1px solid #ddd;
+          padding: 4px;
+          margin: 4px 0;
+          border-radius: 3px;
+        }
+        .section-header {
+          font-size: ${is80mm ? '10px' : '9px'};
+          font-weight: 900;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+        .item-row {
+          font-size: ${is80mm ? '10.5px' : '9.5px'};
+          margin: 2px 0;
+        }
+        .total-block {
+          margin-top: 5px;
+          padding-top: 4px;
+          border-top: 1.5px solid #000;
+        }
+        .grand-line {
+          display: flex;
+          justify-content: space-between;
+          font-size: ${is80mm ? '13px' : '11.5px'};
+          font-weight: 900;
+          margin: 2px 0;
+        }
+        .qr-section {
+          text-align: center;
+          margin-top: 8px;
+        }
+        .qr-wrap {
+          display: inline-block;
+          padding: 4px;
+          background: #fff;
+          border: 1px solid #000;
+          margin: 4px auto;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="store-top-header">
+        <div class="store-main-title">${escapeHtml(storeName)}</div>
+        <div style="font-size: 8.5px; color: #333;">${escapeHtml(tsName)}</div>
+        <div style="font-size: 8px; color: #555;">${escapeHtml(tsAddress)}</div>
+        <div class="operation-badge">
+          ${isExchange ? 'MƏHSULUN DƏYİŞDİRİLMƏSİ' : 'MƏHSULUN GERİ QAYTARILMASI'}
+        </div>
+      </div>
+
+      <div class="dashed-sep"></div>
+
+      <div class="meta-line">
+        <span>Sənəd №:</span>
+        <span class="bold">Q-${escapeHtml(cleanReceiptNumber)}</span>
+      </div>
+      ${cleanOriginalNumber ? `
+      <div class="meta-line">
+        <span>İlkin Satış №:</span>
+        <span class="bold">#${escapeHtml(cleanOriginalNumber.slice(0, 8).toUpperCase())}</span>
+      </div>` : ''}
+      <div class="meta-line">
+        <span>Tarix / Vaxt:</span>
+        <span>${dateStr} ${timeStr}</span>
+      </div>
+      <div class="meta-line">
+        <span>Kassir / Təhvil alan:</span>
+        <span class="bold">${escapeHtml(cashierName)}</span>
+      </div>
+      ${customerName ? `
+      <div class="meta-line">
+        <span>Müştəri:</span>
+        <span class="bold">${escapeHtml(customerName)}${customerPhone ? ` (${escapeHtml(customerPhone)})` : ''}</span>
+      </div>` : ''}
+      ${reason ? `
+      <div class="meta-line" style="margin-top: 2px;">
+        <span>Səbəb:</span>
+        <span class="bold" style="text-align: right; max-width: 65%;">${escapeHtml(reason)}</span>
+      </div>` : ''}
+
+      <div class="solid-sep"></div>
+
+      <!-- Returned Item -->
+      <div class="box-section">
+        <div class="section-header" style="color: #b91c1c;">▼ QAYTARILAN MƏHSUL</div>
+        ${returnedItem ? `
+          <div class="item-row bold">${escapeHtml(returnedItem.name || 'Məhsul')}</div>
+          ${returnedItem.barcode ? `<div style="font-size: 8px; font-family: monospace; color: #555;">Barkod: ${escapeHtml(returnedItem.barcode)}</div>` : ''}
+          <div class="meta-line" style="margin-top: 2px;">
+            <span>${returnedItem.quantity || 1} ${returnedItem.unit || 'əd'} x ₼${Number(returnedItem.price || 0).toFixed(2)}</span>
+            <span class="bold" style="color: #b91c1c;">-₼${Number(returnedItem.total || refundAmount || 0).toFixed(2)}</span>
+          </div>
+        ` : '<div>—</div>'}
+      </div>
+
+      <!-- Exchanged Replacement Item (if exchange) -->
+      ${isExchange && exchangeItem ? `
+        <div class="box-section" style="background: #f0fdf4; border-color: #bbf7d0;">
+          <div class="section-header" style="color: #15803d;">▲ ƏVƏZİNƏ VERİLƏN MƏHSUL</div>
+          <div class="item-row bold">${escapeHtml(exchangeItem.name || 'Yeni Məhsul')}</div>
+          ${exchangeItem.barcode ? `<div style="font-size: 8px; font-family: monospace; color: #555;">Barkod: ${escapeHtml(exchangeItem.barcode)}</div>` : ''}
+          <div class="meta-line" style="margin-top: 2px;">
+            <span>${exchangeItem.quantity || 1} ${exchangeItem.unit || 'əd'} x ₼${Number(exchangeItem.price || 0).toFixed(2)}</span>
+            <span class="bold" style="color: #15803d;">+₼${Number(exchangeItem.total || 0).toFixed(2)}</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Settlement Summary -->
+      <div class="total-block">
+        ${isExchange ? `
+          <div class="meta-line">
+            <span>Qaytarılan məhsulun dəyəri:</span>
+            <span class="bold">₼${Number(returnedItem?.total || refundAmount || 0).toFixed(2)}</span>
+          </div>
+          <div class="meta-line">
+            <span>Yeni məhsulun dəyəri:</span>
+            <span class="bold">₼${Number(exchangeItem?.total || 0).toFixed(2)}</span>
+          </div>
+          <div class="dashed-sep"></div>
+          ${priceDifference > 0 ? `
+            <div class="grand-line" style="color: #c2410c;">
+              <span>MÜŞTƏRİ ƏLAVƏ ÖDƏYİB:</span>
+              <span>+₼${Number(priceDifference).toFixed(2)}</span>
+            </div>
+            <div class="meta-line">
+              <span>Ödəniş üsulu:</span>
+              <span class="bold">${escapeHtml(diffPaymentMethod)}</span>
+            </div>
+          ` : priceDifference < 0 ? `
+            <div class="grand-line" style="color: #15803d;">
+              <span>MÜŞTƏRİYƏ QAYTARILIB:</span>
+              <span>₼${Number(Math.abs(priceDifference)).toFixed(2)}</span>
+            </div>
+            <div class="meta-line">
+              <span>Qaytarılma üsulu:</span>
+              <span class="bold">${escapeHtml(diffPaymentMethod)}</span>
+            </div>
+          ` : `
+            <div class="grand-line">
+              <span>QİYMƏT FƏRQİ:</span>
+              <span>₼0.00</span>
+            </div>
+          `}
+        ` : `
+          <div class="grand-line" style="color: #b91c1c;">
+            <span>QAYTARILAN MƏBLƏĞ:</span>
+            <span>₼${Number(refundAmount || 0).toFixed(2)}</span>
+          </div>
+          <div class="meta-line">
+            <span>Qaytarılma üsulu:</span>
+            <span class="bold">${escapeHtml(refundMethod)}</span>
+          </div>
+        `}
+      </div>
+
+      ${notes ? `
+        <div style="font-size: 8.5px; color: #555; margin-top: 4px; font-style: italic;">
+          Qeyd: ${escapeHtml(notes)}
+        </div>
+      ` : ''}
+
+      <div class="solid-sep"></div>
+
+      <!-- QR & Verification -->
+      <div class="qr-section">
+        <div class="qr-wrap">${qrSvgHtml}</div>
+        <div style="font-size: 8px; color: #555;">ID: ${escapeHtml(cleanTxId)}</div>
+        <div style="font-size: 9px; font-weight: 700; margin-top: 2px;">ƏMƏLİYYAT RƏSMİLƏŞDİRİLDİ</div>
+        <div style="font-size: 8px; color: #777;">Məhsulun qəbulu və yenilənməsi anbara işlənmişdir.</div>
+      </div>
+
+      <div style="height: 10mm;">&nbsp;</div>
+
+      <script>
+        if (window.self === window.top) {
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 300);
+          };
+        }
+      </script>
+    </body>
+    </html>
+  `;
+
+  const isMobile = typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
+  if (isMobile) {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(receiptHtml);
+      printWindow.document.close();
+      return true;
+    }
+  }
+
+  try {
+    let iframe = document.getElementById('thermal-receipt-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'thermal-receipt-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.top = '-9999px';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '100px';
+      iframe.style.height = '100px';
+      iframe.style.border = 'none';
+      iframe.style.opacity = '0';
+      document.body.appendChild(iframe);
+    }
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(receiptHtml);
+      doc.close();
+
+      setTimeout(() => {
+        try {
+          if (iframe.contentWindow) {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          }
+        } catch (printErr) {
+          console.warn('Iframe print error:', printErr);
+        }
+      }, 300);
+
+      return true;
+    }
+  } catch (err) {
+    console.warn('Iframe print setup error, attempting fallback:', err);
+  }
+
   const printWindow = window.open('', '_blank', 'width=380,height=600');
   if (printWindow) {
     printWindow.document.open();
