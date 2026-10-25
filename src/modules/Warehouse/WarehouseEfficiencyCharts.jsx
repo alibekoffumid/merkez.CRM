@@ -592,13 +592,38 @@ const WarehouseEfficiencyCharts = ({
     const payMap = new Map();
     const chanMap = new Map();
 
+    const normalizePayment = (val) => {
+      if (!val) return 'Nağd';
+      const lower = String(val).toLowerCase().trim();
+      if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
+        return 'Nağd';
+      }
+      if (lower.includes('kart')) return 'Kartdan karta(Hesab)';
+      if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) return 'Köçürmə';
+      if (lower.includes('kredit')) return 'Kredit';
+      if (lower.includes('nisyə') || lower.includes('nisye') || lower.includes('borc')) return 'Nisyə';
+      if (lower.includes('beh') || lower.includes('avans')) return 'Beh';
+      return String(val).trim();
+    };
+
     filteredSales.forEach(s => {
-      const pay = s.paymentMethod || 'Nəqd';
+      const pay = normalizePayment(s.paymentMethod);
       payMap.set(pay, (payMap.get(pay) || 0) + s.totalAmount);
 
       const chan = s.channel || 'Mağaza';
       chanMap.set(chan, (chanMap.get(chan) || 0) + s.totalAmount);
     });
+
+    const getPaymentColor = (name, idx) => {
+      const lower = (name || '').toLowerCase();
+      if (lower === 'nağd' || lower === 'nəqd') return '#2563EB'; // Primary Blue
+      if (lower.includes('kart')) return '#10B981'; // Emerald
+      if (lower.includes('kredit')) return '#F59E0B'; // Amber
+      if (lower.includes('nisyə')) return '#8B5CF6'; // Purple
+      if (lower.includes('beh') || lower.includes('avans')) return '#EC4899'; // Pink
+      if (lower.includes('köçürmə')) return '#06B6D4'; // Cyan
+      return CHART_COLORS[idx % CHART_COLORS.length];
+    };
 
     const payments = Array.from(payMap.entries())
       .map(([name, amount], idx) => ({
@@ -606,7 +631,7 @@ const WarehouseEfficiencyCharts = ({
         value: amount,
         displayValue: `₼${amount.toFixed(2)}`,
         percent: summary.totalRevenue > 0 ? (amount / summary.totalRevenue) * 100 : 0,
-        color: CHART_COLORS[idx % CHART_COLORS.length]
+        color: getPaymentColor(name, idx)
       }))
       .sort((a, b) => b.value - a.value);
 

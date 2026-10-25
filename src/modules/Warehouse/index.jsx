@@ -597,7 +597,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       customerName: parsed.customerName || '',
       customerPhone: parsed.customerPhone || '',
       channel: parsed.channel || '',
-      paymentMethod: parsed.paymentMethod || 'Nəqd',
+      paymentMethod: parsed.paymentMethod || 'Nağd',
       items: [
         {
           name: prodObj?.name || 'Məhsul',

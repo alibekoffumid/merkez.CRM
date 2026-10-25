@@ -166,7 +166,23 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
   // 3. Payment Method
   const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
   if (payMatch) {
-    info.paymentMethod = payMatch[1].trim();
+    const raw = payMatch[1].trim();
+    const lower = raw.toLowerCase();
+    if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
+      info.paymentMethod = 'Nağd';
+    } else if (lower.includes('kart')) {
+      info.paymentMethod = 'Kartdan karta(Hesab)';
+    } else if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) {
+      info.paymentMethod = 'Köçürmə';
+    } else if (lower.includes('kredit')) {
+      info.paymentMethod = 'Kredit';
+    } else if (lower.includes('nisyə') || lower.includes('nisye') || lower.includes('borc')) {
+      info.paymentMethod = 'Nisyə';
+    } else if (lower.includes('beh') || lower.includes('avans')) {
+      info.paymentMethod = 'Beh';
+    } else {
+      info.paymentMethod = raw;
+    }
   } else if (/xərc|расход|expense/i.test(note)) {
     info.paymentMethod = 'Digər xərclər';
   } else if (/beh|avans|deposit/i.test(note)) {
@@ -179,7 +195,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     info.paymentMethod = 'Nisyə';
   } else if (/kart/i.test(note)) {
     info.paymentMethod = 'Kartdan karta(Hesab)';
-  } else if (/nəqd|nağd/i.test(note)) {
+  } else {
     info.paymentMethod = 'Nağd';
   }
 
@@ -428,7 +444,7 @@ const SaleDetailModal = ({
       customerName: saleInfo.customerName || '',
       customerPhone: saleInfo.customerPhone || '',
       channel: saleInfo.channel || '',
-      paymentMethod: saleInfo.paymentMethod || 'Nəqd',
+      paymentMethod: saleInfo.paymentMethod || 'Nağd',
       items: [
         {
           name: prod?.name || 'Məhsul',

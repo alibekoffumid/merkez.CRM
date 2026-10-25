@@ -1819,7 +1819,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               <div className="flex justify-between items-center text-gray-500">
                 <span>{i18n.language === 'az' ? 'Ödəniş:' : 'Оплата:'}</span>
                 <span className="font-bold text-gray-900">
-                  {completedSaleReceipt.paymentMethod === 'cash' ? (i18n.language === 'az' ? 'Nəqd' : 'Наличные')
+                  {completedSaleReceipt.paymentMethod === 'cash' ? (i18n.language === 'az' ? 'Nağd' : 'Наличные')
                     : completedSaleReceipt.paymentMethod === 'card' ? (i18n.language === 'az' ? 'Kart' : 'Карта')
                     : completedSaleReceipt.paymentMethod === 'credit' ? (i18n.language === 'az' ? 'Kredit' : 'Кредит')
                     : completedSaleReceipt.paymentMethod === 'debt' ? (i18n.language === 'az' ? 'Nisyə' : 'В долг')
