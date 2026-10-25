@@ -67,7 +67,7 @@ export const salesService = {
 
     // 1. Calculate totals
     const subtotal = items.reduce((sum, item) => {
-      const price = item.customPrice ?? item.product.sale_price ?? item.product.price ?? 0;
+      const price = item.isGift ? 0 : (item.customPrice ?? item.product.sale_price ?? item.product.price ?? 0);
       return sum + price * item.quantity;
     }, 0);
 
@@ -132,6 +132,14 @@ export const salesService = {
 
     if (formattedClientLabel) {
       fullNote += ` [Müştəri: ${formattedClientLabel}]`;
+    }
+
+    const giftItems = items.filter((i) => i.isGift);
+    if (giftItems.length > 0) {
+      const giftNames = giftItems
+        .map((g) => `${g.product.name} (x${g.quantity}, Dəyəri: ₼${(g.originalPrice ?? g.product.sale_price ?? g.product.price ?? 0).toFixed(2)})`)
+        .join(', ');
+      fullNote += ` [🎁 HƏDİYYƏ: ${giftNames}]`;
     }
 
     // Call recordDispatch with reason='sale' and discount fields
@@ -266,17 +274,17 @@ export const salesService = {
         if (!saleErr && saleRow?.id) {
           createdSaleId = saleRow.id;
           const saleItems = items.map((i) => {
-            const effPrice = i.customPrice ?? i.product.sale_price ?? i.product.price ?? 0;
-            const basePrice = i.product.sale_price ?? i.product.price ?? effPrice;
+            const basePrice = i.originalPrice ?? i.product.sale_price ?? i.product.price ?? 0;
+            const effPrice = i.isGift ? 0 : (i.customPrice ?? basePrice);
             return {
               sale_id: saleRow.id,
               product_id: i.product.id,
-              product_name: i.product.name,
+              product_name: i.isGift ? `[🎁 Hədiyyə] ${i.product.name}` : i.product.name,
               quantity: i.quantity,
               price_at_sale: effPrice,
               base_price: basePrice,
-              discount_amount: Math.max(0, basePrice - effPrice),
-              discount_type: 'fixed',
+              discount_amount: i.isGift ? basePrice * i.quantity : Math.max(0, basePrice - effPrice),
+              discount_type: i.isGift ? 'gift' : 'fixed',
               total: effPrice * i.quantity,
               created_at: new Date().toISOString(),
             };

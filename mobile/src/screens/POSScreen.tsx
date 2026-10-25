@@ -34,6 +34,7 @@ import {
   Check,
   RotateCcw,
   Printer,
+  Gift,
 } from 'lucide-react-native';
 import { POSCartItem } from '../types';
 import { salesService, POSPaymentMethod } from '../services/salesService';
@@ -59,6 +60,7 @@ interface POSScreenProps {
     discount?: number,
     discountType?: 'percent' | 'fixed'
   ) => void;
+  onToggleItemGift?: (productId: string) => void;
 }
 
 export const POSScreen: React.FC<POSScreenProps> = ({
@@ -68,6 +70,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   onClearCart,
   onOpenScanner,
   onUpdateItemPrice,
+  onToggleItemGift,
 }) => {
   const [paymentMethod, setPaymentMethod] = useState<POSPaymentMethod>('CASH');
   const [selectedBank, setSelectedBank] = useState<CreditBank>('ABB Kredit');
@@ -96,6 +99,9 @@ export const POSScreen: React.FC<POSScreenProps> = ({
 
   // Calculate effective price for each item
   const getItemEffectivePrice = (item: POSCartItem): number => {
+    if (item.isGift) {
+      return 0;
+    }
     if (item.customPrice !== undefined && item.customPrice !== null) {
       return item.customPrice;
     }
@@ -239,6 +245,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           price: getItemEffectivePrice(i),
           total: getItemEffectivePrice(i) * i.quantity,
           unit: i.product.unit || 'əd.',
+          isGift: Boolean(i.isGift),
+          originalPrice: i.originalPrice ?? (i.product.sale_price ?? i.product.price ?? 0),
         })),
         subtotal,
         discountAmount,
@@ -377,11 +385,19 @@ export const POSScreen: React.FC<POSScreenProps> = ({
               (item.product.discount_value && item.product.discount_value > 0);
 
             return (
-              <View style={styles.itemRow}>
+              <View style={[styles.itemRow, item.isGift && styles.itemRowGift]}>
                 <View style={styles.itemInfo}>
-                  <Text style={styles.itemName} numberOfLines={1}>
-                    {item.product.name}
-                  </Text>
+                  <View style={styles.itemNameRow}>
+                    <Text style={styles.itemName} numberOfLines={1}>
+                      {item.product.name}
+                    </Text>
+                    {item.isGift && (
+                      <View style={styles.giftBadge}>
+                        <Gift size={10} color="#7C3AED" />
+                        <Text style={styles.giftBadgeText}>HƏDİYYƏ</Text>
+                      </View>
+                    )}
+                  </View>
                   
                   {/* Price display with edit tap */}
                   <TouchableOpacity
@@ -389,25 +405,38 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     onPress={() => handleOpenItemModal(item)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.itemPrice}>
-                      {effectivePrice.toFixed(2)} ₼ / {item.product.unit || 'əd.'}
-                    </Text>
-
-                    {hasCustomDiscount ? (
-                      <View style={styles.itemDiscountBadge}>
-                        <Tag size={10} color="#059669" />
-                        <Text style={styles.itemDiscountBadgeText}>
-                          {item.customPrice !== undefined
-                            ? `${item.customPrice.toFixed(2)} ₼`
-                            : item.discount
-                            ? `-${item.discount}%`
-                            : `-${item.product.discount_value}${item.product.discount_type === 'percent' ? '%' : '₼'}`}
+                    {item.isGift ? (
+                      <View style={styles.giftPriceContainer}>
+                        <Text style={styles.originalPriceStrikethrough}>
+                          {(item.originalPrice ?? basePrice).toFixed(2)} ₼
+                        </Text>
+                        <Text style={styles.giftZeroPrice}>
+                          0.00 ₼ (Hədiyyə)
                         </Text>
                       </View>
                     ) : (
-                      <View style={styles.itemPriceEditBtn}>
-                        <Edit2 size={11} color="#9CA3AF" />
-                      </View>
+                      <>
+                        <Text style={styles.itemPrice}>
+                          {effectivePrice.toFixed(2)} ₼ / {item.product.unit || 'əd.'}
+                        </Text>
+
+                        {hasCustomDiscount ? (
+                          <View style={styles.itemDiscountBadge}>
+                            <Tag size={10} color="#059669" />
+                            <Text style={styles.itemDiscountBadgeText}>
+                              {item.customPrice !== undefined
+                                ? `${item.customPrice.toFixed(2)} ₼`
+                                : item.discount
+                                ? `-${item.discount}%`
+                                : `-${item.product.discount_value}${item.product.discount_type === 'percent' ? '%' : '₼'}`}
+                            </Text>
+                          </View>
+                        ) : (
+                          <View style={styles.itemPriceEditBtn}>
+                            <Edit2 size={11} color="#9CA3AF" />
+                          </View>
+                        )}
+                      </>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -430,13 +459,24 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 </View>
 
                 <View style={styles.itemTotalCol}>
-                  <Text style={styles.itemTotal}>{itemTotal.toFixed(2)} ₼</Text>
-                  <TouchableOpacity
-                    style={styles.deleteBtn}
-                    onPress={() => onRemoveItem(item.product.id)}
-                  >
-                    <Trash2 size={16} color="#EF4444" />
-                  </TouchableOpacity>
+                  <Text style={[styles.itemTotal, item.isGift && styles.itemTotalGift]}>
+                    {item.isGift ? '0.00 ₼' : `${itemTotal.toFixed(2)} ₼`}
+                  </Text>
+                  <View style={styles.itemActionsRow}>
+                    <TouchableOpacity
+                      style={[styles.giftBtn, item.isGift && styles.giftBtnActive]}
+                      onPress={() => onToggleItemGift?.(item.product.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Gift size={15} color={item.isGift ? "#7C3AED" : "#9CA3AF"} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteBtn}
+                      onPress={() => onRemoveItem(item.product.id)}
+                    >
+                      <Trash2 size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             );
@@ -935,6 +975,21 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     ))}
                   </View>
                 </View>
+
+                {/* Option 3: Gift Toggle Button */}
+                <TouchableOpacity
+                  style={[styles.modalGiftToggleBtn, editingItem.isGift && styles.modalGiftToggleBtnActive]}
+                  onPress={() => {
+                    onToggleItemGift?.(editingItem.product.id);
+                    setEditingItem(null);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Gift size={18} color={editingItem.isGift ? '#fff' : '#7C3AED'} />
+                  <Text style={[styles.modalGiftToggleText, editingItem.isGift && styles.modalGiftToggleTextActive]}>
+                    {editingItem.isGift ? 'Hədiyyəni ləğv et (Satışa qaytar)' : '🎁 Hədiyyə kimi qeyd et (0.00 ₼)'}
+                  </Text>
+                </TouchableOpacity>
 
                 {/* Action Buttons */}
                 <View style={styles.modalActionButtons}>
@@ -1680,6 +1735,87 @@ const styles = StyleSheet.create({
   applyBtnText: {
     fontSize: 13,
     fontWeight: '800',
+    color: '#fff',
+  },
+  itemRowGift: {
+    backgroundColor: '#FAF5FF',
+    borderColor: '#E9D5FF',
+  },
+  itemNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  giftBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#EDE9FE',
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  giftBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#7C3AED',
+  },
+  giftPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  originalPriceStrikethrough: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    textDecorationLine: 'line-through',
+  },
+  giftZeroPrice: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#7C3AED',
+  },
+  itemTotalGift: {
+    color: '#7C3AED',
+  },
+  itemActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  giftBtn: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  giftBtnActive: {
+    backgroundColor: '#EDE9FE',
+  },
+  modalGiftToggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FAF5FF',
+    borderWidth: 1.5,
+    borderColor: '#DDD6FE',
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: 6,
+  },
+  modalGiftToggleBtnActive: {
+    backgroundColor: '#7C3AED',
+    borderColor: '#6D28D9',
+  },
+  modalGiftToggleText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#7C3AED',
+  },
+  modalGiftToggleTextActive: {
     color: '#fff',
   },
 });

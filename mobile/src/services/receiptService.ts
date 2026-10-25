@@ -205,6 +205,8 @@ export interface ReceiptItem {
   unit?: string;
   barcode?: string;
   discount?: number;
+  isGift?: boolean;
+  originalPrice?: number;
 }
 
 export interface SaleReceiptData {
@@ -375,10 +377,16 @@ export const receiptService = {
     lines.push(dividerSingle);
 
     data.items.forEach((item, idx) => {
-      lines.push(`${idx + 1}. ${item.name}`);
-      const qtyStr = `  ${item.quantity} ${item.unit || 'əd.'} x ${Number(item.price).toFixed(2)} ₼`;
-      const totStr = `${Number(item.total).toFixed(2)} ₼`;
+      const isGift = Boolean(item.isGift);
+      lines.push(`${idx + 1}. ${isGift ? '[HƏDİYYƏ] ' : ''}${item.name}`);
+      const priceVal = isGift ? 0 : Number(item.price);
+      const totalVal = isGift ? 0 : Number(item.total);
+      const qtyStr = `  ${item.quantity} ${item.unit || 'əd.'} x ${priceVal.toFixed(2)} ₼`;
+      const totStr = `${totalVal.toFixed(2)} ₼`;
       lines.push(padRow(qtyStr, totStr, width));
+      if (isGift) {
+        lines.push('  *** MAĞAZADAN HƏDİYYƏ (0.00 AZN) ***');
+      }
     });
 
     lines.push(dividerSingle);
@@ -807,10 +815,12 @@ export const receiptService = {
         ${data.items
           .map((item) => {
             const itemQty = Number(item.quantity) || 1;
-            const itemPrice = Number(item.price) || 0;
-            const itemTotal = Number(item.total) || itemQty * itemPrice;
+            const isGift = Boolean(item.isGift);
+            const itemPrice = isGift ? 0 : (Number(item.price) || 0);
+            const itemTotal = isGift ? 0 : (Number(item.total) || itemQty * itemPrice);
             const itemUnit = item.unit ? `(${item.unit})` : '';
-            const itemDisplayName = `${escapeHtml(item.name || 'Məhsul')}${itemUnit ? ` ${escapeHtml(itemUnit)}` : ''}`;
+            const rawName = item.name || 'Məhsul';
+            const itemDisplayName = `${isGift ? '[HƏDİYYƏ] ' : ''}${escapeHtml(rawName)}${itemUnit ? ` ${escapeHtml(itemUnit)}` : ''}`;
             const qtyFormatted = Number.isInteger(itemQty) ? itemQty.toFixed(1) : itemQty.toString();
 
             return `
@@ -818,11 +828,13 @@ export const receiptService = {
                 <div class="item-row">
                   <span class="col-name">${itemDisplayName}</span>
                   <span class="col-qty">${qtyFormatted}</span>
-                  <span class="col-price">${itemPrice.toFixed(2)}</span>
-                  <span class="col-total">${itemTotal.toFixed(2)}</span>
+                  <span class="col-price">${isGift ? '0.00' : itemPrice.toFixed(2)}</span>
+                  <span class="col-total">${isGift ? '0.00' : itemTotal.toFixed(2)}</span>
                 </div>
                 ${
-                  item.discount && item.discount > 0
+                  isGift
+                    ? `<div class="item-extra" style="font-weight: 700; color: #000;">*** MAĞAZADAN HƏDİYYƏ (0.00 AZN) ***</div>`
+                    : item.discount && item.discount > 0
                     ? `<div class="item-extra">(Endirim: -${Number(item.discount).toFixed(2)})</div>`
                     : ''
                 }
@@ -1021,10 +1033,16 @@ export const receiptService = {
 
     // Items
     data.items.forEach((item, idx) => {
-      builder.line(`${idx + 1}. ${item.name}`);
-      const qtyStr = `  ${item.quantity} ${item.unit || 'ed.'} x ${Number(item.price).toFixed(2)} AZN`;
-      const totStr = `${Number(item.total).toFixed(2)} AZN`;
+      const isGift = Boolean(item.isGift);
+      builder.line(`${idx + 1}. ${isGift ? '[HEDIYYE] ' : ''}${item.name}`);
+      const priceVal = isGift ? 0 : Number(item.price);
+      const totalVal = isGift ? 0 : Number(item.total);
+      const qtyStr = `  ${item.quantity} ${item.unit || 'ed.'} x ${priceVal.toFixed(2)} AZN`;
+      const totStr = `${totalVal.toFixed(2)} AZN`;
       builder.line(padRow(qtyStr, totStr, width));
+      if (isGift) {
+        builder.line('  *** MAGAZADAN HEDIYYE (0.00 AZN) ***');
+      }
     });
 
     builder.line(dividerSingle);

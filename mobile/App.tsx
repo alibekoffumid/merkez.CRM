@@ -158,6 +158,24 @@ function MainApp() {
     );
   };
 
+  const toggleItemGift = (productId: string) => {
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.product.id === productId) {
+          const nextIsGift = !item.isGift;
+          const origPrice = item.originalPrice ?? item.customPrice ?? item.product.sale_price ?? item.product.price ?? 0;
+          return {
+            ...item,
+            isGift: nextIsGift,
+            originalPrice: origPrice,
+            customPrice: nextIsGift ? 0 : origPrice,
+          };
+        }
+        return item;
+      })
+    );
+  };
+
   const totalCartCount = cart.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
@@ -192,6 +210,7 @@ function MainApp() {
               onClearCart={() => setCart([])}
               onOpenScanner={handleOpenScanner}
               onUpdateItemPrice={updateItemPrice}
+              onToggleItemGift={toggleItemGift}
             />
           </View>
         )}

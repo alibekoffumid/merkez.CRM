@@ -145,6 +145,8 @@ export interface POSCartItem {
   customPrice?: number;
   discount?: number;
   discountType?: 'percent' | 'fixed';
+  isGift?: boolean;
+  originalPrice?: number;
 }
 
 export interface ScanResult {
