@@ -28,7 +28,9 @@ import {
   Utensils,
   Package,
   Wrench,
-  Briefcase
+  Briefcase,
+  BadgeDollarSign,
+  ArrowUpRight
 } from 'lucide-react';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
@@ -40,6 +42,15 @@ import { toast } from 'react-hot-toast';
 import { printThermalExpenseVoucher } from './thermalReceiptService';
 
 const EXPENSE_CATEGORIES = [
+  { 
+    id: 'Beh', 
+    icon: BadgeDollarSign, 
+    labelAz: 'Beh / Zadatak (Avans)', 
+    shortAz: 'Beh (Zadatak)',
+    labelRu: 'Задаток / Аванс', 
+    shortRu: 'Задаток',
+    color: 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+  },
   { 
     id: 'Taksi', 
     icon: Car, 
@@ -105,17 +116,25 @@ const EXPENSE_CATEGORIES = [
   }
 ];
 
-export const parseExpenseDetails = (description = '') => {
+export const parseExpenseDetails = (description = '', category = '') => {
   const desc = String(description || '');
-  const recipMatch = desc.match(/\[Xərcləyən:\s*([^\]]+)\]/i);
+  const isBeh = category === 'Beh' || desc.includes('[Növ: Beh Qəbulu]') || desc.includes('[Beh]');
+  const recipMatch = desc.match(/\[Xərcləyən:\s*([^\]]+)\]/i) || desc.match(/\[Qəbul edən:\s*([^\]]+)\]/i);
+  const customerMatch = desc.match(/\[Müştəri:\s*([^\]]+)\]/i);
   const sourceMatch = desc.match(/\[Mənbə:\s*([^\]]+)\]/i);
   const cleanNote = desc
+    .replace(/\[Növ:\s*[^\]]+\]/gi, '')
+    .replace(/\[Beh\]/gi, '')
     .replace(/\[Xərcləyən:\s*[^\]]+\]/gi, '')
+    .replace(/\[Qəbul edən:\s*[^\]]+\]/gi, '')
+    .replace(/\[Müştəri:\s*[^\]]+\]/gi, '')
     .replace(/\[Mənbə:\s*[^\]]+\]/gi, '')
     .trim();
 
   return {
+    isBeh,
     recipient: recipMatch ? recipMatch[1].trim() : null,
+    customer: customerMatch ? customerMatch[1].trim() : null,
     source: sourceMatch ? sourceMatch[1].trim() : 'Nağd Kassa',
     cleanNote: cleanNote || '—'
   };
@@ -131,6 +150,10 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
   const [expenses, setExpenses] = useState([]);
   const [todayCashSalesTotal, setTodayCashSalesTotal] = useState(0);
   const [staffAndMasters, setStaffAndMasters] = useState([]);
+  const [customers, setCustomers] = useState([]);
+
+  // Active operation mode: 'expense' (Məxaric) vs 'deposit' (Beh Qəbulu)
+  const [activeOperation, setActiveOperation] = useState('expense');
   
   // Filter & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -145,9 +168,28 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
   const [paymentSource, setPaymentSource] = useState('Nağd Kassa'); // 'Nağd Kassa' | 'Bank / Kart hesabı'
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
 
+  // Beh (Deposit / Advance) Form State
+  const [behAmount, setBehAmount] = useState('');
+  const [behCustomerId, setBehCustomerId] = useState('');
+  const [behCustomerName, setBehCustomerName] = useState('');
+  const [behCustomerPhone, setBehCustomerPhone] = useState('');
+  const [behPurpose, setBehPurpose] = useState('');
+  const [behCashier, setBehCashier] = useState('');
+  const [behSource, setBehSource] = useState('Nağd Kassa');
+  const [behDate, setBehDate] = useState(new Date().toISOString().split('T')[0]);
+
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
-  // Fetch expenses and today's cash sales
+  // Set default cashier
+  useEffect(() => {
+    if (currentStaff?.name) {
+      setBehCashier(currentStaff.name);
+    } else if (profile?.full_name) {
+      setBehCashier(profile.full_name);
+    }
+  }, [currentStaff, profile]);
+
+  // Fetch expenses, cash sales, staff and customers
   const fetchData = async () => {
     if (!profile?.id) return;
     setLoading(true);
@@ -162,7 +204,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
       if (expErr) throw expErr;
       setExpenses(expData || []);
 
-      // 2. Fetch today's cash inflows from stock_dispatches (reason = 'sale' and payment is Nağd)
+      // 2. Fetch today's cash sales from stock_dispatches
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date();
@@ -180,10 +222,8 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
         let cashTotal = 0;
         salesDispatches.forEach(disp => {
           const n = String(disp.notes || '').toLowerCase();
-          // Exclude cancelled / refunded
           if (n.includes('[status: refunded]') || n.includes('[status: cancelled]') || n.includes('qaytarıldı')) return;
           
-          // Check if cash sale
           const isCash = n.includes('ödəniş: nağd') || n.includes('ödəniş: nəqd') || (!n.includes('ödəniş: kart') && !n.includes('ödəniş: kredit') && !n.includes('ödəniş: nisyə') && !n.includes('birmarket'));
           if (isCash) {
             const priceMatch = n.match(/\[Məbləğ:\s*₼?([0-9.,]+)\]/i) || n.match(/\[Cəmi:\s*₼?([0-9.,]+)\]/i);
@@ -195,8 +235,17 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
         setTodayCashSalesTotal(cashTotal);
       }
 
-      // 3. Fetch staff and masters for recipient selector
+      // 3. Fetch staff and masters
       fetchStaffAndMasters();
+
+      // 4. Fetch customers for Beh selection
+      const { data: custData } = await supabase
+        .from('customers')
+        .select('id, name, phone, debt_balance')
+        .eq('user_id', profile.id)
+        .order('name');
+      if (custData) setCustomers(custData);
+
     } catch (err) {
       console.error('Error fetching cashbox data:', err);
     } finally {
@@ -262,30 +311,39 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
   }, [isOpen, profile?.id]);
 
   // Calculations
-  const todayExpensesList = useMemo(() => {
+  const todayEntries = useMemo(() => {
     return expenses.filter(e => {
       const d = e.expense_date || (e.created_at ? e.created_at.split('T')[0] : '');
       return d === todayStr;
     });
   }, [expenses, todayStr]);
 
+  // Today's Cash Expenses (excluding Beh)
   const todayCashExpensesTotal = useMemo(() => {
-    return todayExpensesList
+    return todayEntries
       .filter(e => {
-        const details = parseExpenseDetails(e.description);
+        if (e.category === 'Beh') return false;
+        const details = parseExpenseDetails(e.description, e.category);
         return details.source === 'Nağd Kassa';
       })
       .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-  }, [todayExpensesList]);
+  }, [todayEntries]);
 
-  const todayAllExpensesTotal = useMemo(() => {
-    return todayExpensesList.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-  }, [todayExpensesList]);
+  // Today's Cash Beh Inflow (customer deposits into cash register)
+  const todayCashBehTotal = useMemo(() => {
+    return todayEntries
+      .filter(e => {
+        if (e.category !== 'Beh') return false;
+        const details = parseExpenseDetails(e.description, e.category);
+        return details.source === 'Nağd Kassa';
+      })
+      .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  }, [todayEntries]);
 
-  // Actual cash in register = Cash sales - Cash expenses
+  // Actual cash in register = Cash sales + Cash Beh - Cash expenses
   const netCashInHand = useMemo(() => {
-    return Math.max(0, todayCashSalesTotal - todayCashExpensesTotal);
-  }, [todayCashSalesTotal, todayCashExpensesTotal]);
+    return Math.max(0, todayCashSalesTotal + todayCashBehTotal - todayCashExpensesTotal);
+  }, [todayCashSalesTotal, todayCashBehTotal, todayCashExpensesTotal]);
 
   // Filtered expenses list
   const filteredExpenses = useMemo(() => {
@@ -314,7 +372,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
     });
   }, [expenses, dateFilter, selectedFilterCategory, searchQuery, todayStr]);
 
-  // Submit new expense
+  // Submit new expense (Məxaric)
   const handleAddExpense = async (e) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
@@ -330,7 +388,6 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
 
     setIsSubmitting(true);
     try {
-      // Format description with structured metadata
       let fullDescription = description.trim() || 'Xərc';
       if (recipient.trim()) {
         fullDescription += ` [Xərcləyən: ${recipient.trim()}]`;
@@ -360,6 +417,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
           date: new Date(),
           warehouseName: warehouseName || 'Əsas Mağaza',
           category,
+          isBeh: false,
           amount: parsedAmount,
           description: description.trim() || '—',
           recipient: recipient.trim() || 'Kassa',
@@ -386,14 +444,93 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
     }
   };
 
-  // Delete expense
-  const handleDeleteExpense = async (exp) => {
-    if (!isAdmin) {
-      toast.error(i18n.language === 'az' ? 'Yalnız admin xərci silə bilər' : 'Только администратор может удалять расходы');
+  // Submit new Beh (Deposit / Advance Inflow)
+  const handleAddBeh = async (e) => {
+    e.preventDefault();
+    const parsedAmount = parseFloat(behAmount);
+    if (!behAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      toast.error(i18n.language === 'az' ? 'Düzgün beh məbləği daxil edin' : 'Введите корректную сумму задатка');
       return;
     }
 
-    if (!window.confirm(i18n.language === 'az' ? 'Bu xərci silmək istədiyinizə əminsiniz?' : 'Вы уверены, что хотите удалить этот расход?')) {
+    const finalCustomerName = behCustomerName.trim() || (customers.find(c => c.id === behCustomerId)?.name || '').trim();
+    if (!finalCustomerName) {
+      toast.error(i18n.language === 'az' ? 'Müştəri adını daxil edin və ya siyahıdan seçin' : 'Укажите или выберите клиента');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      let fullDescription = `[Növ: Beh Qəbulu] [Müştəri: ${finalCustomerName}${behCustomerPhone.trim() ? ` (${behCustomerPhone.trim()})` : ''}]`;
+      if (behCashier.trim()) {
+        fullDescription += ` [Qəbul edən: ${behCashier.trim()}]`;
+      }
+      fullDescription += ` [Mənbə: ${behSource}]`;
+      if (behPurpose.trim()) {
+        fullDescription += ` ${behPurpose.trim()}`;
+      }
+
+      const { data, error } = await supabase
+        .from('business_expenses')
+        .insert([{
+          user_id: profile.id,
+          category: 'Beh',
+          description: fullDescription,
+          amount: parsedAmount,
+          expense_date: behDate || todayStr
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(i18n.language === 'az' ? `₼${parsedAmount.toFixed(2)} məbləğində beh qəbul edildi` : `Задаток на сумму ₼${parsedAmount.toFixed(2)} успешно принят`);
+
+      // Auto-print thermal voucher option
+      try {
+        printThermalExpenseVoucher({
+          receiptNumber: (data?.id || Date.now().toString()).slice(0, 8).toUpperCase(),
+          date: new Date(),
+          warehouseName: warehouseName || 'Əsas Mağaza',
+          category: 'Beh',
+          isBeh: true,
+          amount: parsedAmount,
+          description: behPurpose.trim() || '—',
+          customerName: `${finalCustomerName}${behCustomerPhone.trim() ? ` (${behCustomerPhone.trim()})` : ''}`,
+          recipient: `${finalCustomerName}${behCustomerPhone.trim() ? ` (${behCustomerPhone.trim()})` : ''}`,
+          paymentSource: behSource,
+          cashierName: behCashier.trim() || currentStaff?.name || profile?.full_name || 'Kassir'
+        });
+      } catch (printErr) {
+        console.warn('Auto print notice:', printErr);
+      }
+
+      // Reset form
+      setBehAmount('');
+      setBehCustomerId('');
+      setBehCustomerName('');
+      setBehCustomerPhone('');
+      setBehPurpose('');
+      setBehSource('Nağd Kassa');
+      setBehDate(todayStr);
+
+      fetchData();
+    } catch (err) {
+      console.error('Error adding beh:', err);
+      toast.error(err.message || 'Xəta baş verdi');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete expense or beh
+  const handleDeleteExpense = async (exp) => {
+    if (!isAdmin) {
+      toast.error(i18n.language === 'az' ? 'Yalnız admin bu qeydi silə bilər' : 'Только администратор может удалять записи');
+      return;
+    }
+
+    if (!window.confirm(i18n.language === 'az' ? 'Bu əməliyyatı silmək istədiyinizə əminsiniz?' : 'Вы уверены, что хотите удалить эту запись?')) {
       return;
     }
 
@@ -405,7 +542,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
 
       if (error) throw error;
 
-      toast.success(i18n.language === 'az' ? 'Xərc silindi' : 'Расход удалён');
+      toast.success(i18n.language === 'az' ? 'Əməliyyat silindi' : 'Запись удалена');
       setExpenses(prev => prev.filter(item => item.id !== exp.id));
     } catch (err) {
       console.error('Error deleting expense:', err);
@@ -415,15 +552,19 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
 
   // Manual print voucher
   const handlePrintVoucher = (exp) => {
-    const details = parseExpenseDetails(exp.description);
+    const details = parseExpenseDetails(exp.description, exp.category);
+    const isBeh = details.isBeh || exp.category === 'Beh';
+
     printThermalExpenseVoucher({
       receiptNumber: (exp.id || Date.now().toString()).slice(0, 8).toUpperCase(),
       date: exp.created_at || new Date(),
       warehouseName: warehouseName || 'Əsas Mağaza',
       category: exp.category,
+      isBeh,
       amount: parseFloat(exp.amount) || 0,
       description: details.cleanNote,
-      recipient: details.recipient || 'Kassa',
+      customerName: details.customer || details.recipient || 'Müştəri',
+      recipient: details.customer || details.recipient || (isBeh ? 'Müştəri' : 'Kassa'),
       paymentSource: details.source,
       cashierName: currentStaff?.name || profile?.full_name || 'Kassir'
     });
@@ -450,7 +591,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-xl font-black text-gray-900 tracking-tight">
-                    {i18n.language === 'az' ? 'KASSA VƏ MAĞAZA XƏRCLƏRİ' : 'КАССА И РАСХОДЫ МАГАЗИНА'}
+                    {i18n.language === 'az' ? 'KASSA VƏ MAĞAZA ƏMƏLİYYATLARI' : 'КАССА И РАСХОДЫ МАГАЗИНА'}
                   </h3>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
                     {warehouseName || 'Əsas Mağaza'}
@@ -458,15 +599,15 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                 </div>
                 <p className="text-xs text-gray-500 font-medium mt-0.5">
                   {i18n.language === 'az' 
-                    ? 'Kassadan nağd məxaric, gündəlik təsərrüfat, taksi, yemək və şəxsi xərclərin operativ idarə edilməsi'
-                    : 'Оперативный учет расходов кассы: такси, обеды, курьеры, хоз. нужды и прочие выплаты'}
+                    ? 'Kassa məxarici (xərclər), beh və ilkin avansların operativ idarə edilməsi' 
+                    : 'Расходы магазина, приём задатка (Beh) и оперативное управление кассой'}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button 
-                onClick={fetchData}
+                onClick={fetchData} 
                 disabled={loading}
                 className="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-600 flex items-center justify-center transition-colors border border-gray-200 disabled:opacity-50"
                 title={i18n.language === 'az' ? 'Yenilə' : 'Обновить'}
@@ -484,17 +625,17 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
 
           {/* Top Live Financial Ribbon */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-5 border-b border-gray-100 bg-slate-50/60 shrink-0">
-            {/* 1. Today's Cash Inflow */}
+            {/* 1. Today's Total Cash Inflow (Sales + Beh) */}
             <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-0.5">
-                  {i18n.language === 'az' ? '1. Bugünkü Nağd Satışlar' : '1. Продажи за нал (Приход)'}
+                  {i18n.language === 'az' ? '1. Bugünkü Nağd Daxilolma' : '1. Поступления в кассу'}
                 </span>
                 <div className="text-2xl font-black text-emerald-600 tracking-tight">
-                  +₼<AnimatedNumber value={todayCashSalesTotal} />
+                  +₼<AnimatedNumber value={todayCashSalesTotal + todayCashBehTotal} />
                 </div>
                 <span className="text-[10px] font-bold text-emerald-600/80 mt-0.5 block">
-                  {i18n.language === 'az' ? 'Kassaya nağd daxilolma' : 'Поступление в кассу'}
+                  Satış: ₼{todayCashSalesTotal.toFixed(2)} | Beh: ₼{todayCashBehTotal.toFixed(2)}
                 </span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -502,17 +643,17 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
               </div>
             </div>
 
-            {/* 2. Today's Store Cash Expenses */}
+            {/* 2. Today's Store Cash Expenses (Məxaric) */}
             <div className="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-0.5">
-                  {i18n.language === 'az' ? '2. Bugünkü Xərclər (Kassa Məxarici)' : '2. Расходы магазина (Расход)'}
+                  {i18n.language === 'az' ? '2. Bugünkü Kassa Xərcləri' : '2. Расходы из кассы'}
                 </span>
                 <div className="text-2xl font-black text-rose-600 tracking-tight">
                   -₼<AnimatedNumber value={todayCashExpensesTotal} />
                 </div>
                 <span className="text-[10px] font-bold text-rose-600/80 mt-0.5 block">
-                  {todayExpensesList.length} {i18n.language === 'az' ? 'əməliyyat (Taksi, yemək və s.)' : 'операций (Такси, еда и др.)'}
+                  {todayEntries.filter(e => e.category !== 'Beh').length} {i18n.language === 'az' ? 'xərc əməliyyatı' : 'операций'}
                 </span>
               </div>
               <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
@@ -539,183 +680,384 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
             </div>
           </div>
 
-          {/* Modal Body: Split into Form (Left/Top) & Expenses List (Right/Bottom) */}
+          {/* Modal Body: Split into Form (Left) & Operations List (Right) */}
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 custom-scrollbar bg-slate-50/30">
             
-            {/* LEFT COLUMN: Add Expense Form (5 cols) */}
+            {/* LEFT COLUMN: Operations Form (5 cols) */}
             <div className="lg:col-span-5 flex flex-col gap-4">
               <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col gap-4">
-                <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                
+                {/* Mode Selector Tabs: Xərc vs Beh */}
+                <div className="flex items-center gap-1.5 bg-gray-100 p-1.5 rounded-2xl w-full">
+                  <button
+                    type="button"
+                    onClick={() => setActiveOperation('expense')}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                      activeOperation === 'expense'
+                        ? 'bg-white text-orange-600 shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+                    <span>{i18n.language === 'az' ? 'Xərclər (Məxaric)' : 'Расходы (Расход)'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveOperation('deposit')}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                      activeOperation === 'deposit'
+                        ? 'bg-white text-emerald-700 shadow-xs'
+                        : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <BadgeDollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{i18n.language === 'az' ? 'Beh (Zadatak Qəbulu)' : 'Задаток / Аванс (Прием)'}</span>
+                  </button>
+                </div>
+
+                {/* Subheader Badge */}
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
                   <h4 className="text-sm font-black text-gray-900 flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-orange-600" />
-                    <span>{i18n.language === 'az' ? 'Yeni Xərc Qeydiyyatı' : 'Новый расход кассы'}</span>
+                    {activeOperation === 'expense' ? (
+                      <>
+                        <Plus className="w-4 h-4 text-orange-600" />
+                        <span>{i18n.language === 'az' ? 'Yeni Xərc Qeydiyyatı' : 'Новый расход кассы'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Handshake className="w-4 h-4 text-emerald-600" />
+                        <span>{i18n.language === 'az' ? 'Beh / Zadatak Qəbulu' : 'Прием задатка (Beh)'}</span>
+                      </>
+                    )}
                   </h4>
-                  <span className="text-[10px] font-black uppercase text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full border border-orange-100">
-                    {i18n.language === 'az' ? 'Kassa Məxarici' : 'Расходный кассовый ордер'}
+                  <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                    activeOperation === 'expense'
+                      ? 'text-orange-600 bg-orange-50 border-orange-100'
+                      : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                  }`}>
+                    {activeOperation === 'expense' 
+                      ? (i18n.language === 'az' ? 'Kassa Məxarici' : 'Расходный ордер')
+                      : (i18n.language === 'az' ? 'Kassa Mədaxili' : 'Приходный задаток')}
                   </span>
                 </div>
 
-                <form onSubmit={handleAddExpense} className="space-y-4">
-                  {/* Amount Input */}
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
-                      {i18n.language === 'az' ? 'Xərc Məbləği' : 'Сумма расхода'} (₼) *
-                    </label>
-                    <div className="relative">
+                {/* TAB 1: EXPENSE FORM */}
+                {activeOperation === 'expense' ? (
+                  <form onSubmit={handleAddExpense} className="space-y-4">
+                    {/* Amount Input */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Xərc Məbləği' : 'Сумма расхода'} (₼) *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          required
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full pl-9 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-lg font-black text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-xs"
+                        />
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-black text-gray-400">₼</span>
+                      </div>
+                    </div>
+
+                    {/* Category Chips (Excluding Beh from expense chips, since Beh has dedicated tab) */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Xərc Təyinatı / Kateqoriya' : 'Категория расхода'} *
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {EXPENSE_CATEGORIES.filter(c => c.id !== 'Beh').map(cat => {
+                          const IconComponent = cat.icon;
+                          const isSelected = category === cat.id;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => setCategory(cat.id)}
+                              className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 border text-left active:scale-[0.98] ${
+                                isSelected
+                                  ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-500/25 ring-2 ring-orange-200'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-orange-50/40 hover:border-orange-200 hover:text-gray-900 shadow-2xs'
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                <IconComponent className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="truncate leading-tight font-black">
+                                {i18n.language === 'az' ? cat.shortAz : cat.shortRu}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Description / Notes */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Xərcin İzahı / Səbəbi' : 'Описание / Причина расхода'}
+                      </label>
                       <input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        required
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        placeholder="0.00"
-                        className="w-full pl-9 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-lg font-black text-gray-900 placeholder:text-gray-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-xs"
+                        type="text"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder={i18n.language === 'az' ? 'Məs: Çatdırılma üçün taksi, ustaların naharı...' : 'Напр: Такси для доставки, обед мастерам...'}
+                        className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-2xs"
                       />
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-black text-gray-400">₼</span>
                     </div>
-                  </div>
 
-                  {/* Category Chips */}
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
-                      {i18n.language === 'az' ? 'Xərc Təyinatı / Kateqoriya' : 'Категория расхода'} *
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {EXPENSE_CATEGORIES.map(cat => {
-                        const IconComponent = cat.icon;
-                        const isSelected = category === cat.id;
-                        return (
-                          <button
-                            key={cat.id}
-                            type="button"
-                            onClick={() => setCategory(cat.id)}
-                            className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 border text-left active:scale-[0.98] ${
-                              isSelected
-                                ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-500/25 ring-2 ring-orange-200'
-                                : 'bg-white text-gray-700 border-gray-200 hover:bg-orange-50/40 hover:border-orange-200 hover:text-gray-900 shadow-2xs'
-                            }`}
-                          >
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              <IconComponent className="w-3.5 h-3.5" />
-                            </div>
-                            <span className="truncate leading-tight font-black">
-                              {i18n.language === 'az' ? cat.shortAz : cat.shortRu}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    {/* Recipient / Spender */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Xərcləyən / Pulu alan şəxs' : 'Кто потратил / получил деньги'}
+                      </label>
+                      <Dropdown
+                        value={recipient}
+                        onChange={(val) => setRecipient(val)}
+                        buttonClassName="w-full rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:border-orange-500 shadow-2xs"
+                        options={[
+                          { value: '', label: i18n.language === 'az' ? 'İşçi və ya Ustanı seçin...' : 'Выберите сотрудника или мастера...' },
+                          ...staffAndMasters.map(sm => ({
+                            value: sm.name,
+                            label: sm.displayName
+                          }))
+                        ]}
+                        searchable={true}
+                      />
+                      <input
+                        type="text"
+                        value={recipient}
+                        onChange={(e) => setRecipient(e.target.value)}
+                        placeholder={i18n.language === 'az' ? 'Və ya adı bura yazın (məs: Kuryer Rauf)' : 'Или введите имя вручную (напр: Курьер Рауф)'}
+                        className="w-full mt-1.5 px-3 py-1.5 bg-gray-50/70 border border-gray-200/70 rounded-lg text-[11px] font-semibold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-orange-400"
+                      />
                     </div>
-                  </div>
 
-                  {/* Description / Notes */}
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
-                      {i18n.language === 'az' ? 'Xərcin İzahı / Səbəbi' : 'Описание / Причина расхода'}
-                    </label>
-                    <input
-                      type="text"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder={i18n.language === 'az' ? 'Məs: Çatdırılma üçün taksi, ustaların naharı...' : 'Напр: Такси для доставки, обед мастерам...'}
-                      className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-2xs"
-                    />
-                  </div>
-
-                  {/* Recipient / Spender */}
-                  <div>
-                    <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
-                      {i18n.language === 'az' ? 'Xərcləyən / Pulu alan şəxs' : 'Кто потратил / получил деньги'}
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="flex-1">
+                    {/* Source and Date row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Source */}
+                      <div>
+                        <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                          {i18n.language === 'az' ? 'Ödəniş Mənbəyi' : 'Источник выплаты'}
+                        </label>
                         <Dropdown
-                          value={recipient}
-                          onChange={(val) => setRecipient(val)}
-                          buttonClassName="w-full rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:border-orange-500 shadow-2xs"
+                          value={paymentSource}
+                          onChange={(val) => setPaymentSource(val)}
+                          buttonClassName="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-orange-500 focus:outline-none shadow-2xs flex items-center justify-between"
                           options={[
-                            { value: '', label: i18n.language === 'az' ? 'İşçi və ya Ustanı seçin...' : 'Выберите сотрудника или мастера...' },
-                            ...staffAndMasters.map(sm => ({
-                              value: sm.name,
-                              label: sm.displayName
-                            }))
+                            { 
+                              value: 'Nağd Kassa', 
+                              label: i18n.language === 'az' ? 'Nağd Kassa' : 'Наличные из кассы'
+                            },
+                            { 
+                              value: 'Bank / Kart hesabı', 
+                              label: i18n.language === 'az' ? 'Bank / Kart hesabı' : 'С карты / Расч. счета'
+                            }
                           ]}
-                          searchable={true}
+                        />
+                      </div>
+
+                      {/* Date */}
+                      <div>
+                        <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                          {i18n.language === 'az' ? 'Tarix' : 'Дата'}
+                        </label>
+                        <DatePicker
+                          value={expenseDate}
+                          onChange={(val) => setExpenseDate(val)}
+                          customTrigger={({ toggle, displayDate }) => (
+                            <button
+                              type="button"
+                              onClick={toggle}
+                              className="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-orange-500 focus:outline-none shadow-2xs flex items-center justify-between transition-all"
+                            >
+                              <span className="truncate">{displayDate}</span>
+                              <Calendar className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
+                            </button>
+                          )}
                         />
                       </div>
                     </div>
-                    {/* Free text fallback if not in dropdown */}
-                    <input
-                      type="text"
-                      value={recipient}
-                      onChange={(e) => setRecipient(e.target.value)}
-                      placeholder={i18n.language === 'az' ? 'Və ya adı bura yazın (məs: Kuryer Rauf)' : 'Или введите имя вручную (напр: Курьер Рауф)'}
-                      className="w-full mt-1.5 px-3 py-1.5 bg-gray-50/70 border border-gray-200/70 rounded-lg text-[11px] font-semibold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-orange-400"
-                    />
-                  </div>
 
-                  {/* Source and Date row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Source */}
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !amount}
+                      className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-black text-sm transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>{i18n.language === 'az' ? 'Xərci Qeyd Et (Kassadan Çıxar)' : 'Списать расход из кассы'}</span>
+                    </button>
+                  </form>
+                ) : (
+                  /* TAB 2: BEH / ZADATAK INFLOW FORM */
+                  <form onSubmit={handleAddBeh} className="space-y-4">
+                    {/* Amount Input */}
                     <div>
-                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
-                        {i18n.language === 'az' ? 'Ödəniş Mənbəyi' : 'Источник выплаты'}
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-emerald-800 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Beh / Zadatak Məbləği' : 'Сумма задатка (Beh)'} (₼) *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          required
+                          value={behAmount}
+                          onChange={(e) => setBehAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full pl-9 pr-4 py-3 bg-white border border-emerald-300 rounded-xl text-lg font-black text-emerald-950 placeholder:text-gray-300 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 shadow-xs"
+                        />
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base font-black text-emerald-600">₼</span>
+                      </div>
+                    </div>
+
+                    {/* Customer Selection */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-600 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Müştəri (Beh verən şəxs)' : 'Клиент (Кто вносит задаток)'} *
                       </label>
                       <Dropdown
-                        value={paymentSource}
-                        onChange={(val) => setPaymentSource(val)}
-                        buttonClassName="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-orange-500 focus:outline-none shadow-2xs flex items-center justify-between"
-                        options={[
-                          { 
-                            value: 'Nağd Kassa', 
-                            label: i18n.language === 'az' ? 'Nağd Kassa' : 'Наличные из кассы'
-                          },
-                          { 
-                            value: 'Bank / Kart hesabı', 
-                            label: i18n.language === 'az' ? 'Bank / Kart hesabı' : 'С карты / Расч. счета'
+                        value={behCustomerId}
+                        onChange={(val) => {
+                          setBehCustomerId(val);
+                          const matched = customers.find(c => c.id === val);
+                          if (matched) {
+                            setBehCustomerName(matched.name);
+                            if (matched.phone) setBehCustomerPhone(matched.phone);
                           }
+                        }}
+                        buttonClassName="w-full rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:border-emerald-500 shadow-2xs"
+                        options={[
+                          { value: '', label: i18n.language === 'az' ? 'Müştərini siyahıdan seçin...' : 'Выберите клиента из списка...' },
+                          ...customers.map(c => ({
+                            value: c.id,
+                            label: `${c.name} ${c.phone ? `(${c.phone})` : ''}`
+                          }))
                         ]}
+                        searchable={true}
                       />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5">
+                        <input
+                          type="text"
+                          value={behCustomerName}
+                          onChange={(e) => setBehCustomerName(e.target.value)}
+                          placeholder={i18n.language === 'az' ? 'Və ya Müştəri Adı (məs: Əli Rzayev)' : 'Имя клиента (напр: Али Рзаев)'}
+                          className="w-full px-3 py-1.5 bg-gray-50/70 border border-gray-200/70 rounded-lg text-[11px] font-semibold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                        />
+                        <input
+                          type="text"
+                          value={behCustomerPhone}
+                          onChange={(e) => setBehCustomerPhone(e.target.value)}
+                          placeholder={i18n.language === 'az' ? 'Əlaqə nömrəsi (050...)' : 'Номер телефона'}
+                          className="w-full px-3 py-1.5 bg-gray-50/70 border border-gray-200/70 rounded-lg text-[11px] font-semibold text-gray-700 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
                     </div>
 
-                    {/* Date */}
+                    {/* Purpose / Reserved Product note */}
                     <div>
-                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
-                        {i18n.language === 'az' ? 'Tarix' : 'Дата'}
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-600 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Hansı məhsul və ya sifariş üçün' : 'За какой товар / заказ оставлен задаток'} *
                       </label>
-                      <DatePicker
-                        value={expenseDate}
-                        onChange={(val) => setExpenseDate(val)}
-                        customTrigger={({ toggle, displayDate }) => (
-                          <button
-                            type="button"
-                            onClick={toggle}
-                            className="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-orange-500 focus:outline-none shadow-2xs flex items-center justify-between transition-all"
-                          >
-                            <span className="truncate">{displayDate}</span>
-                            <Calendar className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
-                          </button>
-                        )}
+                      <input
+                        type="text"
+                        required
+                        value={behPurpose}
+                        onChange={(e) => setBehPurpose(e.target.value)}
+                        placeholder={i18n.language === 'az' ? 'Məs: Yamaha F310 gitara üçün beh, sifariş avansı...' : 'Напр: Задаток за гитару Yamaha F310...'}
+                        className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-2xs"
                       />
                     </div>
-                  </div>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !amount}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-black text-sm transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{i18n.language === 'az' ? 'Xərci Qeyd Et (Kassadan Çıxar)' : 'Списать расход из кассы'}</span>
-                  </button>
-                </form>
+                    {/* Cashier / Recipient of Beh */}
+                    <div>
+                      <label className="block text-[11px] font-black uppercase tracking-wider text-gray-600 mb-1.5 px-0.5">
+                        {i18n.language === 'az' ? 'Pulu qəbul edən (Kassir / Məsul şəxs)' : 'Кто принял деньги (Кассир)'}
+                      </label>
+                      <Dropdown
+                        value={behCashier}
+                        onChange={(val) => setBehCashier(val)}
+                        buttonClassName="w-full rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:border-emerald-500 shadow-2xs"
+                        options={[
+                          { value: currentStaff?.name || profile?.full_name || 'Kassir', label: `${currentStaff?.name || profile?.full_name || 'Kassir'} (Cari istifadəçi)` },
+                          ...staffAndMasters.map(sm => ({
+                            value: sm.name,
+                            label: sm.displayName
+                          }))
+                        ]}
+                        searchable={true}
+                      />
+                    </div>
+
+                    {/* Source and Date row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Source */}
+                      <div>
+                        <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                          {i18n.language === 'az' ? 'Ödəniş forması' : 'Форма оплаты'}
+                        </label>
+                        <Dropdown
+                          value={behSource}
+                          onChange={(val) => setBehSource(val)}
+                          buttonClassName="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-emerald-500 focus:outline-none shadow-2xs flex items-center justify-between"
+                          options={[
+                            { 
+                              value: 'Nağd Kassa', 
+                              label: i18n.language === 'az' ? 'Nağd Kassa (+₼)' : 'Наличные в кассу (+₼)'
+                            },
+                            { 
+                              value: 'Bank / Kart hesabı', 
+                              label: i18n.language === 'az' ? 'Bank / Kart hesabı' : 'С карты / Расч. счета'
+                            }
+                          ]}
+                        />
+                      </div>
+
+                      {/* Date */}
+                      <div>
+                        <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
+                          {i18n.language === 'az' ? 'Tarix' : 'Дата'}
+                        </label>
+                        <DatePicker
+                          value={behDate}
+                          onChange={(val) => setBehDate(val)}
+                          customTrigger={({ toggle, displayDate }) => (
+                            <button
+                              type="button"
+                              onClick={toggle}
+                              className="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-emerald-500 focus:outline-none shadow-2xs flex items-center justify-between transition-all"
+                            >
+                              <span className="truncate">{displayDate}</span>
+                              <Calendar className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
+                            </button>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Submit Beh Button */}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !behAmount}
+                      className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
+                    >
+                      <BadgeDollarSign className="w-4 h-4" />
+                      <span>{i18n.language === 'az' ? 'Beh Qəbul Et (Kassaya Daxil Et)' : 'Принять задаток в кассу'}</span>
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Expenses History & Audit List (7 cols) */}
+            {/* RIGHT COLUMN: Expenses & Beh History & Audit List (7 cols) */}
             <div className="lg:col-span-7 flex flex-col gap-3">
               <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col flex-1 min-h-[450px]">
                 
@@ -724,7 +1066,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                   <div>
                     <h4 className="text-sm font-black text-gray-900 flex items-center gap-2">
                       <Receipt className="w-4 h-4 text-gray-500" />
-                      <span>{i18n.language === 'az' ? 'Xərclər Tarixçəsi və Reyestri' : 'Журнал расходов кассы'}</span>
+                      <span>{i18n.language === 'az' ? 'Əməliyyatlar Reyestri (Xərclər və Beh)' : 'Журнал кассы (Расходы и задатки)'}</span>
                     </h4>
                     <p className="text-[11px] text-gray-400 font-medium">
                       {filteredExpenses.length} {i18n.language === 'az' ? 'qeydə alınmış əməliyyat' : 'записей'}
@@ -766,7 +1108,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder={i18n.language === 'az' ? 'İzah, kateqoriya və ya məbləğlə axtarış...' : 'Поиск по описанию, категории...'}
+                      placeholder={i18n.language === 'az' ? 'Müştəri, izah, məbləğlə axtarış...' : 'Поиск по клиенту, описанию, сумме...'}
                       className="w-full pl-8 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-orange-500"
                     />
                   </div>
@@ -779,7 +1121,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                       options={[
                         { 
                           value: 'all', 
-                          label: i18n.language === 'az' ? 'Bütün Kateqoriyalar' : 'Все категории' 
+                          label: i18n.language === 'az' ? 'Bütün Əməliyyatlar' : 'Все операции' 
                         },
                         ...EXPENSE_CATEGORIES.map(c => ({
                           value: c.id,
@@ -790,12 +1132,12 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                   </div>
                 </div>
 
-                {/* Expenses List */}
+                {/* Operations List */}
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                   {loading ? (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
                       <RefreshCw className="w-6 h-6 animate-spin text-orange-600" />
-                      <span className="text-xs font-bold">{i18n.language === 'az' ? 'Xərclər yüklənir...' : 'Загрузка...'}</span>
+                      <span className="text-xs font-bold">{i18n.language === 'az' ? 'Əməliyyatlar yüklənir...' : 'Загрузка...'}</span>
                     </div>
                   ) : filteredExpenses.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 text-center text-gray-400 gap-2">
@@ -803,32 +1145,38 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                         <Wallet className="w-6 h-6" />
                       </div>
                       <span className="text-xs font-bold text-gray-600">
-                        {i18n.language === 'az' ? 'Qeydə alınmış xərc tapılmadı' : 'Расходы не найдены'}
+                        {i18n.language === 'az' ? 'Qeydə alınmış əməliyyat tapılmadı' : 'Записи не найдены'}
                       </span>
                       <p className="text-[11px] text-gray-400 max-w-xs">
-                        {i18n.language === 'az' ? 'Kassadan çıxarılan xərcləri sol tərəfdəki formadan əlavə edə bilərsiniz' : 'Добавляйте расходы через форму слева'}
+                        {i18n.language === 'az' ? 'Xərcləri və ya Beh qəbullarını sol tərəfdəki formadan daxil edə bilərsiniz' : 'Добавляйте расходы или задатки через форму слева'}
                       </p>
                     </div>
                   ) : (
                     filteredExpenses.map((exp) => {
-                      const details = parseExpenseDetails(exp.description);
+                      const details = parseExpenseDetails(exp.description, exp.category);
+                      const isBeh = details.isBeh || exp.category === 'Beh';
+
                       const catConfig = EXPENSE_CATEGORIES.find(c => c.id === exp.category) || {
-                        icon: FileText,
+                        icon: isBeh ? BadgeDollarSign : FileText,
                         labelAz: exp.category || 'Digər',
                         labelRu: exp.category || 'Прочее',
                         shortAz: exp.category || 'Digər',
                         shortRu: exp.category || 'Прочее',
-                        color: 'text-slate-600 bg-slate-50 border-slate-200'
+                        color: isBeh ? 'text-teal-700 bg-teal-50 border-teal-200' : 'text-slate-600 bg-slate-50 border-slate-200'
                       };
-                      const IconComponent = catConfig.icon || FileText;
+                      const IconComponent = catConfig.icon || (isBeh ? BadgeDollarSign : FileText);
 
                       return (
                         <div 
                           key={exp.id}
-                          className="p-3.5 rounded-2xl border border-gray-100 hover:border-orange-200 bg-white hover:bg-orange-50/20 transition-all flex items-center justify-between gap-3 group shadow-2xs"
+                          className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 group shadow-2xs ${
+                            isBeh 
+                              ? 'border-emerald-100/90 bg-emerald-50/20 hover:border-emerald-300' 
+                              : 'border-gray-100 hover:border-orange-200 bg-white hover:bg-orange-50/20'
+                          }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${catConfig.color || 'bg-orange-50 text-orange-600 border-orange-100/80'}`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${catConfig.color || (isBeh ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-orange-50 text-orange-600 border-orange-100/80')}`}>
                               <IconComponent className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
@@ -849,61 +1197,69 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                                   </span>
                                 )}
                               </div>
+                              
+                              {/* Customer and Note info */}
                               <p className="text-xs font-semibold text-gray-600 truncate mt-0.5">
-                                {details.cleanNote}
+                                {isBeh && details.customer ? (
+                                  <span className="text-emerald-950 font-bold">
+                                    {details.customer}: {details.cleanNote}
+                                  </span>
+                                ) : (
+                                  details.cleanNote
+                                )}
                               </p>
-                              {details.recipient && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-700 bg-orange-100/60 px-2 py-0.5 rounded mt-1">
-                                  <User className="w-2.5 h-2.5" />
-                                  {details.recipient}
-                                </span>
-                              )}
+
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                {details.recipient && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+                                    <User className="w-3 h-3 text-gray-400" />
+                                    <span>{isBeh ? 'Qəbul edən: ' : 'Xərcləyən: '}{details.recipient}</span>
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
 
+                          {/* Right: Amount & Actions */}
                           <div className="flex items-center gap-3 shrink-0">
                             <div className="text-right">
-                              <div className="text-base font-black text-rose-600 tracking-tight">
-                                -₼{parseFloat(exp.amount || 0).toFixed(2)}
+                              <div className={`text-base font-black ${isBeh ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {isBeh ? '+₼' : '-₼'}{Number(exp.amount || 0).toFixed(2)}
                               </div>
+                              <span className="text-[9px] font-bold text-gray-400 block uppercase">
+                                {isBeh ? 'Beh Mədaxili' : 'Xərc Məxarici'}
+                              </span>
                             </div>
 
-                            {/* Print Voucher Button */}
-                            <button
-                              type="button"
-                              onClick={() => handlePrintVoucher(exp)}
-                              className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 border border-gray-200 transition-colors"
-                              title={i18n.language === 'az' ? 'Məxaric qəbzini çap et' : 'Распечатать расходный чек'}
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                            </button>
-
-                            {/* Delete Button (Admin only) */}
-                            {isAdmin && (
+                            <div className="flex items-center gap-1">
+                              {/* Print Voucher */}
                               <button
                                 type="button"
-                                onClick={() => handleDeleteExpense(exp)}
-                                className="p-2 rounded-xl bg-gray-50 hover:bg-rose-50 text-gray-400 hover:text-rose-600 border border-gray-200 transition-colors"
-                                title={i18n.language === 'az' ? 'Sil' : 'Удалить'}
+                                onClick={() => handlePrintVoucher(exp)}
+                                className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-orange-50 text-gray-600 hover:text-orange-600 flex items-center justify-center transition-colors border border-gray-200/80"
+                                title={isBeh ? 'Beh Qəbzini Çap Et (57mm/80mm)' : 'Xərc Orderini Çap Et (57mm/80mm)'}
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Printer className="w-4 h-4" />
                               </button>
-                            )}
+
+                              {/* Admin Delete */}
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteExpense(exp)}
+                                  className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-rose-50 text-gray-400 hover:text-rose-600 flex items-center justify-center transition-colors border border-gray-200/80"
+                                  title="Sil"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
                     })
                   )}
                 </div>
-
-                {/* Footer Total bar */}
-                <div className="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-gray-600">
-                  <span>{i18n.language === 'az' ? 'Göstərilən xərclərin cəmi:' : 'Итого по списку:'}</span>
-                  <span className="text-rose-600 font-black text-sm">
-                    -₼{filteredExpenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0).toFixed(2)}
-                  </span>
-                </div>
-
               </div>
             </div>
 

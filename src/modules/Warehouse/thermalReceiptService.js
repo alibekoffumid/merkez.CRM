@@ -1011,11 +1011,14 @@ export function printThermalExpenseVoucher(voucherData) {
     amount = 0,
     description = '',
     recipient = 'Kassa',
+    customerName = '',
+    isBeh = false,
     paymentSource = 'Nağd Kassa',
     cashierName = 'Kassir',
     paperWidth = '57mm'
   } = voucherData || {};
 
+  const isDeposit = isBeh || category === 'Beh';
   const is80mm = paperWidth === '80mm';
   const widthMm = is80mm ? '72mm' : '48mm';
   const pageSize = is80mm ? '80mm auto' : '58mm auto';
@@ -1034,13 +1037,16 @@ export function printThermalExpenseVoucher(voucherData) {
   const timeStr = `${hours}:${minutes}:${seconds}`;
 
   const cleanVoucherNumber = String(receiptNumber || '').replace(/^[№#]\s*/, '') || Date.now().toString().slice(-4);
+  const voucherTitle = isDeposit ? 'BEH / ZADATAK QƏBZİ' : 'KASSA MƏXARİC QƏBZİ';
+  const amountTitle = isDeposit ? 'QƏBUL EDİLƏN BEH MƏBLƏĞİ' : 'XƏRCLƏNƏN MƏBLƏĞ';
+  const amountPrefix = isDeposit ? '+₼' : '-₼';
 
   const receiptHtml = `
     <!DOCTYPE html>
     <html lang="az">
     <head>
       <meta charset="utf-8">
-      <title>Kassa Məxaric Qəbzi №${cleanVoucherNumber}</title>
+      <title>${voucherTitle} №${cleanVoucherNumber}</title>
       <style>
         @page {
           size: ${pageSize};
@@ -1130,13 +1136,13 @@ export function printThermalExpenseVoucher(voucherData) {
       <div class="text-center">
         <div class="store-main-title">${escapeHtml(storeName)}</div>
         <div style="font-size: 8.5px; color: #444; margin-top: 1px;">${escapeHtml(warehouseName)}</div>
-        <span class="badge">KASSA MƏXARİC QƏBZİ</span>
+        <span class="badge">${voucherTitle}</span>
       </div>
 
       <div class="dashed-sep"></div>
 
       <div class="meta-line">
-        <span>Order №:</span>
+        <span>Qəbz / Order №:</span>
         <span class="bold">#${escapeHtml(cleanVoucherNumber)}</span>
       </div>
       <div class="meta-line">
@@ -1144,32 +1150,40 @@ export function printThermalExpenseVoucher(voucherData) {
         <span>${escapeHtml(dateStr)} ${escapeHtml(timeStr)}</span>
       </div>
       <div class="meta-line">
-        <span>Kassir / Təhvil verən:</span>
+        <span>Kassir / Məsul şəxs:</span>
         <span class="bold">${escapeHtml(cashierName)}</span>
       </div>
       <div class="meta-line">
-        <span>Məxaric mənbəyi:</span>
+        <span>${isDeposit ? 'Ödəniş forması:' : 'Məxaric mənbəyi:'}</span>
         <span class="bold">${escapeHtml(paymentSource)}</span>
       </div>
 
       <div class="solid-sep"></div>
 
       <div class="amount-box">
-        <div style="font-size: 9px; text-transform: uppercase; font-weight: 700; color: #444;">XƏRCLƏNƏN MƏBLƏĞ</div>
-        <div class="amount-val">-₼${Number(amount || 0).toFixed(2)}</div>
+        <div style="font-size: 9px; text-transform: uppercase; font-weight: 700; color: #444;">${amountTitle}</div>
+        <div class="amount-val">${amountPrefix}₼${Number(amount || 0).toFixed(2)}</div>
       </div>
 
-      <div class="meta-line">
-        <span>Təyinat / Kateqoriya:</span>
-        <span class="bold">${escapeHtml(category)}</span>
-      </div>
-      <div class="meta-line">
-        <span>Xərcləyən / Şəxs:</span>
-        <span class="bold">${escapeHtml(recipient)}</span>
-      </div>
+      ${isDeposit ? `
+        <div class="meta-line">
+          <span>Müştəri:</span>
+          <span class="bold">${escapeHtml(customerName || recipient)}</span>
+        </div>
+      ` : `
+        <div class="meta-line">
+          <span>Təyinat / Kateqoriya:</span>
+          <span class="bold">${escapeHtml(category)}</span>
+        </div>
+        <div class="meta-line">
+          <span>Xərcləyən / Şəxs:</span>
+          <span class="bold">${escapeHtml(recipient)}</span>
+        </div>
+      `}
+
       ${description ? `
         <div style="font-size: 8.5px; color: #333; margin-top: 3px; line-height: 1.25;">
-          <strong>Qeyd / Təfsilat:</strong> ${escapeHtml(description)}
+          <strong>${isDeposit ? 'Sifariş / Məhsul / Qeyd:' : 'Qeyd / Təfsilat:'}</strong> ${escapeHtml(description)}
         </div>
       ` : ''}
 
@@ -1177,15 +1191,15 @@ export function printThermalExpenseVoucher(voucherData) {
 
       <div class="sig-block">
         <div style="margin-bottom: 6px;">
-          Təhvil verdi (Kassir): ______________________
+          ${isDeposit ? 'Qəbul etdi (Kassir):' : 'Təhvil verdi (Kassir):'} ______________________
         </div>
         <div>
-          Təhvil aldı (${escapeHtml(recipient)}): ______________________
+          ${isDeposit ? `Təhvil verdi (${escapeHtml(customerName || recipient)}):` : `Təhvil aldı (${escapeHtml(recipient)}):`} ______________________
         </div>
       </div>
 
       <div style="text-align: center; font-size: 7.5px; color: #666; margin-top: 10px;">
-        *** DAXİLİ TƏSƏRRÜFAT SƏNƏDİ ***
+        *** ${isDeposit ? 'BEH / ZADATAK İLKİN ÖDƏNİŞ SƏNƏDİ' : 'DAXİLİ TƏSƏRRÜFAT SƏNƏDİ'} ***
       </div>
 
       <div style="height: 10mm;">&nbsp;</div>

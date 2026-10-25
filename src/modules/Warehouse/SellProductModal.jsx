@@ -1037,7 +1037,6 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     { value: 'card', label: 'Kartdan karta(Hesab)' },
     { value: 'credit', label: i18n.language === 'az' ? 'Kredit (Hissə-hissə)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
     { value: 'debt', label: i18n.language === 'az' ? 'Nisyə (Borc / Realizasiya)' : i18n.language === 'ru' ? 'В долг / Под реализацию' : 'Debt' },
-    { value: 'deposit', label: i18n.language === 'az' ? 'Beh (Zadatak / Avans)' : i18n.language === 'ru' ? 'Задаток / аванс' : 'Deposit' },
     { value: 'birmarket', label: 'Birmarket' }
   ];
 
@@ -1120,81 +1119,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                     />
                   </div>
 
-                  {paymentMethod === 'deposit' && (
-                    <div className="bg-amber-50/60 border border-amber-200/70 p-4 rounded-2xl space-y-3.5 animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center justify-between pb-1 border-b border-amber-200/50">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-                          <DollarSign className="w-3.5 h-3.5 text-amber-600" />
-                          {i18n.language === 'az' ? 'Avans / Beh Parametrləri' : 'Параметры аванса / задатка'}
-                        </span>
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
-                          {i18n.language === 'az' ? 'Məcburi sahələr' : 'Обязательные поля'}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {/* Avans Məbləği */}
-                        <div>
-                          <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1.5 px-1">
-                            {i18n.language === 'az' ? 'Avans məbləği (₼)' : 'Сумма аванса (₼)'} *
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="number"
-                              step="any"
-                              min="0"
-                              max={finalTotal}
-                              value={advanceAmount}
-                              onChange={(e) => setAdvanceAmount(e.target.value)}
-                              placeholder="0.00"
-                              className="w-full pl-7 pr-3 py-2.5 bg-white border border-amber-200 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 shadow-sm"
-                            />
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">₼</span>
-                          </div>
-                        </div>
-
-                        {/* Avans kimə verilir (İşçi / Usta) */}
-                        <div>
-                          <label className="block text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1.5 px-1">
-                            {i18n.language === 'az' ? 'Avans kimə verilir (İşçi / Usta)' : 'Кому выдается аванс (Сотрудник / Мастер)'} *
-                          </label>
-                          <Dropdown
-                            value={advanceRecipient}
-                            onChange={(val) => setAdvanceRecipient(val)}
-                            buttonClassName="w-full rounded-xl px-3 py-2.5 text-xs font-bold text-gray-700 bg-white border border-amber-200 hover:border-amber-500 shadow-sm"
-                            options={[
-                              { value: '', label: i18n.language === 'az' ? 'İşçi və ya Ustanı seçin...' : 'Выберите сотрудника или мастера...' },
-                              ...staffAndMasters.map(sm => ({
-                                value: sm.name,
-                                label: sm.displayName
-                              }))
-                            ]}
-                            searchable={true}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Financial Balance Summary */}
-                      <div className="bg-white/90 border border-amber-100 p-3 rounded-xl space-y-1.5 text-xs font-bold text-gray-600">
-                        <div className="flex justify-between items-center">
-                          <span>{i18n.language === 'az' ? 'Ümumi satış məbləği:' : 'Общая сумма продажи:'}</span>
-                          <span className="text-gray-900 font-black">₼<AnimatedNumber value={finalTotal} /></span>
-                        </div>
-                        <div className="flex justify-between items-center text-amber-700">
-                          <span>{i18n.language === 'az' ? 'Ödənilən avans:' : 'Выплаченный аванс:'}</span>
-                          <span className="font-black">₼<AnimatedNumber value={parseFloat(advanceAmount) || 0} /></span>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-amber-100/70 pt-1.5 text-gray-900">
-                          <span>{i18n.language === 'az' ? 'Qalıq məbləğ:' : 'Остаток к оплате:'}</span>
-                          <span className="font-black text-sm text-blue-600">
-                            ₼<AnimatedNumber value={Math.max(0, finalTotal - (parseFloat(advanceAmount) || 0))} />
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt' || paymentMethod === 'deposit') && (
+                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt') && (
                     <div>
                       <div className="flex items-center justify-between mb-2 px-1">
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
