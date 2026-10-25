@@ -185,6 +185,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
         salesDispatches.forEach(disp => {
           const n = String(disp.notes || '').toLowerCase();
           if (n.includes('[status: refunded]') || n.includes('[status: cancelled]') || n.includes('qaytarıldı')) return;
+          if (n.includes('[status: exchanged]') && !n.includes('[yeni məhsul:')) return;
           
           const isCash = n.includes('ödəniş: nağd') || n.includes('ödəniş: nəqd') || (!n.includes('ödəniş: kart') && !n.includes('ödəniş: kredit') && !n.includes('ödəniş: nisyə') && !n.includes('birmarket'));
           if (isCash) {

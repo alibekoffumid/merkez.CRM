@@ -322,6 +322,8 @@ const WarehouseEfficiencyCharts = ({
         const st = String(d.status || '').toLowerCase().trim();
         if (['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(st)) return false;
         if (/\[STATUS:\s*(?:REFUNDED|CANCELLED|LƏĞV|QAYTARILIB)\]/i.test(d.notes || '')) return false;
+        // Exclude legacy superseded exchange rows (where an old product row was marked EXCHANGED and replacement was a separate dispatch)
+        if (/\[STATUS:\s*EXCHANGED\]/i.test(d.notes || '') && !/\[Yeni Məhsul:/i.test(d.notes || '')) return false;
         const isSaleReason = !d.reason || d.reason === 'sale';
         const qty = Math.abs(parseFloat(d.quantity) || 0);
         return isSaleReason && qty > 0;

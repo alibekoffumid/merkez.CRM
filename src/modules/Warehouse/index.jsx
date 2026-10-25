@@ -33,7 +33,7 @@ import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
 import ProductReturnModal from './ProductReturnModal';
 import CashboxExpensesModal from './CashboxExpensesModal';
-import { printThermalReceipt57mm } from './thermalReceiptService';
+import { printThermalReceipt57mm, printThermalReturnReceipt57mm } from './thermalReceiptService';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import { parseProductAttributes } from './productAttributesHelper';
 import WarehouseStaffManager from './WarehouseStaffManager';
@@ -549,6 +549,44 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     const qty = Math.abs(parseFloat(dispatch.quantity) || 1);
     const parsed = parseSaleNote(dispatch.notes, prodObj, qty);
     const whObj = (warehouses || []).find(w => w.id === dispatch.warehouse_id);
+
+    if (parsed.status === 'exchanged' || parsed.status === 'refunded') {
+      printThermalReturnReceipt57mm({
+        receiptNumber: `№${(dispatch.id || '').slice(0, 8).toUpperCase()}`,
+        originalReceiptNumber: dispatch.id,
+        date: dispatch.issued_at || dispatch.created_at || new Date(),
+        storeName: 'Rast musiqi alətləri mağazası',
+        warehouseName: whObj?.name || 'Əsas Anbar / Mağaza',
+        customerName: parsed.customerName || '',
+        customerPhone: parsed.customerPhone || '',
+        cashierName: parsed.sellerName || 'Kassir',
+        operationType: parsed.status,
+        reason: parsed.returnInfo?.reason || '',
+        returnedItem: {
+          name: parsed.returnInfo?.oldProductName || prodObj?.name || 'Məhsul',
+          barcode: prodObj?.barcode || '',
+          quantity: parsed.returnInfo?.returnQuantity || qty,
+          unit: formatUnit(prodObj?.unit),
+          price: parsed.unitPrice || 0,
+          total: parsed.returnInfo?.refundAmount || parsed.totalAmount || 0
+        },
+        refundAmount: parsed.returnInfo?.refundAmount || parsed.totalAmount || 0,
+        refundMethod: parsed.returnInfo?.refundMethod || parsed.paymentMethod || 'Nağd',
+        exchangeItem: parsed.status === 'exchanged' ? {
+          name: prodObj?.name || parsed.returnInfo?.newProductName || 'Yeni Məhsul',
+          barcode: prodObj?.barcode || '',
+          quantity: qty,
+          unit: formatUnit(prodObj?.unit),
+          price: parsed.unitPrice || 0,
+          total: parsed.totalAmount || 0
+        } : null,
+        priceDifference: parsed.returnInfo?.priceDifference || 0,
+        diffPaymentMethod: parsed.paymentMethod || 'Nağd',
+        notes: parsed.cleanNote || '',
+        transactionId: dispatch.id
+      });
+      return;
+    }
 
     printThermalReceipt57mm({
       receiptNumber: `№${(dispatch.id || '').slice(0, 8).toUpperCase()}`,
@@ -2477,6 +2515,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   ) : historyTab === 'sales' ? (
                     dispatches.filter(dispatch => {
                       if (dispatch.reason !== 'sale') return false;
+                      if (/\[STATUS:\s*EXCHANGED\]/i.test(dispatch.notes || '') && !/\[Yeni Məhsul:/i.test(dispatch.notes || '')) return false;
                       const targetDateStr = dispatch.issued_at || dispatch.created_at;
                       if (startDate) {
                         const start = new Date(startDate);
@@ -2550,6 +2589,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     ) : (
                       dispatches.filter(dispatch => {
                         if (dispatch.reason !== 'sale') return false;
+                        if (/\[STATUS:\s*EXCHANGED\]/i.test(dispatch.notes || '') && !/\[Yeni Məhsul:/i.test(dispatch.notes || '')) return false;
                         const targetDateStr = dispatch.issued_at || dispatch.created_at;
                         if (startDate) {
                           const start = new Date(startDate);
@@ -2637,7 +2677,70 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   </div>
                                 );
                               })()}
-                              {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
+
+                              {/* Prominent Visual Exchange Card */}
+                              {parsed.status === 'exchanged' && (
+                                <div className="mt-2 p-2 bg-gradient-to-r from-blue-50/90 to-indigo-50/60 border border-blue-200/90 rounded-xl text-xs space-y-1.5 shadow-sm max-w-[320px]">
+                                  <div className="flex items-center gap-1.5 font-black text-blue-900">
+                                    <ArrowLeftRight className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                    <span>{i18n.language === 'az' ? 'Məhsul Dəyişdirilib:' : 'Обмен товара:'}</span>
+                                  </div>
+                                  <div className="bg-white/95 p-1.5 rounded-lg border border-blue-100/80 flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[11px] font-bold text-rose-700 line-through">
+                                      {parsed.returnInfo?.oldProductName || 'Köhnə məhsul'}
+                                    </span>
+                                    <span className="text-gray-400 font-bold">➔</span>
+                                    <span className="text-[11px] font-black text-emerald-700">
+                                      {parsed.returnInfo?.newProductName || prodObj?.name || 'Yeni məhsul'}
+                                    </span>
+                                  </div>
+                                  {parsed.returnInfo?.reason && (
+                                    <div className="text-[10px] text-gray-700 flex items-start gap-1">
+                                      <span className="font-bold text-gray-500 shrink-0">{i18n.language === 'az' ? 'Səbəb:' : 'Причина:'}</span>
+                                      <span className="font-medium text-gray-800">{parsed.returnInfo.reason}</span>
+                                    </div>
+                                  )}
+                                  {parsed.returnInfo?.priceDifference !== null && parsed.returnInfo?.priceDifference !== undefined && (
+                                    <div className="text-[10px] flex items-center justify-between font-bold pt-1 border-t border-blue-100">
+                                      <span className="text-gray-500">{i18n.language === 'az' ? 'Qiymət fərqi:' : 'Разница:'}</span>
+                                      <span className={`font-black ${
+                                        parsed.returnInfo.priceDifference > 0 ? 'text-amber-700' :
+                                        parsed.returnInfo.priceDifference < 0 ? 'text-emerald-700' : 'text-gray-700'
+                                      }`}>
+                                        {parsed.returnInfo.diffText || (parsed.returnInfo.priceDifference > 0 ? `+₼${parsed.returnInfo.priceDifference.toFixed(2)}` : `₼${parsed.returnInfo.priceDifference.toFixed(2)}`)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Prominent Visual Return Card */}
+                              {parsed.status === 'refunded' && (
+                                <div className="mt-2 p-2 bg-gradient-to-r from-amber-50/90 to-orange-50/60 border border-amber-200/90 rounded-xl text-xs space-y-1.5 shadow-sm max-w-[320px]">
+                                  <div className="flex items-center gap-1.5 font-black text-amber-900">
+                                    <RotateCcw className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                    <span>{i18n.language === 'az' ? 'Məhsul Qaytarılıb:' : 'Возврат товара:'}</span>
+                                  </div>
+                                  {parsed.returnInfo?.reason && (
+                                    <div className="text-[10px] text-gray-800 flex items-start gap-1 bg-white/95 p-1.5 rounded-lg border border-amber-100/80">
+                                      <span className="font-bold text-amber-800 shrink-0">{i18n.language === 'az' ? 'Səbəb:' : 'Причина:'}</span>
+                                      <span className="font-medium">{parsed.returnInfo.reason}</span>
+                                    </div>
+                                  )}
+                                  <div className="text-[10px] flex items-center justify-between font-bold pt-1 border-t border-amber-100">
+                                    <span className="text-gray-500">{i18n.language === 'az' ? 'Qaytarılan Məbləğ:' : 'Возвращено:'}</span>
+                                    <span className="font-black text-amber-800">
+                                      ₼{(parsed.returnInfo?.refundAmount ?? parsed.totalAmount).toFixed(2)} ({parsed.returnInfo?.refundMethod || parsed.paymentMethod})
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {parsed.cleanNote && (
+                                <p className="text-[10px] text-gray-500 font-medium max-w-[280px] break-words whitespace-normal mt-1.5 italic">
+                                  {parsed.cleanNote}
+                                </p>
+                              )}
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col gap-1 items-start">
@@ -2681,25 +2784,56 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex flex-col">
-                                <span className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{prodObj?.name || '—'}</span>
-                                <span className="text-[10px] text-gray-400 font-mono">{prodObj?.barcode || '—'}</span>
+                                <span className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                  {prodObj?.name || '—'}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] text-gray-400 font-mono">{prodObj?.barcode || '—'}</span>
+                                  {parsed.status === 'exchanged' && (
+                                    <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-100">
+                                      {i18n.language === 'az' ? 'Əvəzlənən məhsul' : 'Заменяющий товар'}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 text-right">
                               <span className="text-sm font-black text-red-500">-{dispatch.quantity} {formatUnit(prodObj?.unit)}</span>
                             </td>
                             <td className="px-6 py-4 text-right font-bold text-gray-600 text-sm">
-                              ₼{parsed.unitPrice.toFixed(2)}
+                              {parsed.status === 'refunded' ? (
+                                <span className="line-through text-gray-400">₼{parsed.unitPrice.toFixed(2)}</span>
+                              ) : (
+                                <span>₼{parsed.unitPrice.toFixed(2)}</span>
+                              )}
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex flex-col items-end">
-                                <span className="text-sm font-black text-emerald-600">
-                                  ₼{parsed.totalAmount.toFixed(2)}
-                                </span>
-                                {parsed.discount > 0 && (
-                                  <span className="text-[9px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100 mt-0.5">
-                                    -{parsed.discount.toFixed(2)} ₼
-                                  </span>
+                                {parsed.status === 'refunded' ? (
+                                  <>
+                                    <span className="text-sm font-black line-through text-gray-400">
+                                      ₼{parsed.totalAmount.toFixed(2)}
+                                    </span>
+                                    <span className="text-[9px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded mt-0.5">
+                                      {i18n.language === 'az' ? 'Qaytarılıb (₼0.00)' : 'Возврат (0 ₼)'}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="text-sm font-black text-emerald-600">
+                                      ₼{parsed.totalAmount.toFixed(2)}
+                                    </span>
+                                    {parsed.discount > 0 && (
+                                      <span className="text-[9px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100 mt-0.5">
+                                        -{parsed.discount.toFixed(2)} ₼
+                                      </span>
+                                    )}
+                                    {parsed.status === 'exchanged' && (
+                                      <span className="text-[9px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded mt-0.5">
+                                        {i18n.language === 'az' ? 'Yeni Məbləğ' : 'Новая сумма'}
+                                      </span>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             </td>

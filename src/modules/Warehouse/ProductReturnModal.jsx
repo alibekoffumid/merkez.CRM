@@ -364,7 +364,8 @@ const ProductReturnModal = ({
         let updatedNotes = sale.notes || '';
         const isFullReturn = returnQuantity === soldQty;
 
-        const returnMeta = `[STATUS: REFUNDED] [Qaytarıldı: ${returnQuantity} əd, ₼${returnValue.toFixed(2)}] [Səbəb: ${reasonText}] [Üsul: ${refundMethod === 'cash' ? 'Nağd' : refundMethod === 'card' ? 'Kart' : 'Nisyə/Borc'}] [Qaytarılma Tarixi: ${nowIso}] [Kassir: ${cashierIdentifier}]`;
+        const refundMethodLabel = refundMethod === 'cash' ? 'Nağd' : refundMethod === 'card' ? 'Kart' : 'Nisyə/Borc';
+        const returnMeta = `[STATUS: REFUNDED] [Qaytarıldı: ${returnQuantity} əd, ₼${returnValue.toFixed(2)}] [Qaytarılan Məhsul: ${prod?.name || 'Məhsul'} (${prod?.barcode || 'Barkodsuz'})] [Qaytarılan Miqdar: ${returnQuantity}] [Qaytarılan Məbləğ: ₼${returnValue.toFixed(2)}] [Səbəb: ${reasonText}] [Üsul: ${refundMethodLabel}] [Qaytarılma Tarixi: ${nowIso}] [Kassir: ${cashierIdentifier}]`;
 
         if (isFullReturn) {
           updatedNotes = `${updatedNotes} ${returnMeta}`.trim();
@@ -375,7 +376,11 @@ const ProductReturnModal = ({
         } else {
           // Partial return
           const newSaleQty = soldQty - returnQuantity;
-          const partialMeta = `[Qismən Qaytarıldı: ${returnQuantity} əd, ₼${returnValue.toFixed(2)}] [Səbəb: ${reasonText}] [Üsul: ${refundMethod}] [Tarix: ${nowIso}]`;
+          const newTotalAmount = Math.max(0, newSaleQty * netPaidPerUnit);
+          const partialMeta = `[Qismən Qaytarıldı: ${returnQuantity} əd, ₼${returnValue.toFixed(2)}] [Qaytarılan Məhsul: ${prod?.name || 'Məhsul'}] [Səbəb: ${reasonText}] [Üsul: ${refundMethodLabel}] [Tarix: ${nowIso}] [Kassir: ${cashierIdentifier}]`;
+          if (/\[Məbləğ:\s*₼?[0-9.,]+\]/i.test(updatedNotes)) {
+            updatedNotes = updatedNotes.replace(/\[Məbləğ:\s*₼?[0-9.,]+\]/i, `[Məbləğ: ₼${newTotalAmount.toFixed(2)}]`);
+          }
           updatedNotes = `${updatedNotes} ${partialMeta}`.trim();
 
           await supabase
@@ -500,33 +505,44 @@ const ProductReturnModal = ({
             warehouse_id: targetWarehouseId
           }]);
 
-        // 4. Log Outbound Dispatch (stock_dispatches) for the new replacement product
+        // 4. Update the SAME original ticket (sale.id) in stock_dispatches
+        // NO NEW DISPATCH INSERT! Everything stays inside this ONE main ticket!
         const payLabel = priceDifference > 0 
           ? (diffPaymentMethod === 'cash' ? 'Nağd' : diffPaymentMethod === 'card' ? 'Kart' : 'Nisyə')
           : (diffRefundMethod === 'cash' ? 'Nağd' : diffRefundMethod === 'card' ? 'Kart' : 'Borc');
 
-        const newDispatchNote = `[Kanal: ${saleInfo.channel || 'Mağaza'}] [Dəyişdirmə / Обмен] Əvvəlki məhsul: ${prod?.name || 'Məhsul'} (№${sale.id.slice(0, 8).toUpperCase()}) [Səbəb: ${reasonText}] [Qaytarılan dəyər: ₼${returnValue.toFixed(2)}] [Yeni dəyər: ₼${newProductTotal.toFixed(2)}] [Fərq: ₼${priceDifference.toFixed(2)}] (Ödəniş: ${payLabel}) [Qiymət: ₼${newProductPrice.toFixed(2)}] [Məbləğ: ₼${newProductTotal.toFixed(2)}] [Satıcı: ${cashierIdentifier}]` + (saleInfo.customerName ? ` [Müştəri: ${saleInfo.customerName}]` : '') + (staffNote ? ` | Qeyd: ${staffNote}` : '');
+        const diffText = priceDifference > 0
+          ? `+₼${priceDifference.toFixed(2)} (Müştəri əlavə ödədi - ${payLabel})`
+          : priceDifference < 0
+          ? `-₼${Math.abs(priceDifference).toFixed(2)} (Müştəriyə qaytarıldı - ${payLabel})`
+          : `₼0.00 (Fərqsiz)`;
+
+        const singleTicketExchangeNote = `[Kanal: ${saleInfo.channel || 'Mağaza'}] Məhsul Satışı (Ödəniş: ${payLabel}) [Qiymət: ₼${newProductPrice.toFixed(2)}] [Məbləğ: ₼${newProductTotal.toFixed(2)}] [STATUS: EXCHANGED] [Dəyişdirilib: ${prod?.name || 'Məhsul'} ➔ ${selectedNewProduct.name}] [Köhnə Məhsul: ${prod?.name || 'Məhsul'} (${prod?.barcode || 'Barkodsuz'})] [Köhnə Qiymət: ₼${unitPrice.toFixed(2)}] [Köhnə Miqdar: ${returnQuantity}] [Köhnə Məbləğ: ₼${returnValue.toFixed(2)}] [Yeni Məhsul: ${selectedNewProduct.name} (${selectedNewProduct.barcode || 'Barkodsuz'})] [Yeni Qiymət: ₼${newProductPrice.toFixed(2)}] [Yeni Miqdar: ${exchangeQuantity}] [Yeni Məbləğ: ₼${newProductTotal.toFixed(2)}] [Fərq: ₼${priceDifference.toFixed(2)}] [Fərq İzahı: ${diffText}] [Səbəb: ${reasonText}] [Dəyişdirilmə Tarixi: ${nowIso}] [Kassir: ${cashierIdentifier}]` + (saleInfo.customerName ? ` [Müştəri: ${saleInfo.customerName}${saleInfo.customerPhone ? ` (${saleInfo.customerPhone})` : ''}]` : '') + (staffNote ? ` | Qeyd: ${staffNote}` : '');
 
         await supabase
           .from('stock_dispatches')
-          .insert([{
+          .update({
             product_id: selectedNewProduct.id,
             quantity: exchangeQuantity,
-            issued_at: nowIso,
-            reason: 'sale',
-            notes: newDispatchNote,
-            user_id: currentUserId,
-            warehouse_id: targetWarehouseId
-          }]);
-
-        // 5. Update the original sale dispatch record with exchanged status
-        const exchangeMeta = `[STATUS: EXCHANGED] [Dəyişdirildi: ${selectedNewProduct.name} (${exchangeQuantity} əd)] [Fərq: ₼${priceDifference.toFixed(2)}] [Səbəb: ${reasonText}] [Dəyişdirilmə Tarixi: ${nowIso}] [Kassir: ${cashierIdentifier}]`;
-
-        const updatedOrigNotes = `${sale.notes || ''} ${exchangeMeta}`.trim();
-        await supabase
-          .from('stock_dispatches')
-          .update({ notes: updatedOrigNotes })
+            notes: singleTicketExchangeNote
+          })
           .eq('id', sale.id);
+
+        // 5. If linked retail_sales exists, update it to the new product total and notes
+        try {
+          const saleIdMatch = (sale.notes || '').match(/\[SaleID:\s*([a-zA-Z0-9_-]+)\]/i);
+          if (saleIdMatch && saleIdMatch[1]) {
+            await supabase
+              .from('retail_sales')
+              .update({
+                total_amount: newProductTotal,
+                notes: `[STATUS: EXCHANGED] Dəyişdirildi: ${prod?.name || 'Məhsul'} ➔ ${selectedNewProduct.name} (Fərq: ₼${priceDifference.toFixed(2)})`
+              })
+              .eq('id', saleIdMatch[1]);
+          }
+        } catch (rErr) {
+          console.warn('Could not update retail_sales exchange status:', rErr);
+        }
 
         // 6. Handle Debt if priceDifference !== 0 and customer is involved
         if (customerData?.id) {

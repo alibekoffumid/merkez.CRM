@@ -136,6 +136,7 @@ export const isCancelledOrDeleted = (record) => {
   if (['cancelled', 'canceled', 'deleted', 'refunded', 'void', 'silindi', 'ləğv'].includes(status)) return true;
   const notes = String(record.notes || '');
   if (/\[STATUS:\s*(?:REFUNDED|CANCELLED|LƏĞV|QAYTARILIB)\]/i.test(notes)) return true;
+  if (/\[STATUS:\s*EXCHANGED\]/i.test(notes) && !/\[Yeni Məhsul:/i.test(notes)) return true;
   return false;
 };
 

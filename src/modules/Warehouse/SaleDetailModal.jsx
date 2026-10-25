@@ -279,7 +279,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
   info.status = 'completed';
   if (/\[STATUS:\s*REFUNDED\]/i.test(note) || /\[Qaytarıldı:/i.test(note)) {
     info.status = 'refunded';
-  } else if (/\[STATUS:\s*EXCHANGED\]/i.test(note) || /\[Dəyişdirildi:/i.test(note)) {
+  } else if (/\[STATUS:\s*EXCHANGED\]/i.test(note) || /\[Dəyişdiril/i.test(note) || /\[Dəyişdirmə/i.test(note)) {
     info.status = 'exchanged';
   } else if (/\[STATUS:\s*CANCELLED\]/i.test(note)) {
     info.status = 'cancelled';
@@ -287,21 +287,37 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
 
   if (info.status === 'refunded' || info.status === 'exchanged') {
     const reasonMatch = note.match(/\[Səbəb:\s*([^\]]+)\]/i);
-    const returnQtyMatch = note.match(/\[Qaytarılan Miqdar:\s*([0-9.,]+)\]/i) || note.match(/\[Qaytarıldı:\s*([0-9.,]+)\s*əd/i);
-    const returnAmtMatch = note.match(/\[Qaytarılan Məbləğ:\s*₼?([0-9.,]+)\]/i) || note.match(/\[Qaytarıldı:[^\]]*₼([0-9.,]+)/i);
+    const returnQtyMatch = note.match(/\[Qaytarılan Miqdar:\s*([0-9.,]+)\]/i) || note.match(/\[Qaytarıldı:\s*([0-9.,]+)\s*əd/i) || note.match(/\[Köhnə Miqdar:\s*([0-9.,]+)\]/i);
+    const returnAmtMatch = note.match(/\[Qaytarılan Məbləğ:\s*₼?([0-9.,]+)\]/i) || note.match(/\[Qaytarıldı:[^\]]*₼([0-9.,]+)/i) || note.match(/\[Qaytarılan dəyər:\s*₼?([0-9.,]+)\]/i) || note.match(/\[Köhnə Məbləğ:\s*₼?([0-9.,]+)\]/i);
     const methodMatch = note.match(/\[Üsul:\s*([^\]]+)\]/i) || note.match(/\[Qaytarılma Üsulu:\s*([^\]]+)\]/i);
-    const exchangeProdMatch = note.match(/\[Dəyişdirilən Məhsul:\s*([^\]]+)\]/i) || note.match(/\[Dəyişdirildi:\s*([^\]]+)\]/i);
+    
+    // Exchange details:
+    const oldProdMatch = note.match(/\[Köhnə Məhsul:\s*([^\]]+)\]/i) || note.match(/Əvvəlki məhsul:\s*([^\[]+)/i);
+    const newProdMatch = note.match(/\[Yeni Məhsul:\s*([^\]]+)\]/i) || note.match(/\[Dəyişdirildi:\s*([^\]]+)\]/i);
+    const exchangePairMatch = note.match(/\[Dəyişdirilib:\s*([^\]]+)\]/i) || note.match(/\[Dəyişdirmə:\s*([^\]]+)\]/i);
     const diffMatch = note.match(/\[Fərq:\s*₼?([0-9.,+-]+)\]/i);
+    const diffTextMatch = note.match(/\[Fərq İzahı:\s*([^\]]+)\]/i);
     const returnDateMatch = note.match(/\[(?:Qaytarılma|Dəyişdirilmə) Tarixi:\s*([^\]]+)\]/i);
+
+    let oldProdName = oldProdMatch ? oldProdMatch[1].trim().replace(/\[#[A-F0-9]+\]/gi, '').trim() : null;
+    let newProdName = newProdMatch ? newProdMatch[1].trim() : (product?.name || null);
+    if (!oldProdName && exchangePairMatch && exchangePairMatch[1].includes('➔')) {
+      const parts = exchangePairMatch[1].split('➔');
+      oldProdName = parts[0]?.trim();
+      newProdName = parts[1]?.trim();
+    }
 
     info.returnInfo = {
       type: info.status,
       reason: reasonMatch ? reasonMatch[1].trim() : null,
-      returnQuantity: returnQtyMatch ? parseFloat(returnQtyMatch[1].replace(',', '.')) : null,
+      returnQuantity: returnQtyMatch ? parseFloat(returnQtyMatch[1].replace(',', '.')) : qty,
       refundAmount: returnAmtMatch ? parseFloat(returnAmtMatch[1].replace(',', '.')) : null,
-      refundMethod: methodMatch ? methodMatch[1].trim() : null,
-      exchangeProductName: exchangeProdMatch ? exchangeProdMatch[1].trim() : null,
+      refundMethod: methodMatch ? methodMatch[1].trim() : (info.paymentMethod || 'Nağd'),
+      oldProductName: oldProdName,
+      newProductName: newProdName,
+      exchangePair: exchangePairMatch ? exchangePairMatch[1].trim() : null,
       priceDifference: diffMatch ? parseFloat(diffMatch[1].replace(',', '.')) : null,
+      diffText: diffTextMatch ? diffTextMatch[1].trim() : null,
       returnDate: returnDateMatch ? returnDateMatch[1].trim() : null,
     };
   }
@@ -325,7 +341,21 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     .replace(/\[SaleID:[^\]]+\]/gi, '')
     .replace(/\[STATUS:[^\]]+\]/gi, '')
     .replace(/\[Qaytarıldı:[^\]]+\]/gi, '')
+    .replace(/\[Qaytarılan Məhsul:[^\]]+\]/gi, '')
     .replace(/\[Dəyişdirildi:[^\]]+\]/gi, '')
+    .replace(/\[Dəyişdirilib:[^\]]+\]/gi, '')
+    .replace(/\[Dəyişdirmə:[^\]]+\]/gi, '')
+    .replace(/\[Dəyişdirmə \/ Обмен\]/gi, '')
+    .replace(/\[Köhnə Məhsul:[^\]]+\]/gi, '')
+    .replace(/\[Köhnə Qiymət:[^\]]+\]/gi, '')
+    .replace(/\[Köhnə Miqdar:[^\]]+\]/gi, '')
+    .replace(/\[Köhnə Məbləğ:[^\]]+\]/gi, '')
+    .replace(/\[Yeni Məhsul:[^\]]+\]/gi, '')
+    .replace(/\[Yeni Qiymət:[^\]]+\]/gi, '')
+    .replace(/\[Yeni Miqdar:[^\]]+\]/gi, '')
+    .replace(/\[Yeni Məbləğ:[^\]]+\]/gi, '')
+    .replace(/\[Qaytarılan dəyər:[^\]]+\]/gi, '')
+    .replace(/\[Yeni dəyər:[^\]]+\]/gi, '')
     .replace(/\[Səbəb:[^\]]+\]/gi, '')
     .replace(/\[Qaytarılan Miqdar:[^\]]+\]/gi, '')
     .replace(/\[Qaytarılan Məbləğ:[^\]]+\]/gi, '')
@@ -333,7 +363,9 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     .replace(/\[Qaytarılma Üsulu:[^\]]+\]/gi, '')
     .replace(/\[Dəyişdirilən Məhsul:[^\]]+\]/gi, '')
     .replace(/\[Fərq:[^\]]+\]/gi, '')
+    .replace(/\[Fərq İzahı:[^\]]+\]/gi, '')
     .replace(/\[(?:Qaytarılma|Dəyişdirilmə) Tarixi:[^\]]+\]/gi, '')
+    .replace(/Əvvəlki məhsul:[^\]]+/gi, '')
     .replace(/^Məhsul Satışı\s*\(Ödəniş:[^)]+\)/gi, '')
     .trim();
 
@@ -497,7 +529,7 @@ const SaleDetailModal = ({
           {/* Modal Body */}
           <div className="p-4 sm:p-6 overflow-y-auto space-y-5 flex-1">
             
-            {/* RETURN / EXCHANGE AUDIT BANNER IF APPLICABLE */}
+            {/* RETURN AUDIT BANNER */}
             {saleInfo.status === 'refunded' && (
               <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 shadow-sm animate-in fade-in duration-200">
                 <div className="flex items-center gap-2 text-amber-900 font-black text-sm mb-2.5">
@@ -506,10 +538,14 @@ const SaleDetailModal = ({
                   </div>
                   <span>{i18n.language === 'az' ? 'Məhsul Qaytarılıb (Geri Qaytarış Rəsmiləşdirilib)' : 'Товар возвращен (Оформлен возврат)'}</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/80 p-3 rounded-xl border border-amber-200/60 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/80 p-3 rounded-xl border border-amber-200/60 text-xs">
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Səbəb' : 'Причина'}:</span>
                     <span className="font-bold text-gray-800">{saleInfo.returnInfo?.reason || '—'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Qaytarılan Miqdar' : 'Количество'}:</span>
+                    <span className="font-bold text-gray-800">{saleInfo.returnInfo?.returnQuantity || quantity} {unitLabel}</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Qaytarılan Məbləğ' : 'Сумма возврата'}:</span>
@@ -523,6 +559,7 @@ const SaleDetailModal = ({
               </div>
             )}
 
+            {/* EXCHANGE AUDIT BANNER */}
             {saleInfo.status === 'exchanged' && (
               <div className="bg-blue-50 border border-blue-200/90 rounded-2xl p-4 shadow-sm animate-in fade-in duration-200">
                 <div className="flex items-center gap-2 text-blue-900 font-black text-sm mb-2.5">
@@ -531,10 +568,14 @@ const SaleDetailModal = ({
                   </div>
                   <span>{i18n.language === 'az' ? 'Məhsul Dəyişdirilib (Mübadilə Rəsmiləşdirilib)' : 'Товар обменен на другой (Оформлен обмен)'}</span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/80 p-3 rounded-xl border border-blue-200/60 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/80 p-3 rounded-xl border border-blue-200/60 text-xs">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Köhnə Məhsul' : 'Старый товар'}:</span>
+                    <span className="font-bold text-rose-700 line-through">{saleInfo.returnInfo?.oldProductName || '—'}</span>
+                  </div>
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Yeni Məhsul' : 'Новый товар'}:</span>
-                    <span className="font-bold text-blue-900">{saleInfo.returnInfo?.exchangeProductName || '—'}</span>
+                    <span className="font-bold text-emerald-700">{saleInfo.returnInfo?.newProductName || prod?.name || '—'}</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase block mb-0.5">{i18n.language === 'az' ? 'Səbəb' : 'Причина'}:</span>
@@ -546,8 +587,10 @@ const SaleDetailModal = ({
                       (saleInfo.returnInfo?.priceDifference || 0) > 0 ? 'text-amber-700' : 
                       (saleInfo.returnInfo?.priceDifference || 0) < 0 ? 'text-emerald-700' : 'text-gray-700'
                     }`}>
-                      {(saleInfo.returnInfo?.priceDifference || 0) > 0 ? `+₼${saleInfo.returnInfo.priceDifference.toFixed(2)}` :
-                       (saleInfo.returnInfo?.priceDifference || 0) < 0 ? `-₼${Math.abs(saleInfo.returnInfo.priceDifference).toFixed(2)}` : '₼0.00'}
+                      {saleInfo.returnInfo?.diffText || (
+                        (saleInfo.returnInfo?.priceDifference || 0) > 0 ? `+₼${saleInfo.returnInfo.priceDifference.toFixed(2)}` :
+                        (saleInfo.returnInfo?.priceDifference || 0) < 0 ? `-₼${Math.abs(saleInfo.returnInfo.priceDifference).toFixed(2)}` : '₼0.00'
+                      )}
                     </span>
                   </div>
                 </div>
