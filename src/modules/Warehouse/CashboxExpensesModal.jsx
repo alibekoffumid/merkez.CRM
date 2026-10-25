@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
+import DatePicker from '../../components/Common/DatePicker';
 import AnimatedNumber from '../../components/Common/AnimatedNumber';
 import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
@@ -662,14 +663,21 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                       <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
                         {i18n.language === 'az' ? 'Ödəniş Mənbəyi' : 'Источник выплаты'}
                       </label>
-                      <select
+                      <Dropdown
                         value={paymentSource}
-                        onChange={(e) => setPaymentSource(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:border-orange-500 shadow-2xs"
-                      >
-                        <option value="Nağd Kassa">{i18n.language === 'az' ? 'Nağd Kassa' : 'Наличные из кассы'}</option>
-                        <option value="Bank / Kart hesabı">{i18n.language === 'az' ? 'Bank / Kart hesabı' : 'С карты / Расч. счета'}</option>
-                      </select>
+                        onChange={(val) => setPaymentSource(val)}
+                        buttonClassName="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-orange-500 focus:outline-none shadow-2xs flex items-center justify-between"
+                        options={[
+                          { 
+                            value: 'Nağd Kassa', 
+                            label: i18n.language === 'az' ? 'Nağd Kassa' : 'Наличные из кассы'
+                          },
+                          { 
+                            value: 'Bank / Kart hesabı', 
+                            label: i18n.language === 'az' ? 'Bank / Kart hesabı' : 'С карты / Расч. счета'
+                          }
+                        ]}
+                      />
                     </div>
 
                     {/* Date */}
@@ -677,11 +685,19 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                       <label className="block text-[11px] font-black uppercase tracking-wider text-gray-500 mb-1.5 px-0.5">
                         {i18n.language === 'az' ? 'Tarix' : 'Дата'}
                       </label>
-                      <input
-                        type="date"
+                      <DatePicker
                         value={expenseDate}
-                        onChange={(e) => setExpenseDate(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:border-orange-500 shadow-2xs"
+                        onChange={(val) => setExpenseDate(val)}
+                        customTrigger={({ toggle, displayDate }) => (
+                          <button
+                            type="button"
+                            onClick={toggle}
+                            className="w-full h-[42px] px-3.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 hover:border-orange-500 focus:outline-none shadow-2xs flex items-center justify-between transition-all"
+                          >
+                            <span className="truncate">{displayDate}</span>
+                            <Calendar className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
+                          </button>
+                        )}
                       />
                     </div>
                   </div>
@@ -755,18 +771,23 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                     />
                   </div>
 
-                  <select
-                    value={selectedFilterCategory}
-                    onChange={(e) => setSelectedFilterCategory(e.target.value)}
-                    className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 focus:outline-none focus:bg-white focus:border-orange-500 shrink-0"
-                  >
-                    <option value="all">{i18n.language === 'az' ? 'Bütün Kateqoriyalar' : 'Все категории'}</option>
-                    {EXPENSE_CATEGORIES.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {i18n.language === 'az' ? c.labelAz : c.labelRu}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="shrink-0">
+                    <Dropdown
+                      value={selectedFilterCategory}
+                      onChange={(val) => setSelectedFilterCategory(val)}
+                      buttonClassName="h-[38px] px-3.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-white hover:border-orange-500 shadow-2xs flex items-center justify-between min-w-[170px]"
+                      options={[
+                        { 
+                          value: 'all', 
+                          label: i18n.language === 'az' ? 'Bütün Kateqoriyalar' : 'Все категории' 
+                        },
+                        ...EXPENSE_CATEGORIES.map(c => ({
+                          value: c.id,
+                          label: i18n.language === 'az' ? c.labelAz : c.labelRu
+                        }))
+                      ]}
+                    />
+                  </div>
                 </div>
 
                 {/* Expenses List */}
