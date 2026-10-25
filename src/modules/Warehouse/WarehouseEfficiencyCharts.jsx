@@ -19,6 +19,7 @@ import {
   Search,
   Sparkles,
   ChevronRight,
+  ChevronLeft,
   TrendingDown,
   Info,
   CircleDot,
@@ -294,6 +295,14 @@ const WarehouseEfficiencyCharts = ({
   const [topChartView, setTopChartView] = useState('columns'); // 'columns' | 'bars'
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredTimelineDay, setHoveredTimelineDay] = useState(null);
+  const marginsScrollRef = React.useRef(null);
+
+  const scrollMargins = (direction) => {
+    if (marginsScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      marginsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   React.useEffect(() => {
     if (!canSeeCostAndProfit && activeTab === 'margins') {
@@ -1344,105 +1353,169 @@ const WarehouseEfficiencyCharts = ({
               </div>
             )}
 
-            {/* TAB 4: PROFIT & MARGINS - COMPARATIVE VISUAL BARS (Admin / Owner only) */}
+            {/* TAB 4: PROFIT & MARGINS - HORIZONTALLY SCROLLABLE CARDS (Admin / Owner only) */}
             {canSeeCostAndProfit && activeTab === 'margins' && (
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-sm font-black text-gray-900">
-                    {i18n.language === 'az' ? 'Maya vs Satış vs Xalis Qazanc Qrafiki' : 'График: Себестоимость vs Продажи vs Прибыль'}
-                  </h4>
-                  <p className="text-xs text-gray-400 font-medium">
-                    {i18n.language === 'az' 
-                      ? 'Hər məhsul üzrə maya xərci, yekun satış dövriyyəsi və əldə olunan xalis gəlir' 
-                      : 'Соотношение себестоимости, выручки и чистой прибыли по каждому товару'}
-                  </p>
-                </div>
-
-                {/* Comparative Visual Chart */}
-                <div className="bg-gray-50/50 rounded-2xl border border-gray-100 p-5 space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-200/60">
-                    <span className="text-xs font-black uppercase text-gray-500 tracking-wider">
-                      {i18n.language === 'az' ? 'Məhsulların Maliyyə Strukturu' : 'Финансовая структура товаров'}
-                    </span>
-                    <div className="flex items-center gap-4 text-xs font-bold">
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <span className="w-3 h-3 rounded bg-blue-500" />
-                        <span>{i18n.language === 'az' ? 'Maya Dəyəri' : 'Себестоимость'}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <span className="w-3 h-3 rounded bg-emerald-500" />
-                        <span>{i18n.language === 'az' ? 'Satış Məbləği' : 'Выручка'}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-gray-500">
-                        <span className="w-3 h-3 rounded bg-amber-500" />
-                        <span>{i18n.language === 'az' ? 'Xalis Qazanc' : 'Чистая прибыль'}</span>
-                      </div>
-                    </div>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+                  <div>
+                    <h4 className="text-sm font-black text-gray-900">
+                      {i18n.language === 'az' ? 'Maya vs Satış vs Xalis Qazanc Qrafiki' : 'График: Себестоимость vs Продажи vs Прибыль'}
+                    </h4>
+                    <p className="text-xs text-gray-400 font-medium">
+                      {i18n.language === 'az' 
+                        ? 'Hər məhsul üzrə maya xərci, yekun satış dövriyyəsi və əldə olunan xalis gəlir' 
+                        : 'Соотношение себестоимости, выручки и чистой прибыли по каждому товару'}
+                    </p>
                   </div>
 
-                  <div className="space-y-4">
-                    {productAggregates.slice(0, 6).map((p, idx) => {
-                      const costTotal = Math.max(p.revenue - p.profit, 0);
-                      const maxBar = Math.max(p.revenue, 1);
+                  {/* Navigation Arrows & Legend */}
+                  <div className="flex items-center gap-3 self-end sm:self-auto">
+                    <div className="hidden md:flex items-center gap-3 text-xs font-bold mr-2">
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                        <span className="text-[11px]">{i18n.language === 'az' ? 'Maya Dəyəri' : 'Себестоимость'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                        <span className="text-[11px]">{i18n.language === 'az' ? 'Satış Məbləği' : 'Выручка'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                        <span className="text-[11px]">{i18n.language === 'az' ? 'Xalis Qazanc' : 'Чистая прибыль'}</span>
+                      </div>
+                    </div>
 
-                      return (
-                        <div key={p.id || idx} className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h5 className="text-sm font-black text-gray-900">{p.name}</h5>
-                              <p className="text-[10px] text-gray-400 font-bold">
-                                {p.quantity} {formatUnitName(p.unit, i18n.language)} • {p.categoryName}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                {p.margin.toFixed(1)}% {i18n.language === 'az' ? 'marja' : 'маржа'}
+                    <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => scrollMargins('left')}
+                        className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:scale-95 transition-all"
+                        title={i18n.language === 'az' ? 'Əvvəlki' : 'Назад'}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => scrollMargins('right')}
+                        className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:scale-95 transition-all"
+                        title={i18n.language === 'az' ? 'Sonrakı' : 'Вперед'}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Horizontally scrolling cards track */}
+                <div 
+                  ref={marginsScrollRef}
+                  className="flex overflow-x-auto gap-4 py-2 px-1 scroll-smooth snap-x snap-mandatory"
+                  style={{ scrollbarWidth: 'thin' }}
+                >
+                  {productAggregates.slice(0, 16).map((p, idx) => {
+                    const costTotal = Math.max(p.revenue - p.profit, 0);
+                    const isLoss = p.profit < 0;
+                    const marginVal = p.margin || 0;
+                    const maxVal = Math.max(p.revenue, 1);
+                    const costPercent = Math.min(Math.max((costTotal / maxVal) * 100, 0), 100);
+                    const profitPercent = Math.min(Math.max((Math.max(p.profit, 0) / maxVal) * 100, 0), 100);
+
+                    return (
+                      <div
+                        key={p.id || idx}
+                        className="w-[285px] sm:w-[315px] flex-shrink-0 snap-start bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200 flex flex-col justify-between"
+                      >
+                        {/* Header: Title, Category & Margin badge */}
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <h5 
+                              className="text-xs font-black text-gray-900 line-clamp-1 hover:line-clamp-none transition-all cursor-default" 
+                              title={p.name}
+                            >
+                              {p.name}
+                            </h5>
+                            <span
+                              className={`text-[10px] font-black px-2 py-0.5 rounded-md border flex-shrink-0 ${
+                                isLoss 
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                                  : marginVal >= 50
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {marginVal > 0 ? `+${marginVal.toFixed(1)}%` : `${marginVal.toFixed(1)}%`} {i18n.language === 'az' ? 'marja' : 'маржа'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold mb-3.5">
+                            <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                              {p.quantity} {formatUnitName(p.unit, i18n.language)}
+                            </span>
+                            <span className="truncate max-w-[170px]" title={p.categoryName}>
+                              {p.categoryName || 'Kateqoriyasız'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Visual Segmented Bar */}
+                        <div className="space-y-3 pt-1">
+                          <div>
+                            <div className="flex justify-between items-center text-[10px] font-bold text-gray-400 mb-1">
+                              <span>{i18n.language === 'az' ? 'Maliyyə balansı' : 'Финансовый баланс'}</span>
+                              <span className="text-gray-700 font-black">
+                                100% {i18n.language === 'az' ? 'dövriyyə' : 'оборот'}
                               </span>
+                            </div>
+
+                            <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden flex shadow-inner">
+                              {/* Maya segment */}
+                              <div
+                                className="bg-blue-500 h-full transition-all duration-500"
+                                style={{ width: `${costPercent}%` }}
+                                title={`Maya: ₼${costTotal.toFixed(2)} (${costPercent.toFixed(1)}%)`}
+                              />
+                              {/* Qazanc segment */}
+                              <div
+                                className={`${isLoss ? 'bg-rose-500' : 'bg-amber-500'} h-full transition-all duration-500`}
+                                style={{ width: `${profitPercent}%` }}
+                                title={`Qazanc: ₼${p.profit.toFixed(2)} (${profitPercent.toFixed(1)}%)`}
+                              />
                             </div>
                           </div>
 
-                          {/* 3 Comparative Bars */}
-                          <div className="space-y-1.5 text-xs font-bold pt-1">
-                            {/* Cost Bar */}
-                            <div className="flex items-center gap-3">
-                              <span className="w-24 text-[10px] text-gray-500 uppercase">{i18n.language === 'az' ? 'Maya:' : 'Себест:'}</span>
-                              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                                <div 
-                                  className="h-full bg-blue-500 rounded-full transition-all duration-700" 
-                                  style={{ width: `${Math.max((costTotal / maxBar) * 100, 3)}%` }} 
-                                />
+                          {/* 3 Metric Badges */}
+                          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-center">
+                            <div className="bg-blue-50/50 rounded-xl p-2 border border-blue-100/50">
+                              <div className="text-[9px] font-black uppercase text-blue-500 tracking-wider">
+                                {i18n.language === 'az' ? 'Maya' : 'Себест.'}
                               </div>
-                              <span className="w-20 text-right font-black text-gray-700">₼{costTotal.toFixed(2)}</span>
+                              <div className="text-xs font-black text-blue-700 mt-0.5 truncate" title={`₼${costTotal.toFixed(2)}`}>
+                                ₼{costTotal.toFixed(2)}
+                              </div>
                             </div>
 
-                            {/* Revenue Bar */}
-                            <div className="flex items-center gap-3">
-                              <span className="w-24 text-[10px] text-emerald-600 uppercase">{i18n.language === 'az' ? 'Satış:' : 'Продажа:'}</span>
-                              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                                <div 
-                                  className="h-full bg-emerald-500 rounded-full transition-all duration-700" 
-                                  style={{ width: '100%' }} 
-                                />
+                            <div className="bg-emerald-50/50 rounded-xl p-2 border border-emerald-100/50">
+                              <div className="text-[9px] font-black uppercase text-emerald-600 tracking-wider">
+                                {i18n.language === 'az' ? 'Satış' : 'Продажа'}
                               </div>
-                              <span className="w-20 text-right font-black text-emerald-600">₼{p.revenue.toFixed(2)}</span>
+                              <div className="text-xs font-black text-emerald-700 mt-0.5 truncate" title={`₼${p.revenue.toFixed(2)}`}>
+                                ₼{p.revenue.toFixed(2)}
+                              </div>
                             </div>
 
-                            {/* Profit Bar */}
-                            <div className="flex items-center gap-3">
-                              <span className="w-24 text-[10px] text-amber-600 uppercase">{i18n.language === 'az' ? 'Qazanc:' : 'Прибыль:'}</span>
-                              <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
-                                <div 
-                                  className="h-full bg-amber-500 rounded-full transition-all duration-700" 
-                                  style={{ width: `${Math.max((p.profit / maxBar) * 100, 3)}%` }} 
-                                />
+                            <div className={`${isLoss ? 'bg-rose-50/50 border-rose-100/50' : 'bg-amber-50/50 border-amber-100/50'} rounded-xl p-2 border`}>
+                              <div className={`text-[9px] font-black uppercase tracking-wider ${isLoss ? 'text-rose-500' : 'text-amber-600'}`}>
+                                {i18n.language === 'az' ? 'Qazanc' : 'Прибыль'}
                               </div>
-                              <span className="w-20 text-right font-black text-amber-600">+₼{p.profit.toFixed(2)}</span>
+                              <div className={`text-xs font-black mt-0.5 truncate ${isLoss ? 'text-rose-700' : 'text-amber-700'}`} title={`${p.profit >= 0 ? '+' : ''}₼${p.profit.toFixed(2)}`}>
+                                {p.profit >= 0 ? '+' : ''}₼{p.profit.toFixed(2)}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
