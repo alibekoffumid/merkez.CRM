@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   X, 
   RotateCcw, 
@@ -22,9 +22,11 @@ import {
   Repeat,
   Loader2,
   Sparkles,
-  Info
+  Info,
+  Camera
 } from 'lucide-react';
 import ModalPortal from '../../components/Common/ModalPortal';
+import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
@@ -76,6 +78,103 @@ const ProductReturnModal = ({
   // States
   const [loading, setLoading] = useState(false);
   const [searchingProducts, setSearchingProducts] = useState(false);
+
+  // Barcode Scanner Mode State & Refs
+  const barcodeInputRef = useRef(null);
+  const [barcodeMode, setBarcodeMode] = useState(() => {
+    try {
+      return localStorage.getItem('crm_exchange_scanner_mode') !== 'false';
+    } catch (e) {
+      return true;
+    }
+  });
+  const [showCameraScanner, setShowCameraScanner] = useState(false);
+
+  // POS Beep sound on successful scan
+  const playBeep = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1760, ctx.currentTime);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.08);
+    } catch (e) {}
+  };
+
+  // Barcode scan handler for replacement product
+  const handleBarcodeScan = async (scannedCode) => {
+    const code = String(scannedCode || '').trim();
+    if (!code) return;
+
+    // 1. Search in local warehouseProducts
+    let matched = warehouseProducts.find(p => 
+      String(p.barcode || '').trim().toLowerCase() === code.toLowerCase()
+    );
+
+    // 2. Direct Supabase query fallback if product is beyond initial 300
+    if (!matched) {
+      try {
+        setSearchingProducts(true);
+        const targetWId = warehouseId || sale?.warehouse_id;
+        let q = supabase
+          .from('products')
+          .select('id, name, barcode, price, purchase_price, stock_quantity, unit, category_id, is_deleted')
+          .eq('is_deleted', false)
+          .eq('barcode', code);
+        if (targetWId) q = q.eq('warehouse_id', targetWId);
+
+        const { data: dbMatches } = await q.limit(1);
+        if (dbMatches && dbMatches.length > 0) {
+          matched = dbMatches[0];
+          setWarehouseProducts(prev => [matched, ...prev.filter(p => p.id !== matched.id)]);
+        }
+      } catch (err) {
+        console.warn('Barcode DB lookup error:', err);
+      } finally {
+        setSearchingProducts(false);
+      }
+    }
+
+    if (matched) {
+      playBeep();
+      setSelectedNewProduct(matched);
+      setExchangeQuantity(1);
+      setExchangeSearch('');
+      toast.success(
+        i18n.language === 'az' 
+          ? `Məhsul seçildi: ${matched.name}` 
+          : `Товар выбран: ${matched.name}`
+      );
+    } else {
+      toast.error(
+        i18n.language === 'az'
+          ? `Barkod tapılmadı: ${code}`
+          : `Штрихкод не найден: ${code}`
+      );
+    }
+  };
+
+  const handleBarcodeSubmit = (e) => {
+    e.preventDefault();
+    if (exchangeSearch.trim()) {
+      handleBarcodeScan(exchangeSearch.trim());
+    }
+  };
+
+  // Focus barcode input when in exchange mode
+  useEffect(() => {
+    if (operationType === 'exchange' && barcodeMode && !selectedNewProduct) {
+      setTimeout(() => barcodeInputRef.current?.focus(), 150);
+    }
+  }, [operationType, barcodeMode, selectedNewProduct]);
 
   // Parse original sale
   const prod = sale?.products;
@@ -865,24 +964,94 @@ const ProductReturnModal = ({
             ) : (
               /* EXCHANGE INTERFACE */
               <div className="space-y-4 pt-2 border-t border-gray-100">
-                <label className="text-[11px] font-black uppercase tracking-wider text-blue-700 block">
-                  {i18n.language === 'az' ? '3. Əvəzinə Götürüləcək Yeni Məhsulu Seçin' : '3. Выберите новый товар взамен'}
-                </label>
+                {/* Section Header with Scanner Mode Toggle & Mobile Camera */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b border-blue-100/60">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+                    <Repeat className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{i18n.language === 'az' ? '3. Əvəzinə Götürüləcək Yeni Məhsulu Seçin' : '3. Выберите новый товар взамен'}</span>
+                  </label>
 
-                {/* Search Bar for Exchange */}
-                <div className="relative">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder={i18n.language === 'az' ? 'Yeni məhsulun adı və ya barkodu ilə axtarın...' : 'Поиск нового товара по названию или штрихкоду...'}
-                    value={exchangeSearch}
-                    onChange={(e) => setExchangeSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
-                  />
-                  {searchingProducts && (
-                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
-                  )}
+                  <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                    {/* Mobile Camera Scan Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowCameraScanner(true)}
+                      className="flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-2xs"
+                      title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>{i18n.language === 'az' ? 'Kamera' : 'Камера'}</span>
+                    </button>
+
+                    {/* Skaner rejimi toggle switch */}
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <span className="text-xs font-bold text-gray-600">
+                        {i18n.language === 'az' ? 'Skaner rejimi' : 'Режим сканера'}
+                      </span>
+                      <div className="relative">
+                        <input 
+                          type="checkbox"
+                          checked={barcodeMode}
+                          onChange={(e) => {
+                            const isChecked = e.target.checked;
+                            setBarcodeMode(isChecked);
+                            try {
+                              localStorage.setItem('crm_exchange_scanner_mode', String(isChecked));
+                            } catch (err) {}
+                            if (isChecked) {
+                              const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
+                              if (isMobile) {
+                                setShowCameraScanner(true);
+                              }
+                              setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                            }
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
+
+                {/* Search / Scan Bar for Exchange */}
+                {barcodeMode ? (
+                  <form onSubmit={handleBarcodeSubmit} className="space-y-2">
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-blue-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        ref={barcodeInputRef}
+                        type="text"
+                        value={exchangeSearch}
+                        onChange={(e) => setExchangeSearch(e.target.value)}
+                        placeholder={i18n.language === 'az' ? 'Skan edin və ya barkodu yazın (Enter)...' : 'Отсканируйте штрихкод (Enter)...'}
+                        className="w-full pl-10 pr-10 py-3 bg-blue-50/50 border-2 border-blue-400 focus:border-blue-600 rounded-xl text-xs font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white shadow-2xs transition-all"
+                        autoFocus
+                      />
+                      {searchingProducts && (
+                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin absolute right-3.5 top-1/2 -translate-y-1/2" />
+                      )}
+                    </div>
+                    <p className="text-[11px] text-blue-700 font-medium text-center flex items-center justify-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                      <span>{i18n.language === 'az' ? 'Skaneri məhsula yönəldin və oxudun. O, avtomatik seçiləcək.' : 'Направьте сканер на штрихкод. Товар автоматически выберется на обмен.'}</span>
+                    </p>
+                  </form>
+                ) : (
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder={i18n.language === 'az' ? 'Yeni məhsulun adı və ya barkodu ilə axtarın...' : 'Поиск нового товара по названию или штрихкоду...'}
+                      value={exchangeSearch}
+                      onChange={(e) => setExchangeSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-medium"
+                    />
+                    {searchingProducts && (
+                      <Loader2 className="w-4 h-4 text-blue-600 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
+                    )}
+                  </div>
+                )}
 
                 {/* Product Search Results Dropdown List */}
                 {!selectedNewProduct && (
@@ -924,14 +1093,29 @@ const ProductReturnModal = ({
                 {/* Selected Replacement Product Card */}
                 {selectedNewProduct && (
                   <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 relative animate-in fade-in duration-200">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedNewProduct(null)}
-                      className="absolute right-3 top-3 text-gray-400 hover:text-red-500 p-1 rounded-md"
-                      title={i18n.language === 'az' ? 'Başqasını seç' : 'Выбрать другой'}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="absolute right-3 top-3 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedNewProduct(null);
+                          if (barcodeMode) {
+                            setTimeout(() => barcodeInputRef.current?.focus(), 100);
+                          }
+                        }}
+                        className="text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-white border border-blue-200 hover:bg-blue-100/50 px-2 py-1 rounded-lg transition-colors flex items-center gap-1 shadow-2xs"
+                      >
+                        <Repeat className="w-3 h-3" />
+                        <span>{i18n.language === 'az' ? 'Yenidən skan et' : 'Пересканировать'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedNewProduct(null)}
+                        className="text-gray-400 hover:text-red-500 p-1 rounded-md"
+                        title={i18n.language === 'az' ? 'Ləğv et' : 'Отменить выбор'}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
 
                     <div className="text-[10px] font-black text-blue-700 uppercase tracking-wider mb-1">
                       {i18n.language === 'az' ? 'Seçilmiş Yeni Məhsul' : 'Выбранный товар для обмена'}
@@ -1139,6 +1323,16 @@ const ProductReturnModal = ({
 
         </div>
       </div>
+
+      {/* Camera Barcode Scanner Modal */}
+      <CameraScannerModal
+        isOpen={showCameraScanner}
+        onClose={() => setShowCameraScanner(false)}
+        onScan={(barcode) => {
+          handleBarcodeScan(barcode);
+          setShowCameraScanner(false);
+        }}
+      />
     </ModalPortal>
   );
 };
