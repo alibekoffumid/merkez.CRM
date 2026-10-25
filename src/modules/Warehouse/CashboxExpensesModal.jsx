@@ -21,9 +21,14 @@ import {
   Layers, 
   AlertCircle,
   CreditCard,
-  Building,
+  Building2,
   Check,
-  RefreshCw
+  RefreshCw,
+  Car,
+  Utensils,
+  Package,
+  Wrench,
+  Briefcase
 } from 'lucide-react';
 import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
@@ -34,13 +39,69 @@ import { toast } from 'react-hot-toast';
 import { printThermalExpenseVoucher } from './thermalReceiptService';
 
 const EXPENSE_CATEGORIES = [
-  { id: 'Taksi', icon: '🚕', labelAz: 'Taksi / Nəqliyyat', labelRu: 'Такси / Транспорт', color: 'from-amber-500 to-yellow-500' },
-  { id: 'Yemək', icon: '🍔', labelAz: 'Yemək / Qida', labelRu: 'Обед / Еда', color: 'from-orange-500 to-amber-500' },
-  { id: 'Kuryer', icon: '📦', labelAz: 'Kuryer / Çatdırılma', labelRu: 'Курьер / Доставка', color: 'from-blue-500 to-cyan-500' },
-  { id: 'Təsərrüfat', icon: '🛠️', labelAz: 'Təsərrüfat / Xırdavat', labelRu: 'Хоз. расходы', color: 'from-emerald-500 to-teal-500' },
-  { id: 'Kommunal', icon: '🏢', labelAz: 'Kommunal / İcarə', labelRu: 'Аренда / Коммуналка', color: 'from-indigo-500 to-blue-500' },
-  { id: 'Maaş', icon: '💼', labelAz: 'Maaş / Avans', labelRu: 'Зарплата / Аванс', color: 'from-purple-500 to-pink-500' },
-  { id: 'Digər', icon: '📝', labelAz: 'Digər xərc', labelRu: 'Прочие расходы', color: 'from-slate-500 to-gray-600' }
+  { 
+    id: 'Taksi', 
+    icon: Car, 
+    labelAz: 'Taksi / Nəqliyyat', 
+    shortAz: 'Taksi',
+    labelRu: 'Такси / Транспорт', 
+    shortRu: 'Такси',
+    color: 'text-amber-600 bg-amber-50 border-amber-200' 
+  },
+  { 
+    id: 'Yemək', 
+    icon: Utensils, 
+    labelAz: 'Yemək / Qida', 
+    shortAz: 'Yemək',
+    labelRu: 'Обед / Еда', 
+    shortRu: 'Еда / Обед',
+    color: 'text-orange-600 bg-orange-50 border-orange-200' 
+  },
+  { 
+    id: 'Kuryer', 
+    icon: Package, 
+    labelAz: 'Kuryer / Çatdırılma', 
+    shortAz: 'Kuryer',
+    labelRu: 'Курьер / Доставка', 
+    shortRu: 'Курьер',
+    color: 'text-blue-600 bg-blue-50 border-blue-200' 
+  },
+  { 
+    id: 'Təsərrüfat', 
+    icon: Wrench, 
+    labelAz: 'Təsərrüfat / Xırdavat', 
+    shortAz: 'Təsərrüfat',
+    labelRu: 'Хоз. расходы', 
+    shortRu: 'Хозрасходы',
+    color: 'text-emerald-600 bg-emerald-50 border-emerald-200' 
+  },
+  { 
+    id: 'Kommunal', 
+    icon: Building2, 
+    labelAz: 'Kommunal / İcarə', 
+    shortAz: 'Kommunal',
+    labelRu: 'Аренда / Коммуналка', 
+    shortRu: 'Коммуналка',
+    color: 'text-indigo-600 bg-indigo-50 border-indigo-200' 
+  },
+  { 
+    id: 'Maaş', 
+    icon: Briefcase, 
+    labelAz: 'Maaş / Avans', 
+    shortAz: 'Maaş / Avans',
+    labelRu: 'Зарплата / Аванс', 
+    shortRu: 'Зарплата',
+    color: 'text-purple-600 bg-purple-50 border-purple-200' 
+  },
+  { 
+    id: 'Digər', 
+    icon: FileText, 
+    labelAz: 'Digər xərc', 
+    shortAz: 'Digər xərc',
+    labelRu: 'Прочие расходы', 
+    shortRu: 'Прочие',
+    color: 'text-slate-600 bg-slate-100 border-slate-200' 
+  }
 ];
 
 export const parseExpenseDetails = (description = '') => {
@@ -520,21 +581,31 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                       {i18n.language === 'az' ? 'Xərc Təyinatı / Kateqoriya' : 'Категория расхода'} *
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {EXPENSE_CATEGORIES.map(cat => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setCategory(cat.id)}
-                          className={`p-2 rounded-xl text-xs font-bold text-left transition-all flex items-center gap-2 border ${
-                            category === cat.id
-                              ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-500/30 ring-2 ring-orange-200'
-                              : 'bg-gray-50/80 text-gray-700 border-gray-200/80 hover:bg-orange-50/50 hover:border-orange-200'
-                          }`}
-                        >
-                          <span className="text-base shrink-0">{cat.icon}</span>
-                          <span className="truncate">{i18n.language === 'az' ? cat.labelAz : cat.labelRu}</span>
-                        </button>
-                      ))}
+                      {EXPENSE_CATEGORIES.map(cat => {
+                        const IconComponent = cat.icon;
+                        const isSelected = category === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setCategory(cat.id)}
+                            className={`px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 border text-left active:scale-[0.98] ${
+                              isSelected
+                                ? 'bg-orange-600 text-white border-orange-600 shadow-sm shadow-orange-500/25 ring-2 ring-orange-200'
+                                : 'bg-white text-gray-700 border-gray-200 hover:bg-orange-50/40 hover:border-orange-200 hover:text-gray-900 shadow-2xs'
+                            }`}
+                          >
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              <IconComponent className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="truncate leading-tight font-black">
+                              {i18n.language === 'az' ? cat.shortAz : cat.shortRu}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -692,7 +763,7 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                     <option value="all">{i18n.language === 'az' ? 'Bütün Kateqoriyalar' : 'Все категории'}</option>
                     {EXPENSE_CATEGORIES.map(c => (
                       <option key={c.id} value={c.id}>
-                        {c.icon} {i18n.language === 'az' ? c.labelAz : c.labelRu}
+                        {i18n.language === 'az' ? c.labelAz : c.labelRu}
                       </option>
                     ))}
                   </select>
@@ -721,10 +792,14 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                     filteredExpenses.map((exp) => {
                       const details = parseExpenseDetails(exp.description);
                       const catConfig = EXPENSE_CATEGORIES.find(c => c.id === exp.category) || {
-                        icon: '📝',
+                        icon: FileText,
                         labelAz: exp.category || 'Digər',
-                        labelRu: exp.category || 'Прочее'
+                        labelRu: exp.category || 'Прочее',
+                        shortAz: exp.category || 'Digər',
+                        shortRu: exp.category || 'Прочее',
+                        color: 'text-slate-600 bg-slate-50 border-slate-200'
                       };
+                      const IconComponent = catConfig.icon || FileText;
 
                       return (
                         <div 
@@ -732,8 +807,8 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
                           className="p-3.5 rounded-2xl border border-gray-100 hover:border-orange-200 bg-white hover:bg-orange-50/20 transition-all flex items-center justify-between gap-3 group shadow-2xs"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 border border-orange-100/80 flex items-center justify-center text-lg shrink-0">
-                              {catConfig.icon}
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${catConfig.color || 'bg-orange-50 text-orange-600 border-orange-100/80'}`}>
+                              <IconComponent className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
