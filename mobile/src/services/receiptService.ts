@@ -1,12 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Linking, Alert, Platform } from 'react-native';
+import { Linking, Alert, Platform, NativeModules } from 'react-native';
 import QRCode from 'qrcode';
 
+const { DirectPrinter } = NativeModules;
+
 export interface PrinterConfig {
+  connectionType?: 'direct_tcp' | 'rawbt';
   ipAddress: string;
   port: number;
   paperWidth: '58mm' | '80mm';
   autoPrint: boolean;
+  autoCut?: boolean;
+  openDrawer?: boolean;
   storeName: string;
   storeSubtitle?: string;
   storeAddress: string;
@@ -22,10 +27,13 @@ export interface PrinterConfig {
 }
 
 export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
+  connectionType: 'direct_tcp',
   ipAddress: '192.168.1.200',
   port: 9100,
   paperWidth: '58mm',
   autoPrint: true,
+  autoCut: true,
+  openDrawer: false,
   storeName: 'RAST MUSİQİ ALƏTLƏRİ MAĞAZASI',
   storeSubtitle: 'Musiqi Alətlərinin Satışı və Təmiri',
   storeAddress: 'AZ1142 BAKI ŞƏHƏRİ XƏTAİ RAYONU ev.18A m.92',
@@ -39,6 +47,153 @@ export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   kassaNumber: 'V1E0969392',
   filialName: 'DÜKKAN - ƏHMƏDLİ',
 };
+
+export function uint8ToBase64(bytes: Uint8Array): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 3) {
+    const b1 = bytes[i];
+    const b2 = i + 1 < len ? bytes[i + 1] : NaN;
+    const b3 = i + 2 < len ? bytes[i + 2] : NaN;
+
+    const e1 = b1 >> 2;
+    const e2 = ((b1 & 3) << 4) | (isNaN(b2) ? 0 : b2 >> 4);
+    const e3 = isNaN(b2) ? 64 : ((b2 & 15) << 2) | (isNaN(b3) ? 0 : b3 >> 6);
+    const e4 = isNaN(b3) ? 64 : b3 & 63;
+
+    output += chars.charAt(e1) + chars.charAt(e2) + chars.charAt(e3) + chars.charAt(e4);
+  }
+  return output;
+}
+
+export function cleanAzeriText(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/ə/g, 'e')
+    .replace(/Ə/g, 'E')
+    .replace(/ı/g, 'i')
+    .replace(/İ/g, 'I')
+    .replace(/ö/g, 'o')
+    .replace(/Ö/g, 'O')
+    .replace(/ğ/g, 'g')
+    .replace(/Ğ/g, 'G')
+    .replace(/ü/g, 'u')
+    .replace(/Ü/g, 'U')
+    .replace(/ş/g, 's')
+    .replace(/Ş/g, 'S')
+    .replace(/ç/g, 'c')
+    .replace(/Ç/g, 'C')
+    .replace(/₼/g, 'AZN');
+}
+
+export class EscPosBuilder {
+  private buffer: number[] = [];
+
+  init() {
+    this.buffer.push(0x1B, 0x40); // ESC @
+    return this;
+  }
+
+  align(alignment: 'left' | 'center' | 'right') {
+    const code = alignment === 'center' ? 1 : alignment === 'right' ? 2 : 0;
+    this.buffer.push(0x1B, 0x61, code);
+    return this;
+  }
+
+  bold(enable: boolean) {
+    this.buffer.push(0x1B, 0x45, enable ? 1 : 0);
+    return this;
+  }
+
+  doubleHeight(enable: boolean) {
+    this.buffer.push(0x1D, 0x21, enable ? 0x01 : 0x00);
+    return this;
+  }
+
+  doubleSize(enable: boolean) {
+    this.buffer.push(0x1D, 0x21, enable ? 0x11 : 0x00);
+    return this;
+  }
+
+  text(str: string) {
+    const cleaned = cleanAzeriText(str);
+    for (let i = 0; i < cleaned.length; i++) {
+      const code = cleaned.charCodeAt(i);
+      this.buffer.push(code < 128 ? code : 63);
+    }
+    return this;
+  }
+
+  line(str: string) {
+    this.text(str);
+    this.buffer.push(0x0A);
+    return this;
+  }
+
+  newLine(count = 1) {
+    for (let i = 0; i < count; i++) {
+      this.buffer.push(0x0A);
+    }
+    return this;
+  }
+
+  rasterQr(text: string, moduleScale = 4) {
+    try {
+      const qr = QRCode.create(text, { errorCorrectionLevel: 'M' });
+      const size = qr.modules.size;
+      const margin = 2;
+      const totalModules = size + margin * 2;
+      const pixelWidth = totalModules * moduleScale;
+      const pixelHeight = pixelWidth;
+      const bytesWidth = Math.ceil(pixelWidth / 8);
+
+      const xL = bytesWidth % 256;
+      const xH = Math.floor(bytesWidth / 256);
+      const yL = pixelHeight % 256;
+      const yH = Math.floor(pixelHeight / 256);
+
+      this.align('center');
+      this.buffer.push(0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH);
+
+      for (let y = 0; y < pixelHeight; y++) {
+        const modY = Math.floor(y / moduleScale) - margin;
+        for (let bx = 0; bx < bytesWidth; bx++) {
+          let byteVal = 0;
+          for (let bit = 0; bit < 8; bit++) {
+            const x = bx * 8 + bit;
+            const modX = Math.floor(x / moduleScale) - margin;
+            if (modY >= 0 && modY < size && modX >= 0 && modX < size) {
+              if (qr.modules.get(modY, modX)) {
+                byteVal |= (1 << (7 - bit));
+              }
+            }
+          }
+          this.buffer.push(byteVal);
+        }
+      }
+      this.newLine(1);
+    } catch (e) {
+      console.warn('ESC/POS raster QR failed:', e);
+    }
+    return this;
+  }
+
+  feedAndCut() {
+    this.buffer.push(0x0A, 0x0A, 0x0A, 0x0A);
+    this.buffer.push(0x1D, 0x56, 0x41, 0x00);
+    return this;
+  }
+
+  kickDrawer() {
+    this.buffer.push(0x1B, 0x70, 0x00, 0x19, 0xFA);
+    return this;
+  }
+
+  toUint8Array(): Uint8Array {
+    return new Uint8Array(this.buffer);
+  }
+}
 
 const STORAGE_KEY = '@merkez_printer_config';
 
@@ -787,14 +942,206 @@ export const receiptService = {
   },
 
   /**
+   * Generates binary ESC/POS byte array with raster QR code, headers, lines and cutter commands
+   */
+  formatReceiptEscPos(data: SaleReceiptData, config: PrinterConfig): Uint8Array {
+    const is80mm = (data.paperWidth || config.paperWidth) === '80mm';
+    const width = is80mm ? 48 : 32;
+    const dividerDouble = '='.repeat(width);
+    const dividerSingle = '-'.repeat(width);
+
+    let d = data.date instanceof Date ? data.date : new Date(data.date);
+    if (isNaN(d.getTime())) d = new Date();
+
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    const dateFormatted = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+
+    let payTitle = 'Nagd';
+    const lowerPay = (data.paymentMethod || '').toLowerCase();
+    if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kartdan karta';
+    else if (lowerPay.includes('transfer') || lowerPay.includes('kocurme')) payTitle = 'Kocurme';
+    else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
+    else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';
+
+    const builder = new EscPosBuilder();
+    builder.init();
+
+    if (config.openDrawer) {
+      builder.kickDrawer();
+    }
+
+    // Header
+    builder.align('center');
+    builder.bold(true).doubleHeight(true);
+    builder.line(config.storeName || 'RAST MUSIQI ALETLERI MAGAZASI');
+    builder.bold(false).doubleHeight(false);
+
+    if (config.storeSubtitle) {
+      builder.line(config.storeSubtitle);
+    }
+    if (config.storeAddress) {
+      builder.line(config.storeAddress);
+    }
+    if (config.voen) {
+      builder.line(`VOEN: ${config.voen}`);
+    }
+    if (config.phone) {
+      builder.line(`Tel: ${config.phone}`);
+    }
+
+    builder.align('left');
+    builder.line(dividerDouble);
+
+    // Metadata
+    const cleanId = String(data.receiptNumber || data.saleId).replace(/^SALE-/, '');
+    builder.line(padRow(`SATIS CEKI: #${cleanId}`, '', width));
+    builder.line(padRow('Tarix:', dateFormatted, width));
+    builder.line(padRow('Kassir:', data.cashierName || 'Kassir', width));
+    if (data.warehouseName || config.filialName) {
+      builder.line(padRow('Filial:', data.warehouseName || config.filialName || '', width));
+    }
+    if (data.clientName) {
+      builder.line(padRow('Musteri:', data.clientName, width));
+    }
+    if (data.clientPhone) {
+      builder.line(padRow('Elaqe:', data.clientPhone, width));
+    }
+    builder.line(dividerSingle);
+
+    // Items table header
+    builder.bold(true);
+    builder.line(padRow('MEHSUL / SAY x QIYMET', 'MEBLEG', width));
+    builder.bold(false);
+    builder.line(dividerSingle);
+
+    // Items
+    data.items.forEach((item, idx) => {
+      builder.line(`${idx + 1}. ${item.name}`);
+      const qtyStr = `  ${item.quantity} ${item.unit || 'ed.'} x ${Number(item.price).toFixed(2)} AZN`;
+      const totStr = `${Number(item.total).toFixed(2)} AZN`;
+      builder.line(padRow(qtyStr, totStr, width));
+    });
+
+    builder.line(dividerSingle);
+
+    // Totals
+    builder.line(padRow('CEMI:', `${Number(data.subtotal).toFixed(2)} AZN`, width));
+
+    if (data.discountAmount && data.discountAmount > 0) {
+      const discNote = data.discountType === 'percent' ? ` (-${data.discountValue}%)` : '';
+      builder.line(padRow(`ENDIRIM${discNote}:`, `-${Number(data.discountAmount).toFixed(2)} AZN`, width));
+    }
+
+    builder.line(dividerDouble);
+    builder.bold(true).doubleHeight(true);
+    builder.line(padRow('YEKUN:', `${Number(data.total).toFixed(2)} AZN`, width));
+    builder.bold(false).doubleHeight(false);
+    builder.line(padRow('ODENIS USULU:', payTitle, width));
+
+    // Credit details
+    if (data.creditDetails) {
+      builder.line(dividerSingle);
+      builder.align('center');
+      builder.line('KREDIT MELUMATLARI');
+      builder.align('left');
+      builder.line(padRow('Bank:', data.creditDetails.bank, width));
+      builder.line(padRow('Muddet:', `${data.creditDetails.months} ay`, width));
+      builder.line(padRow('Ayliq odenis:', `${Number(data.creditDetails.monthlyPayment).toFixed(2)} AZN`, width));
+      builder.line(padRow('Muqavile cemi:', `${Number(data.creditDetails.contractTotal).toFixed(2)} AZN`, width));
+    }
+
+    // Deposit details
+    if (data.depositDetails) {
+      builder.line(dividerSingle);
+      builder.align('center');
+      builder.line('AVANS / BEH MELUMATLARI');
+      builder.align('left');
+      builder.line(padRow('Umumi mebleg:', `${Number(data.total).toFixed(2)} AZN`, width));
+      builder.line(padRow('Odenilen avans:', `${Number(data.depositDetails.advanceAmount).toFixed(2)} AZN`, width));
+      if (data.depositDetails.advanceRecipient) {
+        builder.line(padRow('Avans alan:', data.depositDetails.advanceRecipient, width));
+      }
+      builder.line(padRow('Qaliq borc:', `${Number(data.depositDetails.remainingBalance).toFixed(2)} AZN`, width));
+    }
+
+    builder.line(dividerDouble);
+
+    // Fiscal QR Code
+    const cleanReceiptNumber = data.receiptNumber || `CH-${cleanId}`;
+    const cleanTxId = data.transactionId || data.saleId;
+    const qrPayload =
+      data.qrUrl ||
+      `https://e-kassa.gov.az/check?doc=${encodeURIComponent(cleanReceiptNumber)}&sum=${Number(
+        data.total
+      ).toFixed(2)}&id=${encodeURIComponent(cleanTxId)}`;
+
+    builder.align('center');
+    builder.line('FISKAL / ELEKTRON CEK');
+    builder.rasterQr(qrPayload, is80mm ? 5 : 4);
+    builder.line(`ID: ${cleanTxId}`);
+    builder.line(`Fiskal / Qeydiyyat: ${cleanReceiptNumber}`);
+    builder.newLine(1);
+    builder.bold(true);
+    builder.line('TICARETINIZ XEYIRLI OLSUN!');
+    builder.bold(false);
+    builder.line(config.footerNote || 'Bizi secdiyiniz ucun tesekkur edirik!');
+    builder.line('*** MERKEZ POS SISTEMI ***');
+
+    if (config.autoCut !== false) {
+      builder.feedAndCut();
+    } else {
+      builder.newLine(4);
+    }
+
+    return builder.toUint8Array();
+  },
+
+  /**
    * Main print dispatcher:
-   * 1. Generates official fiscal receipt HTML with QR Code
-   * 2. Encodes to base64
-   * 3. Sends to RawBT directly via URL scheme (rawbt:data:text/html;base64,...)
-   * 4. If RawBT is not installed on Android, prompts to install from Play Store
+   * 1. If connectionType is 'direct_tcp' (default): sends ESC/POS binary directly via TCP socket (port 9100)
+   * 2. If DirectPrinter fails or connectionType is 'rawbt': falls back to RawBT Print Service
    */
   async printReceipt(data: SaleReceiptData, customConfig?: PrinterConfig): Promise<boolean> {
     const config = customConfig || (await this.getConfig());
+
+    // 1. Direct TCP Socket (RawBT-free)
+    if (config.connectionType !== 'rawbt' && DirectPrinter?.printRaw) {
+      try {
+        const bytes = this.formatReceiptEscPos(data, config);
+        const b64 = uint8ToBase64(bytes);
+        const port = Number(config.port) || 9100;
+        await DirectPrinter.printRaw(config.ipAddress, port, b64, 4500);
+        return true;
+      } catch (err: any) {
+        console.warn('Direct TCP print failed, offering fallback:', err);
+        Alert.alert(
+          '🖨️ Printer Xətası (LAN)',
+          `Printerə qoşulmaq olmadı (${config.ipAddress}:${config.port || 9100}).\n\n1. Printerin yandırıldığını və şəbəkə kabelinin taxıldığını yoxlayın.\n2. Telefonun printerlə eyni Wi-Fi şəbəkəsində olduğunu yoxlayın.`,
+          [
+            { text: 'Bağla', style: 'cancel' },
+            {
+              text: 'RawBT ilə Çap Et',
+              onPress: () => this.printViaRawbt(data, config),
+            },
+          ]
+        );
+        return false;
+      }
+    }
+
+    // 2. Fallback to RawBT
+    return this.printViaRawbt(data, config);
+  },
+
+  /**
+   * Prints via RawBT print service app using standard URL scheme
+   */
+  async printViaRawbt(data: SaleReceiptData, config: PrinterConfig): Promise<boolean> {
     const receiptHtml = await this.formatReceiptHtml(data, config);
     const b64 = utf8ToBase64(receiptHtml);
     const rawbtUrl = `rawbt:data:text/html;base64,${b64}`;
@@ -809,7 +1156,6 @@ export const receiptService = {
       console.warn('Linking check error for rawbt:', e);
     }
 
-    // Try opening anyway (on some Android versions canOpenURL returns false without manifest queries)
     try {
       await Linking.openURL(rawbtUrl);
       return true;
@@ -819,7 +1165,7 @@ export const receiptService = {
       if (Platform.OS === 'android') {
         Alert.alert(
           '🖨️ RawBT Sürücüsü Tapılmadı',
-          'Çeki QR kod ilə LAN printerə birbaşa göndərmək üçün telefonunuza pulsuz "RawBT Print Service" tətbiqi lazımdır.\n\nİndi Google Play-dən quraşdırılsın?',
+          'Çeki RawBT ilə göndərmək üçün telefonunuza pulsuz "RawBT Print Service" lazımdır.\n\nİndi Google Play-dən quraşdırılsın?',
           [
             { text: 'Xeyr', style: 'cancel' },
             {
@@ -840,6 +1186,18 @@ export const receiptService = {
       }
       return false;
     }
+  },
+
+  /**
+   * Tests socket connection to printer IP:Port directly
+   */
+  async testConnection(customConfig?: PrinterConfig): Promise<boolean> {
+    const config = customConfig || (await this.getConfig());
+    if (!DirectPrinter?.testConnection) {
+      throw new Error('DirectPrinter native modulu tapılmadı');
+    }
+    const port = Number(config.port) || 9100;
+    return await DirectPrinter.testConnection(config.ipAddress, port, 3000);
   },
 
   /**

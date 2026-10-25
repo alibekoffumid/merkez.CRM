@@ -68,6 +68,26 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
     onClose();
   };
 
+  const [testingSocket, setTestingSocket] = useState(false);
+
+  const handleTestConnection = async () => {
+    setTestingSocket(true);
+    try {
+      await receiptService.testConnection(config);
+      Alert.alert(
+        '✅ Bağlantı Uğurludur',
+        `Printer şəbəkədə tapıldı!\n\nÜnvan: ${config.ipAddress}:${config.port || 9100}\nStatus: Cavab verir (Online)`
+      );
+    } catch (e: any) {
+      Alert.alert(
+        '❌ Printer Tapılmadı',
+        `Printerə qoşulmaq olmadı (${config.ipAddress}:${config.port || 9100}).\n\n1. Printerin yandırıldığını və kabelin taxıldığını yoxlayın.\n2. Telefonun printerlə eyni Wi-Fi şəbəkəsində olduğunu yoxlayın.`
+      );
+    } finally {
+      setTestingSocket(false);
+    }
+  };
+
   const handleTestPrint = async () => {
     setTesting(true);
     try {
@@ -110,6 +130,50 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                 <View style={styles.cardHeader}>
                   <Wifi size={16} color="#10B981" />
                   <Text style={styles.cardTitle}>ŞƏBƏKƏ PARAMETRLƏRİ (LAN)</Text>
+                </View>
+
+                {/* Print Mode Selector */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Çap Rejimi</Text>
+                  <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        config.connectionType !== 'rawbt' && styles.toggleBtnActive,
+                      ]}
+                      onPress={() => setConfig({ ...config, connectionType: 'direct_tcp' })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          config.connectionType !== 'rawbt' && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        ⚡ Birbaşa LAN (RawBT-siz)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        config.connectionType === 'rawbt' && styles.toggleBtnActive,
+                      ]}
+                      onPress={() => setConfig({ ...config, connectionType: 'rawbt' })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          config.connectionType === 'rawbt' && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        📱 RawBT Sürücüsü
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.hint}>
+                    {config.connectionType === 'rawbt'
+                      ? 'Çeki telefondakı RawBT tətbiqi vasitəsilə göndərir.'
+                      : 'RawBT tələb olunmur! Çek birbaşa router/Wi-Fi vasitəsilə printerə göndərilir.'}
+                  </Text>
                 </View>
 
                 <View style={styles.inputGroup}>
@@ -180,6 +244,23 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                   </View>
                 </View>
 
+                {/* Ping / Test Socket Button */}
+                <TouchableOpacity
+                  style={[styles.pingBtn, testingSocket && styles.btnDisabled]}
+                  onPress={handleTestConnection}
+                  disabled={testingSocket}
+                  activeOpacity={0.8}
+                >
+                  {testingSocket ? (
+                    <ActivityIndicator size="small" color="#10B981" />
+                  ) : (
+                    <>
+                      <Wifi size={15} color="#10B981" />
+                      <Text style={styles.pingBtnText}>Printer Bağlantısını Yoxla (Ping)</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
                 {/* Auto-print Switch */}
                 <View style={styles.switchRow}>
                   <View style={{ flex: 1 }}>
@@ -193,6 +274,22 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                     onValueChange={(val: boolean) => setConfig({ ...config, autoPrint: val })}
                     trackColor={{ false: '#D1D5DB', true: '#A7F3D0' }}
                     thumbColor={config.autoPrint ? '#10B981' : '#F3F4F6'}
+                  />
+                </View>
+
+                {/* Auto-cut Switch */}
+                <View style={[styles.switchRow, { borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 10 }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.switchLabel}>Avtomatik Kağız Kəsmə</Text>
+                    <Text style={styles.switchSub}>
+                      Çap bitdikdən sonra printerin daxili bıçağını işə sal
+                    </Text>
+                  </View>
+                  <Switch
+                    value={config.autoCut !== false}
+                    onValueChange={(val: boolean) => setConfig({ ...config, autoCut: val })}
+                    trackColor={{ false: '#D1D5DB', true: '#A7F3D0' }}
+                    thumbColor={config.autoCut !== false ? '#10B981' : '#F3F4F6'}
                   />
                 </View>
               </View>
@@ -614,6 +711,24 @@ const styles = StyleSheet.create({
   guideBold: {
     fontWeight: '700',
     color: '#0F172A',
+  },
+  pingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: 10,
+    paddingVertical: 10,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  pingBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#059669',
   },
   testBtn: {
     flexDirection: 'row',
