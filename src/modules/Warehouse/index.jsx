@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -32,6 +32,7 @@ import DailySalesReportModal from '../../components/Reports/DailySalesReportModa
 import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
 import ProductReturnModal from './ProductReturnModal';
+import CashboxExpensesModal from './CashboxExpensesModal';
 import { printThermalReceipt57mm } from './thermalReceiptService';
 import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
 import { parseProductAttributes } from './productAttributesHelper';
@@ -208,6 +209,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [activeRepairsMap, setActiveRepairsMap] = useState({});
   const [showTransferStock, setShowTransferStock] = useState(false);
   const [showSellProduct, setShowSellProduct] = useState(false);
+  const [showCashboxModal, setShowCashboxModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
@@ -2096,17 +2098,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
             {/* Main Warehouse Actions */}
             {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
-              <button 
-                onClick={() => setShowSellProduct(true)} 
-                className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap w-full uppercase active:scale-95"
-              >
-                <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
-                {selectedItems.length > 0 && (
-                  <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
-                    {selectedItems.length}
-                  </span>
-                )}
-              </button>
+              <>
+                <button 
+                  onClick={() => setShowSellProduct(true)} 
+                  className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm"
+                >
+                  <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+                  {selectedItems.length > 0 && (
+                    <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
+                      {selectedItems.length}
+                    </span>
+                  )}
+                </button>
+
+                <button 
+                  onClick={() => setShowCashboxModal(true)} 
+                  className="bg-white border-2 border-amber-500 hover:border-amber-600 text-amber-600 hover:text-amber-700 hover:bg-amber-50/70 px-3.5 py-2 h-[38px] rounded-lg text-xs font-black flex items-center justify-center whitespace-nowrap shadow-sm active:scale-95 group uppercase transition-all tracking-wider"
+                  title={i18n.language === 'az' ? 'Kassa və Mağaza Xərcləri' : 'Касса и расходы магазина'}
+                >
+                  <Wallet className="w-3.5 h-3.5 mr-1.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
+                  <span>{i18n.language === 'az' ? 'KASSA' : 'КАССА'}</span>
+                </button>
+              </>
             )}
             
             {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
@@ -4037,6 +4050,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           initialProducts={selectedProductsList}
         />
       </ModalPortal>
+
+      <CashboxExpensesModal
+        isOpen={showCashboxModal}
+        onClose={() => setShowCashboxModal(false)}
+        warehouseId={currentWarehouseId}
+        warehouseName={warehouses.find(w => w.id === currentWarehouseId)?.name || 'Əsas Mağaza'}
+      />
       {confirmDelete && (
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>

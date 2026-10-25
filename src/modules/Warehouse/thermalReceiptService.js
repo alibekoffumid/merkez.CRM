@@ -934,6 +934,10 @@ export function printThermalReturnReceipt57mm(returnData) {
     </html>
   `;
 
+  return printHtmlToThermal(receiptHtml);
+}
+
+function printHtmlToThermal(receiptHtml) {
   const isMobile = typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent || '');
   if (isMobile) {
     const printWindow = window.open('', '_blank');
@@ -992,6 +996,212 @@ export function printThermalReturnReceipt57mm(returnData) {
   }
 
   return false;
+}
+
+/**
+ * Specialized thermal receipt printing for Cashbox / Operational Store Expenses (57mm / 80mm)
+ */
+export function printThermalExpenseVoucher(voucherData) {
+  const {
+    receiptNumber = Date.now().toString().slice(-4),
+    date = new Date(),
+    storeName = 'Rast musiqi alətləri mağazası',
+    warehouseName = 'Əsas Mağaza',
+    category = 'Digər xərc',
+    amount = 0,
+    description = '',
+    recipient = 'Kassa',
+    paymentSource = 'Nağd Kassa',
+    cashierName = 'Kassir',
+    paperWidth = '57mm'
+  } = voucherData || {};
+
+  const is80mm = paperWidth === '80mm';
+  const widthMm = is80mm ? '72mm' : '48mm';
+  const pageSize = is80mm ? '80mm auto' : '58mm auto';
+
+  let dateObj = date instanceof Date ? date : new Date(date);
+  if (isNaN(dateObj.getTime())) dateObj = new Date();
+
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
+  const dateStr = `${day}/${month}/${year}`;
+
+  const hours = String(dateObj.getHours()).padStart(2, '0');
+  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+  const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+  const timeStr = `${hours}:${minutes}:${seconds}`;
+
+  const cleanVoucherNumber = String(receiptNumber || '').replace(/^[№#]\s*/, '') || Date.now().toString().slice(-4);
+
+  const receiptHtml = `
+    <!DOCTYPE html>
+    <html lang="az">
+    <head>
+      <meta charset="utf-8">
+      <title>Kassa Məxaric Qəbzi №${cleanVoucherNumber}</title>
+      <style>
+        @page {
+          size: ${pageSize};
+          margin: 0;
+        }
+        @media print {
+          html, body {
+            width: ${widthMm} !important;
+            max-width: ${widthMm} !important;
+            margin: 0 auto !important;
+            padding: ${is80mm ? '2mm 2mm 10mm 2mm' : '1.5mm 1mm 10mm 1mm'} !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print { display: none !important; }
+        }
+        * { box-sizing: border-box; word-break: break-word; }
+        body {
+          font-family: Arial, "Helvetica Neue", Helvetica, "Segoe UI", sans-serif;
+          width: ${widthMm};
+          max-width: ${widthMm};
+          margin: 0 auto;
+          padding: ${is80mm ? '3mm 2mm 12mm 2mm' : '2.5mm 1mm 12mm 1mm'};
+          color: #000;
+          background: #fff;
+          font-size: ${is80mm ? '11px' : '10px'};
+          line-height: 1.25;
+          -webkit-font-smoothing: antialiased;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .bold { font-weight: 700; }
+        .black { font-weight: 900; }
+        
+        .store-main-title {
+          font-size: ${is80mm ? '13px' : '11px'};
+          font-weight: 900;
+          letter-spacing: -0.2px;
+          text-transform: uppercase;
+        }
+        .badge {
+          display: block;
+          margin: 4px auto;
+          padding: 3px 6px;
+          background: #000;
+          color: #fff;
+          font-size: ${is80mm ? '11px' : '9.5px'};
+          font-weight: 900;
+          text-transform: uppercase;
+          border-radius: 2px;
+          letter-spacing: 0.5px;
+        }
+        .dashed-sep {
+          border-top: 1px dashed #000;
+          margin: 4px 0;
+        }
+        .solid-sep {
+          border-top: 1.5px solid #000;
+          margin: 5px 0;
+        }
+        .meta-line {
+          display: flex;
+          justify-content: space-between;
+          font-size: ${is80mm ? '10px' : '9px'};
+          line-height: 1.35;
+        }
+        .amount-box {
+          border: 1.5px solid #000;
+          padding: 6px 4px;
+          margin: 6px 0;
+          text-align: center;
+          border-radius: 3px;
+        }
+        .amount-val {
+          font-size: ${is80mm ? '18px' : '15px'};
+          font-weight: 900;
+        }
+        .sig-block {
+          margin-top: 10px;
+          font-size: ${is80mm ? '9.5px' : '8.5px'};
+          line-height: 1.5;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="text-center">
+        <div class="store-main-title">${escapeHtml(storeName)}</div>
+        <div style="font-size: 8.5px; color: #444; margin-top: 1px;">${escapeHtml(warehouseName)}</div>
+        <span class="badge">KASSA MƏXARİC QƏBZİ</span>
+      </div>
+
+      <div class="dashed-sep"></div>
+
+      <div class="meta-line">
+        <span>Order №:</span>
+        <span class="bold">#${escapeHtml(cleanVoucherNumber)}</span>
+      </div>
+      <div class="meta-line">
+        <span>Tarix / Vaxt:</span>
+        <span>${escapeHtml(dateStr)} ${escapeHtml(timeStr)}</span>
+      </div>
+      <div class="meta-line">
+        <span>Kassir / Təhvil verən:</span>
+        <span class="bold">${escapeHtml(cashierName)}</span>
+      </div>
+      <div class="meta-line">
+        <span>Məxaric mənbəyi:</span>
+        <span class="bold">${escapeHtml(paymentSource)}</span>
+      </div>
+
+      <div class="solid-sep"></div>
+
+      <div class="amount-box">
+        <div style="font-size: 9px; text-transform: uppercase; font-weight: 700; color: #444;">XƏRCLƏNƏN MƏBLƏĞ</div>
+        <div class="amount-val">-₼${Number(amount || 0).toFixed(2)}</div>
+      </div>
+
+      <div class="meta-line">
+        <span>Təyinat / Kateqoriya:</span>
+        <span class="bold">${escapeHtml(category)}</span>
+      </div>
+      <div class="meta-line">
+        <span>Xərcləyən / Şəxs:</span>
+        <span class="bold">${escapeHtml(recipient)}</span>
+      </div>
+      ${description ? `
+        <div style="font-size: 8.5px; color: #333; margin-top: 3px; line-height: 1.25;">
+          <strong>Qeyd / Təfsilat:</strong> ${escapeHtml(description)}
+        </div>
+      ` : ''}
+
+      <div class="dashed-sep"></div>
+
+      <div class="sig-block">
+        <div style="margin-bottom: 6px;">
+          Təhvil verdi (Kassir): ______________________
+        </div>
+        <div>
+          Təhvil aldı (${escapeHtml(recipient)}): ______________________
+        </div>
+      </div>
+
+      <div style="text-align: center; font-size: 7.5px; color: #666; margin-top: 10px;">
+        *** DAXİLİ TƏSƏRRÜFAT SƏNƏDİ ***
+      </div>
+
+      <div style="height: 10mm;">&nbsp;</div>
+
+      <script>
+        if (window.self === window.top) {
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 300);
+          };
+        }
+      </script>
+    </body>
+    </html>
+  `;
+
+  return printHtmlToThermal(receiptHtml);
 }
 
 function escapeHtml(str) {

@@ -342,6 +342,33 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     console.warn('Error fetching stock_dispatches for advance enrichment:', dispErr);
   }
 
+  // 5. Fetch store operating/personal expenses from business_expenses for the given date
+  let storeExpensesList = [];
+  let storeCashExpenses = 0;
+  let storeBankExpenses = 0;
+  try {
+    const { data: bExpData } = await supabase
+      .from('business_expenses')
+      .select('*')
+      .eq('user_id', userId)
+      .or(`expense_date.eq.${dateStr},and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()})`);
+
+    if (bExpData && bExpData.length > 0) {
+      storeExpensesList = bExpData;
+      bExpData.forEach(exp => {
+        const amt = Number(exp.amount || 0);
+        const desc = String(exp.description || '');
+        if (desc.includes('Bank') || desc.includes('Kart')) {
+          storeBankExpenses += amt;
+        } else {
+          storeCashExpenses += amt;
+        }
+      });
+    }
+  } catch (bExpErr) {
+    console.warn('Error fetching business_expenses for daily report:', bExpErr);
+  }
+
   // Separate valid sales from cancelled / deleted sales
   const validSalesList = [];
   const cancelledSalesList = [];
@@ -734,10 +761,16 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     totalCredit: Number(totalCredit.toFixed(2)),
     totalDebt: Number(totalDebt.toFixed(2)),
     totalDeposit: Number(totalDeposit.toFixed(2)),
-    totalExpense: Number(totalExpense.toFixed(2)),
+    totalExpense: Number((totalExpense > 0 ? totalExpense : (storeCashExpenses + storeBankExpenses)).toFixed(2)),
     totalSplit: Number(totalSplit.toFixed(2)),
-    totalOther: Number(totalExpense.toFixed(2)),
+    totalOther: Number((totalExpense > 0 ? totalExpense : (storeCashExpenses + storeBankExpenses)).toFixed(2)),
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
+
+    // Store Petty Cash Expenses & Net Cash Balance
+    storeExpenses: storeExpensesList,
+    storeCashExpenses: Number(storeCashExpenses.toFixed(2)),
+    storeBankExpenses: Number(storeBankExpenses.toFixed(2)),
+    netCashInHand: Number(Math.max(0, totalCash - storeCashExpenses).toFixed(2)),
 
     // Strict Security RBAC: null for non-admin roles (cashier, seller, manager)
     isAdmin,
