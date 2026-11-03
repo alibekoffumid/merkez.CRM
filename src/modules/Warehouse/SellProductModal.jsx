@@ -1072,7 +1072,6 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     { value: 'card', label: i18n.language === 'az' ? 'Kart' : i18n.language === 'ru' ? 'Карта' : 'Card' },
     { value: 'terminal', label: i18n.language === 'az' ? 'Terminal' : i18n.language === 'ru' ? 'Терминал' : 'Terminal' },
     { value: 'credit', label: i18n.language === 'az' ? 'Kredit (Hissə-hissə)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
-    { value: 'debt', label: i18n.language === 'az' ? 'Nisyə (Borc / Realizasiya)' : i18n.language === 'ru' ? 'В долг / Под реализацию' : 'Debt' },
     { value: 'birmarket', label: 'Birmarket' }
   ];
 
