@@ -36,6 +36,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   const [salePrice, setSalePrice] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [factoryPrice, setFactoryPrice] = useState('');
+  const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN'>('USD');
   const [stockQuantity, setStockQuantity] = useState('0');
   const [criticalStock, setCriticalStock] = useState('5');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -69,13 +70,20 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
 
     try {
       setSaving(true);
+      let formattedFactoryPrice = factoryPrice.trim();
+      if (formattedFactoryPrice) {
+        const cleanNum = formattedFactoryPrice.replace(/[₼$￥¥€\s]/g, '');
+        const sym = factoryCurrency === 'USD' ? '$' : factoryCurrency === 'UAN' ? '¥' : '₼';
+        formattedFactoryPrice = cleanNum ? `${sym}${cleanNum}` : formattedFactoryPrice;
+      }
+
       const newProd = await productService.saveProduct({
         name: name.trim(),
         barcode: barcode.trim() || article.trim() || undefined,
         category_id: selectedCategoryId || undefined,
         sale_price: parseFloat(salePrice) || 0,
         purchase_price: parseFloat(purchasePrice) || 0,
-        factory_price: factoryPrice.trim() || undefined,
+        factory_price: formattedFactoryPrice || undefined,
         stock_quantity: parseFloat(stockQuantity) || 0,
         critical_stock: parseFloat(criticalStock) || 5,
         unit: 'əd.',
@@ -186,13 +194,37 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
 
             {/* Prices */}
             <View style={styles.row}>
-              <View style={[styles.group, { flex: 1 }]}>
-                <Text style={styles.label}>Zavod qiyməti</Text>
+              <View style={[styles.group, { flex: 1.1 }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={styles.label}>Zavod qiyməti</Text>
+                  <View style={{ flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2 }}>
+                    {(['AZN', 'USD', 'UAN'] as const).map((curr) => {
+                      const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : '¥';
+                      const isSel = factoryCurrency === curr;
+                      return (
+                        <TouchableOpacity
+                          key={curr}
+                          onPress={() => setFactoryCurrency(curr)}
+                          style={{
+                            paddingHorizontal: 5,
+                            paddingVertical: 2,
+                            borderRadius: 4,
+                            backgroundColor: isSel ? '#FFFFFF' : 'transparent',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10, fontWeight: '700', color: isSel ? '#4F46E5' : '#6B7280' }}>
+                            {sym} {curr}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
                 <TextInput
                   style={styles.input}
                   value={factoryPrice}
                   onChangeText={setFactoryPrice}
-                  placeholder="məs. $25.00"
+                  placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : '¥'}25.00`}
                 />
               </View>
               <View style={[styles.group, { flex: 1 }]}>

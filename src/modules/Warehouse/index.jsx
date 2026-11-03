@@ -64,11 +64,16 @@ export const getFactoryPrice = (item, suppliers = []) => {
 
   if (!rawVal) return '';
 
+  const cleanNumber = rawVal.replace(/[₼$￥¥€\s]/g, '').trim();
+
+  // If rawVal explicitly contains a currency symbol, respect it directly
+  if (rawVal.includes('$')) return `$${cleanNumber}`;
+  if (rawVal.includes('¥') || rawVal.includes('￥')) return `¥${cleanNumber}`;
+  if (rawVal.includes('₼')) return `₼${cleanNumber}`;
+
   const sup = (suppliers || []).find(s => s.id === item.supplier_id);
   const supName = sup?.name || sup?.company_name || item.suppliers?.name || '';
   const currency = getSupplierCurrency(supName);
-
-  const cleanNumber = rawVal.replace(/[₼$￥¥€\s]/g, '').trim();
 
   if (currency) {
     const num = parseFloat(cleanNumber);

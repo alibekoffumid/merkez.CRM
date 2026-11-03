@@ -53,6 +53,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const [priceInput, setPriceInput] = useState(String(product.sale_price ?? product.price ?? 0));
   const [costInput, setCostInput] = useState(String(product.purchase_price ?? 0));
   const [factoryPriceInput, setFactoryPriceInput] = useState(String(product.factory_price ?? ''));
+  const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN'>('USD');
   const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
 
   useEffect(() => {
@@ -61,7 +62,23 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       setStockInput(String(product.stock_quantity ?? 0));
       setPriceInput(String(product.sale_price ?? product.price ?? 0));
       setCostInput(String(product.purchase_price ?? 0));
-      setFactoryPriceInput(String(product.factory_price ?? ''));
+
+      const fp = String(product.factory_price ?? '');
+      if (fp.includes('₼') || fp.toUpperCase().includes('AZN')) {
+        setFactoryCurrency('AZN');
+      } else if (
+        fp.includes('¥') ||
+        fp.includes('￥') ||
+        fp.toUpperCase().includes('UAN') ||
+        fp.toUpperCase().includes('CNY')
+      ) {
+        setFactoryCurrency('UAN');
+      } else if (fp.includes('$') || fp.toUpperCase().includes('USD')) {
+        setFactoryCurrency('USD');
+      }
+      const cleanFp = fp.replace(/[₼$￥¥€\s]/g, '').trim();
+      setFactoryPriceInput(cleanFp || fp);
+
       setAttributes(parseProductAttributes(product));
     }
   }, [product]);
@@ -107,13 +124,20 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
 
     try {
       setSaving(true);
+      let formattedFp = factoryPriceInput.trim();
+      if (formattedFp) {
+        const cleanNum = formattedFp.replace(/[₼$￥¥€\s]/g, '');
+        const sym = factoryCurrency === 'USD' ? '$' : factoryCurrency === 'UAN' ? '¥' : '₼';
+        formattedFp = cleanNum ? `${sym}${cleanNum}` : formattedFp;
+      }
+
       const updatedData: Partial<Product> = {
         id: product.id,
         name: isAdmin && trimmedName ? trimmedName : product.name,
         stock_quantity: parseFloat(stockInput) || 0,
         sale_price: parseFloat(priceInput) || 0,
         purchase_price: parseFloat(costInput) || 0,
-        factory_price: factoryPriceInput.trim(),
+        factory_price: formattedFp,
         description: product.description,
         attributes: cleanAttributesForSave(attributes),
       };
@@ -235,12 +259,37 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
             {canViewCostPrices && (
               <View style={styles.priceRow}>
                 <View style={styles.priceInputBox}>
-                  <Text style={styles.inputLabel}>Zavod qiyməti</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={styles.inputLabel}>Zavod qiyməti</Text>
+                    <View style={{ flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2 }}>
+                      {(['AZN', 'USD', 'UAN'] as const).map((curr) => {
+                        const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : '¥';
+                        const isSel = factoryCurrency === curr;
+                        return (
+                          <TouchableOpacity
+                            key={curr}
+                            disabled={!canManageProducts}
+                            onPress={() => setFactoryCurrency(curr)}
+                            style={{
+                              paddingHorizontal: 4,
+                              paddingVertical: 1,
+                              borderRadius: 4,
+                              backgroundColor: isSel ? '#FFFFFF' : 'transparent',
+                            }}
+                          >
+                            <Text style={{ fontSize: 9, fontWeight: '700', color: isSel ? '#4F46E5' : '#6B7280' }}>
+                              {sym} {curr}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
                   <TextInput
                     style={styles.textInput}
                     value={factoryPriceInput}
                     onChangeText={setFactoryPriceInput}
-                    placeholder="məs. $26.71"
+                    placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : '¥'}26.71`}
                     editable={canManageProducts}
                   />
                 </View>

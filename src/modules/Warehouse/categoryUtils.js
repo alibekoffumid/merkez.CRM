@@ -103,6 +103,19 @@ export const formatCategoriesHierarchically = (categories = [], excludeId = null
   return result;
 };
 
+export const CURRENCY_OPTIONS = [
+  { code: 'AZN', symbol: '₼', label: 'AZN (₼)' },
+  { code: 'USD', symbol: '$', label: 'USD ($)' },
+  { code: 'UAN', symbol: '¥', label: 'UAN (¥)' },
+];
+
+export const getCurrencySymbol = (code) => {
+  if (code === 'USD' || code === '$') return '$';
+  if (code === 'UAN' || code === 'CNY' || code === '¥' || code === '￥') return '¥';
+  if (code === 'AZN' || code === '₼') return '₼';
+  return '$';
+};
+
 export const getSupplierCurrency = (supplierName) => {
   if (!supplierName) return '';
   const norm = String(supplierName)
@@ -112,7 +125,7 @@ export const getSupplierCurrency = (supplierName) => {
     .replace(/ə/g, 'e');
 
   if (norm.includes('yerli')) return '₼';
-  if (norm.includes('lade')) return '￥';
+  if (norm.includes('lade')) return '¥';
   if (norm.includes('gidoo') || norm.includes('gido')) return '$';
   if (norm.includes('iran')) return '₼';
   if (norm.includes('aroma')) return '$';

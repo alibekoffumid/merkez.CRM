@@ -92,6 +92,7 @@ export class EscPosBuilder {
 
   init() {
     this.buffer.push(0x1B, 0x40); // ESC @
+    this.buffer.push(0x1B, 0x61, 0x00); // ESC a 0 (standard left alignment)
     return this;
   }
 
@@ -138,34 +139,43 @@ export class EscPosBuilder {
     return this;
   }
 
-  rasterQr(text: string, moduleScale = 4) {
+  rasterQr(text: string, paperWidthDots = 384, moduleScale = 4) {
     try {
       const qr = QRCode.create(text, { errorCorrectionLevel: 'M' });
       const size = qr.modules.size;
-      const margin = 2;
+      const margin = 1;
       const totalModules = size + margin * 2;
-      const pixelWidth = totalModules * moduleScale;
-      const pixelHeight = pixelWidth;
-      const bytesWidth = Math.ceil(pixelWidth / 8);
+      const qrPixelWidth = totalModules * moduleScale;
+      const qrPixelHeight = qrPixelWidth;
+
+      // Full paper width in bytes (e.g. 384 dots = 48 bytes for 58mm; 576 dots = 72 bytes for 80mm)
+      const bytesWidth = Math.ceil(paperWidthDots / 8);
+
+      // Horizontal offset in dots to mathematically center the QR code on physical paper
+      const leftMarginDots = Math.max(0, Math.floor((paperWidthDots - qrPixelWidth) / 2));
 
       const xL = bytesWidth % 256;
       const xH = Math.floor(bytesWidth / 256);
-      const yL = pixelHeight % 256;
-      const yH = Math.floor(pixelHeight / 256);
+      const yL = qrPixelHeight % 256;
+      const yH = Math.floor(qrPixelHeight / 256);
 
-      this.align('center');
+      // Explicitly set left alignment so the line starts exactly at dot 0
+      this.align('left');
       this.buffer.push(0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH);
 
-      for (let y = 0; y < pixelHeight; y++) {
+      for (let y = 0; y < qrPixelHeight; y++) {
         const modY = Math.floor(y / moduleScale) - margin;
         for (let bx = 0; bx < bytesWidth; bx++) {
           let byteVal = 0;
           for (let bit = 0; bit < 8; bit++) {
-            const x = bx * 8 + bit;
-            const modX = Math.floor(x / moduleScale) - margin;
-            if (modY >= 0 && modY < size && modX >= 0 && modX < size) {
-              if (qr.modules.get(modY, modX)) {
-                byteVal |= (1 << (7 - bit));
+            const dotX = bx * 8 + bit;
+            const qrX = dotX - leftMarginDots;
+            if (qrX >= 0 && qrX < qrPixelWidth) {
+              const modX = Math.floor(qrX / moduleScale) - margin;
+              if (modY >= 0 && modY < size && modX >= 0 && modX < size) {
+                if (qr.modules.get(modY, modX)) {
+                  byteVal |= (1 << (7 - bit));
+                }
               }
             }
           }
@@ -272,12 +282,61 @@ export function utf8ToBase64(str: string): string {
   return output;
 }
 
-// Monospace string padding helpers for plain-text fallback
-function padCenter(text: string, width: number): string {
-  if (text.length >= width) return text.slice(0, width);
-  const leftPad = Math.floor((width - text.length) / 2);
-  const rightPad = width - text.length - leftPad;
-  return ' '.repeat(leftPad) + text + ' '.repeat(rightPad);
+// Text wrapping and monospace padding helpers
+export function wrapText(text: string, maxWidth: number): string[] {
+  if (!text) return [];
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if (word.length > maxWidth) {
+      let remaining = word;
+      if (currentLine) {
+        const spaceLeft = maxWidth - currentLine.length - 1;
+        if (spaceLeft >= 6) {
+          currentLine += ' ' + remaining.slice(0, spaceLeft);
+          remaining = remaining.slice(spaceLeft);
+          lines.push(currentLine);
+          currentLine = '';
+        } else {
+          lines.push(currentLine);
+          currentLine = '';
+        }
+      }
+      while (remaining.length > maxWidth) {
+        lines.push(remaining.slice(0, maxWidth));
+        remaining = remaining.slice(maxWidth);
+      }
+      currentLine = remaining;
+    } else if (!currentLine) {
+      currentLine = word;
+    } else if (currentLine.length + 1 + word.length <= maxWidth) {
+      currentLine += ' ' + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+  return lines;
+}
+
+export function padCenter(text: string, width: number): string {
+  if (text.length >= width) return text;
+  const leftPad = Math.max(0, Math.floor((width - text.length) / 2));
+  return ' '.repeat(leftPad) + text;
+}
+
+function centerWrapped(builder: EscPosBuilder, text: string, width: number) {
+  const cleaned = cleanAzeriText(text);
+  const lines = wrapText(cleaned, width);
+  if (lines.length === 0) return;
+  for (const l of lines) {
+    builder.line(padCenter(l, width));
+  }
 }
 
 function padRow(left: string, right: string, width: number): string {
@@ -347,15 +406,20 @@ export const receiptService = {
 
     // Header
     lines.push(dividerDouble);
-    lines.push(padCenter(config.storeName || 'RAST MUSİQİ ALƏTLƏRİ MAĞAZASI', width));
+    wrapText(config.storeName || 'RAST MUSİQİ ALƏTLƏRİ MAĞAZASI', width).forEach((l) =>
+      lines.push(padCenter(l, width))
+    );
+    if (config.storeSubtitle) {
+      wrapText(config.storeSubtitle, width).forEach((l) => lines.push(padCenter(l, width)));
+    }
     if (config.storeAddress) {
-      lines.push(padCenter(config.storeAddress, width));
+      wrapText(config.storeAddress, width).forEach((l) => lines.push(padCenter(l, width)));
     }
     if (config.voen) {
-      lines.push(padCenter(`VÖEN: ${config.voen}`, width));
+      wrapText(`VÖEN: ${config.voen}`, width).forEach((l) => lines.push(padCenter(l, width)));
     }
     if (config.phone) {
-      lines.push(padCenter(`Tel: ${config.phone}`, width));
+      wrapText(`Tel: ${config.phone}`, width).forEach((l) => lines.push(padCenter(l, width)));
     }
     lines.push(dividerDouble);
 
@@ -378,14 +442,15 @@ export const receiptService = {
 
     data.items.forEach((item, idx) => {
       const isGift = Boolean(item.isGift);
-      lines.push(`${idx + 1}. ${isGift ? '[HƏDİYYƏ] ' : ''}${item.name}`);
+      const prefix = `${idx + 1}. ${isGift ? '[HƏDİYYƏ] ' : ''}`;
+      wrapText(`${prefix}${item.name}`, width).forEach((l) => lines.push(l));
       const priceVal = isGift ? 0 : Number(item.price);
       const totalVal = isGift ? 0 : Number(item.total);
       const qtyStr = `  ${item.quantity} ${item.unit || 'əd.'} x ${priceVal.toFixed(2)} ₼`;
       const totStr = `${totalVal.toFixed(2)} ₼`;
       lines.push(padRow(qtyStr, totStr, width));
       if (isGift) {
-        lines.push('  *** MAĞAZADAN HƏDİYYƏ (0.00 AZN) ***');
+        lines.push(padCenter('*** MAĞAZADAN HƏDİYYƏ (0.00 AZN) ***', width));
       }
     });
 
@@ -427,7 +492,7 @@ export const receiptService = {
 
     lines.push(dividerDouble);
     if (config.footerNote) {
-      lines.push(padCenter(config.footerNote, width));
+      wrapText(config.footerNote, width).forEach((l) => lines.push(padCenter(l, width)));
     }
     lines.push(padCenter('*** MERKEZ POS SİSTEMİ ***', width));
     lines.push('\n\n\n'); // blank feed for cutter
@@ -959,6 +1024,7 @@ export const receiptService = {
   formatReceiptEscPos(data: SaleReceiptData, config: PrinterConfig): Uint8Array {
     const is80mm = (data.paperWidth || config.paperWidth) === '80mm';
     const width = is80mm ? 48 : 32;
+    const paperWidthDots = is80mm ? 576 : 384;
     const dividerDouble = '='.repeat(width);
     const dividerSingle = '-'.repeat(width);
 
@@ -987,41 +1053,39 @@ export const receiptService = {
       builder.kickDrawer();
     }
 
-    // Header
-    builder.align('center');
+    // Top Header (Centered with spaces, keeping standard left alignment to prevent printer firmware offset bugs)
     builder.bold(true).doubleHeight(true);
-    builder.line(config.storeName || 'RAST MUSIQI ALETLERI MAGAZASI');
+    centerWrapped(builder, config.storeName || 'RAST MUSIQI ALETLERI MAGAZASI', width);
     builder.bold(false).doubleHeight(false);
 
     if (config.storeSubtitle) {
-      builder.line(config.storeSubtitle);
+      centerWrapped(builder, config.storeSubtitle, width);
     }
     if (config.storeAddress) {
-      builder.line(config.storeAddress);
+      centerWrapped(builder, config.storeAddress, width);
     }
     if (config.voen) {
-      builder.line(`VOEN: ${config.voen}`);
+      centerWrapped(builder, `VOEN: ${config.voen}`, width);
     }
     if (config.phone) {
-      builder.line(`Tel: ${config.phone}`);
+      centerWrapped(builder, `Tel: ${config.phone}`, width);
     }
 
-    builder.align('left');
     builder.line(dividerDouble);
 
     // Metadata
     const cleanId = String(data.receiptNumber || data.saleId).replace(/^SALE-/, '');
     builder.line(padRow(`SATIS CEKI: #${cleanId}`, '', width));
     builder.line(padRow('Tarix:', dateFormatted, width));
-    builder.line(padRow('Kassir:', data.cashierName || 'Kassir', width));
+    builder.line(padRow('Kassir:', cleanAzeriText(data.cashierName || 'Kassir'), width));
     if (data.warehouseName || config.filialName) {
-      builder.line(padRow('Filial:', data.warehouseName || config.filialName || '', width));
+      builder.line(padRow('Filial:', cleanAzeriText(data.warehouseName || config.filialName || ''), width));
     }
     if (data.clientName) {
-      builder.line(padRow('Musteri:', data.clientName, width));
+      builder.line(padRow('Musteri:', cleanAzeriText(data.clientName), width));
     }
     if (data.clientPhone) {
-      builder.line(padRow('Elaqe:', data.clientPhone, width));
+      builder.line(padRow('Elaqe:', cleanAzeriText(data.clientPhone), width));
     }
     builder.line(dividerSingle);
 
@@ -1031,17 +1095,21 @@ export const receiptService = {
     builder.bold(false);
     builder.line(dividerSingle);
 
-    // Items
+    // Items (wrapped cleanly if name exceeds width)
     data.items.forEach((item, idx) => {
       const isGift = Boolean(item.isGift);
-      builder.line(`${idx + 1}. ${isGift ? '[HEDIYYE] ' : ''}${item.name}`);
+      const prefix = `${idx + 1}. ${isGift ? '[HEDIYYE] ' : ''}`;
+      const fullName = cleanAzeriText(`${prefix}${item.name || 'Mehsul'}`);
+      const nameLines = wrapText(fullName, width);
+      nameLines.forEach((nl) => builder.line(nl));
+
       const priceVal = isGift ? 0 : Number(item.price);
       const totalVal = isGift ? 0 : Number(item.total);
-      const qtyStr = `  ${item.quantity} ${item.unit || 'ed.'} x ${priceVal.toFixed(2)} AZN`;
+      const qtyStr = `  ${item.quantity} ${cleanAzeriText(item.unit || 'ed.')} x ${priceVal.toFixed(2)} AZN`;
       const totStr = `${totalVal.toFixed(2)} AZN`;
       builder.line(padRow(qtyStr, totStr, width));
       if (isGift) {
-        builder.line('  *** MAGAZADAN HEDIYYE (0.00 AZN) ***');
+        builder.line(padCenter('*** MAGAZADAN HEDIYYE (0.00 AZN) ***', width));
       }
     });
 
@@ -1064,10 +1132,8 @@ export const receiptService = {
     // Credit details
     if (data.creditDetails) {
       builder.line(dividerSingle);
-      builder.align('center');
-      builder.line('KREDIT MELUMATLARI');
-      builder.align('left');
-      builder.line(padRow('Bank:', data.creditDetails.bank, width));
+      centerWrapped(builder, 'KREDIT MELUMATLARI', width);
+      builder.line(padRow('Bank:', cleanAzeriText(data.creditDetails.bank), width));
       builder.line(padRow('Muddet:', `${data.creditDetails.months} ay`, width));
       builder.line(padRow('Ayliq odenis:', `${Number(data.creditDetails.monthlyPayment).toFixed(2)} AZN`, width));
       builder.line(padRow('Muqavile cemi:', `${Number(data.creditDetails.contractTotal).toFixed(2)} AZN`, width));
@@ -1076,20 +1142,18 @@ export const receiptService = {
     // Deposit details
     if (data.depositDetails) {
       builder.line(dividerSingle);
-      builder.align('center');
-      builder.line('AVANS / BEH MELUMATLARI');
-      builder.align('left');
+      centerWrapped(builder, 'AVANS / BEH MELUMATLARI', width);
       builder.line(padRow('Umumi mebleg:', `${Number(data.total).toFixed(2)} AZN`, width));
       builder.line(padRow('Odenilen avans:', `${Number(data.depositDetails.advanceAmount).toFixed(2)} AZN`, width));
       if (data.depositDetails.advanceRecipient) {
-        builder.line(padRow('Avans alan:', data.depositDetails.advanceRecipient, width));
+        builder.line(padRow('Avans alan:', cleanAzeriText(data.depositDetails.advanceRecipient), width));
       }
       builder.line(padRow('Qaliq borc:', `${Number(data.depositDetails.remainingBalance).toFixed(2)} AZN`, width));
     }
 
     builder.line(dividerDouble);
 
-    // Fiscal QR Code
+    // Fiscal QR Code & Verification (centered with exact dot offset in raster and wrapped text)
     const cleanReceiptNumber = data.receiptNumber || `CH-${cleanId}`;
     const cleanTxId = data.transactionId || data.saleId;
     const qrPayload =
@@ -1098,17 +1162,20 @@ export const receiptService = {
         data.total
       ).toFixed(2)}&id=${encodeURIComponent(cleanTxId)}`;
 
-    builder.align('center');
-    builder.line('FISKAL / ELEKTRON CEK');
-    builder.rasterQr(qrPayload, is80mm ? 5 : 4);
-    builder.line(`ID: ${cleanTxId}`);
-    builder.line(`Fiskal / Qeydiyyat: ${cleanReceiptNumber}`);
+    centerWrapped(builder, 'FISKAL / ELEKTRON CEK', width);
+    builder.newLine(1);
+    builder.rasterQr(qrPayload, paperWidthDots, is80mm ? 5 : 4);
+    builder.newLine(1);
+    centerWrapped(builder, `ID: ${cleanTxId}`, width);
+    centerWrapped(builder, `Fiskal / Qeydiyyat: ${cleanReceiptNumber}`, width);
     builder.newLine(1);
     builder.bold(true);
-    builder.line('TICARETINIZ XEYIRLI OLSUN!');
+    centerWrapped(builder, 'TICARETINIZ XEYIRLI OLSUN!', width);
     builder.bold(false);
-    builder.line(config.footerNote || 'Bizi secdiyiniz ucun tesekkur edirik!');
-    builder.line('*** MERKEZ POS SISTEMI ***');
+    if (config.footerNote) {
+      centerWrapped(builder, config.footerNote, width);
+    }
+    centerWrapped(builder, '*** MERKEZ POS SISTEMI ***', width);
 
     if (config.autoCut !== false) {
       builder.feedAndCut();
