@@ -31,6 +31,19 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
   const [settings, setSettings] = useState(null);
   const [availableUnits, setAvailableUnits] = useState(['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2']);
   const [factoryCurrency, setFactoryCurrency] = useState('USD');
+  const [formData, setFormData] = useState({
+    name: '',
+    price: '',
+    purchase_price: '',
+    factory_price: '',
+    barcode: '',
+    category_id: '',
+    stock_quantity: '0',
+    critical_stock: '5',
+    supplier_id: '',
+    unit: 'pcs'
+  });
+  const [attributes, setAttributes] = useState([]);
   
   React.useEffect(() => {
     if (isOpen) {
@@ -78,20 +91,6 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       else if (curr === '$') setFactoryCurrency('USD');
     }
   }, [formData.supplier_id, suppliers]);
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    price: '',
-    purchase_price: '',
-    factory_price: '',
-    barcode: '',
-    category_id: '',
-    stock_quantity: '0',
-    critical_stock: '5',
-    supplier_id: '',
-    unit: 'pcs'
-  });
-  const [attributes, setAttributes] = useState([]);
 
   if (!isOpen) return null;
 
