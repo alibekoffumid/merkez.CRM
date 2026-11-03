@@ -10,7 +10,7 @@ export interface CreditSaleDetails {
   markupPercent: number;
 }
 
-export type POSPaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT';
+export type POSPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT';
 
 export interface ProcessSaleOptions {
   discountAmount?: number;
@@ -98,7 +98,7 @@ export const salesService = {
         saleDetailsNote += ` [Avans Alan: ${depositDetails.advanceRecipient}]`;
       }
     } else {
-      const methodLabel = paymentMethod === 'CASH' ? 'Nağd' : paymentMethod === 'CARD' ? 'Kartdan karta(Hesab)' : 'Köçürmə';
+      const methodLabel = paymentMethod === 'CASH' ? 'Nağd' : paymentMethod === 'CARD' ? 'Kart' : paymentMethod === 'TERMINAL' ? 'Terminal' : 'Köçürmə';
       saleDetailsNote = `POS Satış #${saleId} (Ödəniş: ${methodLabel})`;
     }
 

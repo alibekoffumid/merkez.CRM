@@ -88,9 +88,10 @@ export const translatePaymentMethodAz = (method) => {
       return 'Nağd';
     case 'card':
     case 'kart':
+      return 'Kart';
     case 'pos':
     case 'terminal':
-      return 'Kartdan karta(Hesab)';
+      return 'Terminal';
     case 'split':
       return 'Qarışıq (Bölünmüş)';
     case 'credit':
@@ -979,7 +980,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
           <span class="bold">${data.totalCash.toFixed(2)} AZN</span>
         </div>
         <div class="row">
-          <span>Kartdan karta(Hesab):</span>
+          <span>Kart / Terminal:</span>
           <span class="bold">${data.totalCard.toFixed(2)} AZN</span>
         </div>
         ${data.totalCredit > 0 ? `
@@ -1560,9 +1561,9 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             <div class="kpi-sub">Nağd ödənişlər</div>
           </div>
           <div class="kpi-card">
-            <div class="kpi-label">Kartdan karta(Hesab)</div>
+            <div class="kpi-label">Kart / Terminal</div>
             <div class="kpi-value">${data.totalCard.toFixed(2)} AZN</div>
-            <div class="kpi-sub">Kartdan karta köçürmə / POS</div>
+            <div class="kpi-sub">Kart və POS Terminal</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Çek / Əməliyyat Sayı</div>
@@ -1580,7 +1581,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
             <div class="payment-item-val">${data.totalCash.toFixed(2)} AZN</div>
           </div>
           <div class="payment-item">
-            <div class="payment-item-title">Kartdan karta(Hesab)</div>
+            <div class="payment-item-title">Kart / Terminal</div>
             <div class="payment-item-val">${data.totalCard.toFixed(2)} AZN</div>
           </div>
           <div class="payment-item">
@@ -2078,13 +2079,13 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
     doc.setFont('Roboto', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(75, 85, 99);
-    doc.text('KARTDAN KARTA', 114, 51);
+    doc.text('KART / TERMINAL', 114, 51);
     doc.setFontSize(12);
     doc.setTextColor(17, 24, 39);
     doc.text(`${data.totalCard.toFixed(2)} AZN`, 114, 57);
     doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text('Kartdan karta(Hesab)', 114, 62);
+    doc.text('Kart / Terminal', 114, 62);
 
     // Statistika
     doc.setFont('Roboto', 'bold');
@@ -2376,7 +2377,7 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       ['GÖSTƏRİCİ', 'MƏBLƏĞ / MİQDAR', 'VALYUTA / VAHİD'],
       ['Ümumi Dövriyyə (Cəmi Satış)', data.totalRevenue, 'AZN'],
       ['1. Nağd Satışlar (Nağd)', data.totalCash, 'AZN'],
-      ['2. Kartdan karta(Hesab) Satışlar', data.totalCard, 'AZN'],
+      ['2. Kart / Terminal Satışlar', data.totalCard, 'AZN'],
       ['3. Kredit Satışları (Kredit)', data.totalCredit, 'AZN'],
       ['4. Nisyə Satışlar (Nisyə / Borc)', data.totalDebt, 'AZN'],
       ['5. Beh / Avans (Beh)', data.totalDeposit, 'AZN'],

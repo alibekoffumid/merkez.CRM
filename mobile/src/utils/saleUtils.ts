@@ -111,8 +111,10 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
   const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
   if (payMatch) {
     const rawPay = payMatch[1].trim();
-    if (/kart/i.test(rawPay)) {
-      info.paymentMethod = 'Kartdan karta(Hesab)';
+    if (/terminal/i.test(rawPay)) {
+      info.paymentMethod = 'Terminal';
+    } else if (/kart/i.test(rawPay)) {
+      info.paymentMethod = 'Kart';
     } else if (/beh|avans/i.test(rawPay)) {
       info.paymentMethod = 'Beh (Avans)';
     } else {
@@ -126,8 +128,10 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
     info.paymentMethod = 'Beh (Avans)';
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
+  } else if (/terminal/i.test(note)) {
+    info.paymentMethod = 'Terminal';
   } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kartdan karta(Hesab)';
+    info.paymentMethod = 'Kart';
   } else if (/nəqd/i.test(note)) {
     info.paymentMethod = 'Nəqd';
   }

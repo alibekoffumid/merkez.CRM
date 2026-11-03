@@ -607,7 +607,8 @@ const WarehouseEfficiencyCharts = ({
       if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
         return 'Nağd';
       }
-      if (lower.includes('kart')) return 'Kartdan karta(Hesab)';
+      if (lower.includes('terminal')) return 'Terminal';
+      if (lower.includes('kart') || lower.includes('card')) return 'Kart';
       if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) return 'Köçürmə';
       if (lower.includes('kredit')) return 'Kredit';
       if (lower.includes('nisyə') || lower.includes('nisye') || lower.includes('borc')) return 'Nisyə';

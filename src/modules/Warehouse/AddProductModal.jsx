@@ -290,26 +290,28 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                       <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
                         {t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}
                       </label>
-                      <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm overflow-hidden">
-                        <div className="relative flex items-center shrink-0 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors">
-                          <select
-                            value={factoryCurrency}
-                            onChange={(e) => setFactoryCurrency(e.target.value)}
-                            className="appearance-none bg-transparent pl-3 pr-7 py-3 text-xs font-black text-gray-700 cursor-pointer focus:outline-none"
-                            title="Valyutanı seçin"
-                          >
-                            {CURRENCY_OPTIONS.map((c) => (
-                              <option key={c.code} value={c.code} className="text-sm font-bold">
-                                {c.symbol} {c.code}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="w-3.5 h-3.5 text-gray-500 absolute right-2 pointer-events-none" />
-                        </div>
+                      <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm">
+                        <Dropdown
+                          value={factoryCurrency}
+                          onChange={(val) => setFactoryCurrency(val)}
+                          menuWidth={130}
+                          trigger={
+                            <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 rounded-l-xl transition-colors select-none cursor-pointer">
+                              <span className="text-xs font-black text-gray-800">
+                                {getCurrencySymbol(factoryCurrency)} {factoryCurrency}
+                              </span>
+                              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+                            </div>
+                          }
+                          options={CURRENCY_OPTIONS.map((c) => ({
+                            value: c.code,
+                            label: `${c.symbol} ${c.code}`
+                          }))}
+                        />
                         <input
                           type="text"
                           placeholder="0.00"
-                          className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
+                          className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900 rounded-r-xl"
                           value={formData.factory_price}
                           onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
                         />

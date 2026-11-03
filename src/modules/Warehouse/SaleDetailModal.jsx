@@ -193,8 +193,10 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     info.paymentMethod = 'Kredit';
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
+  } else if (/terminal/i.test(note)) {
+    info.paymentMethod = 'Terminal';
   } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kartdan karta(Hesab)';
+    info.paymentMethod = 'Kart';
   } else {
     info.paymentMethod = 'Nağd';
   }

@@ -397,7 +397,8 @@ export const receiptService = {
 
     let payTitle = 'Nağd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
-    if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kartdan karta(Hesab)';
+    if (lowerPay.includes('terminal')) payTitle = 'Terminal';
+    else if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kart';
     else if (lowerPay.includes('transfer') || lowerPay.includes('köçürmə')) payTitle = 'Köçürmə';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
     else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';
@@ -570,9 +571,12 @@ export const receiptService = {
     let paidLabel = 'nağd';
     const lowerMethod = String(data.paymentMethod || '').toLowerCase();
 
-    if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
-      paymentTitle = 'Kartdan karta(Hesab)';
-      paidLabel = 'kartdan karta';
+    if (lowerMethod.includes('terminal')) {
+      paymentTitle = 'Terminal';
+      paidLabel = 'terminal';
+    } else if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
+      paymentTitle = 'Kart';
+      paidLabel = 'kart';
     } else if (lowerMethod.includes('deposit') || lowerMethod.includes('beh') || lowerMethod.includes('avans')) {
       paymentTitle = 'Beh (Avans)';
       paidLabel = 'avans';
@@ -1041,7 +1045,8 @@ export const receiptService = {
 
     let payTitle = 'Nagd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
-    if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kartdan karta';
+    if (lowerPay.includes('terminal')) payTitle = 'Terminal';
+    else if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kart';
     else if (lowerPay.includes('transfer') || lowerPay.includes('kocurme')) payTitle = 'Kocurme';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
     else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';

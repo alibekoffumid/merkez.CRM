@@ -97,9 +97,12 @@ export function printThermalReceipt57mm(saleData) {
   let paidLabel = 'nağd';
   const lowerMethod = String(paymentMethod || '').toLowerCase();
 
-  if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
-    paymentTitle = 'Kartdan karta(Hesab)';
-    paidLabel = 'kartdan karta';
+  if (lowerMethod.includes('terminal')) {
+    paymentTitle = 'Terminal';
+    paidLabel = 'terminal';
+  } else if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
+    paymentTitle = 'Kart';
+    paidLabel = 'kart';
   } else if (lowerMethod.includes('deposit') || lowerMethod.includes('beh') || lowerMethod.includes('avans')) {
     paymentTitle = 'Beh (Avans)';
     paidLabel = 'avans';

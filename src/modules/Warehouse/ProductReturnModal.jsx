@@ -198,7 +198,7 @@ const ProductReturnModal = ({
       setOperationType('refund');
       setSelectedReasonId('wrong_product');
       setCustomReasonText('');
-      setRefundMethod(saleInfo.paymentMethod === 'Kart' || saleInfo.paymentMethod === 'Kartdan karta(Hesab)' ? 'card' : 'cash');
+      setRefundMethod(saleInfo.paymentMethod === 'Kart' || saleInfo.paymentMethod === 'Kartdan karta(Hesab)' || saleInfo.paymentMethod === 'Terminal' ? 'card' : 'cash');
       setRestoreStock(true);
       setMarkAsDamaged(false);
       setStaffNote('');

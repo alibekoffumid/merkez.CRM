@@ -52,6 +52,7 @@ interface DropdownProps {
   disabled?: boolean;
   multiple?: boolean;
   noTruncate?: boolean;
+  menuWidth?: number;
 }
 
 const normalizeDropdownStr = (str: any) => {
@@ -84,7 +85,8 @@ const Dropdown: React.FC<DropdownProps> = ({
   searchPlaceholder,
   disabled = false,
   multiple = false,
-  noTruncate = false
+  noTruncate = false,
+  menuWidth
 }) => {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -141,7 +143,7 @@ const Dropdown: React.FC<DropdownProps> = ({
       const spaceAbove = rect.top;
       const shouldOpenTop = position === 'top' || (position === 'auto' && spaceBelow < 250 && spaceAbove > spaceBelow);
       
-      const minMenuWidth = Math.max(rect.width, 220);
+      const minMenuWidth = menuWidth || Math.max(rect.width, 220);
       let calculatedLeft = rect.left;
       if (calculatedLeft + minMenuWidth > window.innerWidth - 16) {
         calculatedLeft = Math.max(16, window.innerWidth - minMenuWidth - 16);

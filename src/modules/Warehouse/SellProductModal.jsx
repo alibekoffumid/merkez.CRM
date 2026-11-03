@@ -840,6 +840,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
         const payName = paymentMethod === 'cash' ? 'Nağd' :
           paymentMethod === 'card' ? 'Kart' :
+          paymentMethod === 'terminal' ? 'Terminal' :
           paymentMethod === 'debt' ? 'Nisyə' :
           paymentMethod === 'deposit' ? 'Beh' :
           paymentMethod === 'credit' ? 'Kredit' : paymentMethod;
@@ -1068,7 +1069,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   const paymentMethods = [
     { value: 'cash', label: i18n.language === 'az' ? 'Nağd' : i18n.language === 'ru' ? 'Наличные' : 'Cash' },
-    { value: 'card', label: 'Kartdan karta(Hesab)' },
+    { value: 'card', label: i18n.language === 'az' ? 'Kart' : i18n.language === 'ru' ? 'Карта' : 'Card' },
+    { value: 'terminal', label: i18n.language === 'az' ? 'Terminal' : i18n.language === 'ru' ? 'Терминал' : 'Terminal' },
     { value: 'credit', label: i18n.language === 'az' ? 'Kredit (Hissə-hissə)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
     { value: 'debt', label: i18n.language === 'az' ? 'Nisyə (Borc / Realizasiya)' : i18n.language === 'ru' ? 'В долг / Под реализацию' : 'Debt' },
     { value: 'birmarket', label: 'Birmarket' }
@@ -1153,7 +1155,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                     />
                   </div>
 
-                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'debt') && (
+                  {(paymentMethod === 'cash' || paymentMethod === 'card' || paymentMethod === 'terminal' || paymentMethod === 'debt') && (
                     <div>
                       <div className="flex items-center justify-between mb-2 px-1">
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
@@ -1907,9 +1909,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                 <span className="font-bold text-gray-900">
                   {completedSaleReceipt.paymentMethod === 'cash' ? (i18n.language === 'az' ? 'Nağd' : 'Наличные')
                     : completedSaleReceipt.paymentMethod === 'card' ? (i18n.language === 'az' ? 'Kart' : 'Карта')
+                    : completedSaleReceipt.paymentMethod === 'terminal' ? (i18n.language === 'az' ? 'Terminal' : 'Терминал')
                     : completedSaleReceipt.paymentMethod === 'credit' ? (i18n.language === 'az' ? 'Kredit' : 'Кредит')
                     : completedSaleReceipt.paymentMethod === 'debt' ? (i18n.language === 'az' ? 'Nisyə' : 'В долг')
-                    : 'Birmarket'}
+                    : completedSaleReceipt.paymentMethod === 'birmarket' ? 'Birmarket'
+                    : completedSaleReceipt.paymentMethod}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm font-black text-gray-900 pt-2 border-t border-gray-200">

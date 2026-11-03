@@ -227,7 +227,9 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         paymentMethod === 'CASH'
           ? 'Nağd'
           : paymentMethod === 'CARD'
-          ? 'Kartdan karta(Hesab)'
+          ? 'Kart'
+          : paymentMethod === 'TERMINAL'
+          ? 'Terminal'
           : paymentMethod === 'TRANSFER'
           ? 'Köçürmə'
           : paymentMethod === 'DEPOSIT'
@@ -503,7 +505,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         {/* Footer Checkout Panel */}
         {cart.length > 0 && (
           <View style={styles.footer}>
-            {/* 5 Payment Methods: Nəğd | Kartdan karta | Beh | Köçürmə | Kredit */}
+            {/* Payment Methods: Nəğd | Kart | Terminal | Beh | Köçürmə | Kredit */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.methodTabs}>
               <TouchableOpacity
                 style={[styles.methodTab, paymentMethod === 'CASH' && styles.methodTabActive]}
@@ -531,7 +533,22 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     paymentMethod === 'CARD' && styles.methodTabTextActive,
                   ]}
                 >
-                  Kartdan karta
+                  Kart
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.methodTab, paymentMethod === 'TERMINAL' && styles.methodTabActive]}
+                onPress={() => setPaymentMethod('TERMINAL')}
+              >
+                <CreditCard size={15} color={paymentMethod === 'TERMINAL' ? '#10B981' : '#6B7280'} />
+                <Text
+                  style={[
+                    styles.methodTabText,
+                    paymentMethod === 'TERMINAL' && styles.methodTabTextActive,
+                  ]}
+                >
+                  Terminal
                 </Text>
               </TouchableOpacity>
 
