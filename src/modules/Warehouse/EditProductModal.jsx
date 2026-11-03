@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Save, Image as ImageIcon, Upload, Loader2, Trash2, Pencil } from 'lucide-react';
+import { X, Save, Image as ImageIcon, Upload, Loader2, Trash2, Pencil, ChevronDown } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
@@ -346,49 +346,47 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                 {canSeeCostAndFactoryPrices && (
                   <>
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">
-                          ZAVOD QİYMƏTİ
-                        </label>
-                        <div className="inline-flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
-                          {CURRENCY_OPTIONS.map((c) => (
-                            <button
-                              key={c.code}
-                              type="button"
-                              onClick={() => setFactoryCurrency(c.code)}
-                              className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all ${
-                                factoryCurrency === c.code
-                                  ? 'bg-white text-merkez-blue shadow-sm font-black'
-                                  : 'text-gray-500 hover:text-gray-800'
-                              }`}
-                              title={`${c.code} (${c.symbol})`}
-                            >
-                              {c.symbol} {c.code}
-                            </button>
-                          ))}
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                        {t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}
+                      </label>
+                      <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm overflow-hidden">
+                        <div className="relative flex items-center shrink-0 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors">
+                          <select
+                            value={factoryCurrency}
+                            onChange={(e) => setFactoryCurrency(e.target.value)}
+                            className="appearance-none bg-transparent pl-3 pr-7 py-3 text-xs font-black text-gray-700 cursor-pointer focus:outline-none"
+                            title="Valyutanı seçin"
+                          >
+                            {CURRENCY_OPTIONS.map((c) => (
+                              <option key={c.code} value={c.code} className="text-sm font-bold">
+                                {c.symbol} {c.code}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-3.5 h-3.5 text-gray-500 absolute right-2 pointer-events-none" />
                         </div>
-                      </div>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600 text-sm font-bold select-none">
-                          {getCurrencySymbol(factoryCurrency)}
-                        </span>
                         <input
                           type="text"
-                          placeholder={`${getCurrencySymbol(factoryCurrency)} 0.00`}
-                          className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm font-bold text-gray-900"
+                          placeholder="0.00"
+                          className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
                           value={formData.factory_price}
                           onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPurchasePrice')}</label>
-                      <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">₼</span>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                        {t('warehouse.thPurchasePrice')}
+                      </label>
+                      <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm overflow-hidden">
+                        <span className="flex items-center justify-center px-3.5 py-3 text-xs font-black text-gray-400 border-r border-gray-200/70 bg-gray-100/50 select-none">
+                          ₼
+                        </span>
                         <input
                           type="number"
                           step="0.01"
-                          className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
+                          placeholder="0.00"
+                          className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
                           value={formData.purchase_price}
                           onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                         />
@@ -397,14 +395,19 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
                   </>
                 )}
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thPrice')}</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-merkez-blue text-sm font-bold">₼</span>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                    {t('warehouse.thPrice')}
+                  </label>
+                  <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm overflow-hidden">
+                    <span className="flex items-center justify-center px-3.5 py-3 text-xs font-black text-merkez-blue border-r border-gray-200/70 bg-gray-100/50 select-none">
+                      ₼
+                    </span>
                     <input
                       type="number"
                       step="0.01"
                       required
-                      className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-bold text-merkez-blue shadow-sm"
+                      placeholder="0.00"
+                      className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-merkez-blue"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     />
