@@ -109,8 +109,10 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
   const uploadImage = async (file) => {
     try {
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+      const extMatch = String(file?.name || '').match(/\.([a-zA-Z0-9]+)$/);
+      const fileExt = extMatch && ALLOWED_EXTS.includes(extMatch[1].toLowerCase()) ? extMatch[1].toLowerCase() : 'jpg';
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
       const filePath = `products/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
