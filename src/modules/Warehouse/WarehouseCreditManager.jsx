@@ -680,6 +680,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
                       <option value="Kapital Kredit 35">Kapital Kredit 35</option>
                       <option value="Ferrum Standart">Ferrum Standart</option>
                       <option value="Ferrum Fast">Ferrum Fast</option>
+                      <option value="Ferrum DTI">Ferrum DTI</option>
                       <option value="Digər">Digər / Daxili Kredit</option>
                     </select>
                   </div>

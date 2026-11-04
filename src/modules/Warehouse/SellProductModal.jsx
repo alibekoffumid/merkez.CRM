@@ -275,6 +275,16 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     }
   }, [selectedBank, bankSettings]);
 
+  useEffect(() => {
+    const months = bankSettings.length > 0
+      ? Array.from(new Set(bankSettings.filter(s => s.bank_name.toLowerCase() === splitCreditBank.toLowerCase()).map(s => s.months))).sort((a, b) => a - b)
+      : Object.keys(BANK_RATES[splitCreditBank] || {}).map(Number).sort((a, b) => a - b);
+
+    if (months.length > 0 && !months.includes(splitCreditMonths)) {
+      setSplitCreditMonths(months[0]);
+    }
+  }, [splitCreditBank, bankSettings]);
+
   const fetchCategories = async () => {
     if (!profile?.id) return;
     const { data } = await supabase
@@ -650,6 +660,11 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const activeMonths = selectedBankSettings.length > 0
     ? Array.from(new Set(selectedBankSettings.map(s => s.months))).sort((a, b) => a - b)
     : Object.keys(BANK_RATES[selectedBank] || {}).map(Number).sort((a, b) => a - b);
+
+  const splitBankSettings = bankSettings.filter(s => s.bank_name.toLowerCase() === splitCreditBank.toLowerCase());
+  const splitActiveMonths = splitBankSettings.length > 0
+    ? Array.from(new Set(splitBankSettings.map(s => s.months))).sort((a, b) => a - b)
+    : Object.keys(BANK_RATES[splitCreditBank] || {}).map(Number).sort((a, b) => a - b);
 
   const rawBasePrice = (Number(basePriceInput) || 0) + (Number(extraMarkup) || 0);
   const numDownpayment = (paymentMethod === 'credit' && downpaymentAmount) ? (parseFloat(downpaymentAmount) || 0) : 0;
@@ -1486,14 +1501,16 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                                 <Dropdown
                                   value={splitCreditBank}
                                   onChange={(val) => setSplitCreditBank(val)}
-                                  menuWidth={140}
+                                  menuWidth={170}
                                   buttonClassName="w-full rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-100 shadow-sm"
                                   options={[
+                                    { value: 'ABB Kredit', label: 'ABB Kredit' },
                                     { value: 'Birkart', label: 'Birkart' },
                                     { value: 'Tamkart', label: 'Tamkart' },
-                                    { value: 'ABB Kredit', label: 'ABB Kredit' },
                                     { value: 'Kapital Kredit 35', label: 'Kapital Kredit 35' },
-                                    { value: 'Ferrum Standart', label: 'Ferrum Standart' }
+                                    { value: 'Ferrum Standart', label: 'Ferrum Standart' },
+                                    { value: 'Ferrum Fast', label: 'Ferrum Fast' },
+                                    { value: 'Ferrum DTI', label: 'Ferrum DTI' }
                                   ]}
                                 />
                               </div>
@@ -1506,15 +1523,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                                   onChange={(val) => setSplitCreditMonths(Number(val))}
                                   menuWidth={110}
                                   buttonClassName="w-full rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-100 shadow-sm"
-                                  options={[
-                                    { value: 2, label: '2 ay' },
-                                    { value: 3, label: '3 ay' },
-                                    { value: 6, label: '6 ay' },
-                                    { value: 9, label: '9 ay' },
-                                    { value: 12, label: '12 ay' },
-                                    { value: 18, label: '18 ay' },
-                                    { value: 24, label: '24 ay' }
-                                  ]}
+                                  options={(splitActiveMonths.length > 0 ? splitActiveMonths : [2, 3, 6, 9, 12, 18, 24]).map(m => ({
+                                    value: m,
+                                    label: `${m} ay`
+                                  }))}
                                 />
                               </div>
                             </div>
