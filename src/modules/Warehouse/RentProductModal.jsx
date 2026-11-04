@@ -26,6 +26,8 @@ import { supabase } from '../../supabaseClient';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
+import DatePicker from '../../components/Common/DatePicker';
+import Dropdown from '../../components/Common/Dropdown';
 import { rentalService } from '../../services/rentalService';
 
 const RentProductModal = ({
@@ -168,7 +170,6 @@ const RentProductModal = ({
       return;
     }
 
-    // Required checks
     if (!clientName.trim()) {
       toast.error(i18n.language === 'az' ? 'Müştərinin Ad və Soyadını qeyd edin!' : 'Укажите Имя и Фамилию клиента!');
       return;
@@ -209,7 +210,6 @@ const RentProductModal = ({
 
       const createdRentals = [];
 
-      // Create a rental entry for each selected product
       for (const prod of selectedProducts) {
         const itemDeposit = Number(prod.price || prod.selling_price || 0);
         const itemRentalFee = selectedProducts.length === 1 ? Number(rentalFee) || 0 : Math.round(((Number(rentalFee) || 0) / selectedProducts.length) * 100) / 100;
@@ -259,62 +259,79 @@ const RentProductModal = ({
     }
   };
 
+  const paymentOptions = [
+    { value: 'Nağd', label: i18n.language === 'az' ? 'Nağd (Kassa)' : 'Наличные' },
+    { value: 'Kart / Terminal', label: i18n.language === 'az' ? 'Kart / Terminal' : 'Карта / Терминал' },
+    { value: 'Bank Köçürməsi', label: i18n.language === 'az' ? 'Bank Köçürməsi' : 'Банковский перевод' },
+  ];
+
   return (
     <ModalPortal>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
-        <div className="relative w-full max-w-4xl bg-white dark:bg-[#0f111a] rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-200">
+      <div 
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-950/60 backdrop-blur-sm animate-in fade-in duration-200 p-3 sm:p-4"
+        onClick={onClose}
+      >
+        <div 
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
           
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-indigo-900 via-indigo-800 to-blue-900 text-white">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/10 shadow-inner">
-                <KeyRound className="w-5 h-5 text-indigo-300" />
+          {/* Platform Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-indigo-500/10 via-blue-500/5 to-transparent shrink-0">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <KeyRound className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-black tracking-tight">
-                  {i18n.language === 'az' ? 'Məhsulu İcarəyə Ver' : i18n.language === 'ru' ? 'Сдать товар в аренду' : 'Rent Out Product'}
-                </h3>
-                <p className="text-xs text-indigo-200 font-medium">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-black text-gray-900 tracking-tight">
+                    {i18n.language === 'az' ? 'MƏHSULU İCARƏYƏ VER' : 'СДАТЬ ТОВАР В АРЕНДУ'}
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 border border-indigo-200">
+                    {selectedProducts.length} {i18n.language === 'az' ? 'məhsul' : 'тов.'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
                   {i18n.language === 'az' 
-                    ? `Seçilmiş ${selectedProducts.length} məhsul üçün icarə və girov qeydiyyatı` 
-                    : `Оформление аренды и залога для ${selectedProducts.length} товаров`}
+                    ? 'Müştəri məlumatları, girov (depozit) və foto təhvil aktının rəsmiləşdirilməsi' 
+                    : 'Оформление аренды: паспортные данные, депозит и фиксация состояния'}
                 </p>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all"
+              className="w-10 h-10 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-colors border border-gray-200"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 max-h-[80vh] overflow-y-auto space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
 
             {/* 1. Selected Products Banner */}
-            <div className="p-4 bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-black uppercase text-indigo-700 dark:text-indigo-400 tracking-wider flex items-center gap-1.5">
+            <div className="p-4 bg-indigo-50/60 border border-indigo-100 rounded-2xl">
+              <div className="flex items-center justify-between mb-2.5">
+                <span className="text-[11px] font-black uppercase text-indigo-700 tracking-wider flex items-center gap-1.5">
                   <Package className="w-4 h-4" />
                   {i18n.language === 'az' ? 'İcarəyə Verilən Məhsullar' : 'Сдаваемые товары'} ({selectedProducts.length})
                 </span>
                 <span className="text-xs font-bold text-gray-500">
                   {i18n.language === 'az' ? 'Ümumi Dəyər (Girov):' : 'Общая стоимость (Залог):'}{' '}
-                  <strong className="text-indigo-600 dark:text-indigo-300 text-sm">₼{totalRetailPrice.toFixed(2)}</strong>
+                  <strong className="text-indigo-600 text-sm font-black">₼{totalRetailPrice.toFixed(2)}</strong>
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-36 overflow-y-auto pr-1">
                 {selectedProducts.map((p, idx) => (
-                  <div key={p.id || idx} className="flex items-center justify-between p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-xs">
+                  <div key={p.id || idx} className="flex items-center justify-between p-3 bg-white rounded-xl border border-indigo-100/80 shadow-2xs text-xs">
                     <div className="flex-1 min-w-0 pr-2">
-                      <p className="font-bold text-gray-800 dark:text-gray-100 truncate">{p.name}</p>
-                      <p className="text-[11px] text-gray-400 font-mono">{p.barcode || 'Barkodsuz'}</p>
+                      <p className="font-bold text-gray-900 truncate">{p.name}</p>
+                      <p className="text-[11px] text-gray-400 font-mono mt-0.5">{p.barcode || 'Barkodsuz'}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="font-black text-gray-900 dark:text-white">₼{(p.price || p.selling_price || 0).toFixed(2)}</span>
+                      <span className="font-black text-gray-900 text-sm">₼{(p.price || p.selling_price || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -322,17 +339,17 @@ const RentProductModal = ({
             </div>
 
             {/* 2. Customer Information (Mandatory) */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                <User className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <h4 className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200">
+            <div className="bg-gray-50/60 p-5 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-200/60 pb-2.5">
+                <User className="w-4 h-4 text-indigo-600" />
+                <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-600">
                   {i18n.language === 'az' ? 'Müştəri Məlumatları (Məcburidir)' : 'Данные клиента (Обязательно)'}
                 </h4>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                     {i18n.language === 'az' ? 'Ad və Soyad' : 'Имя и Фамилия'} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -341,12 +358,12 @@ const RentProductModal = ({
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Məs: Əli Məmmədov"
-                    className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white"
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 outline-none font-semibold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 transition-all text-gray-900"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                     {i18n.language === 'az' ? 'Əlaqə Nömrəsi' : 'Номер телефона'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -357,13 +374,13 @@ const RentProductModal = ({
                       value={clientPhone}
                       onChange={(e) => setClientPhone(e.target.value)}
                       placeholder="+994 50 123 45 67"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white font-mono"
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 outline-none font-semibold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 transition-all text-gray-900 font-mono"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                     {i18n.language === 'az' ? 'Şəxsiyyət Vəsiqəsi Seriya və №' : 'Серия и номер паспорта'} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -374,13 +391,13 @@ const RentProductModal = ({
                       value={clientIdSerial}
                       onChange={(e) => setClientIdSerial(e.target.value.toUpperCase())}
                       placeholder="AZE 12345678 və ya AA"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white font-mono uppercase"
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 outline-none font-semibold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 transition-all text-gray-900 font-mono uppercase"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                     {i18n.language === 'az' ? 'FİN Kod (7 simvol)' : 'FIN-код (7 знаков)'} <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -390,33 +407,33 @@ const RentProductModal = ({
                     value={clientFin}
                     onChange={(e) => setClientFin(e.target.value.toUpperCase())}
                     placeholder="Məs: 7ABC123"
-                    className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-gray-900 dark:text-white font-mono uppercase tracking-widest"
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 outline-none font-semibold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 transition-all text-gray-900 font-mono uppercase tracking-widest"
                   />
                 </div>
               </div>
             </div>
 
             {/* 3. Media Upload Section (ID Photos & Tool Condition Photo/Video) */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
-                <Camera className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <h4 className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200">
+            <div className="bg-gray-50/60 p-5 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-200/60 pb-2.5">
+                <Camera className="w-4 h-4 text-indigo-600" />
+                <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-600">
                   {i18n.language === 'az' ? 'Foto & Video Təsdiqlər (Məcburidir)' : 'Фото и видео фиксация (Обязательно)'}
                 </h4>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Passport Front */}
-                <div className="p-3.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                    <span className="text-xs font-bold text-gray-700">
                       {i18n.language === 'az' ? 'Şəxsiyyət Vəsiqəsi (Ön tərəfi)' : 'Паспорт (Лицевая сторона)'} <span className="text-red-500">*</span>
                     </span>
                     {idPhotoFront && <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Yükləndi</span>}
                   </div>
 
                   {idPhotoFront ? (
-                    <div className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-black">
+                    <div className="relative group aspect-video rounded-xl overflow-hidden border border-gray-200 bg-black">
                       <img src={idPhotoFront} alt="Passport Front" className="w-full h-full object-cover" />
                       <button
                         type="button"
@@ -432,7 +449,7 @@ const RentProductModal = ({
                       type="button"
                       disabled={uploadingFront}
                       onClick={() => frontInputRef.current?.click()}
-                      className="w-full aspect-video border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-lg flex flex-col items-center justify-center gap-2 bg-white dark:bg-gray-800/50 hover:bg-indigo-50/30 transition-all text-gray-500 hover:text-indigo-600"
+                      className="w-full aspect-video border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl flex flex-col items-center justify-center gap-2 bg-gray-50/50 hover:bg-indigo-50/30 transition-all text-gray-500 hover:text-indigo-600"
                     >
                       {uploadingFront ? (
                         <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
@@ -456,16 +473,16 @@ const RentProductModal = ({
                 </div>
 
                 {/* Passport Back */}
-                <div className="p-3.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-2xs">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                    <span className="text-xs font-bold text-gray-700">
                       {i18n.language === 'az' ? 'Şəxsiyyət Vəsiqəsi (Arxa tərəfi)' : 'Паспорт (Обратная сторона)'}
                     </span>
                     {idPhotoBack && <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3.5 h-3.5" /> Yükləndi</span>}
                   </div>
 
                   {idPhotoBack ? (
-                    <div className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-black">
+                    <div className="relative group aspect-video rounded-xl overflow-hidden border border-gray-200 bg-black">
                       <img src={idPhotoBack} alt="Passport Back" className="w-full h-full object-cover" />
                       <button
                         type="button"
@@ -481,7 +498,7 @@ const RentProductModal = ({
                       type="button"
                       disabled={uploadingBack}
                       onClick={() => backInputRef.current?.click()}
-                      className="w-full aspect-video border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-lg flex flex-col items-center justify-center gap-2 bg-white dark:bg-gray-800/50 hover:bg-indigo-50/30 transition-all text-gray-500 hover:text-indigo-600"
+                      className="w-full aspect-video border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl flex flex-col items-center justify-center gap-2 bg-gray-50/50 hover:bg-indigo-50/30 transition-all text-gray-500 hover:text-indigo-600"
                     >
                       {uploadingBack ? (
                         <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
@@ -506,14 +523,14 @@ const RentProductModal = ({
               </div>
 
               {/* Tool Photo/Video Before Handover */}
-              <div className="p-4 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 rounded-xl space-y-3">
+              <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h5 className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                    <h5 className="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
                       <Video className="w-4 h-4 text-amber-600" />
                       {i18n.language === 'az' ? 'Alətin / Məhsulun Cari Vəziyyəti (Foto və ya Video)' : 'Текущее состояние инструмента (Фото или Видео)'} <span className="text-red-500">*</span>
                     </h5>
-                    <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                    <p className="text-[11px] text-amber-700 font-medium mt-0.5">
                       {i18n.language === 'az' ? 'Təhvil verilərkən alətin sazlığı və ya mövcud cızıqları çəkilib qeyd olunmalıdır.' : 'Зафиксируйте исправность или существующие дефекты инструмента.'}
                     </p>
                   </div>
@@ -523,7 +540,7 @@ const RentProductModal = ({
                       type="button"
                       disabled={uploadingTool}
                       onClick={() => toolCameraRef.current?.click()}
-                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                      className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
                     >
                       <Camera className="w-3.5 h-3.5" /> Kamera
                     </button>
@@ -531,7 +548,7 @@ const RentProductModal = ({
                       type="button"
                       disabled={uploadingTool}
                       onClick={() => toolInputRef.current?.click()}
-                      className="px-3 py-1.5 bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                      className="px-3.5 py-2 bg-white border border-amber-300 text-amber-900 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all hover:bg-amber-50"
                     >
                       <Upload className="w-3.5 h-3.5" /> Qalereya
                     </button>
@@ -556,7 +573,7 @@ const RentProductModal = ({
                 />
 
                 {uploadingTool && (
-                  <div className="flex items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg text-xs font-bold text-amber-700 dark:text-amber-400">
+                  <div className="flex items-center gap-2 p-3 bg-white rounded-xl text-xs font-bold text-amber-700">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Media fayllar yüklənir...</span>
                   </div>
@@ -568,7 +585,7 @@ const RentProductModal = ({
                     {toolMediaList.map((url, idx) => {
                       const isVid = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm');
                       return (
-                        <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden bg-black border border-gray-200 dark:border-gray-700">
+                        <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden bg-black border border-gray-200">
                           {isVid ? (
                             <video src={url} className="w-full h-full object-cover" controls />
                           ) : (
@@ -589,7 +606,7 @@ const RentProductModal = ({
                 )}
 
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                  <label className="block text-[11px] font-bold text-gray-600 mb-1">
                     {i18n.language === 'az' ? 'Alətin vəziyyəti haqqında qeyd (Cızıq, qüsur və s.)' : 'Примечание о состоянии инструмента'}
                   </label>
                   <input
@@ -597,18 +614,18 @@ const RentProductModal = ({
                     value={conditionNotes}
                     onChange={(e) => setConditionNotes(e.target.value)}
                     placeholder="Məs: Korpusunda yüngül sürtünmə var, işlək vəziyyətdədir"
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-800 dark:text-gray-200 outline-none focus:ring-1 focus:ring-amber-500"
+                    className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-medium text-gray-800 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/10 transition-all"
                   />
                 </div>
               </div>
             </div>
 
-            {/* 4. Rental Duration Section */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+            {/* 4. Rental Duration Section (Using Platform DatePicker!) */}
+            <div className="bg-gray-50/60 p-5 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-200/60 pb-2.5">
                 <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200">
+                  <Calendar className="w-4 h-4 text-indigo-600" />
+                  <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-600">
                     {i18n.language === 'az' ? 'İcarə Müddəti' : 'Срок аренды'}
                   </h4>
                 </div>
@@ -627,7 +644,7 @@ const RentProductModal = ({
                       key={p.days}
                       type="button"
                       onClick={() => applyDurationDays(p.days)}
-                      className="px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:text-indigo-600 text-gray-700 dark:text-gray-300 rounded-md text-[11px] font-bold transition-all"
+                      className="px-2.5 py-1 bg-white hover:bg-indigo-50 hover:text-indigo-600 text-gray-700 rounded-lg text-[11px] font-bold border border-gray-200/80 shadow-2xs transition-all active:scale-95"
                     >
                       {p.label}
                     </button>
@@ -637,108 +654,93 @@ const RentProductModal = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                    {i18n.language === 'az' ? 'Başlanğıc Tarixi' : 'Дата начала'}
-                  </label>
-                  <input
-                    type="date"
-                    required
+                  <DatePicker
+                    label={i18n.language === 'az' ? 'Başlanğıc Tarixi' : 'Дата начала'}
                     value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                    onChange={(val) => setStartDate(val)}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
-                    {i18n.language === 'az' ? 'Qaytarılma Tarixi (Son gün)' : 'Дата возврата (Срок)'} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    required
+                  <DatePicker
+                    label={i18n.language === 'az' ? 'Qaytarılma Tarixi (Son gün) *' : 'Дата возврата (Срок) *'}
                     value={dueDate}
-                    min={startDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 dark:text-white"
+                    onChange={(val) => setDueDate(val)}
                   />
                 </div>
               </div>
             </div>
 
-            {/* 5. Financials & Guarantee Deposit */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
+            {/* 5. Financials & Guarantee Deposit (Using Platform Dropdown!) */}
+            <div className="bg-gray-50/60 p-5 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-200/60 pb-2.5">
                 <DollarSign className="w-4 h-4 text-emerald-600" />
-                <h4 className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-200">
+                <h4 className="text-[11px] font-black uppercase tracking-wider text-gray-600">
                   {i18n.language === 'az' ? 'Maliyyə & Girov (Depozit) Məlumatları' : 'Финансы и Залог (Депозит)'}
                 </h4>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Deposit (Default 100% retail price) */}
-                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-black text-emerald-900 dark:text-emerald-300">
+                <div className="p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl shadow-2xs">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-black text-emerald-900">
                       {i18n.language === 'az' ? 'Girov Məbləği (Tam Dəyər)' : 'Сумма залога (Полная)'}
                     </label>
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 font-bold text-emerald-700">₼</span>
+                    <span className="absolute left-3.5 top-2.5 font-black text-emerald-700 text-lg">₼</span>
                     <input
                       type="number"
                       step="0.01"
                       required
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(e.target.value)}
-                      className="w-full pl-8 pr-3 py-2 bg-white dark:bg-gray-800 border border-emerald-300 dark:border-emerald-700 rounded-lg text-base font-black text-emerald-700 dark:text-emerald-300 outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-9 pr-3.5 py-2.5 bg-white border border-emerald-300 rounded-xl text-lg font-black text-emerald-800 outline-none focus:ring-2 focus:ring-emerald-500/20"
                     />
                   </div>
-                  <p className="text-[10px] text-emerald-700 dark:text-emerald-400 mt-1 font-medium">
+                  <p className="text-[10px] text-emerald-700 mt-1.5 font-medium">
                     {i18n.language === 'az' ? 'Müştəri alətin tam dəyərini girov olaraq ödəyir.' : 'Клиент оставляет полную стоимость в залог.'}
                   </p>
                 </div>
 
                 {/* Rental Fee */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                     {i18n.language === 'az' ? 'İcarə Haqqı (AZN)' : 'Стоимость аренды (AZN)'}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 font-bold text-gray-500">₼</span>
+                    <span className="absolute left-3.5 top-2.5 font-black text-gray-400">₼</span>
                     <input
                       type="number"
                       step="0.01"
                       value={rentalFee}
                       onChange={(e) => setRentalFee(e.target.value)}
                       placeholder="Məs: 20.00"
-                      className="w-full pl-8 pr-3 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 outline-none font-semibold text-sm focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 transition-all text-gray-900"
                     />
                   </div>
-                  <span className="text-[10px] text-gray-400 mt-1 block">İstəyə görə</span>
+                  <span className="text-[10px] text-gray-400 mt-1 block px-0.5">İstəyə görə</span>
                 </div>
 
-                {/* Payment Method */}
+                {/* Payment Method (Custom Dropdown Component) */}
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                     {i18n.language === 'az' ? 'Ödəniş Üsulu' : 'Способ оплаты'}
                   </label>
-                  <select
+                  <Dropdown
                     value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-bold text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="Nağd">Nağd (Kassa)</option>
-                    <option value="Kart / Terminal">Kart / Terminal</option>
-                    <option value="Bank Köçürməsi">Bank Köçürməsi</option>
-                  </select>
+                    onChange={(val) => setPaymentMethod(val)}
+                    options={paymentOptions}
+                  />
                 </div>
               </div>
             </div>
 
             {/* 6. General Notes */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
                 {i18n.language === 'az' ? 'Əlavə Qeydlər' : 'Дополнительные примечания'}
               </label>
               <textarea
@@ -746,16 +748,16 @@ const RentProductModal = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={i18n.language === 'az' ? 'İcarə ilə bağlı digər xüsusi şərtlər...' : 'Особые условия или примечания...'}
-                className="w-full px-3.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-medium text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 outline-none font-medium text-xs text-gray-900 focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/10 transition-all resize-none"
               />
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-all"
+                className="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all"
               >
                 {i18n.language === 'az' ? 'İmtina' : 'Отмена'}
               </button>
@@ -763,7 +765,7 @@ const RentProductModal = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-600/20 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+                className="btn-gradient-primary px-7 py-3 rounded-xl text-xs font-black shadow-lg shadow-merkez-blue/20 active:scale-95 transition-all flex items-center gap-2 text-white uppercase tracking-wider disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -788,4 +790,3 @@ const RentProductModal = ({
 };
 
 export default RentProductModal;
-

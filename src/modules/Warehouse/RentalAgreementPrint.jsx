@@ -27,24 +27,29 @@ const RentalAgreementPrint = ({
         <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-6">
           
           {/* Action Bar (Not printed) */}
-          <div className="flex items-center justify-between px-6 py-4 bg-gray-900 text-white print:hidden">
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-indigo-400" />
-              <h3 className="font-bold text-sm">
-                {i18n.language === 'az' ? 'İcarə və Girov Müqaviləsi' : 'Договор аренды и залога'}
-              </h3>
+          <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100 print:hidden">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm text-gray-900">
+                  {i18n.language === 'az' ? 'İcarə və Girov Müqaviləsi' : 'Договор аренды и залога'}
+                </h3>
+                <p className="text-[11px] text-gray-400 font-mono">№ {rental.rental_code}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrint}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                className="btn-gradient-primary px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all text-white"
               >
                 <Printer className="w-4 h-4" />
                 <span>{i18n.language === 'az' ? 'ÇAP ET' : 'ПЕЧАТЬ'}</span>
               </button>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white"
+                className="w-9 h-9 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-colors border border-gray-200"
               >
                 <X className="w-4 h-4" />
               </button>
