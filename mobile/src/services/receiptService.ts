@@ -397,7 +397,8 @@ export const receiptService = {
 
     let payTitle = 'Nağd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
-    if (lowerPay.includes('terminal')) payTitle = 'Terminal';
+    if (lowerPay.includes('split') || lowerPay.includes('qarışıq') || lowerPay.includes('bölünmüş')) payTitle = 'Qarışıq (Bölünmüş)';
+    else if (lowerPay.includes('terminal')) payTitle = 'Terminal';
     else if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kart';
     else if (lowerPay.includes('transfer') || lowerPay.includes('köçürmə')) payTitle = 'Köçürmə';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
@@ -571,7 +572,10 @@ export const receiptService = {
     let paidLabel = 'nağd';
     const lowerMethod = String(data.paymentMethod || '').toLowerCase();
 
-    if (lowerMethod.includes('terminal')) {
+    if (lowerMethod.includes('split') || lowerMethod.includes('qarışıq') || lowerMethod.includes('bölünmüş')) {
+      paymentTitle = 'Qarışıq (Bölünmüş)';
+      paidLabel = 'qarışıq';
+    } else if (lowerMethod.includes('terminal')) {
       paymentTitle = 'Terminal';
       paidLabel = 'terminal';
     } else if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {

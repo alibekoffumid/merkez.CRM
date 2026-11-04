@@ -35,6 +35,8 @@ export function printThermalReceipt57mm(saleData) {
     creditDetails = null, // { bank, months, monthlyPayment, markupPercent, contractTotal }
     depositDetails = null, // { advanceAmount, advanceRecipient, remainingBalance }
     expenseDetails = null, // { category, description, recipient, amount }
+    splitDetails = null, // { cash, card, terminal, credit }
+    downpaymentDetails = null, // { amount, method, financedAmount }
     notes = '',
     transactionId = '',
     saleId = '',
@@ -97,7 +99,10 @@ export function printThermalReceipt57mm(saleData) {
   let paidLabel = 'nağd';
   const lowerMethod = String(paymentMethod || '').toLowerCase();
 
-  if (lowerMethod.includes('terminal')) {
+  if (lowerMethod.includes('split') || lowerMethod.includes('qarışıq') || lowerMethod.includes('bölünmüş')) {
+    paymentTitle = 'Qarışıq (Bölünmüş)';
+    paidLabel = 'qarışıq';
+  } else if (lowerMethod.includes('terminal')) {
     paymentTitle = 'Terminal';
     paidLabel = 'terminal';
   } else if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
@@ -484,6 +489,29 @@ export function printThermalReceipt57mm(saleData) {
             <div>Müddət: ${escapeHtml(creditDetails.months)} ay</div>
             <div>Aylıq ödəniş: ${Number(creditDetails.monthlyPayment || 0).toFixed(2)}</div>
             ${creditDetails.contractTotal ? `<div>Müqavilə cəmi: ${Number(creditDetails.contractTotal).toFixed(2)}</div>` : ''}
+          </div>
+        ` : ''}
+
+        ${splitDetails ? `
+          <div class="credit-info" style="margin-top: 4px; padding: 3px 0; border-top: 1px dashed #000;">
+            <div style="font-weight: 700; margin-bottom: 2px;">Ödəniş bölgüsü:</div>
+            ${splitDetails.cash > 0 ? `<div class="flex-between"><span>• Nağd:</span><span>${Number(splitDetails.cash).toFixed(2)} AZN</span></div>` : ''}
+            ${splitDetails.card > 0 ? `<div class="flex-between"><span>• Kart:</span><span>${Number(splitDetails.card).toFixed(2)} AZN</span></div>` : ''}
+            ${splitDetails.terminal > 0 ? `<div class="flex-between"><span>• Terminal:</span><span>${Number(splitDetails.terminal).toFixed(2)} AZN</span></div>` : ''}
+            ${splitDetails.credit > 0 ? `<div class="flex-between"><span>• Kredit payı:</span><span>${Number(splitDetails.credit).toFixed(2)} AZN</span></div>` : ''}
+          </div>
+        ` : ''}
+
+        ${downpaymentDetails && downpaymentDetails.amount > 0 ? `
+          <div class="credit-info" style="margin-top: 4px; padding: 3px 0; border-top: 1px dashed #000;">
+            <div class="flex-between">
+              <span>İlkin ödəniş (${escapeHtml(downpaymentDetails.method)}):</span>
+              <b>${Number(downpaymentDetails.amount).toFixed(2)} AZN</b>
+            </div>
+            <div class="flex-between">
+              <span>Kreditə qalan:</span>
+              <span>${Number(downpaymentDetails.financedAmount).toFixed(2)} AZN</span>
+            </div>
           </div>
         ` : ''}
 

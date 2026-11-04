@@ -170,8 +170,12 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     const lower = raw.toLowerCase();
     if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
       info.paymentMethod = 'Nağd';
-    } else if (lower.includes('kart')) {
-      info.paymentMethod = 'Kartdan karta(Hesab)';
+    } else if (lower.includes('terminal')) {
+      info.paymentMethod = 'Terminal';
+    } else if (lower.includes('kart') || lower.includes('card')) {
+      info.paymentMethod = 'Kart';
+    } else if (lower.includes('qarışıq') || lower.includes('bölünmüş') || lower.includes('split')) {
+      info.paymentMethod = 'Qarışıq (Bölünmüş)';
     } else if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) {
       info.paymentMethod = 'Köçürmə';
     } else if (lower.includes('kredit')) {
@@ -183,6 +187,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     } else {
       info.paymentMethod = raw;
     }
+  } else if (/qarışıq|bölünmüş|split/i.test(note)) {
+    info.paymentMethod = 'Qarışıq (Bölünmüş)';
   } else if (/xərc|расход|expense/i.test(note)) {
     info.paymentMethod = 'Digər xərclər';
   } else if (/beh|avans|deposit/i.test(note)) {
@@ -199,6 +205,19 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     info.paymentMethod = 'Kart';
   } else {
     info.paymentMethod = 'Nağd';
+  }
+
+  // 3.5. Split Breakdown
+  const splitMatch = note.match(/\[Qarışıq:\s*([^\]]+)\]/i);
+  if (splitMatch) {
+    info.splitBreakdown = splitMatch[1].trim();
+  }
+
+  // 3.6. Downpayment in Credit
+  const downMatch = note.match(/\[İlkin ödəniş:\s*₼?([0-9.,]+)\s*\(([^)]+)\)\]/i);
+  if (downMatch) {
+    info.downpaymentAmount = parseFloat(downMatch[1].replace(',', '.'));
+    info.downpaymentMethod = downMatch[2].trim();
   }
 
   // 4. Stored price / total if saved in note
@@ -342,6 +361,9 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
 
   // Extract clean custom note (strip metadata brackets)
   info.cleanNote = note
+    .replace(/\[Qarışıq:[^\]]+\]/gi, '')
+    .replace(/\[İlkin ödəniş:[^\]]+\]/gi, '')
+    .replace(/\[Kreditə qalan:[^\]]+\]/gi, '')
     .replace(/\[Kanal:[^\]]+\]/gi, '')
     .replace(/\[Satıcı:[^\]]+\]/gi, '')
     .replace(/\[Kassir:[^\]]+\]/gi, '')
@@ -670,9 +692,19 @@ const SaleDetailModal = ({
                 <div className="text-base sm:text-lg font-black text-purple-700 truncate tracking-tight">
                   {saleInfo.paymentMethod}
                 </div>
-                <div className="text-[10px] font-bold text-purple-600/80 mt-1 truncate">
-                  {saleInfo.channel}
-                </div>
+                {saleInfo.splitBreakdown ? (
+                  <div className="text-[10px] font-bold text-purple-800 bg-purple-100/70 p-1.5 rounded-lg mt-1 break-words">
+                    {saleInfo.splitBreakdown}
+                  </div>
+                ) : saleInfo.downpaymentAmount > 0 ? (
+                  <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 p-1 rounded-lg mt-1">
+                    İlkin ödəniş: ₼{saleInfo.downpaymentAmount.toFixed(2)} ({saleInfo.downpaymentMethod})
+                  </div>
+                ) : (
+                  <div className="text-[10px] font-bold text-purple-600/80 mt-1 truncate">
+                    {saleInfo.channel}
+                  </div>
+                )}
               </div>
 
               {/* Profit / Cost (strictly Admin/Owner only) */}

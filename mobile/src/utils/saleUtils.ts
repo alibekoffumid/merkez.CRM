@@ -111,7 +111,9 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
   const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
   if (payMatch) {
     const rawPay = payMatch[1].trim();
-    if (/terminal/i.test(rawPay)) {
+    if (/split|qarışıq|bölünmüş/i.test(rawPay)) {
+      info.paymentMethod = 'Qarışıq (Bölünmüş)';
+    } else if (/terminal/i.test(rawPay)) {
       info.paymentMethod = 'Terminal';
     } else if (/kart/i.test(rawPay)) {
       info.paymentMethod = 'Kart';
@@ -120,6 +122,8 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
     } else {
       info.paymentMethod = rawPay;
     }
+  } else if (/split|qarışıq|bölünmüş/i.test(note)) {
+    info.paymentMethod = 'Qarışıq (Bölünmüş)';
   } else if (/birmarket/i.test(note) || /birmarket/i.test(info.channel)) {
     info.paymentMethod = 'Birmarket';
   } else if (/kredit/i.test(note) || /kredit/i.test(info.channel)) {

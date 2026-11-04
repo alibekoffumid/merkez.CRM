@@ -426,13 +426,27 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     totalDiscounts += saleDiscount;
 
     // Categorize transaction into strictly one of 5 payment categories (or split amongst them)
-    if (paymentMethodRaw === 'split') {
+    if (paymentMethodRaw === 'split' || notesRaw.includes('[qarışıq:')) {
       totalSplit += saleAmount;
       let sCash = Number(sale.split_cash || 0);
       let sCard = Number(sale.split_card || 0);
       let sCredit = Number(sale.split_credit || 0);
       let sDebt = Number(sale.split_debt || 0);
       let sDeposit = Number(sale.split_deposit || sale.split_beh || 0);
+
+      if (sCash === 0 && sCard === 0 && sCredit === 0) {
+        const splitMatch = notesRaw.match(/\[Qarışıq:\s*([^\]]+)\]/i);
+        if (splitMatch) {
+          const cashM = splitMatch[1].match(/Nağd:\s*₼?([0-9.,]+)/i);
+          const cardM = splitMatch[1].match(/Kart:\s*₼?([0-9.,]+)/i);
+          const termM = splitMatch[1].match(/Terminal:\s*₼?([0-9.,]+)/i);
+          const credM = splitMatch[1].match(/Kredit:\s*₼?([0-9.,]+)/i);
+          if (cashM) sCash = parseFloat(cashM[1].replace(',', '.'));
+          if (cardM) sCard += parseFloat(cardM[1].replace(',', '.'));
+          if (termM) sCard += parseFloat(termM[1].replace(',', '.'));
+          if (credM) sCredit = parseFloat(credM[1].replace(',', '.'));
+        }
+      }
 
       const splitSum = sCash + sCard + sCredit + sDebt + sDeposit;
       if (splitSum === 0) {
@@ -493,7 +507,23 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       notesRaw.includes('taksit') || 
       notesRaw.includes('birmarket')
     ) {
-      totalCredit += saleAmount;
+      const downMatch = notesRaw.match(/\[İlkin ödəniş:\s*₼?([0-9.,]+)\s*\(([^)]+)\)\]/i);
+      if (downMatch) {
+        const dAmt = parseFloat(downMatch[1].replace(',', '.'));
+        const dMethod = downMatch[2].toLowerCase();
+        if (dAmt > 0) {
+          if (dMethod.includes('card') || dMethod.includes('kart') || dMethod.includes('terminal')) {
+            totalCard += dAmt;
+          } else {
+            totalCash += dAmt;
+          }
+          totalCredit += Math.max(0, saleAmount - dAmt);
+        } else {
+          totalCredit += saleAmount;
+        }
+      } else {
+        totalCredit += saleAmount;
+      }
     } else if (
       paymentMethodRaw === 'card' || 
       paymentMethodRaw === 'kart' || 
