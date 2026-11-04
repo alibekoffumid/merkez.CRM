@@ -38,6 +38,8 @@ export interface CreditCalculationResult {
   contractTotal: number;
   monthlyPayment: number;
   bankSentAmount: number;
+  grossAmount: number;
+  alverAmount: number;
 }
 
 export function calculateCredit(
@@ -55,6 +57,14 @@ export function calculateCredit(
     ? Math.ceil(base * 1.0575)
     : Math.ceil(contractTotal);
 
+  const dBank = BANK_RATES[bank]?.[months] || 0;
+  const grossAmount = bank === 'Kapital Kredit 35'
+    ? bankSentAmount
+    : (bank.toLowerCase() === 'birkart' || bank.toLowerCase() === 'tamkart'
+        ? Math.ceil(contractTotal)
+        : Math.ceil(contractTotal) * (1 - dBank));
+  const alverAmount = base;
+
   return {
     baseAmount: base,
     markupRate: exactMarkup,
@@ -63,6 +73,8 @@ export function calculateCredit(
     contractTotal,
     monthlyPayment,
     bankSentAmount,
+    grossAmount,
+    alverAmount,
   };
 }
 

@@ -10,7 +10,20 @@ export interface CreditSaleDetails {
   markupPercent: number;
 }
 
-export type POSPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT';
+export interface SplitSaleDetails {
+  cash: number;
+  card: number;
+  terminal: number;
+  credit: number;
+  creditBank?: string;
+  creditMonths?: number;
+  creditContract?: number;
+  creditMonthlyPayment?: number;
+  creditGross?: number;
+  creditMarkupPercent?: number;
+}
+
+export type POSPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT' | 'SPLIT';
 
 export interface ProcessSaleOptions {
   discountAmount?: number;
@@ -23,6 +36,7 @@ export interface ProcessSaleOptions {
     advanceAmount: number;
     advanceRecipient?: string;
   };
+  splitDetails?: SplitSaleDetails;
 }
 
 export const salesService = {
@@ -52,6 +66,7 @@ export const salesService = {
     let clientName = clientNameArg;
     let creditDetails = creditDetailsArg;
     let depositDetails: { advanceAmount: number; advanceRecipient?: string } | undefined;
+    let splitDetails: SplitSaleDetails | undefined;
 
     if (typeof discountOrOptions === 'object' && discountOrOptions !== null) {
       discountAmount = discountOrOptions.discountAmount || 0;
@@ -60,6 +75,7 @@ export const salesService = {
       clientName = discountOrOptions.clientName ?? clientNameArg;
       creditDetails = discountOrOptions.creditDetails ?? creditDetailsArg;
       depositDetails = discountOrOptions.depositDetails;
+      splitDetails = discountOrOptions.splitDetails;
     } else {
       discountAmount = Number(discountOrOptions) || 0;
       discountValue = discountAmount;
@@ -89,6 +105,14 @@ export const salesService = {
     if (paymentMethod === 'CREDIT' && creditDetails) {
       channelPrefix = `[Kanal: Kredit - ${creditDetails.bank}] `;
       saleDetailsNote = `Kredit Satışı (${creditDetails.months} ay): Müqavilə: ₼${creditDetails.contractTotal.toFixed(2)}, Aylıq: ₼${creditDetails.monthlyPayment.toFixed(2)}, Faiz: ${creditDetails.markupPercent.toFixed(1)}%`;
+    } else if (paymentMethod === 'SPLIT' && splitDetails) {
+      const spCredit = splitDetails.credit > 0
+        ? `, Kredit: ₼${splitDetails.credit.toFixed(2)} (${splitDetails.creditBank} - ${splitDetails.creditMonths} ay, Müqavilə: ₼${(splitDetails.creditContract || 0).toFixed(2)})`
+        : '';
+      saleDetailsNote = `POS Satış #${saleId} [Qarışıq: Nağd: ₼${splitDetails.cash.toFixed(2)}, Kart: ₼${splitDetails.card.toFixed(2)}, Terminal: ₼${splitDetails.terminal.toFixed(2)}${spCredit}]`;
+      if (splitDetails.credit > 0 && splitDetails.creditBank) {
+        channelPrefix = `[Kanal: Kredit - ${splitDetails.creditBank}] `;
+      }
     } else if (paymentMethod === 'DEPOSIT') {
       saleDetailsNote = `Məhsul Satışı (Ödəniş: Beh)`;
       if (depositDetails?.advanceAmount) {
@@ -170,10 +194,13 @@ export const salesService = {
 
         const { data: existingCust } = await query.maybeSingle();
 
+        const isCreditActive = (paymentMethod === 'CREDIT' && creditDetails) || (paymentMethod === 'SPLIT' && splitDetails && splitDetails.credit > 0);
+        const cTotal = paymentMethod === 'CREDIT' ? (creditDetails?.contractTotal || 0) : (splitDetails?.creditContract || splitDetails?.credit || 0);
+
         if (existingCust) {
           customerId = existingCust.id;
-          if (paymentMethod === 'CREDIT' && creditDetails) {
-            const newDebt = Number(existingCust.debt_balance || 0) + creditDetails.contractTotal;
+          if (isCreditActive) {
+            const newDebt = Number(existingCust.debt_balance || 0) + cTotal;
             await supabase
               .from('customers')
               .update({ debt_balance: newDebt })
@@ -187,7 +214,7 @@ export const salesService = {
               phone: parsedClientPhone || null,
               status: 'Active',
               type: 'Client',
-              debt_balance: (paymentMethod === 'CREDIT' && creditDetails) ? creditDetails.contractTotal : 0,
+              debt_balance: isCreditActive ? cTotal : 0,
               user_id: userId
             }])
             .select('id')
@@ -203,18 +230,29 @@ export const salesService = {
     }
 
     // 2.2. If Credit sale, create contract & installments in customer_credits
-    if (paymentMethod === 'CREDIT' && creditDetails && customerId && userId) {
+    const hasCredit = (paymentMethod === 'CREDIT' && creditDetails) || (paymentMethod === 'SPLIT' && splitDetails && splitDetails.credit > 0);
+    if (hasCredit && customerId && userId) {
       try {
+        const cBank = paymentMethod === 'CREDIT' ? (creditDetails?.bank || '') : (splitDetails?.creditBank || '');
+        const cMonths = paymentMethod === 'CREDIT' ? (creditDetails?.months || 12) : (splitDetails?.creditMonths || 12);
+        const cTotal = paymentMethod === 'CREDIT' ? (creditDetails?.contractTotal || 0) : (splitDetails?.creditContract || splitDetails?.credit || 0);
+        const cMonthly = paymentMethod === 'CREDIT' ? (creditDetails?.monthlyPayment || 0) : (splitDetails?.creditMonthlyPayment || (cMonths > 0 ? cTotal / cMonths : cTotal));
+        const cMarkup = paymentMethod === 'CREDIT' ? (creditDetails?.markupPercent || 0) : (splitDetails?.creditMarkupPercent || 0);
+
         const productNames = items.map((i) => i.product.name).join(', ');
-        const creditNote = `Məhsul(lar): ${productNames} | Bank: ${creditDetails.bank}, Müqavilə: ₼${creditDetails.contractTotal.toFixed(2)}, Aylıq: ₼${creditDetails.monthlyPayment.toFixed(2)}, Faiz: ${creditDetails.markupPercent.toFixed(1)}%`;
+        const creditNote = paymentMethod === 'SPLIT'
+          ? `Qarışıq Satış Kredit Payı | Məhsul(lar): ${productNames} | Bank: ${cBank}, Müqavilə: ₼${cTotal.toFixed(2)}, Aylıq: ₼${cMonthly.toFixed(2)}, Faiz: ${cMarkup.toFixed(1)}%`
+          : `Məhsul(lar): ${productNames} | Bank: ${cBank}, Müqavilə: ₼${cTotal.toFixed(2)}, Aylıq: ₼${cMonthly.toFixed(2)}, Faiz: ${cMarkup.toFixed(1)}%`;
 
         // 1. Log to customer_debts
         await supabase.from('customer_debts').insert([{
           user_id: userId,
           customer_id: customerId,
           type: 'debt',
-          amount: creditDetails.contractTotal,
-          description: `Kredit (${creditDetails.bank} - ${creditDetails.months} ay) [${productNames}]: Müqavilə: ₼${creditDetails.contractTotal.toFixed(2)}, Aylıq: ₼${creditDetails.monthlyPayment.toFixed(2)}, Faiz: ${creditDetails.markupPercent.toFixed(1)}%`
+          amount: cTotal,
+          description: paymentMethod === 'SPLIT'
+            ? `Qarışıq Satışda Kredit Payı (${cBank} - ${cMonths} ay) [${productNames}]: Müqavilə: ₼${cTotal.toFixed(2)}, Aylıq: ₼${cMonthly.toFixed(2)}, Faiz: ${cMarkup.toFixed(1)}%`
+            : `Kredit (${cBank} - ${cMonths} ay) [${productNames}]: Müqavilə: ₼${cTotal.toFixed(2)}, Aylıq: ₼${cMonthly.toFixed(2)}, Faiz: ${cMarkup.toFixed(1)}%`
         }]);
 
         // 2. Insert into customer_credits
@@ -223,10 +261,10 @@ export const salesService = {
           .insert([{
             user_id: userId,
             customer_id: customerId,
-            total_amount: creditDetails.contractTotal,
-            months: creditDetails.months,
-            monthly_payment: creditDetails.monthlyPayment,
-            remaining_months: creditDetails.months,
+            total_amount: cTotal,
+            months: cMonths,
+            monthly_payment: cMonthly,
+            remaining_months: cMonths,
             notes: creditNote,
             status: 'active'
           }])
@@ -236,13 +274,13 @@ export const salesService = {
         // 3. Generate monthly installments
         if (!creditErr && creditData?.id) {
           const installmentsToInsert = [];
-          for (let i = 1; i <= creditDetails.months; i++) {
+          for (let i = 1; i <= cMonths; i++) {
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + (30 * i));
             installmentsToInsert.push({
               credit_id: creditData.id,
               month_number: i,
-              amount: creditDetails.monthlyPayment,
+              amount: cMonthly,
               due_date: dueDate.toISOString().split('T')[0],
               status: 'unpaid'
             });

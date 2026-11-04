@@ -244,6 +244,16 @@ export interface SaleReceiptData {
     advanceRecipient?: string;
     remainingBalance: number;
   };
+  splitDetails?: {
+    cash: number;
+    card: number;
+    terminal: number;
+    credit: number;
+    creditBank?: string;
+    creditMonths?: number;
+    creditContract?: number;
+    creditMonthlyPayment?: number;
+  };
   clientName?: string;
   clientPhone?: string;
   cashierName?: string;
@@ -478,6 +488,33 @@ export const receiptService = {
       lines.push(padRow('Müddət:', `${data.creditDetails.months} ay`, width));
       lines.push(padRow('Aylıq ödəniş:', `${Number(data.creditDetails.monthlyPayment).toFixed(2)} ₼`, width));
       lines.push(padRow('Müqavilə cəmi:', `${Number(data.creditDetails.contractTotal).toFixed(2)} ₼`, width));
+    }
+
+    // Split payment breakdown if applicable
+    if (data.splitDetails) {
+      lines.push(dividerSingle);
+      lines.push(padCenter('ÖDƏNİŞ BÖLGÜSÜ (QARIŞIQ)', width));
+      if (data.splitDetails.cash > 0) {
+        lines.push(padRow('Nağd:', `${Number(data.splitDetails.cash).toFixed(2)} ₼`, width));
+      }
+      if (data.splitDetails.card > 0) {
+        lines.push(padRow('Kart:', `${Number(data.splitDetails.card).toFixed(2)} ₼`, width));
+      }
+      if (data.splitDetails.terminal > 0) {
+        lines.push(padRow('Terminal:', `${Number(data.splitDetails.terminal).toFixed(2)} ₼`, width));
+      }
+      if (data.splitDetails.credit > 0) {
+        lines.push(padRow('Kredit payı:', `${Number(data.splitDetails.credit).toFixed(2)} ₼`, width));
+        if (data.splitDetails.creditBank) {
+          lines.push(padRow('Bank:', data.splitDetails.creditBank, width));
+        }
+        if (data.splitDetails.creditMonths) {
+          lines.push(padRow('Müddət:', `${data.splitDetails.creditMonths} ay`, width));
+        }
+        if (data.splitDetails.creditContract) {
+          lines.push(padRow('Kredit müqaviləsi:', `${Number(data.splitDetails.creditContract).toFixed(2)} ₼`, width));
+        }
+      }
     }
 
     // Advance (Beh / Avans) breakdown if applicable
