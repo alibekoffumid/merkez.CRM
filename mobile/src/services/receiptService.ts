@@ -31,7 +31,7 @@ export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   ipAddress: '192.168.1.200',
   port: 9100,
   paperWidth: '58mm',
-  autoPrint: true,
+  autoPrint: false,
   autoCut: true,
   openDrawer: false,
   storeName: 'RAST MUSİQİ ALƏTLƏRİ MAĞAZASI',

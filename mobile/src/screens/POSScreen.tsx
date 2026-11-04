@@ -366,15 +366,6 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         clientPhone: clientPhone.trim() || undefined,
       };
 
-      // Auto-print if enabled in printer config
-      receiptService.getConfig().then((cfg) => {
-        if (cfg.autoPrint) {
-          receiptService.printReceipt(receiptData, cfg).catch((printErr) => {
-            console.warn('Auto-print error:', printErr);
-          });
-        }
-      });
-
       setCompletedReceiptData(receiptData);
       setSuccessModalVisible(true);
       onClearCart();

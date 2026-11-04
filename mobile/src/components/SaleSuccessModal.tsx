@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -33,6 +33,13 @@ export const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
   onOpenPrinterSettings,
 }) => {
   const [printing, setPrinting] = useState(false);
+  const [hasPrinted, setHasPrinted] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setHasPrinted(false);
+    }
+  }, [visible, receiptData?.saleId]);
 
   if (!receiptData) return null;
 
@@ -40,6 +47,7 @@ export const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
     setPrinting(true);
     try {
       await receiptService.printReceipt(receiptData);
+      setHasPrinted(true);
     } catch (e: any) {
       Alert.alert('Çap Xətası', e.message || 'Çek göndərilərkən xəta baş verdi');
     } finally {
@@ -96,15 +104,24 @@ export const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
 
           {/* Actions */}
           <View style={styles.actions}>
-            {/* Primary Print Button */}
+            {/* Primary Print Button (Manual on-demand) */}
             <TouchableOpacity
-              style={[styles.printBtn, printing && styles.btnDisabled]}
+              style={[
+                styles.printBtn,
+                hasPrinted && styles.printBtnPrinted,
+                printing && styles.btnDisabled,
+              ]}
               onPress={handlePrint}
               disabled={printing}
               activeOpacity={0.8}
             >
               {printing ? (
                 <ActivityIndicator size="small" color="#fff" />
+              ) : hasPrinted ? (
+                <>
+                  <CheckCircle2 size={18} color="#fff" />
+                  <Text style={styles.printBtnText}>Çap Edildi ✓ (Yenidən Çap Et)</Text>
+                </>
               ) : (
                 <>
                   <Printer size={18} color="#fff" />
@@ -247,6 +264,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 15,
     width: '100%',
+  },
+  printBtnPrinted: {
+    backgroundColor: '#059669',
   },
   printBtnText: {
     fontSize: 15,
