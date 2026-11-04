@@ -7,11 +7,12 @@ import PinGuard from './components/PinGuard';
 import LocalConnectionModal from './components/Warehouse/LocalConnectionModal';
 import { supabase } from './supabaseClient';
 import { Toaster, toast } from 'react-hot-toast';
-import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer, Maximize, Minimize, Folder } from 'lucide-react';
+import { Lock, Mail, Server, Database, LogOut, Package, RefreshCw, FolderTree, Truck, Search, Settings, ClipboardList, TrendingUp, BookOpen, Users, User, Percent, ChevronDown, Menu, Hammer, Maximize, Minimize, Folder, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './index.css';
 import './i18n'; // Initialize translations
 import { FlagAZ, FlagRU, FlagGB } from './components/Common/FlagIcons';
+import { rentalService } from './services/rentalService';
 
 const WarehouseAppContent = () => {
   const { t, i18n } = useTranslation();
@@ -53,6 +54,7 @@ const WarehouseAppContent = () => {
     }
   };
   const [lowStockCount, setLowStockCount] = useState(0);
+  const [overdueRentalsCount, setOverdueRentalsCount] = useState(0);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showMobileTabs, setShowMobileTabs] = useState(false);
   const langRef = useRef(null);
@@ -100,6 +102,23 @@ const WarehouseAppContent = () => {
     fetchLowStockCount();
     
     const interval = setInterval(fetchLowStockCount, 30000);
+    return () => clearInterval(interval);
+  }, [profile]);
+
+  useEffect(() => {
+    if (!profile) return;
+    const fetchRentalsBadge = async () => {
+      try {
+        const list = await rentalService.getRentals();
+        const now = new Date();
+        const count = (list || []).filter(
+          (r) => r.status === 'ACTIVE' && r.due_date && new Date(r.due_date) < now
+        ).length;
+        setOverdueRentalsCount(count);
+      } catch (e) {}
+    };
+    fetchRentalsBadge();
+    const interval = setInterval(fetchRentalsBadge, 30000);
     return () => clearInterval(interval);
   }, [profile]);
 
@@ -325,7 +344,10 @@ const WarehouseAppContent = () => {
     ...(false && activeModules?.includes('restaurant') && !isMaster ? [{ id: 'raw', icon: FolderTree, label: t('warehouse.ingredients') || 'Ингредиенты' }] : []),
     ...(currentStaff?.role !== 'Cashier' && !isMaster ? [{ id: 'suppliers', icon: Truck, label: t('warehouse.suppliers') || 'Поставщики' }] : []),
     ...(!currentStaff && !isMaster ? [{ id: 'files', icon: Folder, label: i18n.language === 'az' ? 'Fayllar' : 'Файлы' }] : []),
-    ...(currentStaff?.role !== 'Storeman' ? [{ id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : i18n.language === 'ru' ? 'Ремонт' : 'Repairs' }] : []),
+    ...(currentStaff?.role !== 'Storeman' ? [
+      { id: 'repairs', icon: Hammer, label: i18n.language === 'az' ? 'Təmir' : i18n.language === 'ru' ? 'Ремонт' : 'Repairs' },
+      { id: 'rentals', icon: KeyRound, label: i18n.language === 'az' ? 'İcarə' : i18n.language === 'ru' ? 'Аренда' : 'Rentals', badge: overdueRentalsCount > 0 ? overdueRentalsCount : null }
+    ] : []),
     ...(!isMaster ? [{ id: 'history', icon: Search, label: t('warehouse.history') || 'История' }] : []),
     ...(!isMaster ? [{ id: 'stocktake', icon: ClipboardList, label: t('warehouse.stocktake') || 'Инвентаризация' }] : []),
     ...(!isMaster ? [{ id: 'reports', icon: TrendingUp, label: t('warehouse.reports') || 'Отчеты', badge: lowStockCount > 0 ? lowStockCount : null }] : []),

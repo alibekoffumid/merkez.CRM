@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -13,6 +13,8 @@ import EditIngredientModal from './EditIngredientModal';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useUser } from '../../core/UserContext';
 import SuppliersList from './SuppliersList';
+import RentProductModal from './RentProductModal';
+import WarehouseRentals from './WarehouseRentals';
 import AddSupplierModal from './AddSupplierModal';
 import EditSupplierModal from './EditSupplierModal';
 import ReceiveStockModal from './ReceiveStockModal';
@@ -214,6 +216,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [activeRepairsMap, setActiveRepairsMap] = useState({});
   const [showTransferStock, setShowTransferStock] = useState(false);
   const [showSellProduct, setShowSellProduct] = useState(false);
+  const [showRentProduct, setShowRentProduct] = useState(false);
   const [showCashboxModal, setShowCashboxModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -1922,6 +1925,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     {selectedItems.length > 0 && (
                       <>
                         <button
+                          onClick={() => setShowRentProduct(true)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center shadow-sm"
+                        >
+                          <KeyRound className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'} ({selectedItems.length})
+                        </button>
+                        <button
                           onClick={() => {
                             const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
                             setPrintingItems(itemsToPrint);
@@ -2142,6 +2151,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             {/* Main Warehouse Actions */}
             {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
               <>
+                {selectedItems.length > 0 && (
+                  <button
+                    onClick={() => setShowRentProduct(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm transition-all"
+                  >
+                    <KeyRound className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                    {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'}
+                    <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
+                      {selectedItems.length}
+                    </span>
+                  </button>
+                )}
+
                 <button 
                   onClick={() => setShowSellProduct(true)} 
                   className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm"
@@ -2262,6 +2284,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           <WarehouseClientManager />
         ) : activeTab === 'repairs' ? (
           <WarehouseRepairs activeTab={activeTab} />
+        ) : activeTab === 'rentals' ? (
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+            <WarehouseRentals warehouseId={currentWarehouseId} />
+          </div>
         ) : activeTab === 'staff' ? (
           <WarehouseStaffManager />
         ) : activeTab === 'suppliers' ? (
@@ -4189,6 +4215,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           initialProducts={selectedProductsList}
         />
       </ModalPortal>
+
+      <RentProductModal
+        isOpen={showRentProduct}
+        onClose={() => setShowRentProduct(false)}
+        warehouseId={currentWarehouseId}
+        selectedProducts={selectedProductsList}
+        onSuccess={() => {
+          fetchAll();
+          setSelectedItems([]);
+          setShowRentProduct(false);
+        }}
+      />
 
       <CashboxExpensesModal
         isOpen={showCashboxModal}
