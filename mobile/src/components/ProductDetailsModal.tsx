@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight, Printer } from 'lucide-react-native';
+import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight, Printer, KeyRound } from 'lucide-react-native';
 import { Product, Category, ProductAttribute } from '../types';
 import { productService } from '../services/productService';
 import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
@@ -25,6 +25,7 @@ interface ProductDetailsModalProps {
   onReceiveClick: (product: Product) => void;
   onDispatchClick: (product: Product) => void;
   onPrintLabels?: (product: Product) => void;
+  onRentProduct?: (product: Product) => void;
   canViewCostPrices?: boolean;
   canManageProducts?: boolean;
   canPerformMovements?: boolean;
@@ -41,6 +42,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   onReceiveClick,
   onDispatchClick,
   onPrintLabels,
+  onRentProduct,
   canViewCostPrices = true,
   canManageProducts = true,
   canPerformMovements = true,
@@ -356,6 +358,16 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               >
                 <Printer size={16} color="#2563EB" />
                 <Text style={styles.printLabelBtnText}>Barkod Etiketini Çap Et</Text>
+              </TouchableOpacity>
+            )}
+
+            {onRentProduct && (
+              <TouchableOpacity
+                style={styles.rentProductBtn}
+                onPress={() => onRentProduct(product)}
+              >
+                <KeyRound size={16} color="#4F46E5" />
+                <Text style={styles.rentProductBtnText}>Məhsulu İcarəyə Ver</Text>
               </TouchableOpacity>
             )}
 
@@ -698,10 +710,27 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#BFDBFE',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   printLabelBtnText: {
     color: '#2563EB',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  rentProductBtn: {
+    backgroundColor: '#EEF2FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    marginBottom: 12,
+  },
+  rentProductBtnText: {
+    color: '#4F46E5',
     fontSize: 14,
     fontWeight: '800',
   },

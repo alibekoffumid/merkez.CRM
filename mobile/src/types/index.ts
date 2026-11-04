@@ -139,6 +139,39 @@ export interface WarehouseRepair {
   created_at?: string;
 }
 
+export interface WarehouseRental {
+  id: string;
+  rental_code: string;
+  warehouse_id?: string;
+  product_id?: string;
+  product_name: string;
+  product_barcode?: string;
+  quantity: number;
+  client_name: string;
+  client_phone: string;
+  client_id_serial?: string;
+  client_fin?: string;
+  client_id_photo_front?: string | null;
+  client_id_photo_back?: string | null;
+  instrument_photo_before?: string | null;
+  instrument_condition_notes?: string | null;
+  deposit_amount: number;
+  rental_fee?: number;
+  payment_method?: string;
+  start_date: string;
+  due_date: string;
+  return_date?: string | null;
+  status: 'ACTIVE' | 'RETURNED' | 'CANCELLED';
+  returned_by_staff?: string | null;
+  return_condition_notes?: string | null;
+  instrument_photo_after?: string | null;
+  returned_deposit_amount?: number | null;
+  notes?: string | null;
+  isOverdue?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface POSCartItem {
   product: Product;
   quantity: number;

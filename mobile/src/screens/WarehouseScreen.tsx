@@ -30,6 +30,7 @@ import {
   Printer,
   CheckSquare,
   Square,
+  KeyRound,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Product, Category } from '../types';
@@ -40,6 +41,9 @@ import { StockOperationModal } from '../components/StockOperationModal';
 import { NewProductModal } from '../components/NewProductModal';
 import { CategoryPickerModal } from '../components/CategoryPickerModal';
 import { LabelPrintModal } from '../components/LabelPrintModal';
+import { RentProductModal } from '../components/RentProductModal';
+import { RentalsListModal } from '../components/RentalsListModal';
+import { rentalService } from '../services/rentalService';
 import { buildCategoryDescendantMap } from '../utils/categoryUtils';
 
 interface WarehouseScreenProps {
@@ -75,6 +79,23 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
   const [labelPrintVisible, setLabelPrintVisible] = useState(false);
   const [labelPrintProducts, setLabelPrintProducts] = useState<Product[]>([]);
+  const [rentModalVisible, setRentModalVisible] = useState(false);
+  const [rentModalProducts, setRentModalProducts] = useState<Product[]>([]);
+  const [rentalsListVisible, setRentalsListVisible] = useState(false);
+  const [overdueRentalsCount, setOverdueRentalsCount] = useState(0);
+
+  const checkOverdueRentals = async () => {
+    try {
+      const list = await rentalService.getRentals();
+      const now = new Date();
+      const count = list.filter((r) => r.status === 'ACTIVE' && r.due_date && new Date(r.due_date) < now).length;
+      setOverdueRentalsCount(count);
+    } catch {}
+  };
+
+  useEffect(() => {
+    checkOverdueRentals();
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -377,6 +398,34 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                 </TouchableOpacity>
 
                 <TouchableOpacity
+                  style={[
+                    styles.statBox,
+                    overdueRentalsCount > 0 && { backgroundColor: '#FEF2F2', borderColor: '#FCA5A5' },
+                  ]}
+                  onPress={() => setRentalsListVisible(true)}
+                >
+                  <View style={styles.statLabelWithIcon}>
+                    <KeyRound size={13} color={overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5'} />
+                    <Text
+                      style={[
+                        styles.statVal,
+                        { color: overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5' },
+                      ]}
+                    >
+                      {overdueRentalsCount > 0 ? `${overdueRentalsCount}!` : 'İcarə'}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.statLabel,
+                      overdueRentalsCount > 0 && { color: '#DC2626', fontWeight: '800' },
+                    ]}
+                  >
+                    {overdueRentalsCount > 0 ? 'Gecikən' : 'Siyahı'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
                   style={styles.addStatBox}
                   onPress={() => setNewProductVisible(true)}
                 >
@@ -510,6 +559,11 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
             setLabelPrintProducts([prod]);
             setLabelPrintVisible(true);
           }}
+          onRentProduct={(prod) => {
+            setDetailsVisible(false);
+            setRentModalProducts([prod]);
+            setRentModalVisible(true);
+          }}
           canViewCostPrices={permissions.canViewCostPrices}
           canManageProducts={permissions.canManageProducts}
           canPerformMovements={permissions.canPerformMovements}
@@ -556,6 +610,29 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           products={labelPrintProducts}
         />
 
+        {/* Rent Product Modal */}
+        <RentProductModal
+          visible={rentModalVisible}
+          products={rentModalProducts}
+          onClose={() => setRentModalVisible(false)}
+          onSuccess={() => {
+            setSelectionMode(false);
+            setSelectedProductIds(new Set());
+            loadData(true);
+            checkOverdueRentals();
+          }}
+        />
+
+        {/* Rentals Management List Modal */}
+        <RentalsListModal
+          visible={rentalsListVisible}
+          onClose={() => {
+            setRentalsListVisible(false);
+            checkOverdueRentals();
+            loadData(true);
+          }}
+        />
+
         {/* Floating Selection Bar */}
         {selectionMode && (
           <View style={styles.selectionBar}>
@@ -576,13 +653,33 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
             <View style={styles.selectionBarRight}>
               <TouchableOpacity
                 style={[
+                  styles.rentSelectedBtn,
+                  selectedProductIds.size === 0 && styles.printSelectedBtnDisabled,
+                ]}
+                onPress={() => {
+                  const prods = products.filter((p) => selectedProductIds.has(p.id));
+                  if (prods.length === 0) {
+                    Alert.alert('Məhsul seçilməyib', 'İcarəyə vermək üçün ən azı 1 məhsul seçin');
+                    return;
+                  }
+                  setRentModalProducts(prods);
+                  setRentModalVisible(true);
+                }}
+                disabled={selectedProductIds.size === 0}
+              >
+                <KeyRound size={15} color="#fff" />
+                <Text style={styles.printSelectedBtnText}>İcarəyə Ver</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
                   styles.printSelectedBtn,
                   selectedProductIds.size === 0 && styles.printSelectedBtnDisabled,
                 ]}
                 onPress={handleOpenLabelPrintForSelected}
                 disabled={selectedProductIds.size === 0}
               >
-                <Printer size={16} color="#fff" />
+                <Printer size={15} color="#fff" />
                 <Text style={styles.printSelectedBtnText}>Çap et</Text>
               </TouchableOpacity>
             </View>
@@ -897,7 +994,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   selectionBarRight: {
-    marginLeft: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 10,
+  },
+  rentSelectedBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
   },
   printSelectedBtn: {
     flexDirection: 'row',
