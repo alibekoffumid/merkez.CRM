@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight } from 'lucide-react-native';
+import { X, Barcode, Plus, Minus, Check, ArrowDownRight, ArrowUpRight, Printer } from 'lucide-react-native';
 import { Product, Category, ProductAttribute } from '../types';
 import { productService } from '../services/productService';
 import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
@@ -24,6 +24,7 @@ interface ProductDetailsModalProps {
   onUpdated: (updatedProduct: Product) => void;
   onReceiveClick: (product: Product) => void;
   onDispatchClick: (product: Product) => void;
+  onPrintLabels?: (product: Product) => void;
   canViewCostPrices?: boolean;
   canManageProducts?: boolean;
   canPerformMovements?: boolean;
@@ -39,6 +40,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   onUpdated,
   onReceiveClick,
   onDispatchClick,
+  onPrintLabels,
   canViewCostPrices = true,
   canManageProducts = true,
   canPerformMovements = true,
@@ -345,6 +347,16 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 attributes={attributes}
                 onChange={setAttributes}
               />
+            )}
+
+            {onPrintLabels && (
+              <TouchableOpacity
+                style={styles.printLabelBtn}
+                onPress={() => onPrintLabels(product)}
+              >
+                <Printer size={16} color="#2563EB" />
+                <Text style={styles.printLabelBtnText}>Barkod Etiketini Çap Et</Text>
+              </TouchableOpacity>
             )}
 
             {canManageProducts && (
@@ -675,6 +687,23 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     marginBottom: 10,
+  },
+  printLabelBtn: {
+    backgroundColor: '#EFF6FF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginBottom: 12,
+  },
+  printLabelBtnText: {
+    color: '#2563EB',
+    fontSize: 14,
+    fontWeight: '800',
   },
   saveBtnText: {
     color: '#fff',

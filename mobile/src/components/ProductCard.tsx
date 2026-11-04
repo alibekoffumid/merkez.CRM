@@ -1,6 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Barcode, AlertTriangle, ArrowDownRight, ArrowUpRight, Plus, ShoppingCart } from 'lucide-react-native';
+import {
+  Barcode,
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Plus,
+  ShoppingCart,
+  CheckSquare,
+  Square,
+} from 'lucide-react-native';
 import { Product } from '../types';
 import { parseProductAttributes } from '../utils/productAttributes';
 
@@ -13,6 +22,9 @@ interface ProductCardProps {
   canViewCostPrices?: boolean;
   canViewSupplier?: boolean;
   canViewLowStock?: boolean;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = React.memo(({
@@ -24,6 +36,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   canViewCostPrices = true,
   canViewSupplier = true,
   canViewLowStock = true,
+  selectionMode = false,
+  isSelected = false,
+  onToggleSelect,
 }) => {
   const isCritical =
     canViewLowStock &&
@@ -31,14 +46,38 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     (product.critical_stock && product.critical_stock > 0 ? product.critical_stock : 5);
   const isOutOfStock = product.stock_quantity <= 0;
 
+  const handleCardPress = () => {
+    if (selectionMode && onToggleSelect) {
+      onToggleSelect();
+    } else if (onPress) {
+      onPress();
+    }
+  };
+
   return (
     <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      disabled={!onPress}
-      activeOpacity={onPress ? 0.7 : 1}
+      style={[
+        styles.card,
+        selectionMode && isSelected && styles.cardSelected,
+      ]}
+      onPress={handleCardPress}
+      disabled={!onPress && !onToggleSelect}
+      activeOpacity={0.7}
     >
       <View style={styles.mainRow}>
+        {selectionMode && (
+          <TouchableOpacity
+            style={styles.checkboxTouch}
+            onPress={onToggleSelect}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            {isSelected ? (
+              <CheckSquare size={20} color="#2563EB" />
+            ) : (
+              <Square size={20} color="#94A3B8" />
+            )}
+          </TouchableOpacity>
+        )}
         <View style={styles.infoCol}>
           <Text style={styles.productName} numberOfLines={2}>
             {product.name}
@@ -203,6 +242,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
+  },
+  cardSelected: {
+    borderColor: '#2563EB',
+    backgroundColor: '#F8FAFF',
+    borderWidth: 1.5,
+  },
+  checkboxTouch: {
+    marginRight: 10,
+    marginTop: 2,
   },
   mainRow: {
     flexDirection: 'row',

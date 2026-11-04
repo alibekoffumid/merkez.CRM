@@ -27,6 +27,9 @@ import {
   X,
   LogOut,
   User,
+  Printer,
+  CheckSquare,
+  Square,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Product, Category } from '../types';
@@ -36,6 +39,7 @@ import { ProductDetailsModal } from '../components/ProductDetailsModal';
 import { StockOperationModal } from '../components/StockOperationModal';
 import { NewProductModal } from '../components/NewProductModal';
 import { CategoryPickerModal } from '../components/CategoryPickerModal';
+import { LabelPrintModal } from '../components/LabelPrintModal';
 import { buildCategoryDescendantMap } from '../utils/categoryUtils';
 
 interface WarehouseScreenProps {
@@ -67,6 +71,10 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   const [opType, setOpType] = useState<'RECEIVE' | 'DISPATCH' | null>(null);
   const [newProductVisible, setNewProductVisible] = useState(false);
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [labelPrintVisible, setLabelPrintVisible] = useState(false);
+  const [labelPrintProducts, setLabelPrintProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     loadData();
@@ -214,6 +222,33 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
     [onAddToCart]
   );
 
+  const toggleProductSelection = useCallback((id: string) => {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const handleSelectAllFiltered = useCallback(() => {
+    setSelectedProductIds(new Set(filteredProducts.map((p) => p.id)));
+  }, [filteredProducts]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedProductIds(new Set());
+  }, []);
+
+  const handleOpenLabelPrintForSelected = useCallback(() => {
+    const prods = products.filter((p) => selectedProductIds.has(p.id));
+    if (prods.length === 0) {
+      Alert.alert('Məhsul seçilməyib', 'Çap etmək üçün ən azı 1 məhsul seçin');
+      return;
+    }
+    setLabelPrintProducts(prods);
+    setLabelPrintVisible(true);
+  }, [products, selectedProductIds]);
+
   const renderProductItem = useCallback(
     ({ item }: { item: Product }) => (
       <ProductCard
@@ -225,9 +260,22 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
         canViewCostPrices={permissions.canViewCostPrices}
         canViewSupplier={permissions.canViewSupplier}
         canViewLowStock={permissions.canViewStockStats}
+        selectionMode={selectionMode}
+        isSelected={selectedProductIds.has(item.id)}
+        onToggleSelect={() => toggleProductSelection(item.id)}
       />
     ),
-    [handleProductPress, handleProductReceive, handleProductDispatch, handleProductAddToCart, onAddToCart, permissions]
+    [
+      handleProductPress,
+      handleProductReceive,
+      handleProductDispatch,
+      handleProductAddToCart,
+      onAddToCart,
+      permissions,
+      selectionMode,
+      selectedProductIds,
+      toggleProductSelection,
+    ]
   );
 
   return (
@@ -308,13 +356,34 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
             )}
 
             {permissions.canManageProducts && (
-              <TouchableOpacity
-                style={styles.addStatBox}
-                onPress={() => setNewProductVisible(true)}
-              >
-                <Plus size={16} color="#10B981" />
-                <Text style={styles.addStatText}>Əlavə et</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={[styles.statBox, selectionMode && styles.statBoxActiveBlue]}
+                  onPress={() => {
+                    const next = !selectionMode;
+                    setSelectionMode(next);
+                    if (!next) setSelectedProductIds(new Set());
+                  }}
+                >
+                  <View style={styles.statLabelWithIcon}>
+                    <Printer size={13} color={selectionMode ? '#2563EB' : '#475569'} />
+                    <Text style={[styles.statVal, selectionMode && { color: '#2563EB' }]}>
+                      {selectionMode ? selectedProductIds.size : 'Çap'}
+                    </Text>
+                  </View>
+                  <Text style={[styles.statLabel, selectionMode && { color: '#2563EB', fontWeight: '800' }]}>
+                    {selectionMode ? 'Seçildi' : 'Etiketlər'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.addStatBox}
+                  onPress={() => setNewProductVisible(true)}
+                >
+                  <Plus size={16} color="#10B981" />
+                  <Text style={styles.addStatText}>Əlavə et</Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
         )}
@@ -437,6 +506,10 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
             setOpModalProduct(prod);
             setOpType('DISPATCH');
           }}
+          onPrintLabels={(prod) => {
+            setLabelPrintProducts([prod]);
+            setLabelPrintVisible(true);
+          }}
           canViewCostPrices={permissions.canViewCostPrices}
           canManageProducts={permissions.canManageProducts}
           canPerformMovements={permissions.canPerformMovements}
@@ -475,6 +548,46 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           products={products}
           canViewStockStats={permissions.canViewStockStats}
         />
+
+        {/* Label Print Modal */}
+        <LabelPrintModal
+          visible={labelPrintVisible}
+          onClose={() => setLabelPrintVisible(false)}
+          products={labelPrintProducts}
+        />
+
+        {/* Floating Selection Bar */}
+        {selectionMode && (
+          <View style={styles.selectionBar}>
+            <View style={styles.selectionBarLeft}>
+              <Text style={styles.selectionCountText}>
+                {selectedProductIds.size} məhsul seçildi
+              </Text>
+              <View style={styles.selectionQuickBtns}>
+                <TouchableOpacity onPress={handleSelectAllFiltered}>
+                  <Text style={styles.selectionQuickBtnText}>Hamısını seç</Text>
+                </TouchableOpacity>
+                <Text style={styles.selectionDot}>·</Text>
+                <TouchableOpacity onPress={handleClearSelection}>
+                  <Text style={styles.selectionQuickBtnText}>Təmizlə</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.selectionBarRight}>
+              <TouchableOpacity
+                style={[
+                  styles.printSelectedBtn,
+                  selectedProductIds.size === 0 && styles.printSelectedBtnDisabled,
+                ]}
+                onPress={handleOpenLabelPrintForSelected}
+                disabled={selectedProductIds.size === 0}
+              >
+                <Printer size={16} color="#fff" />
+                <Text style={styles.printSelectedBtnText}>Çap et</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -581,6 +694,10 @@ const styles = StyleSheet.create({
   statBoxActiveRed: {
     borderColor: '#EF4444',
     backgroundColor: '#FEF2F2',
+  },
+  statBoxActiveBlue: {
+    borderColor: '#2563EB',
+    backgroundColor: '#EFF6FF',
   },
   statVal: {
     fontSize: 18,
@@ -735,6 +852,69 @@ const styles = StyleSheet.create({
   emptyBtnText: {
     color: '#fff',
     fontSize: 14,
+    fontWeight: '700',
+  },
+  selectionBar: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: '#0F172A',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  selectionBarLeft: {
+    flex: 1,
+  },
+  selectionCountText: {
+    color: '#F8FAFC',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  selectionQuickBtns: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  selectionQuickBtnText: {
+    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  selectionDot: {
+    color: '#64748B',
+    fontSize: 12,
+  },
+  selectionBarRight: {
+    marginLeft: 12,
+  },
+  printSelectedBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  printSelectedBtnDisabled: {
+    backgroundColor: '#475569',
+    opacity: 0.6,
+  },
+  printSelectedBtnText: {
+    color: '#fff',
+    fontSize: 13,
     fontWeight: '700',
   },
 });
