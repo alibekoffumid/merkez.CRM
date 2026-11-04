@@ -770,14 +770,52 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     ? exactMarkup * 100
     : (netAmount > 0 ? (((contractTotal - netAmount) / netAmount) * 100) : 0);
 
-  // Split credit calculation if part of split is credit
+  // Split credit calculation if part of split is credit (matching standard credit calculation logic)
+  const splitBankTariff = bankSettings.find(s => 
+    s.bank_name.toLowerCase() === splitCreditBank.toLowerCase() && 
+    Number(s.months) === Number(splitCreditMonths)
+  );
+  const splitBankPercent = splitBankTariff 
+    ? Number(splitBankTariff.bank_percent) 
+    : ((BANK_RATES[splitCreditBank]?.[splitCreditMonths] || 0) * 100);
+  const splitTaxPercent = splitBankTariff ? Number(splitBankTariff.tax_percent) : 4.0;
+  const splitDefaultShop = splitCreditBank.toLowerCase().includes('ferrum') ? 1.65 : 1.5;
+  const splitStorePercent = splitBankTariff ? Number(splitBankTariff.store_percent) : splitDefaultShop;
+
+  const dSplitBank = splitBankPercent / 100;
+  const dSplitTax = splitTaxPercent / 100;
+  const dSplitStore = splitStorePercent / 100;
+
+  const isSplitFeeDeductedFromGross = (splitCreditBank.toLowerCase().includes('ferrum') || splitCreditBank.toLowerCase().includes('abb'));
+
+  const splitDenominator = isSplitFeeDeductedFromGross
+    ? (1 - dSplitBank) * (1 - dSplitTax - dSplitStore)
+    : (1 - dSplitBank - dSplitTax - dSplitStore);
+
+  const rawSplitGross = splitDenominator > 0 ? (numSplitCredit / splitDenominator) : numSplitCredit;
+
   const splitExactMarkup = MARKUP_RATES[splitCreditBank]?.[splitCreditMonths];
   const splitCreditContract = splitExactMarkup !== undefined
     ? Number((numSplitCredit * (1 + splitExactMarkup)).toFixed(2))
-    : Number(numSplitCredit.toFixed(2));
-  const splitCreditMonthly = splitCreditMonths > 0
-    ? Number((splitCreditContract / splitCreditMonths).toFixed(2))
+    : (isSplitFeeDeductedFromGross ? Math.ceil(rawSplitGross) : Math.ceil(rawSplitGross));
+
+  const splitKapital35KreditMebleg = Math.ceil(numSplitCredit * 1.0575);
+
+  const splitGrossAmount = (splitCreditBank === 'Kapital Kredit 35'
+    ? splitKapital35KreditMebleg
+    : (splitCreditBank.toLowerCase() === 'birkart' || splitCreditBank.toLowerCase() === 'tamkart'
+        ? Math.ceil(splitCreditContract)
+        : Math.ceil(splitCreditContract) * (1 - dSplitBank)));
+
+  const splitMonthlyPayment = splitCreditMonths > 0
+    ? (Math.ceil(splitCreditContract) / splitCreditMonths)
     : splitCreditContract;
+
+  const splitCreditMonthly = splitMonthlyPayment;
+
+  const splitCommissionRateDisplay = splitExactMarkup !== undefined
+    ? splitExactMarkup * 100
+    : (numSplitCredit > 0 ? (((splitCreditContract - numSplitCredit) / numSplitCredit) * 100) : 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1039,7 +1077,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             descriptionText += ` (İlkin ödəniş: ₼${numDownpayment.toFixed(2)} [${downLabel}], Qalıq kredit: ₼${netAmount.toFixed(2)})`;
           }
         } else if (paymentMethod === 'split') {
-          descriptionText = `Qarışıq Satışda Kredit Payı (${splitCreditBank} - ${splitCreditMonths} ay) [${productNames}]: Müqavilə: ₼${splitCreditContract.toFixed(2)}`;
+          descriptionText = `Qarışıq Satışda Kredit Payı (${splitCreditBank} - ${splitCreditMonths} ay) [${productNames}]: Müqavilə: ₼${splitCreditContract.toFixed(2)}, Kassaya: ₼${splitGrossAmount.toFixed(2)}, Faiz: ${splitCommissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`;
         }
 
         // Log to customer_debts
@@ -1080,7 +1118,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               monthly_payment: cMonthly,
               remaining_months: cMonths,
               notes: notes || (paymentMethod === 'split'
-                ? `Qarışıq Satış Kredit Payı | Məhsul(lar): ${productNames} | Bank: ${cBank}, Müqavilə: ₼${cTotal}`
+                ? `Qarışıq Satış Kredit Payı | Məhsul(lar): ${productNames} | Bank: ${cBank}, Müqavilə: ₼${cTotal}, Kassaya: ₼${splitGrossAmount.toFixed(2)}, Faiz: ${splitCommissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
                 : (isFerrum 
                     ? `Məhsul(lar): ${productNames} | Bank: ${cBank}, Müqavilə: ₼${cTotal}${numDownpayment > 0 ? ` (İlkin ödəniş: ₼${numDownpayment})` : ''}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
                     : `Məhsul(lar): ${productNames} | Bank: ${cBank}, Müqavilə: ₼${cTotal}${numDownpayment > 0 ? ` (İlkin ödəniş: ₼${numDownpayment})` : ''}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`)),
@@ -1530,11 +1568,60 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                                 />
                               </div>
                             </div>
-                            <div className="flex justify-between items-center text-xs font-bold pt-1.5 border-t border-gray-100 text-gray-600">
-                              <span>{i18n.language === 'az' ? 'Kredit müqaviləsi:' : 'Договор кредита:'}</span>
-                              <span className="text-gray-900 font-black">
-                                ₼{splitCreditContract.toFixed(2)} ({splitCreditMonthly.toFixed(2)} ₼/ay)
-                              </span>
+
+                            {/* Detailed Calculations Panel for Split Credit */}
+                            <div className="bg-gray-50/80 border border-indigo-100/80 p-3.5 rounded-xl space-y-2.5 text-xs font-bold text-gray-500 shadow-xs">
+                              <div className="flex justify-between items-center">
+                                <span>{i18n.language === 'az' ? 'Məhsulun dəyəri:' : 'Стоимость товара:'}</span>
+                                <span className="text-gray-900 font-black text-xs">₼<AnimatedNumber value={numSplitCredit} /></span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
+                                <span className="text-orange-500 font-black text-xs">
+                                  <AnimatedNumber value={splitCommissionRateDisplay} format={v => v.toFixed(3).replace(/\.?0+$/, '')} />%
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого (Цена + Процент):'}</span>
+                                <span className="text-gray-900 font-black text-xs">₼<AnimatedNumber value={splitCreditContract} /></span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span>{i18n.language === 'az' ? 'Faiz məbləği (Manatla):' : 'Сумма процента (В манатах):'}</span>
+                                <span className="text-orange-500 font-black text-xs">₼<AnimatedNumber value={splitCreditContract - numSplitCredit} /></span>
+                              </div>
+
+                              {splitCreditBank === 'Kapital Kredit 35' ? (
+                                <>
+                                  <div className="flex justify-between items-center border-t border-gray-100 pt-2">
+                                    <span className="text-gray-900 font-black text-xs">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
+                                    <span className="text-merkez-blue font-black text-sm">₼<AnimatedNumber value={splitMonthlyPayment} /> / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-900 font-black text-xs">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
+                                    <span className="text-gray-900 font-black text-xs">₼<AnimatedNumber value={splitKapital35KreditMebleg} /></span>
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex justify-between items-center border-t border-gray-100 pt-2">
+                                    <span className="text-gray-900 font-black text-xs">{i18n.language === 'az' ? 'Kredit şöbəsinə göndərilən məbləğ:' : 'Сумма отправленная в кредит. отдел:'}</span>
+                                    <span className="text-gray-900 font-black text-xs">₼<AnimatedNumber value={Math.ceil(splitCreditContract)} /></span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-gray-900 font-black text-xs">{i18n.language === 'az' ? 'Aylıq ödəniş:' : 'Ежемесячный платеж:'}</span>
+                                    <span className="text-merkez-blue font-black text-sm">₼<AnimatedNumber value={splitMonthlyPayment} /> / {i18n.language === 'az' ? 'ay' : 'мес'}</span>
+                                  </div>
+                                </>
+                              )}
+
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-900 font-black text-xs">{i18n.language === 'az' ? 'Kassaya vurulan məbləğ:' : 'Сумма в кассу:'}</span>
+                                <span className="text-gray-900 font-black text-xs">₼<AnimatedNumber value={splitGrossAmount} /></span>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-955 font-black text-xs">{i18n.language === 'az' ? 'Alver cədvəlinə yazılan məbləğ:' : 'Сумма записи в торговлю:'}</span>
+                                <span className="text-gray-900 font-black text-xs">₼<AnimatedNumber value={numSplitCredit} /></span>
+                              </div>
                             </div>
                           </div>
                         )}
