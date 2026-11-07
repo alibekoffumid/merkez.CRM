@@ -17,6 +17,7 @@ import {
   Radio,
   Barcode,
   Wrench,
+  Settings,
 } from 'lucide-react-native';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -26,13 +27,14 @@ import { OperationsScreen } from './src/screens/OperationsScreen';
 import { POSScreen } from './src/screens/POSScreen';
 import { RepairsScreen } from './src/screens/RepairsScreen';
 import { PCGunScreen } from './src/screens/PCGunScreen';
+import { SettingsScreen } from './src/screens/SettingsScreen';
 import { ScannerModal, ScannerMode } from './src/components/ScannerModal';
 import { StaffPinGuardModal } from './src/components/StaffPinGuardModal';
 import { Product, POSCartItem } from './src/types';
 import { productService } from './src/services/productService';
 import { scannerSyncService } from './src/services/scannerSyncService';
 
-type Tab = 'warehouse' | 'operations' | 'pos' | 'repairs' | 'pcgun';
+type Tab = 'warehouse' | 'operations' | 'pos' | 'repairs' | 'pcgun' | 'settings';
 
 // Main Application entry point
 
@@ -229,6 +231,12 @@ function MainApp() {
             />
           </View>
         )}
+
+        {loadedTabs.has('settings') && (
+          <View style={[styles.screenTab, currentTab !== 'settings' && styles.screenHidden]}>
+            <SettingsScreen />
+          </View>
+        )}
       </View>
 
       {/* Bottom Navigation Bar */}
@@ -358,10 +366,29 @@ function MainApp() {
             PC Skaner
           </Text>
         </TouchableOpacity>
+
+        {/* Tab 6: Settings (Tənzimləmələr) */}
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handleTabPress('settings')}
+        >
+          <Settings
+            size={22}
+            color={currentTab === 'settings' ? '#10B981' : '#9CA3AF'}
+          />
+          <Text
+            style={[
+              styles.navLabel,
+              currentTab === 'settings' && styles.navLabelActive,
+            ]}
+          >
+            Tənzimləmə
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Floating Scanner Action Button (Right Edge above bottom menu) - hidden on POS screen */}
-      {currentTab !== 'pos' && (
+      {/* Floating Scanner Action Button (Right Edge above bottom menu) - hidden on POS and Settings screens */}
+      {currentTab !== 'pos' && currentTab !== 'settings' && (
         <TouchableOpacity
           style={styles.floatingScannerFab}
           onPress={() => handleOpenScanner(permissions.isCashier ? 'pos' : 'terminal')}

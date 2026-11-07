@@ -26,6 +26,20 @@ export interface PrinterConfig {
   filialName?: string;
 }
 
+export interface SavedPrinter {
+  id: string;
+  name: string;
+  connectionType: 'direct_tcp' | 'rawbt';
+  ipAddress: string;
+  port: number;
+  paperWidth: '58mm' | '80mm';
+  autoCut?: boolean;
+  openDrawer?: boolean;
+  isDefault: boolean;
+  lastOnline?: boolean;
+  lastChecked?: number;
+}
+
 export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   connectionType: 'direct_tcp',
   ipAddress: '192.168.1.200',
@@ -206,6 +220,7 @@ export class EscPosBuilder {
 }
 
 const STORAGE_KEY = '@merkez_printer_config';
+const SAVED_PRINTERS_KEY = '@merkez_saved_printers_list_v1';
 
 export interface ReceiptItem {
   name: string;
@@ -385,6 +400,149 @@ export const receiptService = {
     } catch (e) {
       console.error('Failed to save printer config:', e);
     }
+  },
+
+  /**
+   * Retrieves all saved / connected printers list
+   */
+  async getSavedPrinters(): Promise<SavedPrinter[]> {
+    try {
+      const json = await AsyncStorage.getItem(SAVED_PRINTERS_KEY);
+      if (json) {
+        const list: SavedPrinter[] = JSON.parse(json);
+        if (Array.isArray(list) && list.length > 0) {
+          return list;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load saved printers list:', e);
+    }
+
+    // Default initial seed from current active config
+    const currentCfg = await this.getConfig();
+    const initialList: SavedPrinter[] = [
+      {
+        id: 'printer-primary-default',
+        name: 'Əsas Kassa Printeri',
+        connectionType: currentCfg.connectionType || 'direct_tcp',
+        ipAddress: currentCfg.ipAddress || '192.168.1.200',
+        port: Number(currentCfg.port) || 9100,
+        paperWidth: currentCfg.paperWidth || '58mm',
+        autoCut: currentCfg.autoCut !== false,
+        openDrawer: !!currentCfg.openDrawer,
+        isDefault: true,
+      },
+    ];
+
+    try {
+      await AsyncStorage.setItem(SAVED_PRINTERS_KEY, JSON.stringify(initialList));
+    } catch (err) {}
+
+    return initialList;
+  },
+
+  /**
+   * Saves or updates a printer in the saved printers list
+   */
+  async savePrinter(printer: SavedPrinter): Promise<SavedPrinter[]> {
+    const list = await this.getSavedPrinters();
+    const existingIdx = list.findIndex((p) => p.id === printer.id);
+    let updated: SavedPrinter[];
+
+    if (existingIdx >= 0) {
+      updated = [...list];
+      updated[existingIdx] = { ...updated[existingIdx], ...printer };
+    } else {
+      updated = [...list, printer];
+    }
+
+    // If marked default or first printer, set default and sync with active config
+    if (printer.isDefault || updated.length === 1) {
+      updated = updated.map((p) => ({
+        ...p,
+        isDefault: p.id === printer.id,
+      }));
+
+      const currentCfg = await this.getConfig();
+      await this.saveConfig({
+        ...currentCfg,
+        connectionType: printer.connectionType,
+        ipAddress: printer.ipAddress,
+        port: printer.port,
+        paperWidth: printer.paperWidth,
+        autoCut: printer.autoCut,
+        openDrawer: printer.openDrawer,
+      });
+    }
+
+    await AsyncStorage.setItem(SAVED_PRINTERS_KEY, JSON.stringify(updated));
+    return updated;
+  },
+
+  /**
+   * Sets a specific printer as default active printer
+   */
+  async setDefaultPrinter(id: string): Promise<SavedPrinter[]> {
+    const list = await this.getSavedPrinters();
+    const target = list.find((p) => p.id === id);
+    if (!target) return list;
+
+    const updated = list.map((p) => ({
+      ...p,
+      isDefault: p.id === id,
+    }));
+
+    await AsyncStorage.setItem(SAVED_PRINTERS_KEY, JSON.stringify(updated));
+
+    const currentCfg = await this.getConfig();
+    await this.saveConfig({
+      ...currentCfg,
+      connectionType: target.connectionType,
+      ipAddress: target.ipAddress,
+      port: target.port,
+      paperWidth: target.paperWidth,
+      autoCut: target.autoCut,
+      openDrawer: target.openDrawer,
+    });
+
+    return updated;
+  },
+
+  /**
+   * Deletes a printer by id
+   */
+  async deletePrinter(id: string): Promise<SavedPrinter[]> {
+    const list = await this.getSavedPrinters();
+    let updated = list.filter((p) => p.id !== id);
+
+    if (updated.length > 0 && !updated.some((p) => p.isDefault)) {
+      updated[0].isDefault = true;
+      const currentCfg = await this.getConfig();
+      await this.saveConfig({
+        ...currentCfg,
+        connectionType: updated[0].connectionType,
+        ipAddress: updated[0].ipAddress,
+        port: updated[0].port,
+        paperWidth: updated[0].paperWidth,
+        autoCut: updated[0].autoCut,
+        openDrawer: updated[0].openDrawer,
+      });
+    }
+
+    await AsyncStorage.setItem(SAVED_PRINTERS_KEY, JSON.stringify(updated));
+    return updated;
+  },
+
+  /**
+   * Updates online/offline status cache for a printer
+   */
+  async updatePrinterStatus(id: string, isOnline: boolean): Promise<SavedPrinter[]> {
+    const list = await this.getSavedPrinters();
+    const updated = list.map((p) =>
+      p.id === id ? { ...p, lastOnline: isOnline, lastChecked: Date.now() } : p
+    );
+    await AsyncStorage.setItem(SAVED_PRINTERS_KEY, JSON.stringify(updated));
+    return updated;
   },
 
   /**
@@ -1322,26 +1480,41 @@ export const receiptService = {
   /**
    * Tests socket connection to printer IP:Port directly
    */
-  async testConnection(customConfig?: PrinterConfig): Promise<boolean> {
+  async testConnection(customConfig?: PrinterConfig | SavedPrinter | { ipAddress?: string; port?: number }): Promise<boolean> {
     const config = customConfig || (await this.getConfig());
     if (!DirectPrinter?.testConnection) {
       throw new Error('DirectPrinter native modulu tapılmadı');
     }
+    const ip = config.ipAddress || '192.168.1.200';
     const port = Number(config.port) || 9100;
-    return await DirectPrinter.testConnection(config.ipAddress, port, 3000);
+    return await DirectPrinter.testConnection(ip, port, 3000);
   },
 
   /**
    * Triggers a self-test print ticket to verify the printer connection immediately
    */
-  async printTest(customConfig?: PrinterConfig): Promise<boolean> {
-    const config = customConfig || (await this.getConfig());
+  async printTest(customConfig?: PrinterConfig | SavedPrinter): Promise<boolean> {
+    const activeCfg = await this.getConfig();
+    let effectiveConfig: PrinterConfig = { ...activeCfg };
+
+    if (customConfig) {
+      effectiveConfig = {
+        ...effectiveConfig,
+        connectionType: customConfig.connectionType || effectiveConfig.connectionType,
+        ipAddress: customConfig.ipAddress || effectiveConfig.ipAddress,
+        port: Number(customConfig.port) || effectiveConfig.port,
+        paperWidth: customConfig.paperWidth || effectiveConfig.paperWidth,
+        autoCut: customConfig.autoCut !== undefined ? customConfig.autoCut : effectiveConfig.autoCut,
+        openDrawer: customConfig.openDrawer !== undefined ? customConfig.openDrawer : effectiveConfig.openDrawer,
+      };
+    }
+
     const testData: SaleReceiptData = {
       saleId: 'd0079237-29f0-4e3b-a4dc-643ef0d3498f',
       receiptNumber: 'D0079237',
       transactionId: 'd0079237-29f0-4e3b-a4dc-643ef0d3498f',
       date: new Date(),
-      warehouseName: config.filialName || 'DÜKKAN - ƏHMƏDLİ',
+      warehouseName: effectiveConfig.filialName || 'DÜKKAN - ƏHMƏDLİ',
       cashierName: 'Kassir (Sınaq)',
       items: [
         { name: 'PEREXOD IN 2 TULPAN+ 1 AUX', quantity: 1, price: 2.0, total: 2.0, unit: 'əd' },
@@ -1351,7 +1524,7 @@ export const receiptService = {
       paymentMethod: 'Nağd',
       notes: 'POS Satış #SALE-852117 (Ödəniş: Nağd)',
     };
-    return this.printReceipt(testData, config);
+    return this.printReceipt(testData, effectiveConfig);
   },
 };
 
