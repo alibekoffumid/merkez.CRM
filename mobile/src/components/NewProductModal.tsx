@@ -21,6 +21,7 @@ interface NewProductModalProps {
   onCreated: (newProduct: Product) => void;
   initialBarcode?: string;
   onOpenScanner?: () => void;
+  warehouseId?: string;
 }
 
 export const NewProductModal: React.FC<NewProductModalProps> = ({
@@ -29,6 +30,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   onCreated,
   initialBarcode = '',
   onOpenScanner,
+  warehouseId,
 }) => {
   const [name, setName] = useState('');
   const [barcode, setBarcode] = useState(initialBarcode);
@@ -80,6 +82,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
       const newProd = await productService.saveProduct({
         name: name.trim(),
         barcode: barcode.trim() || article.trim() || undefined,
+        warehouse_id: warehouseId,
         category_id: selectedCategoryId || undefined,
         sale_price: parseFloat(salePrice) || 0,
         purchase_price: parseFloat(purchasePrice) || 0,

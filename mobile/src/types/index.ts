@@ -9,6 +9,8 @@ export interface Product {
   name: string;
   article_number?: string;
   barcode?: string;
+  warehouse_id?: string;
+  warehouse_name?: string;
   category_id?: string;
   category?: string;
   price?: number;
@@ -28,6 +30,15 @@ export interface Product {
   user_id?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface Warehouse {
+  id: string;
+  name: string;
+  address?: string;
+  is_default?: boolean;
+  user_id?: string;
+  created_at?: string;
 }
 
 export interface Category {

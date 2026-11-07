@@ -31,9 +31,10 @@ import {
   CheckSquare,
   Square,
   KeyRound,
+  Store,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
-import { Product, Category } from '../types';
+import { Product, Category, Warehouse } from '../types';
 import { productService } from '../services/productService';
 import { ProductCard } from '../components/ProductCard';
 import { ProductDetailsModal } from '../components/ProductDetailsModal';
@@ -43,6 +44,7 @@ import { CategoryPickerModal } from '../components/CategoryPickerModal';
 import { LabelPrintModal } from '../components/LabelPrintModal';
 import { RentProductModal } from '../components/RentProductModal';
 import { RentalsListModal } from '../components/RentalsListModal';
+import { WarehousePickerModal } from '../components/WarehousePickerModal';
 import { rentalService } from '../services/rentalService';
 import { buildCategoryDescendantMap } from '../utils/categoryUtils';
 
@@ -83,6 +85,11 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   const [rentModalProducts, setRentModalProducts] = useState<Product[]>([]);
   const [rentalsListVisible, setRentalsListVisible] = useState(false);
   const [overdueRentalsCount, setOverdueRentalsCount] = useState(0);
+
+  // Warehouse selection state
+  const [warehouses, setWarehouses] = useState<Warehouse[]>(() => productService.getCachedWarehouses() || []);
+  const [activeWarehouseId, setActiveWarehouseId] = useState<string>('');
+  const [warehousePickerVisible, setWarehousePickerVisible] = useState(false);
 
   const checkOverdueRentals = async () => {
     try {
@@ -143,8 +150,15 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
       if (!hasCached || forceRefresh) {
         setLoading(true);
       }
+      const [wList, activeWId] = await Promise.all([
+        productService.getWarehouses(forceRefresh),
+        productService.getActiveWarehouseId(),
+      ]);
+      setWarehouses(wList);
+      setActiveWarehouseId(activeWId);
+
       const [prods, cats] = await Promise.all([
-        productService.getProducts(forceRefresh),
+        productService.getProducts(forceRefresh, activeWId),
         productService.getCategories(forceRefresh),
       ]);
       setProducts(prods);
@@ -154,6 +168,14 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectWarehouse = async (newWarehouseId: string) => {
+    if (newWarehouseId === activeWarehouseId) return;
+    setLoading(true);
+    await productService.setActiveWarehouseId(newWarehouseId);
+    setActiveWarehouseId(newWarehouseId);
+    await loadData(true);
   };
 
   const handleRefresh = async () => {
@@ -306,7 +328,20 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
         {/* Top Header */}
         <View style={styles.header}>
           <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={styles.brandTitle} numberOfLines={1}>MERKEZ ANBAR</Text>
+            <TouchableOpacity
+              style={styles.warehouseDropdownBtn}
+              onPress={() => setWarehousePickerVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.warehouseDropdownLeft}>
+                <Store size={16} color="#2563EB" />
+                <Text style={styles.warehouseDropdownText} numberOfLines={1}>
+                  {warehouses.find((w) => w.id === activeWarehouseId)?.name || 'DÜKKAN - ƏHMƏDLİ'}
+                </Text>
+              </View>
+              <ChevronDown size={14} color="#2563EB" />
+            </TouchableOpacity>
+
             <Text style={styles.brandSub} numberOfLines={1}>
               {currentStaff === 'owner'
                 ? `Sahib (${profile?.full_name || 'İdarəçi'})`
@@ -586,9 +621,22 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           visible={newProductVisible}
           onClose={() => setNewProductVisible(false)}
           onCreated={handleProductCreated}
+          warehouseId={activeWarehouseId}
           onOpenScanner={() => {
             setNewProductVisible(false);
             onOpenScanner('terminal');
+          }}
+        />
+
+        {/* Warehouse / Filial Selector Bottom Sheet Modal */}
+        <WarehousePickerModal
+          visible={warehousePickerVisible}
+          warehouses={warehouses}
+          activeWarehouseId={activeWarehouseId}
+          onSelectWarehouse={handleSelectWarehouse}
+          onClose={() => setWarehousePickerVisible(false)}
+          onWarehouseCreated={(newW) => {
+            setWarehouses((prev) => [...prev, newW]);
           }}
         />
 
@@ -705,6 +753,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  warehouseDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+    alignSelf: 'flex-start',
+    gap: 8,
+    maxWidth: 240,
+    marginBottom: 4,
+  },
+  warehouseDropdownLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    flexShrink: 1,
+  },
+  warehouseDropdownText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#1D4ED8',
+    letterSpacing: -0.3,
   },
   brandTitle: {
     fontSize: 20,

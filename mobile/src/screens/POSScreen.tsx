@@ -38,6 +38,7 @@ import {
   Layers,
 } from 'lucide-react-native';
 import { POSCartItem } from '../types';
+import { productService } from '../services/productService';
 import { salesService, POSPaymentMethod } from '../services/salesService';
 import {
   CREDIT_BANKS,
@@ -329,7 +330,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         total: res.total,
         paymentMethod: methodLabel,
         cashierName: 'Kassir',
-        warehouseName: 'DÜKKAN - ƏHMƏDLİ',
+        warehouseName: (cart[0]?.product as any)?.warehouse_name || 'DÜKKAN - ƏHMƏDLİ',
         notes: `POS Satış #${res.receiptNumber || res.saleId} (Ödəniş: ${methodLabel})`,
         creditDetails:
           paymentMethod === 'CREDIT'

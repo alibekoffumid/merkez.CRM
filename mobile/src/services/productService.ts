@@ -1,8 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../config/supabase';
-import { Product, Category, Supplier } from '../types';
+import { Product, Category, Supplier, Warehouse } from '../types';
 import { cleanAttributesForSave, formatAttributesForDescription } from '../utils/productAttributes';
 
 export const DEFAULT_USER_ID = '8929ea5f-d6b8-46e9-9873-dd67e65046f0';
+const WAREHOUSE_STORAGE_KEY = '@merkez_active_warehouse_id';
 
 export async function getActiveUserId(): Promise<string> {
   try {
@@ -54,8 +56,11 @@ export function formatDescriptionWithFactoryPrice(
 }
 
 let cachedProducts: Product[] | null = null;
+let cachedProductsWarehouseId: string | null = null;
 let cachedCategories: Category[] | null = null;
 let cachedSuppliers: Supplier[] | null = null;
+let cachedWarehouses: Warehouse[] | null = null;
+let activeWarehouseId: string | null = null;
 let activeFetchPromise: Promise<Product[]> | null = null;
 
 export const productService = {
@@ -71,20 +76,107 @@ export const productService = {
     return cachedSuppliers;
   },
 
-  invalidateCache(): void {
-    cachedProducts = null;
-    cachedCategories = null;
-    cachedSuppliers = null;
+  getCachedWarehouses(): Warehouse[] | null {
+    return cachedWarehouses;
   },
 
-  async getProducts(forceRefresh = false): Promise<Product[]> {
-    if (!forceRefresh && cachedProducts && cachedProducts.length > 0) {
+  invalidateCache(): void {
+    cachedProducts = null;
+    cachedProductsWarehouseId = null;
+    cachedCategories = null;
+    cachedSuppliers = null;
+    cachedWarehouses = null;
+  },
+
+  async getWarehouses(forceRefresh = false): Promise<Warehouse[]> {
+    if (!forceRefresh && cachedWarehouses && cachedWarehouses.length > 0) {
+      return cachedWarehouses;
+    }
+    try {
+      const userId = await getActiveUserId();
+      const { data, error } = await supabase
+        .from('warehouses')
+        .select('*')
+        .eq('user_id', userId)
+        .order('is_default', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching warehouses:', error);
+        return cachedWarehouses || [];
+      }
+      cachedWarehouses = data || [];
+      return cachedWarehouses;
+    } catch (e) {
+      console.error('getWarehouses exception:', e);
+      return cachedWarehouses || [];
+    }
+  },
+
+  async getActiveWarehouseId(): Promise<string> {
+    if (activeWarehouseId) return activeWarehouseId;
+    try {
+      const saved = await AsyncStorage.getItem(WAREHOUSE_STORAGE_KEY);
+      if (saved) {
+        activeWarehouseId = saved;
+        return saved;
+      }
+    } catch (e) {}
+
+    const warehouses = await this.getWarehouses();
+    if (warehouses && warehouses.length > 0) {
+      const def = warehouses.find((w) => w.is_default) || warehouses[0];
+      activeWarehouseId = def.id;
+      try {
+        await AsyncStorage.setItem(WAREHOUSE_STORAGE_KEY, def.id);
+      } catch (e) {}
+      return def.id;
+    }
+    return '';
+  },
+
+  async setActiveWarehouseId(id: string): Promise<void> {
+    if (activeWarehouseId === id) return;
+    activeWarehouseId = id;
+    cachedProducts = null;
+    cachedProductsWarehouseId = null;
+    try {
+      await AsyncStorage.setItem(WAREHOUSE_STORAGE_KEY, id);
+    } catch (e) {}
+  },
+
+  async createWarehouse(name: string, address = ''): Promise<Warehouse> {
+    const userId = await getActiveUserId();
+    const { data, error } = await supabase
+      .from('warehouses')
+      .insert([
+        {
+          name: name.trim(),
+          address: address.trim(),
+          user_id: userId,
+          is_default: false,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    cachedWarehouses = null;
+    await this.getWarehouses(true);
+    return data;
+  },
+
+  async getProducts(forceRefresh = false, targetWarehouseId?: string): Promise<Product[]> {
+    const wId = targetWarehouseId || (await this.getActiveWarehouseId());
+
+    if (!forceRefresh && cachedProducts && cachedProductsWarehouseId === wId && cachedProducts.length > 0) {
       return cachedProducts;
     }
 
-    if (activeFetchPromise) {
+    if (activeFetchPromise && cachedProductsWarehouseId === wId) {
       return activeFetchPromise;
     }
+
+    cachedProductsWarehouseId = wId;
 
     activeFetchPromise = (async () => {
       try {
@@ -95,13 +187,18 @@ export const productService = {
         let hasMore = true;
 
         while (hasMore) {
-          const { data, error } = await supabase
+          let query = supabase
             .from('products')
             .select('*, suppliers(name)')
             .eq('user_id', userId)
             .eq('is_deleted', false)
-            .order('name', { ascending: true })
-            .range(from, from + PAGE_SIZE - 1);
+            .order('name', { ascending: true });
+
+          if (wId) {
+            query = query.eq('warehouse_id', wId);
+          }
+
+          const { data, error } = await query.range(from, from + PAGE_SIZE - 1);
 
           if (error) {
             console.error('Error fetching products batch:', error);
@@ -120,12 +217,14 @@ export const productService = {
           }
         }
 
-        const [catsData, suppliersData] = await Promise.all([
+        const [catsData, suppliersData, warehousesData] = await Promise.all([
           productService.getCategories(forceRefresh),
           productService.getSuppliers(forceRefresh),
+          productService.getWarehouses(forceRefresh),
         ]);
         const catMap = new Map((catsData || []).map((c: any) => [c.id, c.name]));
         const supMap = new Map((suppliersData || []).map((s: any) => [s.id, s.name]));
+        const warehouseMap = new Map((warehousesData || []).map((w: any) => [w.id, w.name]));
 
         const mapped: Product[] = allData.map((p: any) => ({
           ...p,
@@ -136,6 +235,7 @@ export const productService = {
           stock_quantity: p.stock_quantity ?? 0,
           category: (p.category_id ? catMap.get(p.category_id) : '') || p.category || '',
           supplier_name: p.suppliers?.name || (p.supplier_id ? supMap.get(p.supplier_id) : '') || p.supplier_name || '',
+          warehouse_name: p.warehouse_id ? warehouseMap.get(p.warehouse_id) : undefined,
         }));
 
         cachedProducts = mapped;
@@ -231,6 +331,7 @@ export const productService = {
 
   async saveProduct(product: Partial<Product>): Promise<Product> {
     const userId = await getActiveUserId();
+    const currentWarehouseId = product.warehouse_id || (await productService.getActiveWarehouseId()) || null;
 
     const cleanAttrs = cleanAttributesForSave(product.attributes || []);
     let finalDesc = product.description ?? '';
@@ -251,6 +352,7 @@ export const productService = {
     const payload: any = {
       name: product.name,
       barcode: product.barcode || null,
+      warehouse_id: currentWarehouseId,
       category_id: product.category_id || null,
       price: product.price ?? product.sale_price ?? 0,
       purchase_price: product.purchase_price ?? 0,
