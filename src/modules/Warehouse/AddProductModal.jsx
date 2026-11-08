@@ -220,214 +220,305 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-3 sm:p-5" onClick={onClose}>
         <div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 flex flex-col"
+          className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 flex flex-col border border-gray-100"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-merkez-blue/10 flex items-center justify-center">
+          {/* Header */}
+          <div className="flex justify-between items-center px-6 py-4 sm:px-7 sm:py-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-merkez-blue/10 flex items-center justify-center text-merkez-blue shadow-xs">
                 <Plus className="w-6 h-6 text-merkez-blue" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">{t('warehouse.addProduct')}</h3>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">{t('warehouse.addProduct')}</h3>
+                <p className="text-xs text-gray-500 font-medium">
+                  {i18n.language === 'az' ? 'Yeni məhsulun məlumatlarını və qiymətlərini daxil edin' : 'Введите параметры, цены и характеристики нового товара'}
+                </p>
+              </div>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
-              <X className="w-6 h-6" />
+            <button 
+              onClick={onClose} 
+              className="w-10 h-10 rounded-xl bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-colors border border-gray-200 shadow-xs"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
-            <div className="grid grid-cols-1 gap-5">
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thName')}</label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                  placeholder={t('warehouse.productNamePlaceholder')}
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+            <div className="p-6 sm:p-7 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
-                  <Dropdown
-                    value={formData.category_id}
-                    onChange={val => setFormData({ ...formData, category_id: val })}
-                    buttonClassName="rounded-xl px-5 py-3"
-                    searchable
-                    options={[
-                      { value: '', label: t('warehouse.selectCategory') },
-                      ...hierarchicalCategories.map(cat => ({
-                        value: cat.id,
-                        label: cat.label,
-                        rawName: cat.rawName,
-                        parentName: cat.parentName,
-                        level: cat.level,
-                        color: cat.color
-                      }))
-                    ]}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Ед. измерения'}</label>
-                  <Dropdown
-                    value={formData.unit}
-                    onChange={val => setFormData({ ...formData, unit: val })}
-                    buttonClassName="rounded-xl px-5 py-3"
-                    options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
-                  />
-                </div>
-              </div>
-
-              <div className={`grid ${canSeeCostAndFactoryPrices ? 'grid-cols-3' : 'grid-cols-1'} gap-5`}>
-                {canSeeCostAndFactoryPrices && (
-                  <>
-                    <div>
-                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                        {t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}
-                      </label>
-                      <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm">
-                        <Dropdown
-                          value={factoryCurrency}
-                          onChange={(val) => setFactoryCurrency(val)}
-                          menuWidth={130}
-                          trigger={
-                            <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 rounded-l-xl transition-colors select-none cursor-pointer">
-                              <span className="text-xs font-black text-gray-800">
-                                {getCurrencySymbol(factoryCurrency)} {factoryCurrency}
-                              </span>
-                              <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
-                            </div>
-                          }
-                          options={CURRENCY_OPTIONS.map((c) => ({
-                            value: c.code,
-                            label: `${c.symbol} ${c.code}`
-                          }))}
-                        />
-                        <input
-                          type="text"
-                          placeholder="0.00"
-                          className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900 rounded-r-xl"
-                          value={formData.factory_price}
-                          onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                        {t('warehouse.thPurchasePrice')}
-                      </label>
-                      <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm overflow-hidden">
-                        <span className="flex items-center justify-center px-3.5 py-3 text-xs font-black text-gray-400 border-r border-gray-200/70 bg-gray-100/50 select-none">
-                          ₼
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
-                          value={formData.purchase_price}
-                          onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                    {t('warehouse.thPrice')}
-                  </label>
-                  <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-sm overflow-hidden">
-                    <span className="flex items-center justify-center px-3.5 py-3 text-xs font-black text-merkez-blue border-r border-gray-200/70 bg-gray-100/50 select-none">
-                      ₼
-                    </span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      required
-                      placeholder="0.00"
-                      className="w-full px-3 py-3 bg-transparent text-sm focus:outline-none font-bold text-merkez-blue"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.initialStock')}</label>
-                  <input
-                    type="number"
-                    step="0.001"
-                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                    value={formData.stock_quantity}
-                    onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.criticalStock')}</label>
-                  <input
-                    type="number"
-                    step="0.001"
-                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white shadow-sm"
-                    value={formData.critical_stock}
-                    onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className={`grid ${isAdmin ? 'grid-cols-2' : 'grid-cols-1'} gap-5`}>
-                <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thBarcode')}</label>
-                  <input
-                    type="text"
-                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-sm"
-                    placeholder={settings?.autoGenerateBarcode ? `${settings.barcodePrefix || ''}XXXXXX (Авто)` : "000000000"}
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                  />
-                </div>
-                {isAdmin && (
+                {/* Left Column (Core Info, Pricing, Stocks & Barcode) */}
+                <div className="lg:col-span-7 space-y-4">
+                  
+                  {/* Name */}
                   <div>
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
-                    <Dropdown
-                      value={formData.supplier_id}
-                      onChange={val => setFormData({ ...formData, supplier_id: val })}
-                      searchable
-                      searchPlaceholder={i18n?.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
-                      buttonClassName="rounded-xl px-5 py-3"
-                      options={[
-                        { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
-                        ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                      ]}
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                      {t('warehouse.thName')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm font-semibold focus:outline-none focus:border-merkez-blue focus:bg-white shadow-xs"
+                      placeholder={t('warehouse.productNamePlaceholder')}
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
-                )}
+
+                  {/* Category & Unit */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thCategory')}</label>
+                      <Dropdown
+                        value={formData.category_id}
+                        onChange={val => setFormData({ ...formData, category_id: val })}
+                        buttonClassName="rounded-xl px-4 py-3"
+                        searchable
+                        options={[
+                          { value: '', label: t('warehouse.selectCategory') },
+                          ...hierarchicalCategories.map(cat => ({
+                            value: cat.id,
+                            label: cat.label,
+                            rawName: cat.rawName,
+                            parentName: cat.parentName,
+                            level: cat.level,
+                            color: cat.color
+                          }))
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thUnit') || 'Ед. измерения'}</label>
+                      <Dropdown
+                        value={formData.unit}
+                        onChange={val => setFormData({ ...formData, unit: val })}
+                        buttonClassName="rounded-xl px-4 py-3"
+                        options={availableUnits.map(u => ({ value: u, label: t('restaurant.' + u) || u }))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pricing (Factory, Purchase, Retail) */}
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
+                      {i18n.language === 'az' ? 'QİYMƏTLƏR' : 'ЦЕНЫ'}
+                    </label>
+                    <div className={`grid ${canSeeCostAndFactoryPrices ? 'grid-cols-3' : 'grid-cols-1'} gap-3`}>
+                      {canSeeCostAndFactoryPrices && (
+                        <>
+                          <div>
+                            <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                              <Dropdown
+                                value={factoryCurrency}
+                                onChange={(val) => setFactoryCurrency(val)}
+                                menuWidth={115}
+                                trigger={
+                                  <div className="flex items-center gap-1 px-2.5 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors select-none cursor-pointer">
+                                    <span className="text-xs font-black text-gray-800">
+                                      {getCurrencySymbol(factoryCurrency)}
+                                    </span>
+                                    <ChevronDown className="w-3 h-3 text-gray-500" />
+                                  </div>
+                                }
+                                options={CURRENCY_OPTIONS.map((c) => ({
+                                  value: c.code,
+                                  label: `${c.symbol} ${c.code}`
+                                }))}
+                              />
+                              <input
+                                type="text"
+                                placeholder={t('warehouse.thFactoryPrice') || "Zavod"}
+                                className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
+                                value={formData.factory_price}
+                                onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                              />
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-bold ml-1 mt-1 block uppercase">
+                              {t('warehouse.thFactoryPrice') || 'Zavod'}
+                            </span>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                              <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-gray-400 border-r border-gray-200/70 bg-gray-100/50 select-none">
+                                ₼
+                              </span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
+                                value={formData.purchase_price}
+                                onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                              />
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-bold ml-1 mt-1 block uppercase">
+                              {t('warehouse.thPurchasePrice')}
+                            </span>
+                          </div>
+                        </>
+                      )}
+
+                      <div>
+                        <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                          <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-merkez-blue border-r border-gray-200/70 bg-gray-100/50 select-none">
+                            ₼
+                          </span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            required
+                            placeholder="0.00"
+                            className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-merkez-blue"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          />
+                        </div>
+                        <span className="text-[10px] text-merkez-blue font-bold ml-1 mt-1 block uppercase">
+                          {t('warehouse.thPrice')} <span className="text-red-500">*</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stocks */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.initialStock')}</label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm font-semibold focus:outline-none focus:border-merkez-blue focus:bg-white shadow-xs"
+                        value={formData.stock_quantity}
+                        onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.criticalStock')}</label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm font-semibold focus:outline-none focus:border-merkez-blue focus:bg-white shadow-xs"
+                        value={formData.critical_stock}
+                        onChange={(e) => setFormData({ ...formData, critical_stock: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Barcode & Supplier */}
+                  <div className={`grid ${isAdmin ? 'grid-cols-2' : 'grid-cols-1'} gap-4`}>
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.thBarcode')}</label>
+                      <input
+                        type="text"
+                        className="w-full px-5 py-3 bg-gray-50 border border-gray-100 hover:border-merkez-blue hover:bg-white transition-all rounded-xl text-sm focus:outline-none focus:border-merkez-blue focus:bg-white font-mono shadow-xs font-semibold"
+                        placeholder={settings?.autoGenerateBarcode ? `${settings.barcodePrefix || ''}XXXXXX (Авто)` : "000000000"}
+                        value={formData.barcode}
+                        onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                      />
+                    </div>
+                    {isAdmin && (
+                      <div>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{t('warehouse.supplier')}</label>
+                        <Dropdown
+                          value={formData.supplier_id}
+                          onChange={val => setFormData({ ...formData, supplier_id: val })}
+                          searchable
+                          searchPlaceholder={i18n?.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                          buttonClassName="rounded-xl px-4 py-3"
+                          options={[
+                            { value: '', label: t('warehouse.selectSupplier') || 'Select Supplier' },
+                            ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                          ]}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Right Column (Characteristics & Optional Photo) */}
+                <div className="lg:col-span-5 space-y-4 flex flex-col">
+                  {/* Characteristics Editor */}
+                  <div className="flex-1">
+                    <ProductCharacteristicsEditor
+                      attributes={attributes}
+                      onChange={setAttributes}
+                    />
+                  </div>
+
+                  {/* Photo Upload Box */}
+                  <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-merkez-blue" />
+                        {i18n.language === 'az' ? 'Məhsul Şəkli' : 'Фотография товара'}
+                      </span>
+                      {imagePreview && (
+                        <button
+                          type="button"
+                          onClick={() => { setImageFile(null); setImagePreview(null); }}
+                          className="text-[11px] font-bold text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          {i18n.language === 'az' ? 'Şəkli sil' : 'Удалить'}
+                        </button>
+                      )}
+                    </div>
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-gray-200 hover:border-merkez-blue bg-white rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all min-h-[95px]"
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageChange}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="h-20 object-contain rounded-lg shadow-xs" />
+                      ) : (
+                        <div className="flex items-center gap-2 text-gray-400 hover:text-gray-600">
+                          <Upload className="w-4 h-4 text-gray-400" />
+                          <span className="text-xs font-medium">
+                            {i18n.language === 'az' ? 'Şəkil yüklə (istəyə görə)' : 'Загрузить фото (необязательно)'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 
-            <ProductCharacteristicsEditor
-              attributes={attributes}
-              onChange={setAttributes}
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-gradient-primary py-3.5 rounded-xl text-sm font-bold flex items-center justify-center disabled:opacity-50 mt-4"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              ) : (
-                <Save className="w-5 h-5 mr-2" />
-              )}
-              {t('warehouse.saveProduct')}
-            </button>
+            {/* Modal Actions Footer */}
+            <div className="px-6 py-4 sm:px-7 bg-gray-50/90 border-t border-gray-100 flex items-center justify-between shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-200/60 transition-colors"
+              >
+                {i18n.language === 'az' ? 'İmtina' : 'Отмена'}
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-gradient-primary px-7 py-3 rounded-xl text-sm font-bold flex items-center justify-center disabled:opacity-50 shadow-md shadow-merkez-blue/20"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                ) : (
+                  <Save className="w-5 h-5 mr-2" />
+                )}
+                {t('warehouse.saveProduct')}
+              </button>
+            </div>
           </form>
         </div>
       </div>
