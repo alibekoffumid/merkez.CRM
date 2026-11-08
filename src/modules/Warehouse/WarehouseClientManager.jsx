@@ -50,9 +50,7 @@ const WarehouseClientManager = () => {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      if (profile?.id) {
-        await syncCreditSales(profile.id);
-      }
+      // 1. Fetch immediately so customers load in <100ms
       const { data, error } = await supabase
         .from('customers')
         .select('*')
@@ -60,9 +58,14 @@ const WarehouseClientManager = () => {
 
       if (error) throw error;
       setClients(data || []);
+      setLoading(false);
+
+      // 2. Non-blocking background sync
+      if (profile?.id) {
+        syncCreditSales(profile.id).catch(e => console.warn('Background sync error:', e));
+      }
     } catch (err) {
       toast.error('Error fetching clients: ' + err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -273,7 +276,7 @@ const WarehouseClientManager = () => {
   );
 
   return (
-    <div className="flex-1 bg-white rounded-xl border border-gray-100 p-6 flex flex-col min-h-[500px] shadow-sm w-full">
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-7 flex flex-col shadow-xs w-full min-h-full">
       {portalTarget && createPortal(topBarContent, portalTarget)}
       {actionTarget && createPortal(actionContent, actionTarget)}
 
@@ -351,7 +354,7 @@ const WarehouseClientManager = () => {
           <>
 
       {/* Main Content List */}
-      <div className="flex-1 overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center text-gray-400">
             <Loader2 className="w-8 h-8 animate-spin mb-3 text-merkez-blue" />
@@ -367,7 +370,7 @@ const WarehouseClientManager = () => {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-50 bg-gray-50/40">
+              <tr className="border-b border-gray-100 bg-gray-50/90 sticky top-0 z-10 backdrop-blur-xs">
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Ad / Şirkət' : 'Имя / Компания'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Əlaqə məlumatları' : 'Контактные данные'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Kredit Məlumatları' : 'Кредитные данные'}</th>

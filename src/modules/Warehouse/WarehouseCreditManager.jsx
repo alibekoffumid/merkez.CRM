@@ -48,18 +48,16 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
     }
 
     try {
-      const syncRes = await syncCreditSales(profile?.id);
-      if (syncRes?.syncedCount > 0) {
-        toast.success(
-          i18n.language === 'az'
-            ? `${syncRes.syncedCount} yeni kredit müqaviləsi və müştəri sinxronizasiya edildi!`
-            : `${syncRes.syncedCount} новых кредитных договора и клиента успешно синхронизированы!`
-        );
-      } else if (forceSync) {
-        if (syncRes?.errors && syncRes.errors.length > 0) {
+      if (forceSync) {
+        const syncRes = await syncCreditSales(profile?.id);
+        if (syncRes?.syncedCount > 0) {
+          toast.success(
+            i18n.language === 'az'
+              ? `${syncRes.syncedCount} yeni kredit müqaviləsi və müştəri sinxronizasiya edildi!`
+              : `${syncRes.syncedCount} новых кредитных договора и клиента успешно синхронизированы!`
+          );
+        } else if (syncRes?.errors && syncRes.errors.length > 0) {
           toast.error('Xəta: ' + syncRes.errors[0]);
-        } else if (syncRes?.error) {
-          toast.error('Xəta: ' + syncRes.error);
         } else {
           toast.success(
             i18n.language === 'az' ? 'Bütün kreditlər aktualdır' : 'Все данные актуальны'
@@ -67,7 +65,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
         }
       }
 
-      // Query customer_credits with fallback in case relation embed fails
+      // Fast query to get customer_credits immediately (<100ms)
       let creditsData = [];
       const res = await supabase
         .from('customer_credits')
@@ -102,6 +100,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
       }
 
       setCredits(creditsData);
+      setLoading(false);
 
       // Load existing customers for selection in modal
       const { data: cList } = await supabase
@@ -110,10 +109,25 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
         .order('name', { ascending: true });
       if (cList) setExistingCustomers(cList);
 
+      // Non-blocking background sync if not forced
+      if (!forceSync && profile?.id) {
+        syncCreditSales(profile.id).then(syncRes => {
+          if (syncRes?.syncedCount > 0) {
+            supabase
+              .from('customer_credits')
+              .select(`*, customer:customers(name, phone, debt_balance)`)
+              .order('created_at', { ascending: false })
+              .then(({ data }) => {
+                if (data) setCredits(data);
+              });
+          }
+        }).catch(e => console.warn('Background sync error:', e));
+      }
+
     } catch (err) {
       toast.error('Error fetching credits: ' + err.message);
-    } finally {
       setLoading(false);
+    } finally {
       setSyncing(false);
     }
   };
@@ -377,7 +391,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
       </div>
 
       {/* Credits List */}
-      <div className="flex-1 overflow-x-auto">
+      <div className="w-full overflow-x-auto">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center text-gray-400">
             <Loader2 className="w-8 h-8 animate-spin mb-3 text-merkez-blue" />
@@ -393,7 +407,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-50 bg-gray-50/40">
+              <tr className="border-b border-gray-100 bg-gray-50/90 sticky top-0 z-10 backdrop-blur-xs">
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Müştəri' : 'Клиент'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'Məbləğ' : 'Сумма'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'Aylıq Ödəniş' : 'Ежемесячно'}</th>
