@@ -415,8 +415,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       })
       .subscribe();
 
-    return () => { 
-      supabase.removeChannel(prodChannel); 
+    return () => {
+      supabase.removeChannel(prodChannel);
       supabase.removeChannel(catChannel);
       supabase.removeChannel(dispatchChannel);
       supabase.removeChannel(receiptChannel);
@@ -429,9 +429,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     // Fetch warehouses first to get the current context
     const activeWId = await fetchWarehouses();
     await Promise.all([
-      fetchCategories(), 
-      fetchProducts(activeWId), 
-      fetchIngredients(activeWId), 
+      fetchCategories(),
+      fetchProducts(activeWId),
+      fetchIngredients(activeWId),
       fetchSuppliers(),
       fetchReceipts(activeWId),
       fetchDispatches(activeWId),
@@ -448,7 +448,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       .select('*')
       .eq('user_id', profile.id)
       .order('is_default', { ascending: false });
-    
+
     if (data) {
       if (data.length === 0) {
         const { data: newW } = await supabase
@@ -469,7 +469,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         const isValidSaved = savedId && data.some(w => w.id === savedId);
         const activeId = isValidSaved ? savedId : ((currentWarehouseId && data.some(w => w.id === currentWarehouseId)) ? currentWarehouseId : data[0].id);
         setCurrentWarehouseId(activeId);
-        try { localStorage.setItem('warehouse_active_id', activeId); } catch (e) {}
+        try { localStorage.setItem('warehouse_active_id', activeId); } catch (e) { }
         return activeId;
       }
     }
@@ -485,7 +485,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         .eq('user_id', profile.id)
         .in('status', ['SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'SENT_TO_MASTER', 'RECEIVED_FROM_CUSTOMER'])
         .not('product_id', 'is', null);
-        
+
       if (!error && data) {
         const counts = {};
         data.forEach(r => {
@@ -683,7 +683,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           const dispatchDate = new Date(dispatchToDelete.issued_at || dispatchToDelete.created_at || Date.now());
           const timeWindowStart = new Date(dispatchDate.getTime() - 15 * 60 * 1000).toISOString();
           const timeWindowEnd = new Date(dispatchDate.getTime() + 15 * 60 * 1000).toISOString();
-          
+
           let candidateQuery = supabase
             .from('retail_sales')
             .select('id, created_at, retail_sale_items(product_id, quantity)')
@@ -696,7 +696,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           const { data: candidates } = await candidateQuery;
           if (candidates && candidates.length > 0) {
-            const matched = candidates.find(c => 
+            const matched = candidates.find(c =>
               (c.retail_sale_items || []).some(it => it.product_id === dispatchToDelete.product_id)
             );
             if (matched) {
@@ -708,18 +708,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         if (linkedSaleId) {
           await supabase
             .from('retail_sales')
-            .update({ 
-              status: 'cancelled', 
-              is_deleted: true, 
-              is_hidden: true 
+            .update({
+              status: 'cancelled',
+              is_deleted: true,
+              is_hidden: true
             })
             .eq('id', linkedSaleId);
 
           await supabase
             .from('retail_sale_items')
-            .update({ 
-              status: 'cancelled', 
-              is_deleted: true 
+            .update({
+              status: 'cancelled',
+              is_deleted: true
             })
             .eq('sale_id', linkedSaleId);
         }
@@ -784,7 +784,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.15);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleMainSearchSubmit = async (e) => {
@@ -792,7 +792,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     const term = searchTerm.trim();
     if (!term) return;
 
-    let matchedProduct = (products || []).find(p => 
+    let matchedProduct = (products || []).find(p =>
       p.barcode === term || (p.barcode && p.barcode.toLowerCase() === term.toLowerCase())
     );
 
@@ -847,8 +847,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       const wName = matchedProduct.warehouses?.name || warehouses.find(w => w.id === matchedProduct.warehouse_id)?.name;
       if (matchedProduct.warehouse_id && matchedProduct.warehouse_id !== currentWarehouseId) {
         toast.success(
-          i18n.language === 'az' 
-            ? `${matchedProduct.name} (${matchedProduct.barcode || '—'}) — [Anbar: ${wName || 'Başqa anbar'}]` 
+          i18n.language === 'az'
+            ? `${matchedProduct.name} (${matchedProduct.barcode || '—'}) — [Anbar: ${wName || 'Başqa anbar'}]`
             : `${matchedProduct.name} (${matchedProduct.barcode || '—'}) — [Склад: ${wName || 'Другой склад'}]`,
           { duration: 4000 }
         );
@@ -856,8 +856,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         toast.success(`${matchedProduct.name} (${matchedProduct.barcode || '—'})`);
       }
     } else {
-      const matched = (filteredProducts || []).filter(p => 
-        (p.name || '').toLowerCase().includes(term.toLowerCase()) || 
+      const matched = (filteredProducts || []).filter(p =>
+        (p.name || '').toLowerCase().includes(term.toLowerCase()) ||
         (p.barcode || '').toLowerCase().includes(term.toLowerCase())
       );
       if (matched.length > 0) {
@@ -986,11 +986,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       setProducts(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, supplier_id: targetSupId } : p));
       setServerSearchResults(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, supplier_id: targetSupId } : p));
       toast.success(
-        i18n.language === 'az' 
-          ? `${selectedItems.length} məhsula tədarükçü təyin edildi` 
+        i18n.language === 'az'
+          ? `${selectedItems.length} məhsula tədarükçü təyin edildi`
           : i18n.language === 'ru'
-          ? `Поставщик назначен для ${selectedItems.length} товаров`
-          : `Supplier assigned to ${selectedItems.length} products`
+            ? `Поставщик назначен для ${selectedItems.length} товаров`
+            : `Supplier assigned to ${selectedItems.length} products`
       );
       setShowBulkSupplierModal(false);
       setSelectedItems([]);
@@ -1091,9 +1091,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             }
 
             if (finalFactoryVal) {
-              let lines = (p.description || '').split('\n').filter(l => 
-                !l.toLowerCase().includes('zavod qiyməti') && 
-                !l.toLowerCase().includes('zavod qiym?ti') && 
+              let lines = (p.description || '').split('\n').filter(l =>
+                !l.toLowerCase().includes('zavod qiyməti') &&
+                !l.toLowerCase().includes('zavod qiym?ti') &&
                 !l.toLowerCase().startsWith('zavod:')
               );
               lines.unshift(`Zavod qiyməti: ${finalFactoryVal}`);
@@ -1127,8 +1127,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           i18n.language === 'az'
             ? `${selectedItems.length} məhsulun qiyməti yeniləndi`
             : i18n.language === 'ru'
-            ? `Цены обновлены для ${selectedItems.length} товаров`
-            : `Prices updated for ${selectedItems.length} products`
+              ? `Цены обновлены для ${selectedItems.length} товаров`
+              : `Prices updated for ${selectedItems.length} products`
         );
         setShowBulkPriceModal(false);
         setSelectedItems([]);
@@ -1210,8 +1210,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           i18n.language === 'az'
             ? `${selectedItems.length} məhsulun qiyməti yeniləndi`
             : i18n.language === 'ru'
-            ? `Цены обновлены для ${selectedItems.length} товаров`
-            : `Prices updated for ${selectedItems.length} products`
+              ? `Цены обновлены для ${selectedItems.length} товаров`
+              : `Prices updated for ${selectedItems.length} products`
         );
         setShowBulkPriceModal(false);
         setSelectedItems([]);
@@ -1250,10 +1250,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             const p = (products || []).find(prod => prod.id === d.product_id);
             return {
               ...d,
-              products: p ? { 
+              products: p ? {
                 id: p.id,
-                name: p.name, 
-                barcode: p.barcode, 
+                name: p.name,
+                barcode: p.barcode,
                 category_id: p.category_id,
                 price: p.price,
                 purchase_price: p.purchase_price,
@@ -1272,19 +1272,19 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         const enriched = data.map(d => {
           if (!d.products && d.product_id) {
             const p = (products || []).find(prod => prod.id === d.product_id);
-            if (p) return { 
-              ...d, 
-              products: { 
+            if (p) return {
+              ...d,
+              products: {
                 id: p.id,
-                name: p.name, 
-                barcode: p.barcode, 
+                name: p.name,
+                barcode: p.barcode,
                 category_id: p.category_id,
                 price: p.price,
                 purchase_price: p.purchase_price,
                 unit: p.unit,
                 image_url: p.image_url,
                 stock_quantity: p.stock_quantity
-              } 
+              }
             };
           }
           return d;
@@ -1296,22 +1296,22 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       console.error('Error fetching dispatches:', err);
     }
   };
-  
+
   const fetchTransfers = async () => {
     if (!profile?.id) return;
-    
+
     // Fetch transfers
     const { data: transfersData, error: transfersError } = await supabase
       .from('stock_transfers')
       .select('*')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false });
-    
+
     if (transfersError) {
       console.error('fetchTransfers error:', transfersError);
       return;
     }
-    
+
     if (!transfersData || transfersData.length === 0) {
       setTransfers([]);
       return;
@@ -1322,12 +1322,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       ...transfersData.map(t => t.from_warehouse_id),
       ...transfersData.map(t => t.to_warehouse_id)
     ].filter(Boolean))];
-    
+
     const { data: warehousesData } = await supabase
       .from('warehouses')
       .select('id, name')
       .in('id', warehouseIds);
-    
+
     const warehouseMap = {};
     (warehousesData || []).forEach(w => { warehouseMap[w.id] = w.name; });
 
@@ -1337,7 +1337,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       .from('stock_transfer_items')
       .select('*')
       .in('transfer_id', transferIds);
-    
+
     if (itemsError) {
       console.error('Transfer items error:', itemsError);
     }
@@ -1347,10 +1347,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (itemsRaw && itemsRaw.length > 0) {
       const productIds = itemsRaw.map(i => i.product_id).filter(Boolean);
       const ingredientIds = itemsRaw.map(i => i.ingredient_id).filter(Boolean);
-      
+
       let productsMap = {};
       let ingredientsMap = {};
-      
+
       if (productIds.length > 0) {
         const { data: prods } = await supabase
           .from('products')
@@ -1358,7 +1358,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           .in('id', productIds);
         (prods || []).forEach(p => { productsMap[p.id] = p; });
       }
-      
+
       if (ingredientIds.length > 0) {
         const { data: ings } = await supabase
           .from('ingredients')
@@ -1514,7 +1514,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const executeDelete = async () => {
     if (!confirmDelete) return;
-    
+
     const { type, id } = confirmDelete;
     try {
       if (type === 'product') {
@@ -1559,7 +1559,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       return;
     }
     if (selectedItems.length === 0) return;
-    
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -1591,7 +1591,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   };
 
   const toggleSelectItem = (id) => {
-    setSelectedItems(prev => 
+    setSelectedItems(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -1774,9 +1774,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
     const validCategoryIds = selectedList.length > 0
       ? new Set(selectedList.flatMap(catId => [
-          String(catId),
-          ...((descendantMap[String(catId)] || []).map(id => String(id)))
-        ]))
+        String(catId),
+        ...((descendantMap[String(catId)] || []).map(id => String(id)))
+      ]))
       : null;
 
     return list.filter(p => {
@@ -1796,7 +1796,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         const nameMatch = (p.name || '').toLowerCase().includes(term);
         const barcodeMatch = (p.barcode || '').toLowerCase().includes(term);
         const descMatch = (p.description || '').toLowerCase().includes(term);
-        const attrMatch = Array.isArray(p.attributes) && p.attributes.some(a => 
+        const attrMatch = Array.isArray(p.attributes) && p.attributes.some(a =>
           (a?.name || '').toLowerCase().includes(term) || (a?.value || '').toLowerCase().includes(term)
         );
         if (!nameMatch && !barcodeMatch && !descMatch && !attrMatch) return false;
@@ -1822,7 +1822,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   // Windowed / paginated items for 60 FPS rendering
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / (pageSize === 'all' ? filteredProducts.length || 1 : pageSize)));
-  
+
   const paginatedProducts = useMemo(() => {
     if (pageSize === 'all') return filteredProducts;
     const start = (currentPage - 1) * pageSize;
@@ -1838,11 +1838,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   return (
     <div className="space-y-3 flex flex-col h-full w-full flex-1 min-h-0">
       {/* Modals */}
-      <AddProductModal 
-        isOpen={showAddProduct} 
-        onClose={() => setShowAddProduct(false)} 
-        categories={categories} 
-        suppliers={suppliers} 
+      <AddProductModal
+        isOpen={showAddProduct}
+        onClose={() => setShowAddProduct(false)}
+        categories={categories}
+        suppliers={suppliers}
         onProductAdded={(newProd) => {
           setSupplierFilter('all');
           setSelectedCategory(null);
@@ -1855,540 +1855,534 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 : `Товар успешно добавлен: ${newProd.name}`
             );
           }
-        }} 
-        initialCategoryId={Array.isArray(selectedCategory) ? (selectedCategory[0] || null) : selectedCategory} 
-        warehouseId={currentWarehouseId} 
+        }}
+        initialCategoryId={Array.isArray(selectedCategory) ? (selectedCategory[0] || null) : selectedCategory}
+        warehouseId={currentWarehouseId}
       />
       <ProductImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProducts} warehouseId={currentWarehouseId} />
       <AddCategoryModal isOpen={showAddCategory} onClose={() => setShowAddCategory(false)} onCategoryAdded={fetchCategories} />
-      <EditProductModal 
-        isOpen={!!editingProduct} 
-        product={editingProduct} 
-        onClose={() => setEditingProduct(null)} 
-        categories={categories} 
+      <EditProductModal
+        isOpen={!!editingProduct}
+        product={editingProduct}
+        onClose={() => setEditingProduct(null)}
+        categories={categories}
         suppliers={suppliers}
-        onProductUpdated={fetchProducts} 
+        onProductUpdated={fetchProducts}
       />
       <EditCategoryModal isOpen={!!editingCategory} category={editingCategory} onClose={() => setEditingCategory(null)} onCategoryUpdated={fetchCategories} />
-      
-      <AddIngredientModal 
-        isOpen={showAddIngredient} 
-        onClose={() => setShowAddIngredient(false)} 
-        onIngredientAdded={fetchIngredients} 
+
+      <AddIngredientModal
+        isOpen={showAddIngredient}
+        onClose={() => setShowAddIngredient(false)}
+        onIngredientAdded={fetchIngredients}
         warehouseId={currentWarehouseId}
       />
-      <EditIngredientModal 
-        isOpen={!!editingIngredient} 
-        ingredient={editingIngredient} 
-        onClose={() => setEditingIngredient(null)} 
-        onIngredientUpdated={fetchIngredients} 
+      <EditIngredientModal
+        isOpen={!!editingIngredient}
+        ingredient={editingIngredient}
+        onClose={() => setEditingIngredient(null)}
+        onIngredientUpdated={fetchIngredients}
       />
 
       {/* Header & Tabs */}
       {activeTab !== 'files' && activeTab !== 'settings' && activeTab !== 'clients' && activeTab !== 'staff' && activeTab !== 'debts' && activeTab !== 'repairs' && (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
-        {/* Top Row: Title & Navigation */}
-        <div className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-nowrap overflow-x-auto no-scrollbar w-full">
-          <div className="flex items-center gap-4 flex-nowrap shrink-0">
-            <div className="flex items-center shrink-0">
-              <div id="tour-warehouse-selector">
-                {warehouses?.length > 0 ? (
-                  <Dropdown
-                    trigger={
-                      <button 
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50/50 border border-blue-100/50 rounded-lg text-xs font-bold text-gray-600 hover:text-merkez-blue hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm"
-                      >
-                        {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
-                        <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
-                      </button>
-                    }
-                    items={[
-                      ...(warehouses || []).map(w => ({
-                        id: w.id,
-                        label: w.name,
-                        onClick: () => {
-                          setCurrentWarehouseId(w.id);
-                          setServerSearchResults([]);
-                          try { localStorage.setItem('warehouse_active_id', w.id); } catch (e) {}
-                        },
-                        active: w.id === currentWarehouseId
-                      })),
-                      {
-                        id: 'add-new',
-                        label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
-                        onClick: () => setActiveTab('settings'),
-                        className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 flex flex-col shrink-0 overflow-hidden">
+          {/* Top Row: Title & Navigation */}
+          <div className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-nowrap overflow-x-auto no-scrollbar w-full">
+            <div className="flex items-center gap-4 flex-nowrap shrink-0">
+              <div className="flex items-center shrink-0">
+                <div id="tour-warehouse-selector">
+                  {warehouses?.length > 0 ? (
+                    <Dropdown
+                      trigger={
+                        <button
+                          className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50/50 border border-blue-100/50 rounded-lg text-xs font-bold text-gray-600 hover:text-merkez-blue hover:bg-blue-50 hover:border-blue-200 transition-all group shadow-sm"
+                        >
+                          {warehouses.find(w => w.id === currentWarehouseId)?.name || t('warehouse.mainWarehouse')}
+                          <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />
+                        </button>
                       }
-                    ]}
-                  />
-                ) : (
-                  <button 
-                    onClick={() => setActiveTab('settings')}
-                    className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
-                  >
-                    <Plus className="w-2.5 h-2.5" />
-                    {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
-                  </button>
-                )}
+                      items={[
+                        ...(warehouses || []).map(w => ({
+                          id: w.id,
+                          label: w.name,
+                          onClick: () => {
+                            setCurrentWarehouseId(w.id);
+                            setServerSearchResults([]);
+                            try { localStorage.setItem('warehouse_active_id', w.id); } catch (e) { }
+                          },
+                          active: w.id === currentWarehouseId
+                        })),
+                        {
+                          id: 'add-new',
+                          label: `+ ${t('warehouse.addNewWarehouse') || 'Добавить склад'}`,
+                          onClick: () => setActiveTab('settings'),
+                          className: 'text-merkez-blue font-bold border-t border-gray-50 mt-1'
+                        }
+                      ]}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => setActiveTab('settings')}
+                      className="flex items-center gap-1 text-[10px] font-black text-merkez-blue hover:text-blue-700 transition-colors uppercase tracking-widest"
+                    >
+                      <Plus className="w-2.5 h-2.5" />
+                      {t('warehouse.createFirstWarehouse') || 'Создать первый склад'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Navigation Tabs (Admin View) */}
-            {!propActiveTab && (
-              <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50 shrink-0 ml-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
-                <button
-                  onClick={() => setActiveTab('finished')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                    activeTab === 'finished'
-                      ? 'bg-white text-merkez-blue shadow-sm'
-                      : 'text-gray-500 hover:text-gray-850'
-                  }`}
-                >
-                  <Package className="w-3.5 h-3.5" />
-                  {t('warehouse.finishedGoods') || 'Məhsullar'}
-                </button>
-                
-                {currentStaff?.role !== 'Cashier' && (
-                  <>
-                    {isAdmin && (
-                      <button
-                        onClick={() => setActiveTab('suppliers')}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                          activeTab === 'suppliers'
-                            ? 'bg-white text-merkez-blue shadow-sm'
-                            : 'text-gray-500 hover:text-gray-850'
-                        }`}
-                      >
-                        <Truck className="w-3.5 h-3.5" />
-                        {t('warehouse.suppliers') || 'Tədarükçülər'}
-                      </button>
-                    )}
-                    
-                    <button
-                      onClick={() => setActiveTab('history')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                        activeTab === 'history'
-                          ? 'bg-white text-merkez-blue shadow-sm'
-                          : 'text-gray-500 hover:text-gray-850'
-                      }`}
-                    >
-                      <Search className="w-3.5 h-3.5" />
-                      {t('warehouse.history') || 'Tarixçə'}
-                    </button>
-
-                    <button
-                      onClick={() => setActiveTab('stocktake')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                        activeTab === 'stocktake'
-                          ? 'bg-white text-merkez-blue shadow-sm'
-                          : 'text-gray-500 hover:text-gray-850'
-                      }`}
-                    >
-                      <CheckSquare className="w-3.5 h-3.5" />
-                      {t('warehouse.stocktake') || 'İnventarlaşdırma'}
-                    </button>
-                  </>
-                )}
-
-                {(!currentStaff) && (
+              {/* Navigation Tabs (Admin View) */}
+              {!propActiveTab && (
+                <div className="flex bg-gray-100 rounded-lg p-0.5 border border-gray-200/50 shrink-0 ml-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full">
                   <button
-                    onClick={() => setActiveTab('reports')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                      activeTab === 'reports'
+                    onClick={() => setActiveTab('finished')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'finished'
                         ? 'bg-white text-merkez-blue shadow-sm'
                         : 'text-gray-500 hover:text-gray-850'
-                    }`}
+                      }`}
                   >
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    {t('warehouse.reports') || 'Hesabatlar'}
+                    <Package className="w-3.5 h-3.5" />
+                    {t('warehouse.finishedGoods') || 'Məhsullar'}
                   </button>
-                )}
-                
-                {(!currentStaff || currentStaff?.role === 'Manager') && (
-                  <button
-                      onClick={() => setActiveTab('settings')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                        activeTab === 'settings'
+
+                  {currentStaff?.role !== 'Cashier' && (
+                    <>
+                      {isAdmin && (
+                        <button
+                          onClick={() => setActiveTab('suppliers')}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'suppliers'
+                              ? 'bg-white text-merkez-blue shadow-sm'
+                              : 'text-gray-500 hover:text-gray-850'
+                            }`}
+                        >
+                          <Truck className="w-3.5 h-3.5" />
+                          {t('warehouse.suppliers') || 'Tədarükçülər'}
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => setActiveTab('history')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'history'
+                            ? 'bg-white text-merkez-blue shadow-sm'
+                            : 'text-gray-500 hover:text-gray-850'
+                          }`}
+                      >
+                        <Search className="w-3.5 h-3.5" />
+                        {t('warehouse.history') || 'Tarixçə'}
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab('stocktake')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'stocktake'
+                            ? 'bg-white text-merkez-blue shadow-sm'
+                            : 'text-gray-500 hover:text-gray-850'
+                          }`}
+                      >
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        {t('warehouse.stocktake') || 'İnventarlaşdırma'}
+                      </button>
+                    </>
+                  )}
+
+                  {(!currentStaff) && (
+                    <button
+                      onClick={() => setActiveTab('reports')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'reports'
                           ? 'bg-white text-merkez-blue shadow-sm'
                           : 'text-gray-500 hover:text-gray-850'
-                      }`}
+                        }`}
+                    >
+                      <TrendingUp className="w-3.5 h-3.5" />
+                      {t('warehouse.reports') || 'Hesabatlar'}
+                    </button>
+                  )}
+
+                  {(!currentStaff || currentStaff?.role === 'Manager') && (
+                    <button
+                      onClick={() => setActiveTab('settings')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'settings'
+                          ? 'bg-white text-merkez-blue shadow-sm'
+                          : 'text-gray-500 hover:text-gray-850'
+                        }`}
                     >
                       <Settings className="w-3.5 h-3.5" />
                       {t('common.settings') || 'Parametrlər'}
                     </button>
-                )}
+                  )}
+                </div>
+              )}
+
+              {/* Vertical separator */}
+              {(activeTab === 'finished' || (activeTab === 'raw' && isRestaurantActive) || activeTab === 'suppliers') && (
+                <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden sm:block"></div>
+              )}
+
+              {/* Tab-specific actions (Shifted to Left) */}
+              {/* Tab-specific actions (Shifted to Left) */}
+              {activeTab === 'finished' && (
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
+                  <button
+                    onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                    className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
+                    title={t('warehouse.categories')}
+                  >
+                    <Menu className="w-4 h-4" />
+                  </button>
+                  {currentStaff?.role !== 'Cashier' && (
+                    <>
+                      {selectedItems.length > 0 && (
+                        <>
+                          <button
+                            onClick={() => setShowRentProduct(true)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center shadow-sm"
+                          >
+                            <KeyRound className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'} ({selectedItems.length})
+                          </button>
+                          <button
+                            onClick={() => {
+                              const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
+                              setPrintingItems(itemsToPrint);
+                            }}
+                            className="bg-gray-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-900 transition-colors flex items-center shadow-sm"
+                          >
+                            <Printer className="w-3.5 h-3.5 mr-1.5" /> Seçilənləri Çap Et ({selectedItems.length})
+                          </button>
+                          {isAdmin && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setBulkSelectedCategoryId('');
+                                  setShowBulkCategoryModal(true);
+                                }}
+                                className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-sm"
+                              >
+                                <FolderTree className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : i18n.language === 'ru' ? 'Назначить категорию' : 'Assign Category'} ({selectedItems.length})
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setBulkSelectedSupplierId('');
+                                  setShowBulkSupplierModal(true);
+                                }}
+                                className="bg-purple-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors flex items-center shadow-sm"
+                              >
+                                <Truck className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'} ({selectedItems.length})
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setBulkExactPrices({ price: '', purchase_price: '', factory_price: '', currency: '' });
+                                  setBulkRelativeConfig({ target: 'price', action: 'increase', type: 'percent', value: '' });
+                                  setBulkPriceTab('exact');
+                                  setShowBulkPriceModal(true);
+                                }}
+                                className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
+                              >
+                                <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Qiymətləri Dəyiş' : i18n.language === 'ru' ? 'Изменить цены' : 'Change Prices'} ({selectedItems.length})
+                              </button>
+                              <button
+                                onClick={() => setShowBulkRenameModal(true)}
+                                className="bg-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-sm"
+                              >
+                                <Type className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Adları Dəyiş' : i18n.language === 'ru' ? 'Изменить названия' : 'Change Names'} ({selectedItems.length})
+                              </button>
+                              <button
+                                id="tour-bulk-delete"
+                                onClick={() => setConfirmDelete({ type: 'bulk' })}
+                                className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
+                              </button>
+                            </>
+                          )}
+                        </>
+                      )}
+
+                      {isAdmin && (
+                        <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
+                          <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'raw' && isRestaurantActive && (
+                <div className="flex items-center gap-2">
+                </div>
+              )}
+            </div>
+
+            {/* Moved Search Bar (relocated to filter bar) */}
+
+            {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff' || activeTab === 'repairs' || activeTab === 'stocktake' || activeTab === 'suppliers') && (
+              <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
+            )}
+
+            {activeTab === 'reports' && (
+              <div className="relative w-full lg:flex-1 flex items-center justify-end gap-3 shrink-0">
+                <button
+                  onClick={() => setReportsRefreshTrigger(prev => prev + 1)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 border border-blue-100 rounded-lg text-xs font-bold text-merkez-blue hover:bg-blue-100 hover:border-blue-200 transition-all shadow-sm group"
+                  title={i18n.language === 'az' ? 'Məlumatları yenilə' : 'Обновить данные'}
+                >
+                  <RotateCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
+                  <span>{i18n.language === 'az' ? 'Yenilə' : i18n.language === 'ru' ? 'Обновить' : 'Refresh'}</span>
+                </button>
               </div>
             )}
 
-            {/* Vertical separator */}
-            {(activeTab === 'finished' || (activeTab === 'raw' && isRestaurantActive) || activeTab === 'suppliers') && (
-              <div className="h-6 w-[1px] bg-gray-200 mx-2 hidden sm:block"></div>
-            )}
+            {activeTab === 'history' && (
+              <div className="relative w-full lg:flex-1 flex items-center justify-end gap-4 shrink-0 px-2">
+                {historyTab === 'receipts' && (
+                  <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                    <Dropdown
+                      value={historyFilter || ''}
+                      onChange={(val) => setHistoryFilter(val || null)}
+                      searchable
+                      searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                      options={[
+                        { value: '', label: t('common.all') || 'Все', icon: Truck },
+                        ...suppliers.map(s => ({
+                          value: s.id,
+                          label: s.name,
+                          icon: Truck
+                        }))
+                      ]}
+                      className="w-full"
+                      buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
+                    />
+                  </div>
+                )}
 
-            {/* Tab-specific actions (Shifted to Left) */}
-            {/* Tab-specific actions (Shifted to Left) */}
-            {activeTab === 'finished' && (
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-nowrap max-w-full pb-1 -mb-1 w-full lg:w-auto lg:overflow-visible lg:pb-0 lg:mb-0 shrink-0">
-                <button 
-                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
-                  className={`lg:hidden p-2 rounded-lg border transition-all ${showCategorySidebar ? 'bg-merkez-blue text-white border-merkez-blue' : 'bg-white text-gray-500 border-gray-200'}`}
-                  title={t('warehouse.categories')}
-                >
-                  <Menu className="w-4 h-4" />
-                </button>
-                {currentStaff?.role !== 'Cashier' && (
+                {historyTab === 'sales' && (
                   <>
-                    {selectedItems.length > 0 && (
-                      <>
-                        <button
-                          onClick={() => setShowRentProduct(true)}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center shadow-sm"
-                        >
-                          <KeyRound className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'} ({selectedItems.length})
-                        </button>
-                        <button
-                          onClick={() => {
-                            const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
-                            setPrintingItems(itemsToPrint);
-                          }}
-                          className="bg-gray-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-900 transition-colors flex items-center shadow-sm"
-                        >
-                          <Printer className="w-3.5 h-3.5 mr-1.5" /> Seçilənləri Çap Et ({selectedItems.length})
-                        </button>
-                        {isAdmin && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setBulkSelectedCategoryId('');
-                                setShowBulkCategoryModal(true);
-                              }}
-                              className="bg-merkez-blue text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 transition-colors flex items-center shadow-sm"
-                            >
-                              <FolderTree className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : i18n.language === 'ru' ? 'Назначить категорию' : 'Assign Category'} ({selectedItems.length})
-                            </button>
-                            <button
-                              onClick={() => {
-                                setBulkSelectedSupplierId('');
-                                setShowBulkSupplierModal(true);
-                              }}
-                              className="bg-purple-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-purple-700 transition-colors flex items-center shadow-sm"
-                            >
-                              <Truck className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'} ({selectedItems.length})
-                            </button>
-                            <button
-                              onClick={() => {
-                                setBulkExactPrices({ price: '', purchase_price: '', factory_price: '', currency: '' });
-                                setBulkRelativeConfig({ target: 'price', action: 'increase', type: 'percent', value: '' });
-                                setBulkPriceTab('exact');
-                                setShowBulkPriceModal(true);
-                              }}
-                              className="bg-emerald-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center shadow-sm"
-                            >
-                              <DollarSign className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Qiymətləri Dəyiş' : i18n.language === 'ru' ? 'Изменить цены' : 'Change Prices'} ({selectedItems.length})
-                            </button>
-                            <button
-                              onClick={() => setShowBulkRenameModal(true)}
-                              className="bg-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-sm"
-                            >
-                              <Type className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'Adları Dəyiş' : i18n.language === 'ru' ? 'Изменить названия' : 'Change Names'} ({selectedItems.length})
-                            </button>
-                            <button 
-                              id="tour-bulk-delete"
-                              onClick={() => setConfirmDelete({ type: 'bulk' })} 
-                              className="bg-red-50 text-red-600 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center border border-red-100"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mr-1.5" /> {t('common.deleteSelected') || 'Sil (Seçilənlər)'} ({selectedItems.length})
-                            </button>
-                          </>
-                        )}
-                      </>
-                    )}
+                    <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                      <Dropdown
+                        value={salesChannelFilter}
+                        onChange={(val) => setSalesChannelFilter(val)}
+                        options={[
+                          { value: '', label: i18n.language === 'az' ? 'Bütün kanallar' : 'Все каналы' },
+                          { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
+                          { value: 'Instagram', label: 'Instagram' },
+                          { value: 'Web site', label: 'Web site' },
+                          { value: 'Birmarket', label: 'Birmarket' },
+                          { value: 'Tap.az', label: 'Tap.az' },
+                          { value: 'Lalafo', label: 'Lalafo' },
+                          { value: 'TikTok', label: 'TikTok' },
+                          { value: 'Kredit', label: i18n.language === 'az' ? 'Kredit (Bütün Banklar)' : 'Кредит (Все банки)' },
+                          { value: 'Kredit - ABB Kredit', label: 'Kredit - ABB Kredit' },
+                          { value: 'Kredit - Birkart', label: 'Kredit - Birkart' },
+                          { value: 'Kredit - Tamkart', label: 'Kredit - Tamkart' },
+                          { value: 'Kredit - Kapital Kredit 35', label: 'Kredit - Kapital Kredit 35' },
+                          { value: 'Kredit - Ferrum Standart', label: 'Kredit - Ferrum Standart' },
+                          { value: 'Kredit - Ferrum Fast', label: 'Kredit - Ferrum Fast' },
+                          { value: 'Kredit - Ferrum DTI', label: 'Kredit - Ferrum DTI' }
+                        ]}
+                        className="w-full"
+                        buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
+                      />
+                    </div>
 
-                    {isAdmin && (
-                      <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                        <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
-                      </button>
-                    )}
+                    <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
+                      <Dropdown
+                        value={categoryFilter}
+                        onChange={(val) => setCategoryFilter(val)}
+                        searchable
+                        options={[
+                          { value: '', label: t('common.all') || 'Все' },
+                          ...hierarchicalCategoryOptions
+                        ]}
+                        className="w-full"
+                        buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
+                      />
+                    </div>
                   </>
                 )}
-              </div>
-            )}
-
-            {activeTab === 'raw' && isRestaurantActive && (
-              <div className="flex items-center gap-2">
-              </div>
-            )}
-          </div>
-
-          {/* Moved Search Bar (relocated to filter bar) */}
-
-          {(activeTab === 'debts' || activeTab === 'clients' || activeTab === 'staff' || activeTab === 'repairs' || activeTab === 'stocktake' || activeTab === 'suppliers') && (
-            <div id="warehouse-top-bar-portal-target" className="relative w-full lg:flex-1 lg:max-w-3xl flex items-center gap-4 justify-between shrink-0" />
-          )}
-
-          {activeTab === 'reports' && (
-            <div className="relative w-full lg:flex-1 flex items-center justify-end gap-3 shrink-0">
-              <button
-                onClick={() => setReportsRefreshTrigger(prev => prev + 1)}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 border border-blue-100 rounded-lg text-xs font-bold text-merkez-blue hover:bg-blue-100 hover:border-blue-200 transition-all shadow-sm group"
-                title={i18n.language === 'az' ? 'Məlumatları yenilə' : 'Обновить данные'}
-              >
-                <RotateCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
-                <span>{i18n.language === 'az' ? 'Yenilə' : i18n.language === 'ru' ? 'Обновить' : 'Refresh'}</span>
-              </button>
-            </div>
-          )}
-
-          {activeTab === 'history' && (
-            <div className="relative w-full lg:flex-1 flex items-center justify-end gap-4 shrink-0 px-2">
-              {historyTab === 'receipts' && (
+                <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
+                  <div className="relative">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder={t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...'}
+                      value={historySearchTerm}
+                      onChange={(e) => setHistorySearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-lg text-xs focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors h-[38px]"
+                    />
+                  </div>
+                </div>
                 <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                  <Dropdown 
-                    value={historyFilter || ''} 
-                    onChange={(val) => setHistoryFilter(val || null)}
-                    searchable
-                    searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
-                    options={[
-                      { value: '', label: t('common.all') || 'Все', icon: Truck },
-                      ...suppliers.map(s => ({
-                        value: s.id,
-                        label: s.name,
-                        icon: Truck
-                      }))
-                    ]}
-                    className="w-full"
-                    buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
+                  <DateRangePicker
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={(start, end) => {
+                      setStartDate(start);
+                      setEndDate(end);
+                    }}
+                    placeholder={i18n.language === 'az' ? 'Tarix aralığı' : 'Период'}
+                    className="py-2 h-[38px] text-xs"
                   />
                 </div>
-              )}
-
-              {historyTab === 'sales' && (
-                <>
-                  <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                    <Dropdown 
-                      value={salesChannelFilter} 
-                      onChange={(val) => setSalesChannelFilter(val)}
-                      options={[
-                        { value: '', label: i18n.language === 'az' ? 'Bütün kanallar' : 'Все каналы' },
-                        { value: 'Mağaza', label: i18n.language === 'az' ? 'Mağaza' : 'Магазин' },
-                        { value: 'Instagram', label: 'Instagram' },
-                        { value: 'Web site', label: 'Web site' },
-                        { value: 'Birmarket', label: 'Birmarket' },
-                        { value: 'Tap.az', label: 'Tap.az' },
-                        { value: 'Lalafo', label: 'Lalafo' },
-                        { value: 'TikTok', label: 'TikTok' },
-                        { value: 'Kredit', label: i18n.language === 'az' ? 'Kredit (Bütün Banklar)' : 'Кредит (Все банки)' },
-                        { value: 'Kredit - ABB Kredit', label: 'Kredit - ABB Kredit' },
-                        { value: 'Kredit - Birkart', label: 'Kredit - Birkart' },
-                        { value: 'Kredit - Tamkart', label: 'Kredit - Tamkart' },
-                        { value: 'Kredit - Kapital Kredit 35', label: 'Kredit - Kapital Kredit 35' },
-                        { value: 'Kredit - Ferrum Standart', label: 'Kredit - Ferrum Standart' },
-                        { value: 'Kredit - Ferrum Fast', label: 'Kredit - Ferrum Fast' },
-                        { value: 'Kredit - Ferrum DTI', label: 'Kredit - Ferrum DTI' }
-                      ]}
-                      className="w-full"
-                      buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
-                    />
-                  </div>
-
-                  <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                    <Dropdown 
-                      value={categoryFilter} 
-                      onChange={(val) => setCategoryFilter(val)}
-                      searchable
-                      options={[
-                        { value: '', label: t('common.all') || 'Все' },
-                        ...hierarchicalCategoryOptions
-                      ]}
-                      className="w-full"
-                      buttonClassName="rounded-lg px-4 py-2 text-xs h-[38px]"
-                    />
-                  </div>
-                </>
-              )}
-              <div className="w-full md:w-56 flex flex-col gap-1.5 shrink-0">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="text" 
-                    placeholder={t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...'} 
-                    value={historySearchTerm} 
-                    onChange={(e) => setHistorySearchTerm(e.target.value)} 
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-lg text-xs focus:outline-none focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue transition-colors h-[38px]" 
-                  />
-                </div>
-              </div>
-              <div className="w-full md:w-48 flex flex-col gap-1.5 shrink-0">
-                <DateRangePicker 
-                  startDate={startDate}
-                  endDate={endDate}
-                  onChange={(start, end) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                  }}
-                  placeholder={i18n.language === 'az' ? 'Tarix aralığı' : 'Период'}
-                  className="py-2 h-[38px] text-xs"
-                />
-              </div>
-              {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter || historySearchTerm) && (
-                <button 
-                  onClick={() => {
-                    setHistoryFilter(null);
-                    setHistorySearchTerm('');
-                    setStartDate('');
-                    setEndDate('');
-                    setSalesChannelFilter('');
-                    setCategoryFilter('');
-                  }}
-                  className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 h-[38px] shrink-0"
-                  title={t('common.clearFilters') || 'Təmizlə'}
-                >
-                  <X className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline">{t('common.clearFilters') || 'Təmizlə'}</span>
-                </button>
-              )}
-              {historyTab === 'sales' && (
-                <button 
-                  type="button"
-                  onClick={() => setShowDailySalesReportModal(true)}
-                  className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 h-[38px] shrink-0 shadow-sm active:scale-95"
-                  title={i18n.language === 'az' ? 'Gün Sonu Satış Hesabatı (Z-Hesabat)' : 'Z-Отчет за смену'}
-                >
-                  <Receipt className="w-4 h-4" />
-                  <span className="hidden sm:inline">{i18n.language === 'az' ? 'Z-Hesabat' : 'Z-Отчет'}</span>
-                </button>
-              )}
-            </div>
-          )}
-
-
-
-          <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
-            {/* Main Warehouse Actions */}
-            {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
-              <>
-                {selectedItems.length > 0 && (
+                {(historyFilter || startDate || endDate || salesChannelFilter || categoryFilter || historySearchTerm) && (
                   <button
-                    onClick={() => setShowRentProduct(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm transition-all"
+                    onClick={() => {
+                      setHistoryFilter(null);
+                      setHistorySearchTerm('');
+                      setStartDate('');
+                      setEndDate('');
+                      setSalesChannelFilter('');
+                      setCategoryFilter('');
+                    }}
+                    className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 h-[38px] shrink-0"
+                    title={t('common.clearFilters') || 'Təmizlə'}
                   >
-                    <KeyRound className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                    {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'}
-                    <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
-                      {selectedItems.length}
-                    </span>
+                    <X className="w-3.5 h-3.5" />
+                    <span className="hidden xl:inline">{t('common.clearFilters') || 'Təmizlə'}</span>
                   </button>
                 )}
-
-                <button 
-                  onClick={() => setShowSellProduct(true)} 
-                  className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm"
-                >
-                  <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
-                  {selectedItems.length > 0 && (
-                    <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
-                      {selectedItems.length}
-                    </span>
-                  )}
-                </button>
-
-                <button 
-                  onClick={() => setShowCashboxModal(true)} 
-                  className="bg-white border-2 border-amber-500 hover:border-amber-600 text-amber-600 hover:text-amber-700 hover:bg-amber-50/70 px-3.5 py-2 h-[38px] rounded-lg text-xs font-black flex items-center justify-center whitespace-nowrap shadow-sm active:scale-95 group uppercase transition-all tracking-wider"
-                  title={i18n.language === 'az' ? 'Kassa və Mağaza Xərcləri' : 'Касса и расходы магазина'}
-                >
-                  <Wallet className="w-3.5 h-3.5 mr-1.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
-                  <span>{i18n.language === 'az' ? 'KASSA' : 'КАССА'}</span>
-                </button>
-              </>
-            )}
-            
-            {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
-              <button onClick={() => setShowAddSupplier(true)} className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap w-full uppercase active:scale-95">
-                <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addSupplier')}
-              </button>
-            )}
-            
-            {currentStaff?.role !== 'Cashier' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
-              <>
-                <button 
-                  id="tour-receive-btn"
-                  onClick={() => setShowReceiveStock(true)} 
-                  className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
-                >
-                  <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.receiveStock') || 'Приемка'}
-                </button>
-                <button 
-                  id="tour-dispatch-btn"
-                  onClick={() => setShowDispatchStock(true)} 
-                  className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
-                >
-                  <Minus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.dispatchStock') || 'Списание'}
-                </button>
-                <button 
-                  id="tour-transfer-btn"
-                  onClick={() => setShowTransferStock(true)} 
-                  className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
-                >
-                  <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
-                </button>
-              </>
-            )}
-            <div id="warehouse-actions-portal-target" className="contents"></div>
-            {activeTab === 'history' && (
-              <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto items-center h-[38px]">
-                <button 
-                  onClick={() => {
-                    setHistoryTab('receipts');
-                    setStartDate('');
-                    setEndDate('');
-                    fetchReceipts();
-                  }}
-                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                  {t('warehouse.receipts') || 'Приёмки'}
-                </button>
-                <button 
-                  onClick={() => {
-                    setHistoryTab('sales');
-                    if (!startDate && !endDate) {
-                      const today = getTodayDateString();
-                      setStartDate(today);
-                      setEndDate(today);
-                    }
-                    fetchDispatches();
-                  }}
-                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                  {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
-                </button>
-                <button 
-                  onClick={() => {
-                    setHistoryTab('dispatches');
-                    setStartDate('');
-                    setEndDate('');
-                    fetchDispatches();
-                  }}
-                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                  {t('warehouse.dispatches') || 'Списания'}
-                </button>
-                <button 
-                  onClick={() => {
-                    setHistoryTab('transfers');
-                    setStartDate('');
-                    setEndDate('');
-                    fetchTransfers();
-                  }}
-                  className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                  {t('warehouse.transfers') || 'Перемещения'}
-                </button>
+                {historyTab === 'sales' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowDailySalesReportModal(true)}
+                    className="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 h-[38px] shrink-0 shadow-sm active:scale-95"
+                    title={i18n.language === 'az' ? 'Gün Sonu Satış Hesabatı (Z-Hesabat)' : 'Z-Отчет за смену'}
+                  >
+                    <Receipt className="w-4 h-4" />
+                    <span className="hidden sm:inline">{i18n.language === 'az' ? 'Z-Hesabat' : 'Z-Отчет'}</span>
+                  </button>
+                )}
               </div>
             )}
+
+
+
+            <div className="grid grid-cols-2 lg:flex lg:flex-nowrap lg:items-center gap-2 w-full lg:w-auto ml-auto shrink-0">
+              {/* Main Warehouse Actions */}
+              {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
+                <>
+                  {selectedItems.length > 0 && (
+                    <button
+                      onClick={() => setShowRentProduct(true)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm transition-all"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 mr-1.5 shrink-0" />
+                      {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'}
+                      <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
+                        {selectedItems.length}
+                      </span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setShowSellProduct(true)}
+                    className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm"
+                  >
+                    <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
+                    {selectedItems.length > 0 && (
+                      <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
+                        {selectedItems.length}
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setShowCashboxModal(true)}
+                    className="bg-white border-2 border-amber-500 hover:border-amber-600 text-amber-600 hover:text-amber-700 hover:bg-amber-50/70 px-3.5 py-2 h-[38px] rounded-lg text-xs font-black flex items-center justify-center whitespace-nowrap shadow-sm active:scale-95 group uppercase transition-all tracking-wider"
+                    title={i18n.language === 'az' ? 'Kassa və Mağaza Xərcləri' : 'Касса и расходы магазина'}
+                  >
+                    <Wallet className="w-3.5 h-3.5 mr-1.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
+                    <span>{i18n.language === 'az' ? 'KASSA' : 'КАССА'}</span>
+                  </button>
+                </>
+              )}
+
+              {activeTab === 'suppliers' && currentStaff?.role !== 'Cashier' && (
+                <button onClick={() => setShowAddSupplier(true)} className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap w-full uppercase active:scale-95">
+                  <Plus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.addSupplier')}
+                </button>
+              )}
+
+              {currentStaff?.role !== 'Cashier' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
+                <>
+                  <button
+                    id="tour-receive-btn"
+                    onClick={() => setShowReceiveStock(true)}
+                    className="bg-white border border-merkez-green text-merkez-green px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-green-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  >
+                    <Truck className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.receiveStock') || 'Приемка'}
+                  </button>
+                  <button
+                    id="tour-dispatch-btn"
+                    onClick={() => setShowDispatchStock(true)}
+                    className="bg-white border border-merkez-red text-merkez-red px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  >
+                    <Minus className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.dispatchStock') || 'Списание'}
+                  </button>
+                  <button
+                    id="tour-transfer-btn"
+                    onClick={() => setShowTransferStock(true)}
+                    className="bg-white border border-merkez-blue text-merkez-blue px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors flex items-center justify-center shadow-sm whitespace-nowrap w-full"
+                  >
+                    <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {t('warehouse.transferStock') || 'Перемещение'}
+                  </button>
+                </>
+              )}
+              <div id="warehouse-actions-portal-target" className="contents"></div>
+              {activeTab === 'history' && (
+                <div className="flex p-1 bg-gray-50 rounded-lg border border-gray-100 overflow-x-auto no-scrollbar flex-nowrap max-w-full w-full sm:w-auto items-center h-[38px]">
+                  <button
+                    onClick={() => {
+                      setHistoryTab('receipts');
+                      setStartDate('');
+                      setEndDate('');
+                      fetchReceipts();
+                    }}
+                    className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'receipts' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.receipts') || 'Приёмки'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setHistoryTab('sales');
+                      if (!startDate && !endDate) {
+                        const today = getTodayDateString();
+                        setStartDate(today);
+                        setEndDate(today);
+                      }
+                      fetchDispatches();
+                    }}
+                    className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'sales' ? 'bg-white text-merkez-green shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.salesHistory') || 'Satış tarixçəsi'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setHistoryTab('dispatches');
+                      setStartDate('');
+                      setEndDate('');
+                      fetchDispatches();
+                    }}
+                    className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'dispatches' ? 'bg-white text-merkez-red shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.dispatches') || 'Списания'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setHistoryTab('transfers');
+                      setStartDate('');
+                      setEndDate('');
+                      fetchTransfers();
+                    }}
+                    className={`flex-1 sm:flex-none h-full flex items-center justify-center px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${historyTab === 'transfers' ? 'bg-white text-merkez-blue shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                  >
+                    {t('warehouse.transfers') || 'Перемещения'}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       <div className={`flex flex-1 min-h-0 ${activeTab === 'finished' ? 'flex-row 2xl:gap-6 gap-6' : 'flex-col gap-0'} overflow-hidden`}>
@@ -2407,7 +2401,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'staff' ? (
           <WarehouseStaffManager />
         ) : activeTab === 'suppliers' ? (
-          <SuppliersList 
+          <SuppliersList
             suppliers={suppliers}
             loading={loading}
             onEdit={setEditingSupplier}
@@ -2427,15 +2421,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                      {historyTab === 'receipts' ? t('warehouse.receivedDate') : 
-                       historyTab === 'dispatches' ? (t('warehouse.dispatchedDate') || 'Дата операции') : 
-                       (t('common.date') || 'Дата')}
+                      {historyTab === 'receipts' ? t('warehouse.receivedDate') :
+                        historyTab === 'dispatches' ? (t('warehouse.dispatchedDate') || 'Дата операции') :
+                          (t('common.date') || 'Дата')}
                     </th>
                     {historyTab === 'receipts' && <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">{t('warehouse.supplier')}</th>}
                     {(historyTab === 'dispatches' || historyTab === 'sales') && (
                       <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                        {historyTab === 'sales' 
-                          ? (i18n.language === 'az' ? 'Növ / Kanal' : i18n.language === 'ru' ? 'Тип / Канал' : (t('common.type') === 'COMMON.TYPE' ? 'Type / Channel' : t('common.type'))) 
+                        {historyTab === 'sales'
+                          ? (i18n.language === 'az' ? 'Növ / Kanal' : i18n.language === 'ru' ? 'Тип / Канал' : (t('common.type') === 'COMMON.TYPE' ? 'Type / Channel' : t('common.type')))
                           : (t('warehouse.reason') || 'Səbəb')}
                       </th>
                     )}
@@ -2628,10 +2622,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                               {dispatch.notes && <p className="text-[10px] text-gray-400 font-medium max-w-[250px] break-words whitespace-normal mt-0.5">{dispatch.notes}</p>}
                             </td>
                             <td className="px-6 py-4">
-                              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
-                                dispatch.reason === 'damaged' ? 'bg-red-50 text-red-500' :
-                                'bg-gray-100 text-gray-500'
-                              }`}>
+                              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${dispatch.reason === 'damaged' ? 'bg-red-50 text-red-500' :
+                                  'bg-gray-100 text-gray-500'
+                                }`}>
                                 {t(`warehouse.reason${dispatch.reason.charAt(0).toUpperCase() + dispatch.reason.slice(1)}`) || dispatch.reason}
                               </span>
                             </td>
@@ -2644,20 +2637,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             <td className="px-6 py-4 text-right">
                               <span className="text-sm font-black text-red-500">-{dispatch.quantity}</span>
                             </td>
-                          {canDeleteHistory && (
-                            <td className="px-4 py-4 text-right">
-                              <button
-                                onClick={() => handleDeleteDispatch(dispatch)}
-                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                title={t('common.delete') || 'Sil'}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })
+                            {canDeleteHistory && (
+                              <td className="px-4 py-4 text-right">
+                                <button
+                                  onClick={() => handleDeleteDispatch(dispatch)}
+                                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                  title={t('common.delete') || 'Sil'}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })
                     )
                   ) : historyTab === 'sales' ? (
                     dispatches.filter(dispatch => {
@@ -2804,8 +2797,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         const parsed = parseSaleNote(dispatch.notes, prodObj, qty, canSeeCostAndFactoryPrices);
 
                         return (
-                          <tr 
-                            key={dispatch.id} 
+                          <tr
+                            key={dispatch.id}
                             onClick={() => setSelectedSaleDetail(dispatch)}
                             className="hover:bg-blue-50/50 cursor-pointer transition-colors group"
                             title={i18n.language === 'az' ? 'Ətraflı satış kartı üçün klikləyin' : i18n.language === 'ru' ? 'Нажмите для просмотра карточки продажи' : 'Click to view sale card'}
@@ -2850,10 +2843,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                                   {parsed.returnInfo?.priceDifference !== null && parsed.returnInfo?.priceDifference !== undefined && (
                                     <div className="text-[10px] flex items-center justify-between font-bold pt-1 border-t border-blue-100">
                                       <span className="text-gray-500">{i18n.language === 'az' ? 'Qiymət fərqi:' : 'Разница:'}</span>
-                                      <span className={`font-black ${
-                                        parsed.returnInfo.priceDifference > 0 ? 'text-amber-700' :
-                                        parsed.returnInfo.priceDifference < 0 ? 'text-emerald-700' : 'text-gray-700'
-                                      }`}>
+                                      <span className={`font-black ${parsed.returnInfo.priceDifference > 0 ? 'text-amber-700' :
+                                          parsed.returnInfo.priceDifference < 0 ? 'text-emerald-700' : 'text-gray-700'
+                                        }`}>
                                         {parsed.returnInfo.diffText || (parsed.returnInfo.priceDifference > 0 ? `+₼${parsed.returnInfo.priceDifference.toFixed(2)}` : `₼${parsed.returnInfo.priceDifference.toFixed(2)}`)}
                                       </span>
                                     </div>
@@ -3146,13 +3138,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'reports' ? (
           <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} refreshTrigger={reportsRefreshTrigger} />
         ) : (
-        <div className="flex flex-1 gap-2 xl:gap-3 2xl:gap-5 overflow-hidden relative">
-          {activeTab === 'finished' && (
-            <>
-              <div 
-                id="tour-categories" 
-                style={categorySidebarWidth ? { width: `${categorySidebarWidth}px`, minWidth: `${categorySidebarWidth}px` } : undefined}
-                className={`
+          <div className="flex flex-1 gap-2 xl:gap-3 2xl:gap-5 overflow-hidden relative">
+            {activeTab === 'finished' && (
+              <>
+                <div
+                  id="tour-categories"
+                  style={categorySidebarWidth ? { width: `${categorySidebarWidth}px`, minWidth: `${categorySidebarWidth}px` } : undefined}
+                  className={`
                   fixed inset-y-0 left-0 z-50 w-80 sm:w-96 shrink-0 bg-white/95 backdrop-blur-md shadow-2xl p-5 lg:p-4 xl:p-5 flex flex-col 
                   lg:static lg:z-auto lg:shadow-none lg:bg-gray-50/30 lg:border lg:border-gray-100 lg:rounded-xl
                   ${categorySidebarWidth ? '' : 'lg:w-fit lg:min-w-[360px] xl:min-w-[390px] 2xl:min-w-[420px] lg:max-w-[600px] 2xl:max-w-[700px]'}
@@ -3160,1123 +3152,1119 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   ${isResizingSidebar ? 'select-none transition-none' : 'transition-transform duration-300'}
                   ${showCategorySidebar ? 'translate-x-0 lg:flex' : '-translate-x-full lg:hidden'}
                 `}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-merkez-blue/10 flex items-center justify-center">
-                      <FolderTree className="w-4 h-4 text-merkez-blue" />
-                    </div>
-                    <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.categories')}</h3>
-                  </div>
-                  <button onClick={() => setShowCategorySidebar(false)} className="lg:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Category Search Input */}
-                <div className="relative mb-3 shrink-0">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={categorySearchTerm}
-                    onChange={(e) => setCategorySearchTerm(e.target.value)}
-                    placeholder={i18n?.language === 'az' ? 'Kateqoriya axtar...' : 'Поиск категорий...'}
-                    className="w-full pl-8 pr-8 py-2 bg-white border border-gray-200/90 hover:border-gray-300 focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/15 rounded-xl text-xs font-semibold text-gray-800 placeholder:text-gray-400 shadow-sm outline-none transition-all"
-                  />
-                  {categorySearchTerm && (
-                    <button
-                      type="button"
-                      onClick={() => setCategorySearchTerm('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-                      title={i18n?.language === 'az' ? 'Təmizlə' : 'Очистить'}
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
-                  <div 
-                    className={`group p-3 rounded-lg cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${(!selectedCategory || (Array.isArray(selectedCategory) && selectedCategory.length === 0)) ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
-                    onClick={() => setSelectedCategory(null)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-1.5 h-1.5 rounded-full ${(!selectedCategory || (Array.isArray(selectedCategory) && selectedCategory.length === 0)) ? 'bg-white' : 'bg-gray-300 group-hover:bg-merkez-blue'}`} />
-                      {t('warehouse.allCategories')}
-                    </div>
-                  </div>
-
-                  <div className="my-3 border-t border-gray-100/60" />
-
-                  {(() => {
-                    const normSearch = (categorySearchTerm || '').trim().toLowerCase()
-                      .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
-
-                    let visibleCategoryIds = null;
-                    let autoExpandedCategoryIds = new Set();
-
-                    if (normSearch) {
-                      visibleCategoryIds = new Set();
-                      const parentMap = new Map();
-                      const childrenMap = new Map();
-                      categories.forEach(c => {
-                        if (c.parent_id) {
-                          parentMap.set(c.id, c.parent_id);
-                          if (!childrenMap.has(c.parent_id)) childrenMap.set(c.parent_id, []);
-                          childrenMap.get(c.parent_id).push(c.id);
-                        }
-                      });
-
-                      const addAllDescendants = (id) => {
-                        const children = childrenMap.get(id) || [];
-                        children.forEach(childId => {
-                          visibleCategoryIds.add(childId);
-                          addAllDescendants(childId);
-                        });
-                      };
-
-                      const matches = (c) => {
-                        const raw = (c.name || '').toLowerCase()
-                          .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
-                        const trans = (t(`categories.${c.name}`, { defaultValue: c.name }) || '').toLowerCase()
-                          .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
-                        return raw.includes(normSearch) || trans.includes(normSearch);
-                      };
-
-                      categories.forEach(c => {
-                        if (matches(c)) {
-                          visibleCategoryIds.add(c.id);
-                          if (childrenMap.has(c.id)) {
-                            autoExpandedCategoryIds.add(c.id);
-                            addAllDescendants(c.id);
-                          }
-                          let pId = parentMap.get(c.id);
-                          while (pId) {
-                            visibleCategoryIds.add(pId);
-                            autoExpandedCategoryIds.add(pId);
-                            pId = parentMap.get(pId);
-                          }
-                        }
-                      });
-                    }
-
-                    const renderCategory = (cat, level = 0, catIdx = 0) => {
-                      if (visibleCategoryIds && !visibleCategoryIds.has(cat.id)) {
-                        return null;
-                      }
-
-                      const subcategories = categories
-                        .filter(sub => sub.parent_id === cat.id)
-                        .filter(sub => !visibleCategoryIds || visibleCategoryIds.has(sub.id));
-                      const hasSubcategories = subcategories.length > 0;
-                      const isExpanded = normSearch ? (autoExpandedCategoryIds.has(cat.id) || expandedCategories.includes(cat.id)) : expandedCategories.includes(cat.id);
-                      const isActive = Array.isArray(selectedCategory) ? selectedCategory.includes(cat.id) : selectedCategory === cat.id;
-                      const catColor = getCategoryDepthColor(level);
-                      const count = categoryProductCounts[cat.id] || 0;
-                      
-                      return (
-                        <React.Fragment key={cat.id}>
-                          <div 
-                            className={`group p-2.5 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50 ring-1 ring-blue-100' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`} 
-                            style={{ 
-                              marginLeft: level > 0 ? `${level * 14}px` : '0',
-                              borderLeft: level > 0 ? `3px solid ${catColor}` : undefined
-                            }}
-                            onClick={() => {
-                              if (Array.isArray(selectedCategory)) {
-                                if (isActive) {
-                                  const next = selectedCategory.filter(id => id !== cat.id);
-                                  setSelectedCategory(next.length > 0 ? next : null);
-                                } else {
-                                  setSelectedCategory([...selectedCategory, cat.id]);
-                                }
-                              } else {
-                                setSelectedCategory(isActive ? null : cat.id);
-                              }
-                              if (hasSubcategories && !isExpanded) {
-                                setExpandedCategories(prev => [...prev, cat.id]);
-                              }
-                            }}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                              {hasSubcategories ? (
-                                <button 
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setExpandedCategories(prev => 
-                                      prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
-                                    );
-                                  }}
-                                  className={`p-1 rounded-md transition-colors shrink-0 ${isExpanded ? 'bg-blue-50 text-merkez-blue' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}
-                                >
-                                  <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
-                                </button>
-                              ) : (
-                                level > 0 && <div className="w-5 h-5 shrink-0" />
-                              )}
-
-                              {hasSubcategories && isExpanded ? (
-                                <FolderOpen 
-                                  className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" 
-                                  style={{ color: catColor }} 
-                                  fill={catColor}
-                                  fillOpacity={0.2}
-                                />
-                              ) : (
-                                <Folder 
-                                  className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" 
-                                  style={{ color: catColor }} 
-                                  fill={catColor}
-                                  fillOpacity={0.2}
-                                />
-                              )}
-
-                              <span 
-                                className="whitespace-nowrap font-bold text-gray-800 group-hover:text-gray-900" 
-                                title={t(`categories.${cat.name}`, { defaultValue: cat.name })}
-                              >
-                                {t(`categories.${cat.name}`, { defaultValue: cat.name })}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-2 shrink-0 ml-auto pl-2">
-                              <button 
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
-                                className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
-                                title={i18n?.language === 'az' ? 'Redaktə et' : 'Редактировать'}
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                {count}
-                              </span>
-                            </div>
-                          </div>
-
-                          {isExpanded && subcategories
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map((subcat, subIdx) => renderCategory(subcat, level + 1, subIdx))
-                          }
-                        </React.Fragment>
-                      );
-                    };
-
-                    const topLevelCategories = categories
-                      .filter(c => !c.parent_id)
-                      .filter(c => !visibleCategoryIds || visibleCategoryIds.has(c.id))
-                      .sort((a, b) => a.name.localeCompare(b.name));
-
-                    if (normSearch && topLevelCategories.length === 0) {
-                      return (
-                        <div className="py-8 text-center px-4 flex flex-col items-center justify-center">
-                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
-                            <Folder className="w-5 h-5" />
-                          </div>
-                          <p className="text-xs font-bold text-gray-700">
-                            {i18n?.language === 'az' ? 'Kateqoriya tapılmadı' : 'Категория не найдена'}
-                          </p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            {i18n?.language === 'az' ? 'Axtarış sorğusunu dəyişin' : 'Попробуйте другой запрос'}
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setCategorySearchTerm('')}
-                            className="mt-3 text-xs font-bold text-merkez-blue hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
-                          >
-                            {i18n?.language === 'az' ? 'Axtarışı sıfırla' : 'Сбросить поиск'}
-                          </button>
-                        </div>
-                      );
-                    }
-
-                    return topLevelCategories.map((cat, idx) => renderCategory(cat, 0, idx));
-                  })()}
-                </div>
-                
-                <div className="pt-6 mt-auto border-t border-gray-100/50">
-                  <button 
-                    onClick={() => setShowAddCategory(true)} 
-                    className="w-full py-3 bg-white border border-gray-200 text-gray-500 rounded-lg text-xs font-black hover:border-merkez-blue hover:text-merkez-blue hover:shadow-lg hover:shadow-blue-600/5 transition-all flex items-center justify-center gap-2 group"
-                  >
-                    <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                      <Plus className="w-3.5 h-3.5" />
-                    </div>
-                    {t('warehouse.addCategory')}
-                  </button>
-                </div>
-              </div>
-              {/* Desktop Draggable Resize Handle */}
-              <div
-                onMouseDown={startResizingSidebar}
-                onDoubleClick={resetSidebarWidth}
-                className="hidden lg:flex w-2.5 -ml-1 cursor-col-resize items-center justify-center group z-10 select-none hover:w-3.5 transition-all"
-                title={i18n?.language === 'az' ? 'Ölçünü dəyişmək üçün dartın (avto-ölçü üçün iki dəfə klikləyin)' : 'Потяните, чтобы изменить ширину (двойной клик для авто-подбора)'}
-              >
-                <div className="w-1 h-10 rounded-full bg-gray-200 group-hover:bg-merkez-blue group-hover:h-14 transition-all" />
-              </div>
-            </>
-          )}
-
-        {/* Overlay for mobile sidebar */}
-        {activeTab === 'finished' && showCategorySidebar && (
-          <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setShowCategorySidebar(false)}
-          />
-        )}
-
-        {/* Products/Ingredients Table Area */}
-        <div className="flex-1 flex flex-col bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
-          <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20 items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
-              {activeTab === 'finished' && (
-                <button
-                  className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
-                  onClick={() => setShowCategorySidebar(!showCategorySidebar)}
                 >
-                  <Menu className="w-5 h-5" />
-                </button>
-              )}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-merkez-blue/10 flex items-center justify-center">
+                        <FolderTree className="w-4 h-4 text-merkez-blue" />
+                      </div>
+                      <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{t('warehouse.categories')}</h3>
+                    </div>
+                    <button onClick={() => setShowCategorySidebar(false)} className="lg:hidden p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
 
-              {(activeTab === 'finished' || activeTab === 'raw') && (
-                <form onSubmit={handleMainSearchSubmit} id="tour-search" className="relative w-full flex-1 min-w-[240px] flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${mainBarcodeMode ? 'text-merkez-blue font-bold' : 'text-gray-400'}`} />
-                    <input 
-                      ref={mainBarcodeInputRef}
-                      type="text" 
-                      placeholder={mainBarcodeMode ? (i18n.language === 'az' ? 'Skaner rejimi: Skan edin...' : 'Режим сканера: Сканируйте...') : (activeTab === 'finished' ? (t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...') : t('warehouse.searchIngredients'))} 
-                      value={searchTerm} 
-                      onChange={(e) => setSearchTerm(e.target.value)} 
-                      className={`w-full pl-10 pr-9 py-2 rounded-lg text-sm transition-all outline-none ${
-                        mainBarcodeMode 
-                          ? 'bg-blue-50/60 border-2 border-merkez-blue text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-merkez-blue/20' 
-                          : 'bg-gray-50 border border-gray-100 focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue'
-                      }`} 
+                  {/* Category Search Input */}
+                  <div className="relative mb-3 shrink-0">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={categorySearchTerm}
+                      onChange={(e) => setCategorySearchTerm(e.target.value)}
+                      placeholder={i18n?.language === 'az' ? 'Kateqoriya axtar...' : 'Поиск категорий...'}
+                      className="w-full pl-8 pr-8 py-2 bg-white border border-gray-200/90 hover:border-gray-300 focus:border-merkez-blue focus:ring-2 focus:ring-merkez-blue/15 rounded-xl text-xs font-semibold text-gray-800 placeholder:text-gray-400 shadow-sm outline-none transition-all"
                     />
-                    {searchTerm && (
+                    {categorySearchTerm && (
                       <button
                         type="button"
-                        onClick={() => setSearchTerm('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        onClick={() => setCategorySearchTerm('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                        title={i18n?.language === 'az' ? 'Təmizlə' : 'Очистить'}
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     )}
                   </div>
 
-                  <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-50 border border-gray-100 hover:bg-gray-100 px-3 py-2 rounded-lg shrink-0 transition-colors" title={t('warehouse.barcodeMode') || 'Skaner rejimi'}>
-                    <span className="text-xs font-bold text-gray-600 whitespace-nowrap">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
-                    <div className="relative">
-                      <input 
-                        type="checkbox"
-                        checked={mainBarcodeMode}
-                        onChange={(e) => {
-                          const isChecked = e.target.checked;
-                          setMainBarcodeMode(isChecked);
-                          try {
-                            localStorage.setItem('crm_scanner_mode', String(isChecked));
-                          } catch (err) {}
-                          if (isChecked) {
-                            const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
-                            if (isMobile) {
-                              setShowCameraScanner(true);
-                            }
-                            setTimeout(() => mainBarcodeInputRef.current?.focus(), 100);
-                          }
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
-                    </div>
-                  </label>
-
-                  <button 
-                    type="button"
-                    onClick={() => setShowCameraScanner(true)}
-                    className="md:hidden flex items-center gap-1.5 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-2 rounded-lg shrink-0 font-bold text-xs transition-colors shadow-sm"
-                    title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
-                  >
-                    <Camera className="w-4 h-4" />
-                    <span className="hidden sm:inline">{i18n.language === 'az' ? 'Kamera' : 'Камера'}</span>
-                  </button>
-                </form>
-              )}
-
-              {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
-                <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
-                  <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
-                </button>
-              )}
-
-              {activeTab === 'raw' && isRestaurantActive && currentStaff?.role !== 'Cashier' && (
-                <button onClick={() => setShowAddIngredient(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
-                  <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
-                </button>
-              )}
-
-              <div className="relative shrink-0 xl:hidden" ref={filterRef}>
-                <button 
-                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                  className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
-                >
-                  <Filter className="w-5 h-5" />
-                </button>
-                
-                {showFilterDropdown && (
-                  <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
-                    <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
-                    {[
-                      { id: 'all', label: t('common.all') },
-                      { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
-                      ...(isAdmin ? [{ id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' }] : []),
-                      { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
-                    ].map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
-                        className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
-                          {item.label}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {activeTab === 'finished' && (
-              <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
-                <div className="w-full sm:w-64 shrink-0">
-                  <Dropdown
-                    multiple
-                    value={selectedCategory || []}
-                    onChange={(val) => {
-                      if (Array.isArray(val)) {
-                        setSelectedCategory(val.length > 0 ? val : null);
-                      } else {
-                        setSelectedCategory(val === 'all' || !val ? null : val);
-                      }
-                    }}
-                    searchable
-                    options={[
-                      { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
-                      ...hierarchicalCategoryOptions
-                    ]}
-                    buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
-                  />
-                </div>
-
-                {isAdmin && (
-                  <div className="w-full sm:w-56 shrink-0">
-                    <Dropdown
-                      value={supplierFilter}
-                      onChange={setSupplierFilter}
-                      searchable
-                      searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
-                      options={[
-                        { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
-                        ...suppliers.map(s => ({ value: s.id, label: s.name }))
-                      ]}
-                      buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="relative shrink-0 hidden xl:block" ref={filterRef}>
-              <button 
-                id="tour-filter"
-                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
-              >
-                <Filter className="w-5 h-5" />
-              </button>
-              
-              {showFilterDropdown && (
-                <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
-                  <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
-                  {[
-                    { id: 'all', label: t('common.all') },
-                    { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
-                    ...(isAdmin ? [{ id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' }] : []),
-                    { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
-                  ].map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                  <div className="space-y-1.5 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                    <div
+                      className={`group p-3 rounded-lg cursor-pointer text-sm font-bold transition-all duration-200 flex items-center justify-between ${(!selectedCategory || (Array.isArray(selectedCategory) && selectedCategory.length === 0)) ? 'bg-merkez-blue text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`}
+                      onClick={() => setSelectedCategory(null)}
                     >
-                      <div className="flex items-center gap-2">
-                        {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
-                        {item.label}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-1.5 h-1.5 rounded-full ${(!selectedCategory || (Array.isArray(selectedCategory) && selectedCategory.length === 0)) ? 'bg-white' : 'bg-gray-300 group-hover:bg-merkez-blue'}`} />
+                        {t('warehouse.allCategories')}
                       </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+                    </div>
 
-          <div className="flex-1 overflow-auto" ref={menuRef}>
-            {(loading || loadingProducts || isSearchingServer) ? (
-              <WarehouseSkeleton />
-            ) : activeTab === 'finished' ? (
-              // Finished Goods Table
-              filteredProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
-                  <FolderTree className="w-12 h-12 text-gray-200" />
-                  <p className="font-medium">{t('warehouse.noProductsFound')}</p>
-                  {currentStaff?.role !== 'Cashier' && (
-                    <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
-                      <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <table className="hidden md:table w-full text-left border-collapse">
-                    <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                      <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
-                        <th className="pl-8 pr-2 py-4 w-10">
-                          <button 
-                            id="tour-select-all"
-                            onClick={toggleSelectAll}
-                            className="text-gray-400 hover:text-merkez-blue transition-colors"
-                          >
-                            {selectedItems.length === filteredProducts.length && filteredProducts.length > 0 ? (
-                              <CheckSquare className="w-5 h-5 text-merkez-blue" />
-                            ) : (
-                              <Square className="w-5 h-5" />
-                            )}
-                          </button>
-                        </th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
-                        {isAdmin && (
-                          <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
-                        )}
-                        {canSeeCostAndFactoryPrices && (
-                          <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}</th>
-                        )}
-                        {canSeeCostAndFactoryPrices && (
-                          <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
-                        )}
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
-                        <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
-                        <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {paginatedProducts.map((item, index) => (
-                        <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
-                          <td className="pl-8 pr-2 py-4">
-                            <button 
-                              onClick={() => toggleSelectItem(item.id)}
-                              className="text-gray-400 hover:text-merkez-blue transition-colors"
-                            >
-                              {selectedItems.includes(item.id) ? (
-                                <CheckSquare className="w-5 h-5 text-merkez-blue" />
-                              ) : (
-                                <Square className="w-5 h-5" />
-                              )}
-                            </button>
-                          </td>
-                          <td className="px-2 py-4">
-                            <div className="font-medium text-gray-900 flex items-center gap-2 flex-wrap">
-                              {item.name}
-                              {(item.isOtherWarehouse || (item.warehouse_id && item.warehouse_id !== currentWarehouseId)) && (
-                                <span className="inline-flex items-center bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap" title={i18n.language === 'az' ? 'Məhsul başqa anbarda yerləşir' : 'Товар на другом складе'}>
-                                  📍 {item.warehouseName || warehouses.find(w => w.id === item.warehouse_id)?.name || (i18n.language === 'az' ? 'Başqa anbar' : 'Другой склад')}
-                                </span>
-                              )}
-                              {activeRepairsMap[item.id] && (
-                                <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2 whitespace-nowrap">
-                                  {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
-                                </span>
-                              )}
-                            </div>
-                            {(() => {
-                              const attrs = parseProductAttributes(item);
-                              if (!attrs || attrs.length === 0) return null;
-                              return (
-                                <div className="flex items-center gap-1.5 flex-wrap mt-1">
-                                  {attrs.map((attr, aIdx) => (
-                                    <span 
-                                      key={aIdx} 
-                                      className="inline-flex items-center text-[10px] font-medium bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-merkez-blue px-2 py-0.5 rounded-md border border-slate-200/80 transition-colors"
-                                    >
-                                      <span className="text-gray-400 mr-1">{attr.name}:</span>
-                                      <span className="font-bold text-gray-800">{attr.value}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              );
-                            })()}
-                          </td>
-                          <td className="px-2 py-4">
-                            {item.barcode && item.barcode.trim() !== '' ? (
-                              <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
-                                {item.barcode}
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => handleGenerateBarcodeForProduct(item.id)}
-                                className="text-[11px] font-bold text-merkez-blue bg-blue-50/80 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 flex items-center gap-1 transition-colors whitespace-nowrap"
-                                title={i18n.language === 'az' ? 'Barkod yarat' : 'Сгенерировать штрихкод'}
-                              >
-                                <Sparkles className="w-3 h-3 text-merkez-blue" />
-                                {i18n.language === 'az' ? 'Barkod yarat' : 'Создать штрихкод'}
-                              </button>
-                            )}
-                          </td>
-                          <td className="px-2 py-4 whitespace-nowrap">
-                            <div className="inline-block w-max max-w-none">
-                              {isAdmin ? (
-                                <Dropdown
-                                  value={item.category_id || ''}
-                                  onChange={(val) => handleQuickCategoryChange(item.id, val)}
-                                  searchable
-                                  position="auto"
-                                  noTruncate
-                                  options={[
-                                    { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
-                                    ...hierarchicalCategoryOptions
-                                  ]}
-                                  buttonClassName={`text-xs font-bold px-3 py-1 rounded-full border transition-all h-[28px] whitespace-nowrap ${
-                                    item.category_id 
-                                      ? 'bg-blue-50 text-merkez-blue border-blue-100 hover:border-merkez-blue' 
-                                      : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
-                                  }`}
-                                />
-                              ) : (
-                                <div 
-                                  className={`inline-flex items-center gap-1.5 px-3 h-[28px] rounded-full border text-xs font-bold select-none cursor-default whitespace-nowrap ${
-                                    item.category_id 
-                                      ? 'bg-blue-50/70 text-merkez-blue border-blue-100/90' 
-                                      : 'bg-gray-50 text-gray-400 border-dashed border-gray-200'
-                                  }`}
-                                  title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
-                                >
-                                  <Folder className="w-3.5 h-3.5 shrink-0 opacity-70" />
-                                  <span className="whitespace-nowrap">
-                                    {(() => {
-                                      const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
-                                      return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
-                                    })()}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          {isAdmin && (
-                            <td className="px-2 py-4">
-                              <div className="inline-block min-w-[130px]">
-                                {(() => {
-                                  const sup = (suppliers || []).find(s => s.id === item.supplier_id);
-                                  const supStyle = getSupplierStyle(item.supplier_id);
-                                  return (
-                                    <Dropdown
-                                      value={item.supplier_id || ''}
-                                      onChange={(val) => handleQuickSupplierChange(item.id, val)}
-                                      searchable
-                                      searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
-                                      position="auto"
-                                      options={[
-                                        { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
-                                        ...suppliers.map(s => ({
-                                          value: s.id,
-                                          label: s.name || s.company_name
-                                        }))
-                                      ]}
-                                      trigger={
-                                        item.supplier_id ? (
-                                          <div className={`w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} ${supStyle.hover} hover:shadow-sm transition-all text-xs font-bold text-gray-800 shadow-sm`}>
-                                            <div className="flex items-center gap-1.5 truncate">
-                                              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
-                                              <span className="truncate">{sup?.name || sup?.company_name || '—'}</span>
-                                            </div>
-                                            <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
-                                          </div>
-                                        ) : (
-                                          <div className="w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50/70 hover:bg-white hover:border-gray-300 text-gray-400 hover:text-gray-600 transition-all text-xs font-bold shadow-sm">
-                                            <span className="truncate">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</span>
-                                            <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
-                                          </div>
-                                        )
-                                      }
-                                    />
-                                  );
-                                })()}
-                              </div>
-                            </td>
-                          )}
-                          {canSeeCostAndFactoryPrices && (
-                            <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
-                              {getFactoryPrice(item, suppliers) || '—'}
-                            </td>
-                          )}
-                          {canSeeCostAndFactoryPrices && (
-                            <td className="px-2 py-4 text-sm text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</td>
-                          )}
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900">₼{parseFloat(item.price).toFixed(2)}</td>
-                          <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
-                            {parseFloat(item.stock_quantity || 0).toFixed(2)} {formatUnit(item.unit)}
-                          </td>
-                          <td className="px-2 py-4">
-                            <div className="flex items-center justify-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
-                              {getStatusIcon(item.stock_quantity, item.critical_stock)}
-                            </div>
-                          </td>
-                          <td className="px-2 py-4 pr-6 text-right">
-                            <div className="relative inline-block">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                className="text-gray-400 hover:text-merkez-blue p-1 rounded-lg hover:bg-gray-100 transition-colors"
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </button>
-                              {openMenuId === item.id && (
-                                <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
-                                  <button 
-                                    onClick={() => handlePrintProduct(item)}
-                                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                  >
-                                    <Printer className="w-3.5 h-3.5 text-gray-500" />
-                                    {i18n.language === 'az' ? 'Çap et' : 'Печать'}
-                                  </button>
-                                  {isAdmin && (
-                                    <>
-                                      <div className="mx-3 my-1 border-t border-gray-100" />
-                                      <button 
-                                        onClick={() => handleEdit(item)}
-                                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                      >
-                                        <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
-                                        {t('warehouse.editProduct')}
-                                      </button>
-                                      <div className="mx-3 my-1 border-t border-gray-100" />
-                                      <button 
-                                        onClick={() => requestDeleteProduct(item.id)}
-                                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                        {t('warehouse.deleteProduct')}
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    <div className="my-3 border-t border-gray-100/60" />
 
-                  {/* Mobile Products Cards Grid */}
-                  <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
-                    {paginatedProducts.map((item, index) => (
-                      <div key={item.id} className={`p-4 flex flex-col gap-2.5 ${selectedItems.includes(item.id) ? 'bg-blue-50/20' : ''}`}>
-                        <div className="flex justify-between items-start">
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => toggleSelectItem(item.id)}
-                              className="text-gray-400 hover:text-merkez-blue transition-colors mt-0.5"
-                            >
-                              {selectedItems.includes(item.id) ? (
-                                <CheckSquare className="w-5 h-5 text-merkez-blue" />
-                              ) : (
-                                <Square className="w-5 h-5" />
-                              )}
-                            </button>
-                            <div>
-                              <p className="font-bold text-gray-900 text-sm flex items-center gap-2 flex-wrap">
-                                {item.name}
-                                {(item.isOtherWarehouse || (item.warehouse_id && item.warehouse_id !== currentWarehouseId)) && (
-                                  <span className="inline-flex items-center bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
-                                    📍 {item.warehouseName || warehouses.find(w => w.id === item.warehouse_id)?.name || (i18n.language === 'az' ? 'Başqa anbar' : 'Другой склад')}
-                                  </span>
-                                )}
-                                {activeRepairsMap[item.id] && (
-                                  <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
-                                    {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
-                                  </span>
-                                )}
-                              </p>
-                              <span className="text-[10px] font-mono text-gray-400 mt-1 block">
-                                {item.barcode || '—'}
-                              </span>
-                              {(() => {
-                                const attrs = parseProductAttributes(item);
-                                if (!attrs || attrs.length === 0) return null;
-                                return (
-                                  <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                                    {attrs.map((attr, aIdx) => (
-                                      <span 
-                                        key={aIdx} 
-                                        className="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-700 px-2 py-0.5 rounded border border-slate-200/80"
-                                      >
-                                        <span className="text-gray-400 mr-1">{attr.name}:</span>
-                                        <span className="font-bold text-gray-800">{attr.value}</span>
-                                      </span>
-                                    ))}
-                                  </div>
-                                );
-                              })()}
-                            </div>
-                          </div>
-
-                          <div className="relative">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
-                            >
-                              <MoreVertical className="w-5 h-5" />
-                            </button>
-                            {openMenuId === item.id && (
-                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
-                                <button
-                                  onClick={() => handlePrintProduct(item)}
-                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold whitespace-nowrap"
-                                >
-                                  <Printer className="w-3.5 h-3.5 text-gray-500" />
-                                  {i18n.language === 'az' ? 'Çap et' : 'Печать'}
-                                </button>
-                                {isAdmin && (
-                                  <>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button
-                                      onClick={() => handleEdit(item)}
-                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
-                                    >
-                                      <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
-                                      {t('warehouse.editProduct') || 'Düzəliş et'}
-                                    </button>
-                                    <div className="mx-3 my-1 border-t border-gray-100" />
-                                    <button
-                                      onClick={() => requestDeleteProduct(item.id)}
-                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                      {t('warehouse.deleteProduct') || 'Sil'}
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-1 flex-wrap">
-                          <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
-                            {(() => {
-                              const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
-                              return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
-                            })()}
-                          </span>
-                          {isAdmin && (() => {
-                            const sup = (suppliers || []).find(s => s.id === item.supplier_id);
-                            const supStyle = getSupplierStyle(item.supplier_id);
-                            return sup ? (
-                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border bg-white ${supStyle.border} text-gray-800 inline-flex items-center gap-1.5 shadow-sm`}>
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
-                                {sup.name || sup.company_name}
-                              </span>
-                            ) : null;
-                          })()}
-                          <div className="flex items-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
-                            {getStatusIcon(item.stock_quantity, item.critical_stock)}
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
-                          {canSeeCostAndFactoryPrices && getFactoryPrice(item, suppliers) && (
-                            <div>
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">Zavod</span>
-                              <span className="text-xs font-bold text-gray-900">{getFactoryPrice(item, suppliers)}</span>
-                            </div>
-                          )}
-                          {canSeeCostAndFactoryPrices && (
-                            <div>
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
-                              <span className="text-xs font-bold text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</span>
-                            </div>
-                          )}
-                          <div className="text-center">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPrice') || 'Satış'}</span>
-                            <span className="text-xs font-black text-gray-900">₼{parseFloat(item.price).toFixed(2)}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
-                            <span className="text-xs font-black text-gray-900">{parseFloat(item.stock_quantity || 0).toFixed(2)} {formatUnit(item.unit)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )
-            ) : (
-              // Raw Ingredients Table
-              filteredIngredients.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
-                  <FolderTree className="w-12 h-12 text-gray-200" />
-                  <p className="font-medium">{t('warehouse.noIngredientsFound')}</p>
-                  <button onClick={() => setShowAddIngredient(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
-                    <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <table className="hidden md:table w-full text-left border-collapse">
-                    <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
-                      <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
-                        <th className="font-medium p-4">{t('warehouse.thName')}</th>
-                        <th className="font-medium p-4">{t('warehouse.thUnit')}</th>
-                        <th className="font-medium p-4">{t('warehouse.thStock')}</th>
-                        <th className="font-medium p-4">{t('warehouse.thCostPrice')}</th>
-                        <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
-                        <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {filteredIngredients.map(item => (
-                        <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="p-4">
-                            <p className="font-medium text-gray-900">{item.name}</p>
-                          </td>
-                          <td className="p-4 text-sm text-gray-600">{item.unit}</td>
-                          <td className="p-4 text-sm font-bold text-gray-900">{parseFloat(item.quantity).toFixed(3)}</td>
-                          <td className="p-4 text-sm font-bold text-gray-900">₼{parseFloat(item.cost_price).toFixed(2)}</td>
-                          <td className="p-4">
-                            <div className={`flex items-center text-sm font-medium ${getStatusColor(item.quantity, item.min_quantity)}`}>
-                              {getStatusIcon(item.quantity, item.min_quantity)}
-                              <span className="ml-2">{getStatusText(item.quantity, item.min_quantity)}</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-right">
-                            <div className="relative inline-block">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                                className="text-gray-400 hover:text-merkez-green transition-colors p-1.5 rounded-md hover:bg-green-50"
-                              >
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
-
-                              {openMenuId === item.id && (
-                                <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
-                                  <button
-                                    onClick={() => handleEditIngredient(item)}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
-                                  >
-                                    <Pencil className="w-4 h-4 text-merkez-green" />
-                                    {t('warehouse.editIngredient')}
-                                  </button>
-                                  <div className="mx-3 my-1 border-t border-gray-100" />
-                                  <button
-                                    onClick={() => requestDeleteIngredient(item.id)}
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                    {t('warehouse.deleteIngredient')}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Mobile Ingredients Cards Grid */}
-                  <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
-                    {filteredIngredients.map(item => (
-                      <div key={item.id} className="p-4 flex flex-col gap-2.5">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-bold text-gray-900 text-sm">{item.name}</p>
-                            <span className="text-[10px] text-gray-500 mt-1 block">
-                              Ölçü vahidi: <strong className="text-gray-700">{item.unit || '—'}</strong>
-                            </span>
-                          </div>
-
-                          <div className="relative">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
-                              className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
-                            >
-                              <MoreVertical className="w-5 h-5" />
-                            </button>
-                            {openMenuId === item.id && (
-                              <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
-                                <button
-                                  onClick={() => handleEditIngredient(item)}
-                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold animate-in fade-in zoom-in-95"
-                                >
-                                  <Pencil className="w-3.5 h-3.5 text-merkez-green" />
-                                  {t('warehouse.editIngredient') || 'Düzəliş et'}
-                                </button>
-                                <div className="mx-3 my-1 border-t border-gray-100" />
-                                <button
-                                  onClick={() => requestDeleteIngredient(item.id)}
-                                  className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                  {t('warehouse.deleteIngredient') || 'Sil'}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.quantity, item.min_quantity)}`}>
-                          {getStatusIcon(item.quantity, item.min_quantity)}
-                          <span className="ml-1">{getStatusText(item.quantity, item.min_quantity)}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
-                          <div>
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thCostPrice') || 'Mayə Dəyəri'}</span>
-                            <span className="text-xs font-bold text-gray-900">₼{parseFloat(item.cost_price || 0).toFixed(2)}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
-                            <span className="text-xs font-black text-gray-900">{parseFloat(item.quantity || 0).toFixed(3)} {item.unit || ''}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )
-            )}
-          </div>
-
-          {/* Fixed Non-Scrolling Pagination Bar at the bottom of the card */}
-          {activeTab === 'finished' && !loading && !loadingProducts && !isSearchingServer && filteredProducts.length > 0 && (
-            <div className="px-4 py-1.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0 z-20 shadow-sm">
-              <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
-                <span>
-                  {i18n.language === 'az' ? 'Göstərilir:' : 'Показано:'}{' '}
-                  <strong className="text-gray-900 font-bold">
-                    {pageSize === 'all' ? `1 - ${filteredProducts.length}` : `${Math.min((currentPage - 1) * pageSize + 1, filteredProducts.length)} - ${Math.min(currentPage * pageSize, filteredProducts.length)}`}
-                  </strong>{' '}
-                  / <strong className="text-gray-900 font-bold">{filteredProducts.length}</strong> {i18n.language === 'az' ? 'məhsul' : 'товаров'}
-                </span>
-                <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-2.5">
-                  <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
-                  <div className="w-[80px]">
-                    <Dropdown
-                      value={String(pageSize)}
-                      onChange={(val) => {
-                        setPageSize(val === 'all' ? 'all' : Number(val));
-                        setCurrentPage(1);
-                      }}
-                      position="top"
-                      options={[
-                        { value: '25', label: '25' },
-                        { value: '50', label: '50' },
-                        { value: '100', label: '100' },
-                        { value: '200', label: '200' },
-                        { value: 'all', label: i18n.language === 'az' ? 'Hamısı' : 'Все' }
-                      ]}
-                      buttonClassName="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-0.5 h-[26px] text-gray-700 hover:border-merkez-blue"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {pageSize !== 'all' && totalPages > 1 && (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage(1)}
-                    disabled={currentPage === 1}
-                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                    title={i18n.language === 'az' ? 'İlk səhifə' : 'Первая страница'}
-                  >
-                    <ChevronsLeft className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                    title={i18n.language === 'az' ? 'Əvvəlki' : 'Предыдущая'}
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </button>
-
-                  <div className="flex items-center gap-1 px-1">
                     {(() => {
-                      const pages = [];
-                      const maxVisiblePages = 5;
-                      let startPage = Math.max(1, currentPage - 2);
-                      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-                      if (endPage - startPage < maxVisiblePages - 1) {
-                        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                      const normSearch = (categorySearchTerm || '').trim().toLowerCase()
+                        .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
+
+                      let visibleCategoryIds = null;
+                      let autoExpandedCategoryIds = new Set();
+
+                      if (normSearch) {
+                        visibleCategoryIds = new Set();
+                        const parentMap = new Map();
+                        const childrenMap = new Map();
+                        categories.forEach(c => {
+                          if (c.parent_id) {
+                            parentMap.set(c.id, c.parent_id);
+                            if (!childrenMap.has(c.parent_id)) childrenMap.set(c.parent_id, []);
+                            childrenMap.get(c.parent_id).push(c.id);
+                          }
+                        });
+
+                        const addAllDescendants = (id) => {
+                          const children = childrenMap.get(id) || [];
+                          children.forEach(childId => {
+                            visibleCategoryIds.add(childId);
+                            addAllDescendants(childId);
+                          });
+                        };
+
+                        const matches = (c) => {
+                          const raw = (c.name || '').toLowerCase()
+                            .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
+                          const trans = (t(`categories.${c.name}`, { defaultValue: c.name }) || '').toLowerCase()
+                            .replace(/i̇/g, 'i').replace(/ı/g, 'i').replace(/ə/g, 'e').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ç/g, 'c').replace(/ё/g, 'е');
+                          return raw.includes(normSearch) || trans.includes(normSearch);
+                        };
+
+                        categories.forEach(c => {
+                          if (matches(c)) {
+                            visibleCategoryIds.add(c.id);
+                            if (childrenMap.has(c.id)) {
+                              autoExpandedCategoryIds.add(c.id);
+                              addAllDescendants(c.id);
+                            }
+                            let pId = parentMap.get(c.id);
+                            while (pId) {
+                              visibleCategoryIds.add(pId);
+                              autoExpandedCategoryIds.add(pId);
+                              pId = parentMap.get(pId);
+                            }
+                          }
+                        });
                       }
 
-                      for (let p = startPage; p <= endPage; p++) {
-                        pages.push(
-                          <button
-                            key={p}
-                            onClick={() => setCurrentPage(p)}
-                            className={`min-w-[26px] h-6 px-1.5 rounded-md text-xs font-bold transition-all ${
-                              currentPage === p
-                                ? 'bg-merkez-blue text-white shadow-sm shadow-blue-500/30'
-                                : 'border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
-                            }`}
-                          >
-                            {p}
-                          </button>
+                      const renderCategory = (cat, level = 0, catIdx = 0) => {
+                        if (visibleCategoryIds && !visibleCategoryIds.has(cat.id)) {
+                          return null;
+                        }
+
+                        const subcategories = categories
+                          .filter(sub => sub.parent_id === cat.id)
+                          .filter(sub => !visibleCategoryIds || visibleCategoryIds.has(sub.id));
+                        const hasSubcategories = subcategories.length > 0;
+                        const isExpanded = normSearch ? (autoExpandedCategoryIds.has(cat.id) || expandedCategories.includes(cat.id)) : expandedCategories.includes(cat.id);
+                        const isActive = Array.isArray(selectedCategory) ? selectedCategory.includes(cat.id) : selectedCategory === cat.id;
+                        const catColor = getCategoryDepthColor(level);
+                        const count = categoryProductCounts[cat.id] || 0;
+
+                        return (
+                          <React.Fragment key={cat.id}>
+                            <div
+                              className={`group p-2.5 rounded-xl cursor-pointer text-sm flex items-center justify-between font-bold transition-all duration-200 ${isActive ? 'bg-white text-merkez-blue shadow-md border border-blue-50 ring-1 ring-blue-100' : 'text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm'}`}
+                              style={{
+                                marginLeft: level > 0 ? `${level * 14}px` : '0',
+                                borderLeft: level > 0 ? `3px solid ${catColor}` : undefined
+                              }}
+                              onClick={() => {
+                                if (Array.isArray(selectedCategory)) {
+                                  if (isActive) {
+                                    const next = selectedCategory.filter(id => id !== cat.id);
+                                    setSelectedCategory(next.length > 0 ? next : null);
+                                  } else {
+                                    setSelectedCategory([...selectedCategory, cat.id]);
+                                  }
+                                } else {
+                                  setSelectedCategory(isActive ? null : cat.id);
+                                }
+                                if (hasSubcategories && !isExpanded) {
+                                  setExpandedCategories(prev => [...prev, cat.id]);
+                                }
+                              }}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                                {hasSubcategories ? (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedCategories(prev =>
+                                        prev.includes(cat.id) ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                                      );
+                                    }}
+                                    className={`p-1 rounded-md transition-colors shrink-0 ${isExpanded ? 'bg-blue-50 text-merkez-blue' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}
+                                  >
+                                    <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
+                                  </button>
+                                ) : (
+                                  level > 0 && <div className="w-5 h-5 shrink-0" />
+                                )}
+
+                                {hasSubcategories && isExpanded ? (
+                                  <FolderOpen
+                                    className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                                    style={{ color: catColor }}
+                                    fill={catColor}
+                                    fillOpacity={0.2}
+                                  />
+                                ) : (
+                                  <Folder
+                                    className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                                    style={{ color: catColor }}
+                                    fill={catColor}
+                                    fillOpacity={0.2}
+                                  />
+                                )}
+
+                                <span
+                                  className="whitespace-nowrap font-bold text-gray-800 group-hover:text-gray-900"
+                                  title={t(`categories.${cat.name}`, { defaultValue: cat.name })}
+                                >
+                                  {t(`categories.${cat.name}`, { defaultValue: cat.name })}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0 ml-auto pl-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setEditingCategory(cat); }}
+                                  className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-merkez-blue hover:bg-blue-50 rounded-lg transition-all"
+                                  title={i18n?.language === 'az' ? 'Redaktə et' : 'Редактировать'}
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${isActive ? 'bg-merkez-blue text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                  {count}
+                                </span>
+                              </div>
+                            </div>
+
+                            {isExpanded && subcategories
+                              .sort((a, b) => a.name.localeCompare(b.name))
+                              .map((subcat, subIdx) => renderCategory(subcat, level + 1, subIdx))
+                            }
+                          </React.Fragment>
+                        );
+                      };
+
+                      const topLevelCategories = categories
+                        .filter(c => !c.parent_id)
+                        .filter(c => !visibleCategoryIds || visibleCategoryIds.has(c.id))
+                        .sort((a, b) => a.name.localeCompare(b.name));
+
+                      if (normSearch && topLevelCategories.length === 0) {
+                        return (
+                          <div className="py-8 text-center px-4 flex flex-col items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
+                              <Folder className="w-5 h-5" />
+                            </div>
+                            <p className="text-xs font-bold text-gray-700">
+                              {i18n?.language === 'az' ? 'Kateqoriya tapılmadı' : 'Категория не найдена'}
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">
+                              {i18n?.language === 'az' ? 'Axtarış sorğusunu dəyişin' : 'Попробуйте другой запрос'}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => setCategorySearchTerm('')}
+                              className="mt-3 text-xs font-bold text-merkez-blue hover:underline bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              {i18n?.language === 'az' ? 'Axtarışı sıfırla' : 'Сбросить поиск'}
+                            </button>
+                          </div>
                         );
                       }
-                      return pages;
+
+                      return topLevelCategories.map((cat, idx) => renderCategory(cat, 0, idx));
                     })()}
                   </div>
 
+                  <div className="pt-6 mt-auto border-t border-gray-100/50">
+                    <button
+                      onClick={() => setShowAddCategory(true)}
+                      className="w-full py-3 bg-white border border-gray-200 text-gray-500 rounded-lg text-xs font-black hover:border-merkez-blue hover:text-merkez-blue hover:shadow-lg hover:shadow-blue-600/5 transition-all flex items-center justify-center gap-2 group"
+                    >
+                      <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                        <Plus className="w-3.5 h-3.5" />
+                      </div>
+                      {t('warehouse.addCategory')}
+                    </button>
+                  </div>
+                </div>
+                {/* Desktop Draggable Resize Handle */}
+                <div
+                  onMouseDown={startResizingSidebar}
+                  onDoubleClick={resetSidebarWidth}
+                  className="hidden lg:flex w-2.5 -ml-1 cursor-col-resize items-center justify-center group z-10 select-none hover:w-3.5 transition-all"
+                  title={i18n?.language === 'az' ? 'Ölçünü dəyişmək üçün dartın (avto-ölçü üçün iki dəfə klikləyin)' : 'Потяните, чтобы изменить ширину (двойной клик для авто-подбора)'}
+                >
+                  <div className="w-1 h-10 rounded-full bg-gray-200 group-hover:bg-merkez-blue group-hover:h-14 transition-all" />
+                </div>
+              </>
+            )}
+
+            {/* Overlay for mobile sidebar */}
+            {activeTab === 'finished' && showCategorySidebar && (
+              <div
+                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+                onClick={() => setShowCategorySidebar(false)}
+              />
+            )}
+
+            {/* Products/Ingredients Table Area */}
+            <div className="flex-1 flex flex-col bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 overflow-hidden w-full">
+              <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 relative z-20 items-center justify-between">
+                <div className="flex items-center gap-2 flex-1 w-full xl:max-w-3xl shrink-0">
+                  {activeTab === 'finished' && (
+                    <button
+                      className="p-2 text-gray-500 hover:text-merkez-blue bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 transition-colors shrink-0"
+                      onClick={() => setShowCategorySidebar(!showCategorySidebar)}
+                    >
+                      <Menu className="w-5 h-5" />
+                    </button>
+                  )}
+
+                  {(activeTab === 'finished' || activeTab === 'raw') && (
+                    <form onSubmit={handleMainSearchSubmit} id="tour-search" className="relative w-full flex-1 min-w-[240px] flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors ${mainBarcodeMode ? 'text-merkez-blue font-bold' : 'text-gray-400'}`} />
+                        <input
+                          ref={mainBarcodeInputRef}
+                          type="text"
+                          placeholder={mainBarcodeMode ? (i18n.language === 'az' ? 'Skaner rejimi: Skan edin...' : 'Режим сканера: Сканируйте...') : (activeTab === 'finished' ? (t('warehouse.searchPlaceholder') || 'Поиск по названию или штрихкоду...') : t('warehouse.searchIngredients'))}
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className={`w-full pl-10 pr-9 py-2 rounded-lg text-sm transition-all outline-none ${mainBarcodeMode
+                              ? 'bg-blue-50/60 border-2 border-merkez-blue text-gray-900 font-bold focus:bg-white focus:ring-2 focus:ring-merkez-blue/20'
+                              : 'bg-gray-50 border border-gray-100 focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue'
+                            }`}
+                        />
+                        {searchTerm && (
+                          <button
+                            type="button"
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+
+                      <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-50 border border-gray-100 hover:bg-gray-100 px-3 py-2 rounded-lg shrink-0 transition-colors" title={t('warehouse.barcodeMode') || 'Skaner rejimi'}>
+                        <span className="text-xs font-bold text-gray-600 whitespace-nowrap">{t('warehouse.barcodeMode') || 'Skaner rejimi'}</span>
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            checked={mainBarcodeMode}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              setMainBarcodeMode(isChecked);
+                              try {
+                                localStorage.setItem('crm_scanner_mode', String(isChecked));
+                              } catch (err) { }
+                              if (isChecked) {
+                                const isMobile = typeof window !== 'undefined' && (window.innerWidth <= 768 || /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent));
+                                if (isMobile) {
+                                  setShowCameraScanner(true);
+                                }
+                                setTimeout(() => mainBarcodeInputRef.current?.focus(), 100);
+                              }
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-gray-200 rounded-full peer peer-checked:bg-merkez-blue after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-4"></div>
+                        </div>
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowCameraScanner(true)}
+                        className="md:hidden flex items-center gap-1.5 bg-blue-50 text-merkez-blue border border-blue-100 hover:bg-blue-100 px-3 py-2 rounded-lg shrink-0 font-bold text-xs transition-colors shadow-sm"
+                        title={i18n.language === 'az' ? 'Kamera ilə skan et' : 'Сканировать камерой'}
+                      >
+                        <Camera className="w-4 h-4" />
+                        <span className="hidden sm:inline">{i18n.language === 'az' ? 'Kamera' : 'Камера'}</span>
+                      </button>
+                    </form>
+                  )}
+
+                  {activeTab === 'finished' && currentStaff?.role !== 'Cashier' && (
+                    <button id="tour-add-product-btn" onClick={() => setShowAddProduct(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
+                      <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addProduct')}
+                    </button>
+                  )}
+
+                  {activeTab === 'raw' && isRestaurantActive && currentStaff?.role !== 'Cashier' && (
+                    <button onClick={() => setShowAddIngredient(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
+                      <Plus className="w-4 h-4 mr-1.5 shrink-0" /> {t('warehouse.addIngredient')}
+                    </button>
+                  )}
+
+                  <div className="relative shrink-0 xl:hidden" ref={filterRef}>
+                    <button
+                      onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                      className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
+                    >
+                      <Filter className="w-5 h-5" />
+                    </button>
+
+                    {showFilterDropdown && (
+                      <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                        <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                        {[
+                          { id: 'all', label: t('common.all') },
+                          { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
+                          ...(isAdmin ? [{ id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' }] : []),
+                          { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
+                        ].map(item => (
+                          <button
+                            key={item.id}
+                            onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
+                            className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                          >
+                            <div className="flex items-center gap-2">
+                              {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
+                              {item.label}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {activeTab === 'finished' && (
+                  <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
+                    <div className="w-full sm:w-64 shrink-0">
+                      <Dropdown
+                        multiple
+                        value={selectedCategory || []}
+                        onChange={(val) => {
+                          if (Array.isArray(val)) {
+                            setSelectedCategory(val.length > 0 ? val : null);
+                          } else {
+                            setSelectedCategory(val === 'all' || !val ? null : val);
+                          }
+                        }}
+                        searchable
+                        options={[
+                          { value: 'all', label: t('warehouse.allCategories') || 'Bütün kateqoriyalar' },
+                          ...hierarchicalCategoryOptions
+                        ]}
+                        buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
+                      />
+                    </div>
+
+                    {isAdmin && (
+                      <div className="w-full sm:w-56 shrink-0">
+                        <Dropdown
+                          value={supplierFilter}
+                          onChange={setSupplierFilter}
+                          searchable
+                          searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                          options={[
+                            { value: 'all', label: t('warehouse.allSuppliers') || 'Bütün tədarükçülər' },
+                            ...suppliers.map(s => ({ value: s.id, label: s.name }))
+                          ]}
+                          buttonClassName="rounded-lg px-4 py-2 text-sm w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="relative shrink-0 hidden xl:block" ref={filterRef}>
                   <button
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                    title={i18n.language === 'az' ? 'Növbəti' : 'Следующая'}
+                    id="tour-filter"
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    className={`border p-2 rounded-lg transition-colors ${statusFilter !== 'all' ? 'bg-blue-50 border-merkez-blue text-merkez-blue' : 'bg-gray-50 border-gray-100 text-gray-500 hover:text-gray-700'}`}
                   >
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <Filter className="w-5 h-5" />
                   </button>
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    disabled={currentPage === totalPages}
-                    className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
-                    title={i18n.language === 'az' ? 'Son səhifə' : 'Последняя страница'}
-                  >
-                    <ChevronsRight className="w-3.5 h-3.5" />
-                  </button>
+
+                  {showFilterDropdown && (
+                    <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-lg shadow-xl w-48 py-1.5 animate-in fade-in zoom-in-95">
+                      <p className="px-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50 mb-1">{t('retail.filters')}</p>
+                      {[
+                        { id: 'all', label: t('common.all') },
+                        { id: 'in', label: t('warehouse.inStock'), color: 'text-merkez-green' },
+                        ...(isAdmin ? [{ id: 'low', label: t('warehouse.lowStock'), color: 'text-merkez-yellow' }] : []),
+                        { id: 'out', label: t('warehouse.outOfStock'), color: 'text-merkez-red' }
+                      ].map(item => (
+                        <button
+                          key={item.id}
+                          onClick={() => { setStatusFilter(item.id); setShowFilterDropdown(false); }}
+                          className={`w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors ${statusFilter === item.id ? 'bg-blue-50 text-merkez-blue' : 'text-gray-700'}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {item.id !== 'all' && <div className={`w-2 h-2 rounded-full ${item.id === 'in' ? 'bg-merkez-green' : item.id === 'low' ? 'bg-merkez-yellow' : 'bg-merkez-red'}`} />}
+                            {item.label}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-auto" ref={menuRef}>
+                {(loading || loadingProducts || isSearchingServer) ? (
+                  <WarehouseSkeleton />
+                ) : activeTab === 'finished' ? (
+                  // Finished Goods Table
+                  filteredProducts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
+                      <FolderTree className="w-12 h-12 text-gray-200" />
+                      <p className="font-medium">{t('warehouse.noProductsFound')}</p>
+                      {currentStaff?.role !== 'Cashier' && (
+                        <button onClick={() => setShowAddProduct(true)} className="px-4 py-2 bg-merkez-blue text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors shadow-sm">
+                          <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstProduct')}
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <table className="hidden md:table w-full text-left border-collapse">
+                        <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
+                          <tr className="border-b border-gray-100 text-[10px] uppercase text-gray-500 tracking-wider">
+                            <th className="pl-8 pr-2 py-4 w-10">
+                              <button
+                                id="tour-select-all"
+                                onClick={toggleSelectAll}
+                                className="text-gray-400 hover:text-merkez-blue transition-colors"
+                              >
+                                {selectedItems.length === filteredProducts.length && filteredProducts.length > 0 ? (
+                                  <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                                ) : (
+                                  <Square className="w-5 h-5" />
+                                )}
+                              </button>
+                            </th>
+                            <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thName')}</th>
+                            <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thBarcode')}</th>
+                            <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thCategory')}</th>
+                            {isAdmin && (
+                              <th className="font-medium px-2 py-4 whitespace-nowrap">{i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'}</th>
+                            )}
+                            {canSeeCostAndFactoryPrices && (
+                              <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thFactoryPrice') || 'ZAVOD QİYMƏTİ'}</th>
+                            )}
+                            {canSeeCostAndFactoryPrices && (
+                              <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPurchasePrice')}</th>
+                            )}
+                            <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thPrice')}</th>
+                            <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStock')}</th>
+                            <th className="font-medium px-2 py-4 whitespace-nowrap">{t('warehouse.thStatus')}</th>
+                            <th className="font-medium px-2 py-4 pr-6 text-right whitespace-nowrap"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {paginatedProducts.map((item, index) => (
+                            <tr key={item.id} className={`hover:bg-gray-50/50 transition-colors ${selectedItems.includes(item.id) ? 'bg-blue-50/30' : ''}`}>
+                              <td className="pl-8 pr-2 py-4">
+                                <button
+                                  onClick={() => toggleSelectItem(item.id)}
+                                  className="text-gray-400 hover:text-merkez-blue transition-colors"
+                                >
+                                  {selectedItems.includes(item.id) ? (
+                                    <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                                  ) : (
+                                    <Square className="w-5 h-5" />
+                                  )}
+                                </button>
+                              </td>
+                              <td className="px-2 py-4">
+                                <div className="font-medium text-gray-900 flex items-center gap-2 flex-wrap">
+                                  {item.name}
+                                  {(item.isOtherWarehouse || (item.warehouse_id && item.warehouse_id !== currentWarehouseId)) && (
+                                    <span className="inline-flex items-center bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap" title={i18n.language === 'az' ? 'Məhsul başqa anbarda yerləşir' : 'Товар на другом складе'}>
+                                      📍 {item.warehouseName || warehouses.find(w => w.id === item.warehouse_id)?.name || (i18n.language === 'az' ? 'Başqa anbar' : 'Другой склад')}
+                                    </span>
+                                  )}
+                                  {activeRepairsMap[item.id] && (
+                                    <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2 whitespace-nowrap">
+                                      {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
+                                    </span>
+                                  )}
+                                </div>
+                                {(() => {
+                                  const attrs = parseProductAttributes(item);
+                                  if (!attrs || attrs.length === 0) return null;
+                                  return (
+                                    <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                                      {attrs.map((attr, aIdx) => (
+                                        <span
+                                          key={aIdx}
+                                          className="inline-flex items-center text-[10px] font-medium bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-merkez-blue px-2 py-0.5 rounded-md border border-slate-200/80 transition-colors"
+                                        >
+                                          <span className="text-gray-400 mr-1">{attr.name}:</span>
+                                          <span className="font-bold text-gray-800">{attr.value}</span>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  );
+                                })()}
+                              </td>
+                              <td className="px-2 py-4">
+                                {item.barcode && item.barcode.trim() !== '' ? (
+                                  <span className="text-xs font-mono text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                                    {item.barcode}
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleGenerateBarcodeForProduct(item.id)}
+                                    className="text-[11px] font-bold text-merkez-blue bg-blue-50/80 hover:bg-blue-100 px-2 py-1 rounded border border-blue-200 flex items-center gap-1 transition-colors whitespace-nowrap"
+                                    title={i18n.language === 'az' ? 'Barkod yarat' : 'Сгенерировать штрихкод'}
+                                  >
+                                    <Sparkles className="w-3 h-3 text-merkez-blue" />
+                                    {i18n.language === 'az' ? 'Barkod yarat' : 'Создать штрихкод'}
+                                  </button>
+                                )}
+                              </td>
+                              <td className="px-2 py-4 whitespace-nowrap">
+                                <div className="inline-block w-max max-w-none">
+                                  {isAdmin ? (
+                                    <Dropdown
+                                      value={item.category_id || ''}
+                                      onChange={(val) => handleQuickCategoryChange(item.id, val)}
+                                      searchable
+                                      position="auto"
+                                      noTruncate
+                                      options={[
+                                        { value: '', label: `— ${i18n.language === 'az' ? 'Kateqoriya' : 'Категория'} —` },
+                                        ...hierarchicalCategoryOptions
+                                      ]}
+                                      buttonClassName={`text-xs font-bold px-3 py-1 rounded-full border transition-all h-[28px] whitespace-nowrap ${item.category_id
+                                          ? 'bg-blue-50 text-merkez-blue border-blue-100 hover:border-merkez-blue'
+                                          : 'bg-gray-50 text-gray-400 border-dashed border-gray-200 hover:border-gray-400 hover:text-gray-600'
+                                        }`}
+                                    />
+                                  ) : (
+                                    <div
+                                      className={`inline-flex items-center gap-1.5 px-3 h-[28px] rounded-full border text-xs font-bold select-none cursor-default whitespace-nowrap ${item.category_id
+                                          ? 'bg-blue-50/70 text-merkez-blue border-blue-100/90'
+                                          : 'bg-gray-50 text-gray-400 border-dashed border-gray-200'
+                                        }`}
+                                      title={i18n.language === 'az' ? 'Dəyişdirmək üçün admin hüququ lazımdır' : 'Для изменения требуются права администратора'}
+                                    >
+                                      <Folder className="w-3.5 h-3.5 shrink-0 opacity-70" />
+                                      <span className="whitespace-nowrap">
+                                        {(() => {
+                                          const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
+                                          return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
+                                        })()}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                              {isAdmin && (
+                                <td className="px-2 py-4">
+                                  <div className="inline-block min-w-[130px]">
+                                    {(() => {
+                                      const sup = (suppliers || []).find(s => s.id === item.supplier_id);
+                                      const supStyle = getSupplierStyle(item.supplier_id);
+                                      return (
+                                        <Dropdown
+                                          value={item.supplier_id || ''}
+                                          onChange={(val) => handleQuickSupplierChange(item.id, val)}
+                                          searchable
+                                          searchPlaceholder={i18n.language === 'az' ? 'Tədarükçü axtar...' : 'Поиск поставщика...'}
+                                          position="auto"
+                                          options={[
+                                            { value: '', label: `— ${i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —` },
+                                            ...suppliers.map(s => ({
+                                              value: s.id,
+                                              label: s.name || s.company_name
+                                            }))
+                                          ]}
+                                          trigger={
+                                            item.supplier_id ? (
+                                              <div className={`w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border bg-white ${supStyle.border} ${supStyle.hover} hover:shadow-sm transition-all text-xs font-bold text-gray-800 shadow-sm`}>
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
+                                                  <span className="truncate">{sup?.name || sup?.company_name || '—'}</span>
+                                                </div>
+                                                <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
+                                              </div>
+                                            ) : (
+                                              <div className="w-full flex items-center justify-between gap-1.5 px-2.5 h-[28px] rounded-full border border-dashed border-gray-200 bg-gray-50/70 hover:bg-white hover:border-gray-300 text-gray-400 hover:text-gray-600 transition-all text-xs font-bold shadow-sm">
+                                                <span className="truncate">— {i18n.language === 'az' ? 'Tədarükçü' : 'Поставщик'} —</span>
+                                                <ChevronDown className="w-3 h-3 text-gray-400 shrink-0 ml-1" />
+                                              </div>
+                                            )
+                                          }
+                                        />
+                                      );
+                                    })()}
+                                  </div>
+                                </td>
+                              )}
+                              {canSeeCostAndFactoryPrices && (
+                                <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                                  {getFactoryPrice(item, suppliers) || '—'}
+                                </td>
+                              )}
+                              {canSeeCostAndFactoryPrices && (
+                                <td className="px-2 py-4 text-sm text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</td>
+                              )}
+                              <td className="px-2 py-4 text-sm font-bold text-gray-900">₼{parseFloat(item.price).toFixed(2)}</td>
+                              <td className="px-2 py-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                                {parseFloat(item.stock_quantity || 0).toFixed(2)} {formatUnit(item.unit)}
+                              </td>
+                              <td className="px-2 py-4">
+                                <div className="flex items-center justify-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
+                                  {getStatusIcon(item.stock_quantity, item.critical_stock)}
+                                </div>
+                              </td>
+                              <td className="px-2 py-4 pr-6 text-right">
+                                <div className="relative inline-block">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                    className="text-gray-400 hover:text-merkez-blue p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                                  >
+                                    <MoreVertical className="w-4 h-4" />
+                                  </button>
+                                  {openMenuId === item.id && (
+                                    <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                      <button
+                                        onClick={() => handlePrintProduct(item)}
+                                        className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                      >
+                                        <Printer className="w-3.5 h-3.5 text-gray-500" />
+                                        {i18n.language === 'az' ? 'Çap et' : 'Печать'}
+                                      </button>
+                                      {isAdmin && (
+                                        <>
+                                          <div className="mx-3 my-1 border-t border-gray-100" />
+                                          <button
+                                            onClick={() => handleEdit(item)}
+                                            className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                          >
+                                            <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
+                                            {t('warehouse.editProduct')}
+                                          </button>
+                                          <div className="mx-3 my-1 border-t border-gray-100" />
+                                          <button
+                                            onClick={() => requestDeleteProduct(item.id)}
+                                            className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                            {t('warehouse.deleteProduct')}
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* Mobile Products Cards Grid */}
+                      <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
+                        {paginatedProducts.map((item, index) => (
+                          <div key={item.id} className={`p-4 flex flex-col gap-2.5 ${selectedItems.includes(item.id) ? 'bg-blue-50/20' : ''}`}>
+                            <div className="flex justify-between items-start">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => toggleSelectItem(item.id)}
+                                  className="text-gray-400 hover:text-merkez-blue transition-colors mt-0.5"
+                                >
+                                  {selectedItems.includes(item.id) ? (
+                                    <CheckSquare className="w-5 h-5 text-merkez-blue" />
+                                  ) : (
+                                    <Square className="w-5 h-5" />
+                                  )}
+                                </button>
+                                <div>
+                                  <p className="font-bold text-gray-900 text-sm flex items-center gap-2 flex-wrap">
+                                    {item.name}
+                                    {(item.isOtherWarehouse || (item.warehouse_id && item.warehouse_id !== currentWarehouseId)) && (
+                                      <span className="inline-flex items-center bg-purple-100 text-purple-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
+                                        📍 {item.warehouseName || warehouses.find(w => w.id === item.warehouse_id)?.name || (i18n.language === 'az' ? 'Başqa anbar' : 'Другой склад')}
+                                      </span>
+                                    )}
+                                    {activeRepairsMap[item.id] && (
+                                      <span className="inline-flex items-center bg-orange-100 text-orange-800 text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap">
+                                        {i18n.language === 'az' ? 'Təmirdə:' : 'В ремонте:'} {activeRepairsMap[item.id]}
+                                      </span>
+                                    )}
+                                  </p>
+                                  <span className="text-[10px] font-mono text-gray-400 mt-1 block">
+                                    {item.barcode || '—'}
+                                  </span>
+                                  {(() => {
+                                    const attrs = parseProductAttributes(item);
+                                    if (!attrs || attrs.length === 0) return null;
+                                    return (
+                                      <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                                        {attrs.map((attr, aIdx) => (
+                                          <span
+                                            key={aIdx}
+                                            className="inline-flex items-center text-[10px] font-medium bg-slate-50 text-slate-700 px-2 py-0.5 rounded border border-slate-200/80"
+                                          >
+                                            <span className="text-gray-400 mr-1">{attr.name}:</span>
+                                            <span className="font-bold text-gray-800">{attr.value}</span>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                  className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
+                                {openMenuId === item.id && (
+                                  <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                    <button
+                                      onClick={() => handlePrintProduct(item)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold whitespace-nowrap"
+                                    >
+                                      <Printer className="w-3.5 h-3.5 text-gray-500" />
+                                      {i18n.language === 'az' ? 'Çap et' : 'Печать'}
+                                    </button>
+                                    {isAdmin && (
+                                      <>
+                                        <div className="mx-3 my-1 border-t border-gray-100" />
+                                        <button
+                                          onClick={() => handleEdit(item)}
+                                          className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold"
+                                        >
+                                          <Pencil className="w-3.5 h-3.5 text-merkez-blue" />
+                                          {t('warehouse.editProduct') || 'Düzəliş et'}
+                                        </button>
+                                        <div className="mx-3 my-1 border-t border-gray-100" />
+                                        <button
+                                          onClick={() => requestDeleteProduct(item.id)}
+                                          className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                          {t('warehouse.deleteProduct') || 'Sil'}
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-1 flex-wrap">
+                              <span className="text-[10px] bg-blue-50 text-merkez-blue px-2 py-0.5 rounded-full font-bold">
+                                {(() => {
+                                  const catName = item.categories?.name || (categories || []).find(c => c.id === item.category_id)?.name;
+                                  return catName ? (t(`categories.${catName}`, { defaultValue: catName })) : '—';
+                                })()}
+                              </span>
+                              {isAdmin && (() => {
+                                const sup = (suppliers || []).find(s => s.id === item.supplier_id);
+                                const supStyle = getSupplierStyle(item.supplier_id);
+                                return sup ? (
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border bg-white ${supStyle.border} text-gray-800 inline-flex items-center gap-1.5 shadow-sm`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${supStyle.dot}`} />
+                                    {sup.name || sup.company_name}
+                                  </span>
+                                ) : null;
+                              })()}
+                              <div className="flex items-center" title={getStatusText(item.stock_quantity, item.critical_stock)}>
+                                {getStatusIcon(item.stock_quantity, item.critical_stock)}
+                              </div>
+                            </div>
+
+                            <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
+                              {canSeeCostAndFactoryPrices && getFactoryPrice(item, suppliers) && (
+                                <div>
+                                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">Zavod</span>
+                                  <span className="text-xs font-bold text-gray-900">{getFactoryPrice(item, suppliers)}</span>
+                                </div>
+                              )}
+                              {canSeeCostAndFactoryPrices && (
+                                <div>
+                                  <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPurchasePrice') || 'Alış'}</span>
+                                  <span className="text-xs font-bold text-gray-500">₼{parseFloat(item.purchase_price || 0).toFixed(2)}</span>
+                                </div>
+                              )}
+                              <div className="text-center">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thPrice') || 'Satış'}</span>
+                                <span className="text-xs font-black text-gray-900">₼{parseFloat(item.price).toFixed(2)}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
+                                <span className="text-xs font-black text-gray-900">{parseFloat(item.stock_quantity || 0).toFixed(2)} {formatUnit(item.unit)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )
+                ) : (
+                  // Raw Ingredients Table
+                  filteredIngredients.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
+                      <FolderTree className="w-12 h-12 text-gray-200" />
+                      <p className="font-medium">{t('warehouse.noIngredientsFound')}</p>
+                      <button onClick={() => setShowAddIngredient(true)} className="btn-gradient-primary px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center shrink-0 uppercase active:scale-95">
+                        <Plus className="w-4 h-4 inline mr-1" /> {t('warehouse.addFirstIngredient')}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <table className="hidden md:table w-full text-left border-collapse">
+                        <thead className="sticky top-0 bg-gray-50/90 backdrop-blur-sm z-10">
+                          <tr className="border-b border-gray-100 text-xs uppercase text-gray-500 tracking-wider">
+                            <th className="font-medium p-4">{t('warehouse.thName')}</th>
+                            <th className="font-medium p-4">{t('warehouse.thUnit')}</th>
+                            <th className="font-medium p-4">{t('warehouse.thStock')}</th>
+                            <th className="font-medium p-4">{t('warehouse.thCostPrice')}</th>
+                            <th className="font-medium p-4">{t('warehouse.thStatus')}</th>
+                            <th className="font-medium p-4 text-right">{t('warehouse.thActions')}</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredIngredients.map(item => (
+                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="p-4">
+                                <p className="font-medium text-gray-900">{item.name}</p>
+                              </td>
+                              <td className="p-4 text-sm text-gray-600">{item.unit}</td>
+                              <td className="p-4 text-sm font-bold text-gray-900">{parseFloat(item.quantity).toFixed(3)}</td>
+                              <td className="p-4 text-sm font-bold text-gray-900">₼{parseFloat(item.cost_price).toFixed(2)}</td>
+                              <td className="p-4">
+                                <div className={`flex items-center text-sm font-medium ${getStatusColor(item.quantity, item.min_quantity)}`}>
+                                  {getStatusIcon(item.quantity, item.min_quantity)}
+                                  <span className="ml-2">{getStatusText(item.quantity, item.min_quantity)}</span>
+                                </div>
+                              </td>
+                              <td className="p-4 text-right">
+                                <div className="relative inline-block">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                    className="text-gray-400 hover:text-merkez-green transition-colors p-1.5 rounded-md hover:bg-green-50"
+                                  >
+                                    <MoreVertical className="w-5 h-5" />
+                                  </button>
+
+                                  {openMenuId === item.id && (
+                                    <div className="absolute right-0 top-9 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-56 py-1.5 animate-in fade-in zoom-in-95">
+                                      <button
+                                        onClick={() => handleEditIngredient(item)}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium whitespace-nowrap"
+                                      >
+                                        <Pencil className="w-4 h-4 text-merkez-green" />
+                                        {t('warehouse.editIngredient')}
+                                      </button>
+                                      <div className="mx-3 my-1 border-t border-gray-100" />
+                                      <button
+                                        onClick={() => requestDeleteIngredient(item.id)}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-medium whitespace-nowrap"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                        {t('warehouse.deleteIngredient')}
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* Mobile Ingredients Cards Grid */}
+                      <div className="md:hidden divide-y divide-gray-100 overflow-y-auto flex-1">
+                        {filteredIngredients.map(item => (
+                          <div key={item.id} className="p-4 flex flex-col gap-2.5">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                                <span className="text-[10px] text-gray-500 mt-1 block">
+                                  Ölçü vahidi: <strong className="text-gray-700">{item.unit || '—'}</strong>
+                                </span>
+                              </div>
+
+                              <div className="relative">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === item.id ? null : item.id); }}
+                                  className="text-gray-400 hover:text-merkez-blue transition-colors p-1"
+                                >
+                                  <MoreVertical className="w-5 h-5" />
+                                </button>
+                                {openMenuId === item.id && (
+                                  <div className="absolute right-0 top-7 z-30 bg-white border border-gray-100 rounded-lg shadow-xl w-44 py-1.5 animate-in fade-in zoom-in-95">
+                                    <button
+                                      onClick={() => handleEditIngredient(item)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors font-semibold animate-in fade-in zoom-in-95"
+                                    >
+                                      <Pencil className="w-3.5 h-3.5 text-merkez-green" />
+                                      {t('warehouse.editIngredient') || 'Düzəliş et'}
+                                    </button>
+                                    <div className="mx-3 my-1 border-t border-gray-100" />
+                                    <button
+                                      onClick={() => requestDeleteIngredient(item.id)}
+                                      className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-red-500 hover:bg-red-50 transition-colors font-semibold"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                      {t('warehouse.deleteIngredient') || 'Sil'}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className={`flex items-center text-[10px] font-bold ${getStatusColor(item.quantity, item.min_quantity)}`}>
+                              {getStatusIcon(item.quantity, item.min_quantity)}
+                              <span className="ml-1">{getStatusText(item.quantity, item.min_quantity)}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center bg-gray-50/50 p-2.5 rounded-lg border border-gray-100/50 mt-1">
+                              <div>
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thCostPrice') || 'Mayə Dəyəri'}</span>
+                                <span className="text-xs font-bold text-gray-900">₼{parseFloat(item.cost_price || 0).toFixed(2)}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block leading-none mb-1">{t('warehouse.thStock') || 'Stok'}</span>
+                                <span className="text-xs font-black text-gray-900">{parseFloat(item.quantity || 0).toFixed(3)} {item.unit || ''}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )
+                )}
+              </div>
+
+              {/* Fixed Non-Scrolling Pagination Bar at the bottom of the card */}
+              {activeTab === 'finished' && !loading && !loadingProducts && !isSearchingServer && filteredProducts.length > 0 && (
+                <div className="px-4 py-1.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0 z-20 shadow-sm">
+                  <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
+                    <span>
+                      {i18n.language === 'az' ? 'Göstərilir:' : 'Показано:'}{' '}
+                      <strong className="text-gray-900 font-bold">
+                        {pageSize === 'all' ? `1 - ${filteredProducts.length}` : `${Math.min((currentPage - 1) * pageSize + 1, filteredProducts.length)} - ${Math.min(currentPage * pageSize, filteredProducts.length)}`}
+                      </strong>{' '}
+                      / <strong className="text-gray-900 font-bold">{filteredProducts.length}</strong> {i18n.language === 'az' ? 'məhsul' : 'товаров'}
+                    </span>
+                    <div className="flex items-center gap-1.5 ml-2 border-l border-gray-200 pl-2.5">
+                      <span className="text-[11px] text-gray-400">{i18n.language === 'az' ? 'Səhifədə:' : 'На странице:'}</span>
+                      <div className="w-[80px]">
+                        <Dropdown
+                          value={String(pageSize)}
+                          onChange={(val) => {
+                            setPageSize(val === 'all' ? 'all' : Number(val));
+                            setCurrentPage(1);
+                          }}
+                          position="top"
+                          options={[
+                            { value: '25', label: '25' },
+                            { value: '50', label: '50' },
+                            { value: '100', label: '100' },
+                            { value: '200', label: '200' },
+                            { value: 'all', label: i18n.language === 'az' ? 'Hamısı' : 'Все' }
+                          ]}
+                          buttonClassName="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-2 py-0.5 h-[26px] text-gray-700 hover:border-merkez-blue"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {pageSize !== 'all' && totalPages > 1 && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setCurrentPage(1)}
+                        disabled={currentPage === 1}
+                        className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                        title={i18n.language === 'az' ? 'İlk səhifə' : 'Первая страница'}
+                      >
+                        <ChevronsLeft className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                        title={i18n.language === 'az' ? 'Əvvəlki' : 'Предыдущая'}
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                      </button>
+
+                      <div className="flex items-center gap-1 px-1">
+                        {(() => {
+                          const pages = [];
+                          const maxVisiblePages = 5;
+                          let startPage = Math.max(1, currentPage - 2);
+                          let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+                          if (endPage - startPage < maxVisiblePages - 1) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+
+                          for (let p = startPage; p <= endPage; p++) {
+                            pages.push(
+                              <button
+                                key={p}
+                                onClick={() => setCurrentPage(p)}
+                                className={`min-w-[26px] h-6 px-1.5 rounded-md text-xs font-bold transition-all ${currentPage === p
+                                    ? 'bg-merkez-blue text-white shadow-sm shadow-blue-500/30'
+                                    : 'border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300'
+                                  }`}
+                              >
+                                {p}
+                              </button>
+                            );
+                          }
+                          return pages;
+                        })()}
+                      </div>
+
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                        title={i18n.language === 'az' ? 'Növbəti' : 'Следующая'}
+                      >
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(totalPages)}
+                        disabled={currentPage === totalPages}
+                        className="p-1 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-merkez-blue disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                        title={i18n.language === 'az' ? 'Son səhifə' : 'Последняя страница'}
+                      >
+                        <ChevronsRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    )}
-  </div>
 
-      <AddSupplierModal 
+      <AddSupplierModal
         isOpen={showAddSupplier}
         onClose={() => setShowAddSupplier(false)}
         onSupplierAdded={fetchAll}
       />
 
       {editingSupplier && (
-        <EditSupplierModal 
+        <EditSupplierModal
           isOpen={!!editingSupplier}
           onClose={() => setEditingSupplier(null)}
           supplier={editingSupplier}
@@ -4285,10 +4273,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       )}
 
       <ModalPortal>
-        <ReceiveStockModal 
-          isOpen={showReceiveStock} 
-          onClose={() => setShowReceiveStock(false)} 
-          products={activeTab === 'finished' ? products : ingredients} 
+        <ReceiveStockModal
+          isOpen={showReceiveStock}
+          onClose={() => setShowReceiveStock(false)}
+          products={activeTab === 'finished' ? products : ingredients}
           suppliers={suppliers}
           onStockReceived={fetchAll}
           type={activeTab === 'finished' ? 'product' : 'ingredient'}
@@ -4359,8 +4347,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <Trash2 className="w-10 h-10 text-red-500" />
                 </div>
                 <h3 className="text-2xl font-black text-gray-900 mb-2">
-                  {confirmDelete.type === 'bulk' 
-                    ? (i18n.language === 'az' ? 'Seçilənləri silmək?' : 'Удалить выбранные?') 
+                  {confirmDelete.type === 'bulk'
+                    ? (i18n.language === 'az' ? 'Seçilənləri silmək?' : 'Удалить выбранные?')
                     : t('warehouse.deleteProduct')}
                 </h3>
                 <p className="text-gray-500 font-medium mb-8">
@@ -4368,15 +4356,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     ? (i18n.language === 'az' ? `${selectedItems.length} məhsul arxivə göndəriləcək. Bu əməliyyat geri qaytarıla bilməz.` : `${selectedItems.length} товаров будут отправлены в архив. Это действие нельзя отменить.`)
                     : t('warehouse.confirmDeleteProduct')}
                 </p>
-                
+
                 <div className="flex gap-4 w-full">
-                  <button 
+                  <button
                     onClick={() => setConfirmDelete(null)}
                     className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-lg font-black hover:bg-gray-100 transition-all"
                   >
                     {t('common.cancel')}
                   </button>
-                  <button 
+                  <button
                     onClick={confirmDelete.type === 'bulk' ? handleBulkDelete : executeDelete}
                     className="flex-1 py-4 bg-red-500 text-white rounded-lg font-black shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all"
                   >
@@ -4411,14 +4399,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         }
         message={
           dispatchToDelete?.reason === 'sale'
-            ? (i18n.language === 'az' 
-                ? 'Bu satış yazısını silmək və məhsulun sayını anbara geri qaytarmaq istədiyinizdən əminsiniz?' 
-                : i18n.language === 'ru'
+            ? (i18n.language === 'az'
+              ? 'Bu satış yazısını silmək və məhsulun sayını anbara geri qaytarmaq istədiyinizdən əminsiniz?'
+              : i18n.language === 'ru'
                 ? 'Вы уверены, что хотите удалить эту запись продажи и вернуть количество товара на склад?'
                 : 'Are you sure you want to delete this sale record and restore product quantity to warehouse?')
-            : (i18n.language === 'az' 
-                ? 'Bu silinmə yazısını silmək və məhsulun sayını anbara geri qaytarmaq istədiyinizdən əminsiniz?' 
-                : i18n.language === 'ru'
+            : (i18n.language === 'az'
+              ? 'Bu silinmə yazısını silmək və məhsulun sayını anbara geri qaytarmaq istədiyinizdən əminsiniz?'
+              : i18n.language === 'ru'
                 ? 'Вы уверены, что хотите удалить эту запись списания и вернуть количество товара на склад?'
                 : 'Are you sure you want to delete this dispatch record and restore product quantity to warehouse?')
         }
@@ -4461,7 +4449,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         />
       )}
 
-      <WarehouseTour 
+      <WarehouseTour
         isOpen={showTour}
         onClose={() => setShowTour(false)}
       />
@@ -4475,7 +4463,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         onClose={() => setShowCameraScanner(false)}
         onScan={(scannedBarcode) => {
           setSearchTerm(scannedBarcode);
-          const matchedProduct = (products || []).find(p => 
+          const matchedProduct = (products || []).find(p =>
             p.barcode === scannedBarcode || (p.barcode && p.barcode.toLowerCase() === scannedBarcode.toLowerCase())
           );
           if (matchedProduct) {
@@ -4496,7 +4484,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4" onClick={() => setShowBulkCategoryModal(false)}>
             <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 p-8 shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-              <button 
+              <button
                 onClick={() => setShowBulkCategoryModal(false)}
                 className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
@@ -4511,8 +4499,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {i18n.language === 'az' ? 'Kateqoriya Təyin Et' : 'Назначить категорию'}
                 </h2>
                 <p className="text-gray-500 text-sm mb-6">
-                  {i18n.language === 'az' 
-                    ? `Seçilmiş ${selectedItems.length} məhsul üçün kateqoriya seçin:` 
+                  {i18n.language === 'az'
+                    ? `Seçilmiş ${selectedItems.length} məhsul üçün kateqoriya seçin:`
                     : `Выберите категорию для ${selectedItems.length} выбранных товаров:`}
                 </p>
 
@@ -4553,7 +4541,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4" onClick={() => setShowBulkSupplierModal(false)}>
             <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 p-8 shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-              <button 
+              <button
                 onClick={() => setShowBulkSupplierModal(false)}
                 className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
@@ -4568,11 +4556,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {i18n.language === 'az' ? 'Tədarükçü Təyin Et' : i18n.language === 'ru' ? 'Назначить поставщика' : 'Assign Supplier'}
                 </h2>
                 <p className="text-gray-500 text-sm mb-6">
-                  {i18n.language === 'az' 
-                    ? `Seçilmiş ${selectedItems.length} məhsul üçün tədarükçü seçin:` 
+                  {i18n.language === 'az'
+                    ? `Seçilmiş ${selectedItems.length} məhsul üçün tədarükçü seçin:`
                     : i18n.language === 'ru'
-                    ? `Выберите поставщика для ${selectedItems.length} выбранных товаров:`
-                    : `Select supplier for ${selectedItems.length} selected products:`}
+                      ? `Выберите поставщика для ${selectedItems.length} выбранных товаров:`
+                      : `Select supplier for ${selectedItems.length} selected products:`}
                 </p>
 
                 <div className="w-full mb-8 text-left">
@@ -4616,7 +4604,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <ModalPortal>
           <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4" onClick={() => setShowBulkPriceModal(false)}>
             <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 p-8 shadow-2xl animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-              <button 
+              <button
                 onClick={() => setShowBulkPriceModal(false)}
                 className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               >
@@ -4631,11 +4619,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {i18n.language === 'az' ? 'Qiymətləri Kütləvi Dəyiş' : i18n.language === 'ru' ? 'Массовое изменение цен' : 'Bulk Price Update'}
                 </h2>
                 <p className="text-gray-500 text-xs mb-6">
-                  {i18n.language === 'az' 
-                    ? `Seçilmiş ${selectedItems.length} məhsul üçün qiymət tənzimləməsi:` 
+                  {i18n.language === 'az'
+                    ? `Seçilmiş ${selectedItems.length} məhsul üçün qiymət tənzimləməsi:`
                     : i18n.language === 'ru'
-                    ? `Настройка цен для ${selectedItems.length} выбранных товаров:`
-                    : `Adjust prices for ${selectedItems.length} selected products:`}
+                      ? `Настройка цен для ${selectedItems.length} выбранных товаров:`
+                      : `Adjust prices for ${selectedItems.length} selected products:`}
                 </p>
 
                 {/* Mode tabs */}
@@ -4643,22 +4631,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     type="button"
                     onClick={() => setBulkPriceTab('exact')}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
-                      bulkPriceTab === 'exact'
+                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${bulkPriceTab === 'exact'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-500 hover:text-gray-800'
-                    }`}
+                      }`}
                   >
                     {i18n.language === 'az' ? 'Dəqiq Qiymət' : i18n.language === 'ru' ? 'Точная цена' : 'Exact Price'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setBulkPriceTab('relative')}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${
-                      bulkPriceTab === 'relative'
+                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all ${bulkPriceTab === 'relative'
                         ? 'bg-white text-gray-900 shadow-sm'
                         : 'text-gray-500 hover:text-gray-800'
-                    }`}
+                      }`}
                   >
                     {i18n.language === 'az' ? 'Faiz / Məbləğlə' : i18n.language === 'ru' ? 'На % или сумму' : 'By % or Amount'}
                   </button>
@@ -4705,16 +4691,59 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         </div>
 
                         <div>
-                          <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                            {i18n.language === 'az' ? 'Zavod qiyməti' : i18n.language === 'ru' ? 'Заводская цена' : 'Factory Price'}
-                          </label>
-                          <input
-                            type="text"
-                            value={bulkExactPrices.factory_price}
-                            onChange={e => setBulkExactPrices(prev => ({ ...prev, factory_price: e.target.value }))}
-                            placeholder={i18n.language === 'az' ? 'Məs: 0.70 və ya 1.50 $' : 'Напр: 0.70 или 1.50 $'}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all outline-none"
-                          />
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label className="block text-xs font-bold text-gray-700">
+                              {i18n.language === 'az' ? 'Zavod qiyməti və Valyuta' : i18n.language === 'ru' ? 'Заводская цена и Валюта' : 'Factory Price & Currency'}
+                            </label>
+                            {bulkExactPrices.currency && (
+                              <button
+                                type="button"
+                                onClick={() => setBulkExactPrices(prev => ({ ...prev, currency: '' }))}
+                                className="text-[10px] text-gray-400 hover:text-red-500 font-bold transition-colors"
+                              >
+                                {i18n.language === 'az' ? 'Sıfırla' : 'Сбросить'}
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="flex items-center rounded-xl bg-gray-50 border border-gray-200 focus-within:bg-white focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/10 transition-all overflow-hidden">
+                            <Dropdown
+                              value={bulkExactPrices.currency}
+                              onChange={(val) => setBulkExactPrices(prev => ({ ...prev, currency: val }))}
+                              menuWidth={160}
+                              trigger={
+                                <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100/90 hover:bg-gray-200/80 border-r border-gray-200 transition-colors select-none cursor-pointer">
+                                  <span className="text-xs font-black text-gray-800">
+                                    {bulkExactPrices.currency ? `${getCurrencySymbol(bulkExactPrices.currency)} ${bulkExactPrices.currency}` : (i18n.language === 'az' ? 'Valyuta' : 'Валюта')}
+                                  </span>
+                                  <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+                                </div>
+                              }
+                              options={[
+                                { value: '', label: i18n.language === 'az' ? 'Cari valyutanı saxla' : 'Оставить текущую' },
+                                ...CURRENCY_OPTIONS.map((c) => ({
+                                  value: c.code,
+                                  label: `${c.symbol} ${c.code}`
+                                }))
+                              ]}
+                            />
+                            <input
+                              type="text"
+                              value={bulkExactPrices.factory_price}
+                              onChange={e => setBulkExactPrices(prev => ({ ...prev, factory_price: e.target.value }))}
+                              placeholder={
+                                bulkExactPrices.currency
+                                  ? (i18n.language === 'az' ? `Məbləğ (boş qalsa, yalnız valyuta ${bulkExactPrices.currency} olacaq)` : `Сумма (если пусто, сменится только валюта на ${bulkExactPrices.currency})`)
+                                  : (i18n.language === 'az' ? 'Məbləğ və ya boş qoyun' : 'Сумма или оставьте пустым')
+                              }
+                              className="w-full px-3.5 py-3 bg-transparent text-sm font-bold text-gray-900 focus:outline-none"
+                            />
+                          </div>
+                          <p className="text-[10px] text-gray-400 font-medium mt-1">
+                            💡 {i18n.language === 'az'
+                              ? 'Valyutanı seçib qiyməti boş qoysanız, bütün seçilmiş məhsulların mövcud zavod qiymətləri yeni valyutaya keçiriləcək.'
+                              : 'Если выбрать валюту и оставить поле суммы пустым, для всех выбранных товаров текущие заводские цены переключатся на выбранную валюту.'}
+                          </p>
                         </div>
                       </>
                     )}
@@ -4734,33 +4763,30 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, target: 'price' }))}
-                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
-                              bulkRelativeConfig.target === 'price'
+                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${bulkRelativeConfig.target === 'price'
                                 ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
                                 : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                            }`}
+                              }`}
                           >
                             {i18n.language === 'az' ? 'Satış' : i18n.language === 'ru' ? 'Продажа' : 'Sale'}
                           </button>
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, target: 'purchase_price' }))}
-                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
-                              bulkRelativeConfig.target === 'purchase_price'
+                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${bulkRelativeConfig.target === 'purchase_price'
                                 ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
                                 : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                            }`}
+                              }`}
                           >
                             {i18n.language === 'az' ? 'Maya' : i18n.language === 'ru' ? 'Себестоимость' : 'Cost'}
                           </button>
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, target: 'both' }))}
-                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${
-                              bulkRelativeConfig.target === 'both'
+                            className={`py-2 px-2 text-center rounded-xl text-xs font-bold border transition-all ${bulkRelativeConfig.target === 'both'
                                 ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
                                 : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                            }`}
+                              }`}
                           >
                             {i18n.language === 'az' ? 'Hər ikisi' : i18n.language === 'ru' ? 'Обе' : 'Both'}
                           </button>
@@ -4777,22 +4803,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, action: 'increase' }))}
-                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                              bulkRelativeConfig.action === 'increase'
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${bulkRelativeConfig.action === 'increase'
                                 ? 'bg-white text-emerald-700 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-800'
-                            }`}
+                              }`}
                           >
                             + {i18n.language === 'az' ? 'Artır' : i18n.language === 'ru' ? 'Увеличить' : 'Increase'}
                           </button>
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, action: 'decrease' }))}
-                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                              bulkRelativeConfig.action === 'decrease'
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${bulkRelativeConfig.action === 'decrease'
                                 ? 'bg-white text-red-600 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-800'
-                            }`}
+                              }`}
                           >
                             - {i18n.language === 'az' ? 'Azalt' : i18n.language === 'ru' ? 'Уменьшить' : 'Decrease'}
                           </button>
@@ -4807,22 +4831,20 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, type: 'percent' }))}
-                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                              bulkRelativeConfig.type === 'percent'
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${bulkRelativeConfig.type === 'percent'
                                 ? 'bg-white text-emerald-700 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-800'
-                            }`}
+                              }`}
                           >
                             % {i18n.language === 'az' ? 'Faiz' : i18n.language === 'ru' ? 'Процент' : 'Percent'}
                           </button>
                           <button
                             type="button"
                             onClick={() => setBulkRelativeConfig(prev => ({ ...prev, type: 'amount' }))}
-                            className={`py-2 rounded-lg text-xs font-bold transition-all ${
-                              bulkRelativeConfig.type === 'amount'
+                            className={`py-2 rounded-lg text-xs font-bold transition-all ${bulkRelativeConfig.type === 'amount'
                                 ? 'bg-white text-emerald-700 shadow-sm'
                                 : 'text-gray-500 hover:text-gray-800'
-                            }`}
+                              }`}
                           >
                             ₼ {i18n.language === 'az' ? 'Məbləğ' : i18n.language === 'ru' ? 'Сумма' : 'Amount'}
                           </button>

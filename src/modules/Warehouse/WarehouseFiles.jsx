@@ -2,11 +2,16 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { supabase } from '../../supabaseClient';
 import { useTranslation } from 'react-i18next';
-import { Search, Upload, File, FileText, Image as ImageIcon, Download, Eye, Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, ArrowLeft, MoveRight } from 'lucide-react';
+import { 
+  Search, Upload, File, FileText, Image as ImageIcon, Download, Eye, 
+  Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, 
+  ArrowLeft, MoveRight, Maximize2, Minimize2, ZoomIn 
+} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import ModalPortal from '../../components/Common/ModalPortal';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { Parser } from 'hot-formula-parser';
 
 const WarehouseFiles = () => {
@@ -34,76 +39,307 @@ const WarehouseFiles = () => {
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   const [previewFile, setPreviewFile] = useState(null);
-  const [previewWorkbook, setPreviewWorkbook] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewSearch, setPreviewSearch] = useState('');
+  const [sheetNames, setSheetNames] = useState([]);
+  const [activeSheetIndex, setActiveSheetIndex] = useState(0);
+  const [activeSheetData, setActiveSheetData] = useState(null);
   const [focusedCell, setFocusedCell] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
-  const previewDataRef = useRef(null);
-  useEffect(() => {
-    previewDataRef.current = previewData;
-  }, [previewData]);
+  const excelWorkbookRef = useRef(null);
+  const sheetJsWorkbookRef = useRef(null);
+  const blobUrlsRef = useRef([]);
 
-  const parser = useMemo(() => {
-    const p = new Parser();
-    p.on('callCellValue', (cellCoord, done) => {
-      const { row, column } = cellCoord;
-      let val = previewDataRef.current?.[row.index]?.[column.index];
-      
-      if (val === undefined || val === null || val === '') {
-        done(0);
-      } else if (typeof val === 'string' && val.startsWith('=')) {
-        const res = p.parse(val.substring(1));
-        done(res.error ? 0 : res.result);
-      } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
-        done(Number(val));
-      } else {
-        done(val);
-      }
-    });
-    
-    p.on('callRangeValue', (startCellCoord, endCellCoord, done) => {
-      const fragment = [];
-      for (let r = startCellCoord.row.index; r <= endCellCoord.row.index; r++) {
-        const rowData = [];
-        for (let c = startCellCoord.column.index; c <= endCellCoord.column.index; c++) {
-          let val = previewDataRef.current?.[r]?.[c];
-          if (val === undefined || val === null || val === '') {
-            rowData.push(0);
-          } else if (typeof val === 'string' && val.startsWith('=')) {
-            const res = p.parse(val.substring(1));
-            rowData.push(res.error ? 0 : res.result);
-          } else if (typeof val === 'string' && !isNaN(Number(val)) && val.trim() !== '') {
-            rowData.push(Number(val));
-          } else {
-            rowData.push(val);
-          }
-        }
-        fragment.push(rowData);
-      }
-      done(fragment);
-    });
-    return p;
-  }, []);
-
-  const getDisplayValue = (rawValue, rowIndex, colIndex) => {
-    if (rawValue === undefined || rawValue === null) return '';
-    if (typeof rawValue === 'string' && rawValue.startsWith('=')) {
-      const res = parser.parse(rawValue.substring(1));
-      if (res.error) {
-        if (previewWorkbook) {
-          const ws = previewWorkbook.Sheets[previewWorkbook.SheetNames[0]];
-          const cell = ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex })];
-          if (cell && cell.v !== undefined) {
-            return String(cell.v);
-          }
-        }
-        return `#${res.error}!`;
-      }
-      return res.result !== null && res.result !== undefined ? String(res.result) : '';
+  const getColumnLetter = (colIndex) => {
+    let letter = '';
+    let temp = colIndex;
+    while (temp >= 0) {
+      letter = String.fromCharCode((temp % 26) + 65) + letter;
+      temp = Math.floor(temp / 26) - 1;
     }
-    return String(rawValue);
+    return letter;
+  };
+
+  const cleanupBlobUrls = () => {
+    if (blobUrlsRef.current && blobUrlsRef.current.length > 0) {
+      blobUrlsRef.current.forEach(url => {
+        try { URL.revokeObjectURL(url); } catch (e) {}
+      });
+      blobUrlsRef.current = [];
+    }
+  };
+
+  const parseSheetData = (excelWb, sheetJsWb, sheetIdx) => {
+    cleanupBlobUrls();
+    const ws = excelWb?.worksheets?.[sheetIdx] || excelWb?.worksheets?.[0];
+    if (!ws) return null;
+
+    const sheetName = ws.name;
+    const sheetJsWs = sheetJsWb?.Sheets?.[sheetName] || (sheetJsWb?.SheetNames && sheetJsWb.Sheets[sheetJsWb.SheetNames[sheetIdx]]) || null;
+
+    // 1. Gather all merges
+    const mergeMap = {};
+    if (Array.isArray(ws.model?.merges)) {
+      ws.model.merges.forEach(rangeStr => {
+        if (typeof rangeStr === 'string' && rangeStr.includes(':')) {
+          const [tlAddr, brAddr] = rangeStr.split(':');
+          const tlCell = ws.getCell(tlAddr);
+          const brCell = ws.getCell(brAddr);
+          mergeMap[tlCell.address] = {
+            top: tlCell.row,
+            left: tlCell.col,
+            bottom: brCell.row,
+            right: brCell.col,
+            rowSpan: brCell.row - tlCell.row + 1,
+            colSpan: brCell.col - tlCell.col + 1
+          };
+        }
+      });
+    } else if (ws._merges) {
+      Object.keys(ws._merges).forEach(masterKey => {
+        const m = ws._merges[masterKey]?.model;
+        if (m) {
+          mergeMap[masterKey] = {
+            top: m.top,
+            left: m.left,
+            bottom: m.bottom,
+            right: m.right,
+            rowSpan: m.bottom - m.top + 1,
+            colSpan: m.right - m.left + 1
+          };
+        }
+      });
+    }
+
+    // 2. Gather images
+    const imagesByAddress = {};
+    const createdBlobUrls = [];
+    const rawImages = typeof ws.getImages === 'function' ? ws.getImages() : [];
+
+    rawImages.forEach(img => {
+      try {
+        const imgData = excelWb.getImage(img.imageId);
+        if (!imgData || !imgData.buffer) return;
+
+        const blob = new Blob([imgData.buffer], { type: `image/${imgData.extension || 'png'}` });
+        const url = URL.createObjectURL(blob);
+        createdBlobUrls.push(url);
+
+        let anchorR = 1;
+        let anchorC = 1;
+        if (typeof img.range === 'string') {
+          const tlAddr = img.range.split(':')[0];
+          const cell = ws.getCell(tlAddr);
+          anchorR = cell.row;
+          anchorC = cell.col;
+        } else if (img.range?.tl) {
+          const tl = img.range.tl;
+          const r = tl.nativeRow !== undefined ? tl.nativeRow : (tl.row !== undefined ? tl.row : 0);
+          const c = tl.nativeCol !== undefined ? tl.nativeCol : (tl.col !== undefined ? tl.col : 0);
+          anchorR = Math.floor(r) + 1;
+          anchorC = Math.floor(c) + 1;
+        }
+
+        const targetCell = ws.getCell(anchorR, anchorC);
+        let masterAddr = targetCell.address;
+        if (targetCell.isMerged && targetCell.master) {
+          masterAddr = targetCell.master.address;
+        }
+
+        if (!imagesByAddress[masterAddr]) {
+          imagesByAddress[masterAddr] = [];
+        }
+        imagesByAddress[masterAddr].push({
+          url,
+          extension: imgData.extension,
+          name: imgData.name || 'Image'
+        });
+      } catch (err) {
+        console.warn('Failed to extract image:', err);
+      }
+    });
+
+    blobUrlsRef.current = createdBlobUrls;
+
+    // 3. Determine dimensions
+    let maxRow = ws.rowCount || 0;
+    let maxCol = ws.columnCount || 0;
+
+    Object.values(mergeMap).forEach(m => {
+      if (m.bottom > maxRow) maxRow = m.bottom;
+      if (m.right > maxCol) maxCol = m.right;
+    });
+
+    rawImages.forEach(img => {
+      if (img.range?.br) {
+        const brR = (img.range.br.nativeRow !== undefined ? img.range.br.nativeRow : img.range.br.row || 0) + 1;
+        const brC = (img.range.br.nativeCol !== undefined ? img.range.br.nativeCol : img.range.br.col || 0) + 1;
+        if (brR > maxRow) maxRow = brR;
+        if (brC > maxCol) maxCol = brC;
+      }
+      if (img.range?.tl) {
+        const tlR = (img.range.tl.nativeRow !== undefined ? img.range.tl.nativeRow : img.range.tl.row || 0) + 1;
+        const tlC = (img.range.tl.nativeCol !== undefined ? img.range.tl.nativeCol : img.range.tl.col || 0) + 1;
+        if (tlR > maxRow) maxRow = tlR;
+        if (tlC > maxCol) maxCol = tlC;
+      }
+    });
+
+    if (sheetJsWs && sheetJsWs['!ref']) {
+      try {
+        const decoded = XLSX.utils.decode_range(sheetJsWs['!ref']);
+        if (decoded.e.r + 1 > maxRow) maxRow = decoded.e.r + 1;
+        if (decoded.e.c + 1 > maxCol) maxCol = decoded.e.c + 1;
+      } catch (e) {}
+    }
+
+    maxRow = Math.max(maxRow, 22);
+    maxCol = Math.max(maxCol, 10);
+
+    // 4. Build rows and cells
+    const rows = [];
+    for (let r = 1; r <= maxRow; r++) {
+      const rowCells = [];
+      const excelRow = ws.getRow(r);
+      const rowHeight = excelRow.height ? Math.round(excelRow.height * 1.33) : undefined;
+
+      for (let c = 1; c <= maxCol; c++) {
+        const cell = ws.getCell(r, c);
+        const isMerged = !!cell.isMerged;
+        const isMaster = !isMerged || !cell.master || cell.address === cell.master.address;
+
+        if (!isMaster) {
+          rowCells.push({
+            address: cell.address,
+            row: r,
+            col: c,
+            isMerged: true,
+            isMaster: false
+          });
+          continue;
+        }
+
+        const mergeInfo = mergeMap[cell.address];
+        const rowSpan = mergeInfo?.rowSpan || 1;
+        const colSpan = mergeInfo?.colSpan || 1;
+
+        let formula = '';
+        let rawVal = cell.value;
+        let displayVal = '';
+
+        if (rawVal && typeof rawVal === 'object') {
+          if (rawVal.formula) {
+            formula = '=' + rawVal.formula;
+            displayVal = rawVal.result !== undefined && rawVal.result !== null ? String(rawVal.result) : '';
+          } else if (rawVal.sharedFormula) {
+            formula = '=' + (rawVal.formula || rawVal.sharedFormula);
+            displayVal = rawVal.result !== undefined && rawVal.result !== null ? String(rawVal.result) : '';
+          } else if (rawVal.richText) {
+            displayVal = cell.text || rawVal.richText.map(t => t.text).join('');
+          } else if (rawVal instanceof Date) {
+            displayVal = rawVal.toLocaleDateString();
+          } else if (rawVal.text) {
+            displayVal = rawVal.text;
+          }
+        } else if (rawVal !== undefined && rawVal !== null) {
+          displayVal = String(rawVal);
+        }
+
+        const sCell = sheetJsWs ? sheetJsWs[cell.address] : null;
+        if (sCell) {
+          if (sCell.w) {
+            displayVal = sCell.w;
+          } else if (sCell.v !== undefined && sCell.v !== null && !displayVal) {
+            displayVal = String(sCell.v);
+          }
+          if (sCell.f && !formula) {
+            formula = '=' + sCell.f;
+          }
+        }
+
+        if (!displayVal && cell.text) {
+          displayVal = cell.text;
+        }
+
+        const style = {};
+        if (cell.font) {
+          if (cell.font.bold) style.fontWeight = 'bold';
+          if (cell.font.italic) style.fontStyle = 'italic';
+          if (cell.font.size) style.fontSize = `${Math.max(11, Math.min(22, cell.font.size))}px`;
+          if (cell.font.color?.argb) {
+            style.color = '#' + cell.font.color.argb.slice(-6);
+          }
+        }
+
+        if (cell.alignment) {
+          if (cell.alignment.horizontal) {
+            style.textAlign = cell.alignment.horizontal;
+          }
+          if (cell.alignment.vertical) {
+            style.verticalAlign = cell.alignment.vertical === 'middle' ? 'middle' : cell.alignment.vertical;
+          }
+          if (cell.alignment.wrapText) {
+            style.whiteSpace = 'pre-wrap';
+            style.wordBreak = 'break-word';
+          }
+        }
+
+        if (cell.fill?.type === 'pattern' && cell.fill.fgColor?.argb) {
+          const hex = cell.fill.fgColor.argb.slice(-6).toLowerCase();
+          if (hex !== 'ffffff' && hex !== '000000') {
+            style.backgroundColor = '#' + hex;
+          }
+        }
+
+        const cellImages = imagesByAddress[cell.address] || [];
+
+        rowCells.push({
+          address: cell.address,
+          row: r,
+          col: c,
+          isMerged,
+          isMaster: true,
+          rowSpan,
+          colSpan,
+          rawVal,
+          formula,
+          displayVal,
+          images: cellImages,
+          style,
+          height: rowHeight
+        });
+      }
+
+      rows.push({
+        rowNumber: r,
+        height: rowHeight,
+        cells: rowCells
+      });
+    }
+
+    // 5. Build columns
+    const columns = [];
+    for (let c = 1; c <= maxCol; c++) {
+      const excelCol = ws.getColumn(c);
+      const width = excelCol.width ? Math.round(excelCol.width * 8.5) : undefined;
+      columns.push({
+        colNumber: c,
+        letter: getColumnLetter(c - 1),
+        width
+      });
+    }
+
+    return {
+      name: sheetName,
+      sheetIndex: sheetIdx,
+      rowCount: maxRow,
+      colCount: maxCol,
+      rows,
+      columns,
+      imagesByAddress
+    };
   };
 
   useEffect(() => {
@@ -315,30 +551,39 @@ const WarehouseFiles = () => {
     setPreviewFile(file);
     setPreviewSearch('');
     setPreviewLoading(true);
+    setFocusedCell(null);
     try {
       const response = await fetch(file.file_url);
       const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array', cellFormula: true, cellStyles: true });
-      setPreviewWorkbook(workbook);
-      
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      
-      const dataWithFormulas = jsonData.map((row, rIdx) => {
-        return row.map((cellValue, cIdx) => {
-          const cellAddress = XLSX.utils.encode_cell({ r: rIdx, c: cIdx });
-          const cell = worksheet[cellAddress];
-          if (cell && cell.f) {
-            return '=' + cell.f;
-          }
-          return cellValue;
+
+      // Load with ExcelJS
+      const excelWb = new ExcelJS.Workbook();
+      await excelWb.xlsx.load(arrayBuffer);
+      excelWorkbookRef.current = excelWb;
+
+      // Load with SheetJS
+      let sheetJsWb = null;
+      try {
+        sheetJsWb = XLSX.read(arrayBuffer, { 
+          type: 'array', 
+          cellFormula: true, 
+          cellStyles: true, 
+          cellNF: true, 
+          cellText: true 
         });
-      });
-      
-      setPreviewData(dataWithFormulas);
+      } catch (e) {
+        console.warn('SheetJS read fallback warning:', e);
+      }
+      sheetJsWorkbookRef.current = sheetJsWb;
+
+      const names = excelWb.worksheets.map(w => w.name);
+      setSheetNames(names);
+      setActiveSheetIndex(0);
+
+      const parsed = parseSheetData(excelWb, sheetJsWb, 0);
+      setActiveSheetData(parsed);
     } catch (err) {
+      console.error('Error previewing file:', err);
       toast.error('Error previewing file: ' + err.message);
       setPreviewFile(null);
     } finally {
@@ -346,45 +591,92 @@ const WarehouseFiles = () => {
     }
   };
 
-  const handleCellEdit = (rowIndex, colIndex, value) => {
-    // 1. Update UI state
-    const newData = [...previewData];
-    if (!newData[rowIndex]) newData[rowIndex] = [];
-    newData[rowIndex][colIndex] = value;
-    setPreviewData(newData);
+  const handleSelectSheet = (idx) => {
+    if (!excelWorkbookRef.current) return;
+    setActiveSheetIndex(idx);
+    setFocusedCell(null);
+    const parsed = parseSheetData(excelWorkbookRef.current, sheetJsWorkbookRef.current, idx);
+    setActiveSheetData(parsed);
+  };
 
-    // 2. Update Workbook state to preserve formatting and original structure
-    if (previewWorkbook) {
-      const wb = { ...previewWorkbook };
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-      
-      if (!ws[cellAddress]) ws[cellAddress] = {};
-      
-      if (typeof value === 'string' && value.startsWith('=')) {
-        ws[cellAddress].f = value.substring(1);
-        delete ws[cellAddress].v;
-      } else if (!isNaN(Number(value)) && value.trim() !== '') {
-        ws[cellAddress].v = Number(value);
-        ws[cellAddress].t = 'n';
-        delete ws[cellAddress].f;
-      } else {
-        ws[cellAddress].v = value;
-        ws[cellAddress].t = 's';
-        delete ws[cellAddress].f;
+  const handleClosePreview = () => {
+    cleanupBlobUrls();
+    setPreviewFile(null);
+    setActiveSheetData(null);
+    setSheetNames([]);
+    setActiveSheetIndex(0);
+    setFocusedCell(null);
+    setLightboxImage(null);
+    setIsFullscreen(false);
+  };
+
+  const handleFormulaChange = (newVal) => {
+    if (!focusedCell || !activeSheetData) return;
+    const { address, row, col } = focusedCell;
+
+    const newRows = activeSheetData.rows.map(rObj => {
+      if (rObj.rowNumber !== row) return rObj;
+      return {
+        ...rObj,
+        cells: rObj.cells.map(cObj => {
+          if (cObj.address !== address) return cObj;
+          const isF = newVal.startsWith('=');
+          return {
+            ...cObj,
+            formula: isF ? newVal : '',
+            displayVal: newVal,
+            rawVal: newVal
+          };
+        })
+      };
+    });
+
+    setActiveSheetData({
+      ...activeSheetData,
+      rows: newRows
+    });
+
+    setFocusedCell(prev => ({
+      ...prev,
+      formula: newVal.startsWith('=') ? newVal : '',
+      displayVal: newVal
+    }));
+
+    if (excelWorkbookRef.current) {
+      const ws = excelWorkbookRef.current.worksheets[activeSheetIndex] || excelWorkbookRef.current.worksheets[0];
+      if (ws) {
+        const cell = ws.getCell(address);
+        if (newVal.startsWith('=')) {
+          cell.value = { formula: newVal.substring(1) };
+        } else if (!isNaN(Number(newVal)) && newVal.trim() !== '') {
+          cell.value = Number(newVal);
+        } else {
+          cell.value = newVal;
+        }
       }
-      setPreviewWorkbook(wb);
     }
   };
 
-  const handleDownloadEdited = () => {
-    if (!previewWorkbook || !previewFile) return;
+  const handleDownloadEdited = async () => {
+    if (!previewFile) return;
     try {
-      const fileNameParts = previewFile.name.split('.');
-      const ext = fileNameParts.pop();
-      const newName = `${fileNameParts.join('.')}_edited.${ext}`;
-      XLSX.writeFile(previewWorkbook, newName);
-      toast.success(i18n.language === 'az' ? 'Fayl yükləndi' : 'Файл скачан');
+      if (excelWorkbookRef.current) {
+        const buffer = await excelWorkbookRef.current.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const fileNameParts = previewFile.name.split('.');
+        const ext = fileNameParts.pop();
+        a.download = `${fileNameParts.join('.')}_edited.${ext || 'xlsx'}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success(i18n.language === 'az' ? 'Fayl yükləndi' : 'Файл скачан');
+        return;
+      }
+      window.open(previewFile.file_url, '_blank');
     } catch (err) {
       toast.error('Error downloading file: ' + err.message);
     }
@@ -818,20 +1110,28 @@ const WarehouseFiles = () => {
       {/* Excel Preview Modal */}
       {previewFile && (
         <ModalPortal>
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[99999] flex items-center justify-center p-4" onClick={() => setPreviewFile(null)}>
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
-                    <FileSpreadsheet className="w-5 h-5 text-green-600" />
+          <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-2 sm:p-4" onClick={handleClosePreview}>
+            <div 
+              className={`bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 border border-gray-200 transition-all ${
+                isFullscreen ? 'w-screen h-screen rounded-none' : 'w-[98vw] max-w-[1500px] h-[92vh]'
+              }`} 
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Top Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-gray-50/90 shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-600 shadow-xs">
+                    <FileSpreadsheet className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900">{previewFile.name}</h3>
-                    <p className="text-xs font-bold text-gray-500">{formatFileSize(previewFile.size)}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 tracking-tight truncate max-w-xs sm:max-w-md">{previewFile.name}</h3>
+                    <p className="text-[11px] font-semibold text-gray-500">{formatFileSize(previewFile.size)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {previewData && (
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {/* Search within document */}
+                  {activeSheetData && (
                     <div className="relative hidden sm:block">
                       <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
@@ -839,91 +1139,171 @@ const WarehouseFiles = () => {
                         placeholder={i18n.language === 'az' ? 'Faylın daxilində axtar...' : 'Поиск внутри файла...'}
                         value={previewSearch}
                         onChange={(e) => setPreviewSearch(e.target.value)}
-                        className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-xs font-bold w-64 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        className="pl-9 pr-8 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold w-56 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-white"
                       />
                       {previewSearch && (
-                        <button onClick={() => setPreviewSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <button onClick={() => setPreviewSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
                   )}
+
+                  {/* Fullscreen toggle */}
                   <button
-                    onClick={handleDownloadEdited}
-                    className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-green-50 hover:border-green-200 hover:text-green-600 transition-all shadow-sm"
+                    type="button"
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+                    title={isFullscreen ? 'Kiçilt' : 'Tam ekran'}
                   >
-                    <Download className="w-4 h-4" />
+                    {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  </button>
+
+                  {/* Download */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadEdited}
+                    className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all shadow-xs"
+                  >
+                    <Download className="w-4 h-4 text-emerald-600" />
                     <span className="hidden sm:inline">{i18n.language === 'az' ? 'Yüklə' : 'Скачать'}</span>
                   </button>
-                  <button onClick={() => setPreviewFile(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+
+                  {/* Close */}
+                  <button 
+                    type="button"
+                    onClick={handleClosePreview} 
+                    className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200/60 rounded-lg transition-colors"
+                  >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
-              <div className="flex-1 flex flex-col overflow-hidden bg-white">
-                {previewData && !previewLoading && (
-                  <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-gray-50/80 shrink-0">
-                    <div className="font-mono text-xs font-bold text-gray-500 bg-white px-2 py-1 rounded border border-gray-200 min-w-[3rem] text-center shadow-sm">
-                      {focusedCell ? `${String.fromCharCode(65 + focusedCell.c)}${focusedCell.r + 1}` : ''}
-                    </div>
-                    <div className="font-serif italic text-gray-400 font-bold px-1 text-sm select-none">fx</div>
-                    <input
-                      type="text"
-                      className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-md outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 bg-white shadow-sm font-mono text-gray-700 transition-colors"
-                      value={focusedCell ? (previewData[focusedCell.r][focusedCell.c] !== undefined && previewData[focusedCell.r][focusedCell.c] !== null ? String(previewData[focusedCell.r][focusedCell.c]) : '') : ''}
-                      onChange={(e) => focusedCell && handleCellEdit(focusedCell.r, focusedCell.c, e.target.value)}
-                      disabled={!focusedCell}
-                      placeholder={i18n.language === 'az' ? 'Xananı seçin və düstur və ya dəyər daxil edin...' : 'Выберите ячейку и введите формулу или значение...'}
-                    />
+
+              {/* Formula Bar */}
+              <div className="flex items-center gap-2 px-4 py-1.5 border-b border-gray-200 bg-white shrink-0">
+                <div className="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded border border-gray-200 min-w-[3.5rem] text-center select-none shadow-2xs">
+                  {focusedCell ? focusedCell.address : ''}
+                </div>
+                <div className="font-serif italic text-emerald-700 font-bold px-1.5 text-sm select-none">fx</div>
+                <input
+                  type="text"
+                  className="flex-1 px-3 py-1 text-xs border border-gray-200 rounded outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 bg-gray-50/50 hover:bg-white focus:bg-white font-mono text-gray-800 transition-colors shadow-2xs"
+                  value={focusedCell ? (focusedCell.formula || focusedCell.displayVal || '') : ''}
+                  onChange={(e) => handleFormulaChange(e.target.value)}
+                  disabled={!focusedCell}
+                  placeholder={i18n.language === 'az' ? 'Xananı seçin və dəyər və ya düstur daxil edin...' : 'Выберите ячейку и введите значение или формулу...'}
+                />
+              </div>
+
+              {/* Spreadsheet Content Area */}
+              <div className="flex-1 overflow-auto bg-slate-100/60 relative custom-scrollbar">
+                {previewLoading ? (
+                  <div className="flex flex-col items-center justify-center h-full text-gray-400 absolute inset-0 bg-white/80 backdrop-blur-xs">
+                    <Loader2 className="w-9 h-9 animate-spin mb-3 text-emerald-600" />
+                    <p className="font-bold uppercase tracking-widest text-xs text-gray-500">{t('common.loading')}</p>
                   </div>
-                )}
-                
-                <div className="flex-1 overflow-auto p-0 relative">
-                  {previewLoading ? (
-                    <div className="flex flex-col items-center justify-center h-full text-gray-400 absolute inset-0">
-                      <Loader2 className="w-8 h-8 animate-spin mb-4 text-green-500" />
-                      <p className="font-bold uppercase tracking-widest text-[10px]">{t('common.loading')}</p>
-                    </div>
-                  ) : previewData ? (
-                    <div className="w-full h-full overflow-auto">
-                      <table className="w-full text-left text-sm whitespace-nowrap min-w-max">
+                ) : activeSheetData ? (
+                  <div className="inline-block min-w-full align-top bg-white p-2">
+                    <table className="border-collapse table-fixed text-xs bg-white shadow-xs">
+                      {/* Column definitions for clean sizing */}
+                      <colgroup>
+                        <col style={{ width: '45px' }} />
+                        {activeSheetData.columns.map(col => (
+                          <col 
+                            key={col.colNumber} 
+                            style={{ 
+                              width: col.width 
+                                ? `${col.width}px` 
+                                : (col.colNumber === 1 ? '150px' : '110px') 
+                            }} 
+                          />
+                        ))}
+                      </colgroup>
+
                       <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-                          {/* Render column headers (A, B, C...) based on the max length of rows */}
-                          <th className="px-4 py-3 font-bold text-gray-500 bg-gray-100 border-r border-gray-200 w-12 text-center sticky left-0 z-20">#</th>
-                          {Array.from({ length: Math.max(...previewData.map(row => row.length)) }).map((_, i) => (
-                            <th key={i} className="px-4 py-3 font-bold text-gray-700 border-r border-gray-200 min-w-[120px]">
-                              {String.fromCharCode(65 + i)}
+                        <tr className="bg-gray-100 text-gray-700 sticky top-0 z-20 shadow-xs border-b border-gray-300">
+                          <th className="w-[45px] min-w-[45px] py-1.5 px-2 text-center font-bold border-r border-gray-300 bg-gray-100 sticky left-0 z-30 select-none text-[11px] text-gray-500">
+                            #
+                          </th>
+                          {activeSheetData.columns.map(col => (
+                            <th 
+                              key={col.colNumber} 
+                              className="py-1.5 px-2 text-center font-bold border-r border-gray-300 text-gray-700 select-none text-[11px] bg-gray-100"
+                            >
+                              {col.letter}
                             </th>
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {previewData
-                          .map((row, originalIndex) => ({ row, originalIndex }))
-                          .filter(item => {
-                            if (!previewSearch.trim()) return true;
-                            const searchLower = previewSearch.toLowerCase();
-                            return item.row.some(cell => 
-                              cell !== undefined && cell !== null && 
-                              String(cell).toLowerCase().includes(searchLower)
-                            );
-                          })
-                          .map((item, mapIndex) => (
-                          <tr key={item.originalIndex} className="hover:bg-green-50/30 transition-colors focus-within:bg-green-50/30">
-                            <td className="px-4 py-2 font-bold text-gray-400 bg-gray-50 border-r border-gray-100 w-12 text-center sticky left-0 z-10">{item.originalIndex + 1}</td>
-                            {Array.from({ length: Math.max(...previewData.map(r => r.length)) }).map((_, colIndex) => (
-                              <td key={colIndex} className="p-0 border-r border-gray-100 max-w-[300px]" title={item.row[colIndex] !== undefined && item.row[colIndex] !== null && String(item.row[colIndex]).startsWith('=') ? `Формула: ${item.row[colIndex]}` : ''}>
-                                <input
-                                  type="text"
-                                  value={getDisplayValue(item.row[colIndex], item.originalIndex, colIndex)}
-                                  onFocus={() => setFocusedCell({ r: item.originalIndex, c: colIndex })}
-                                  onBlur={() => setFocusedCell(null)}
-                                  onChange={(e) => handleCellEdit(item.originalIndex, colIndex, e.target.value)}
-                                  className="w-full h-full min-h-[36px] px-4 py-2 bg-transparent outline-none focus:bg-white focus:ring-2 focus:ring-inset focus:ring-green-500 text-gray-700 text-sm truncate"
-                                />
-                              </td>
-                            ))}
+
+                      <tbody>
+                        {activeSheetData.rows.map(row => (
+                          <tr 
+                            key={row.rowNumber} 
+                            style={{ height: row.height ? `${row.height}px` : undefined }} 
+                            className="hover:bg-slate-50/50"
+                          >
+                            {/* Row number sticky on the left */}
+                            <td className="w-[45px] min-w-[45px] py-1 px-1 text-center font-bold text-gray-400 bg-gray-100 border-r border-b border-gray-300 sticky left-0 z-10 select-none text-[11px]">
+                              {row.rowNumber}
+                            </td>
+
+                            {/* Cells in this row */}
+                            {row.cells.map(cell => {
+                              if (!cell.isMaster) return null; // Covered by merge
+
+                              const isSelected = focusedCell?.address === cell.address;
+                              const isSearchMatch = previewSearch.trim() && (
+                                (cell.displayVal && String(cell.displayVal).toLowerCase().includes(previewSearch.toLowerCase())) ||
+                                (cell.formula && cell.formula.toLowerCase().includes(previewSearch.toLowerCase()))
+                              );
+
+                              return (
+                                <td
+                                  key={cell.address}
+                                  rowSpan={cell.rowSpan > 1 ? cell.rowSpan : undefined}
+                                  colSpan={cell.colSpan > 1 ? cell.colSpan : undefined}
+                                  style={cell.style}
+                                  onClick={() => setFocusedCell(cell)}
+                                  className={`p-1.5 border-r border-b border-gray-300 relative text-gray-800 transition-colors align-top ${
+                                    isSelected ? 'outline outline-2 outline-emerald-600 z-10 bg-emerald-50/30' : ''
+                                  } ${isSearchMatch ? 'bg-amber-100 ring-2 ring-amber-400 font-bold' : ''}`}
+                                  title={cell.formula ? `Düstur: ${cell.formula}` : undefined}
+                                >
+                                  {/* Cell Photos / Images */}
+                                  {cell.images && cell.images.length > 0 && (
+                                    <div className="flex flex-wrap items-center justify-center gap-1.5 py-1">
+                                      {cell.images.map((img, imgIdx) => (
+                                        <div key={imgIdx} className="group relative">
+                                          <img
+                                            src={img.url}
+                                            alt={img.name || 'Məhsul şəkli'}
+                                            className={`object-contain rounded-md shadow-xs border border-gray-200 bg-white hover:scale-105 transition-transform cursor-pointer ${
+                                              cell.rowSpan > 2 ? 'max-h-36' : 'max-h-20'
+                                            }`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setLightboxImage(img.url);
+                                            }}
+                                          />
+                                          <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-md pointer-events-none transition-opacity">
+                                            <ZoomIn className="w-4 h-4 text-white drop-shadow" />
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Text / Value */}
+                                  {cell.displayVal !== '' && cell.displayVal !== undefined && cell.displayVal !== null && (
+                                    <div className={`leading-snug break-words ${cell.images?.length > 0 ? 'text-center mt-1 text-[11px]' : ''}`}>
+                                      {cell.displayVal}
+                                    </div>
+                                  )}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                       </tbody>
@@ -931,15 +1311,54 @@ const WarehouseFiles = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                    <FileSpreadsheet className="w-12 h-12 mb-4 opacity-20" />
+                    <FileSpreadsheet className="w-12 h-12 mb-3 opacity-20" />
                     <p className="font-bold text-sm">{i18n.language === 'az' ? 'Məlumat oxuna bilmədi' : 'Не удалось прочитать данные'}</p>
                   </div>
                 )}
-                </div>
               </div>
+
+              {/* Bottom Sheet Tabs Bar */}
+              {sheetNames.length > 0 && (
+                <div className="flex items-center gap-1 px-4 py-2 bg-gray-100 border-t border-gray-200 shrink-0 overflow-x-auto">
+                  {sheetNames.map((name, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectSheet(idx)}
+                      className={`px-3.5 py-1.5 text-xs font-bold rounded-t-md transition-all flex items-center gap-1.5 ${
+                        activeSheetIndex === idx
+                          ? 'bg-white text-emerald-700 shadow-xs border-t-2 border-emerald-600'
+                          : 'text-gray-600 hover:bg-gray-200/80 hover:text-gray-900'
+                      }`}
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </ModalPortal>
+      )}
+
+      {/* Lightbox Modal for Full Resolution Photo View */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-[100000] flex items-center justify-center p-4 backdrop-blur-sm cursor-zoom-out"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] bg-white rounded-2xl p-2 shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            <button 
+              type="button"
+              onClick={() => setLightboxImage(null)} 
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center z-10 transition-colors shadow-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img src={lightboxImage} alt="Məhsul şəkli" className="max-h-[85vh] max-w-full object-contain rounded-xl" />
+          </div>
+        </div>
       )}
     </div>
   );
