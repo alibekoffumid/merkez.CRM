@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { 
   Search, Upload, File, FileText, Image as ImageIcon, Download, Eye, 
   Trash2, Loader2, X, FileSpreadsheet, FileArchive, Folder, FolderPlus, 
-  ArrowLeft, MoveRight, Maximize2, Minimize2, ZoomIn 
+  ArrowLeft, MoveRight, Maximize2, Minimize2, ZoomIn, Save, Plus, Check 
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
@@ -47,6 +47,8 @@ const WarehouseFiles = () => {
   const [focusedCell, setFocusedCell] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savingFile, setSavingFile] = useState(false);
 
   const excelWorkbookRef = useRef(null);
   const sheetJsWorkbookRef = useRef(null);
@@ -608,11 +610,59 @@ const WarehouseFiles = () => {
     setFocusedCell(null);
     setLightboxImage(null);
     setIsFullscreen(false);
+    setHasUnsavedChanges(false);
+    setSavingFile(false);
+  };
+
+  const focusCellAt = (targetRow, targetCol) => {
+    if (!activeSheetData) return;
+    const r = Math.max(1, Math.min(activeSheetData.rowCount, targetRow));
+    const c = Math.max(1, Math.min(activeSheetData.colCount, targetCol));
+
+    const rowObj = activeSheetData.rows.find(row => row.rowNumber === r);
+    if (rowObj) {
+      let cellObj = rowObj.cells.find(cell => cell.col === c);
+      if (cellObj && !cellObj.isMaster) {
+        if (excelWorkbookRef.current) {
+          const ws = excelWorkbookRef.current.worksheets[activeSheetIndex] || excelWorkbookRef.current.worksheets[0];
+          const rawCell = ws.getCell(r, c);
+          if (rawCell.master) {
+            const masterAddr = rawCell.master.address;
+            for (const ro of activeSheetData.rows) {
+              const found = ro.cells.find(ce => ce.address === masterAddr);
+              if (found) { cellObj = found; break; }
+            }
+          }
+        }
+      }
+      if (cellObj) {
+        setFocusedCell(cellObj);
+      }
+    }
+  };
+
+  const handleCellKeyDown = (e, cell) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      focusCellAt(cell.row + (cell.rowSpan || 1), cell.col);
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      if (e.shiftKey) {
+        focusCellAt(cell.row, cell.col - 1);
+      } else {
+        focusCellAt(cell.row, cell.col + (cell.colSpan || 1));
+      }
+    } else if (e.key === 'Escape') {
+      setFocusedCell(null);
+    }
   };
 
   const handleFormulaChange = (newVal) => {
     if (!focusedCell || !activeSheetData) return;
     const { address, row, col } = focusedCell;
+    setHasUnsavedChanges(true);
+
+    const isF = newVal.startsWith('=');
 
     const newRows = activeSheetData.rows.map(rObj => {
       if (rObj.rowNumber !== row) return rObj;
@@ -620,7 +670,6 @@ const WarehouseFiles = () => {
         ...rObj,
         cells: rObj.cells.map(cObj => {
           if (cObj.address !== address) return cObj;
-          const isF = newVal.startsWith('=');
           return {
             ...cObj,
             formula: isF ? newVal : '',
@@ -638,15 +687,16 @@ const WarehouseFiles = () => {
 
     setFocusedCell(prev => ({
       ...prev,
-      formula: newVal.startsWith('=') ? newVal : '',
-      displayVal: newVal
+      formula: isF ? newVal : '',
+      displayVal: newVal,
+      rawVal: newVal
     }));
 
     if (excelWorkbookRef.current) {
       const ws = excelWorkbookRef.current.worksheets[activeSheetIndex] || excelWorkbookRef.current.worksheets[0];
       if (ws) {
         const cell = ws.getCell(address);
-        if (newVal.startsWith('=')) {
+        if (isF) {
           cell.value = { formula: newVal.substring(1) };
         } else if (!isNaN(Number(newVal)) && newVal.trim() !== '') {
           cell.value = Number(newVal);
@@ -654,6 +704,77 @@ const WarehouseFiles = () => {
           cell.value = newVal;
         }
       }
+    }
+  };
+
+  const handleAddRow = () => {
+    if (!activeSheetData || !excelWorkbookRef.current) return;
+    const newRowNum = activeSheetData.rowCount + 1;
+    const ws = excelWorkbookRef.current.worksheets[activeSheetIndex] || excelWorkbookRef.current.worksheets[0];
+
+    const newCells = [];
+    for (let c = 1; c <= activeSheetData.colCount; c++) {
+      const cell = ws.getCell(newRowNum, c);
+      newCells.push({
+        address: cell.address,
+        row: newRowNum,
+        col: c,
+        isMerged: false,
+        isMaster: true,
+        rowSpan: 1,
+        colSpan: 1,
+        rawVal: '',
+        formula: '',
+        displayVal: '',
+        images: [],
+        style: {}
+      });
+    }
+
+    setActiveSheetData({
+      ...activeSheetData,
+      rowCount: newRowNum,
+      rows: [
+        ...activeSheetData.rows,
+        {
+          rowNumber: newRowNum,
+          height: 28,
+          cells: newCells
+        }
+      ]
+    });
+    setHasUnsavedChanges(true);
+    toast.success(i18n.language === 'az' ? 'Yeni sətir əlavə edildi' : 'Новая строка добавлена');
+  };
+
+  const handleSaveToStorage = async () => {
+    if (!previewFile || !excelWorkbookRef.current) return;
+    setSavingFile(true);
+    try {
+      const buffer = await excelWorkbookRef.current.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // Overwrite/update file in Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('warehouse-files')
+        .upload(previewFile.file_path, blob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Update size and updated_at in warehouse_files table
+      await supabase
+        .from('warehouse_files')
+        .update({ size: blob.size, updated_at: new Date().toISOString() })
+        .eq('id', previewFile.id);
+
+      setHasUnsavedChanges(false);
+      toast.success(i18n.language === 'az' ? 'Dəyişikliklər faylda yadda saxlanıldı' : 'Изменения сохранены в файле');
+      fetchData();
+    } catch (err) {
+      console.error('Error saving file:', err);
+      toast.error('Error saving: ' + err.message);
+    } finally {
+      setSavingFile(false);
     }
   };
 
@@ -1124,7 +1245,14 @@ const WarehouseFiles = () => {
                     <FileSpreadsheet className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-bold text-gray-900 tracking-tight truncate max-w-xs sm:max-w-md">{previewFile.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-gray-900 tracking-tight truncate max-w-xs sm:max-w-md">{previewFile.name}</h3>
+                      {hasUnsavedChanges && (
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                          {i18n.language === 'az' ? 'Yadda saxlanılmayıb' : 'Не сохранено'}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] font-semibold text-gray-500">{formatFileSize(previewFile.size)}</p>
                   </div>
                 </div>
@@ -1149,6 +1277,18 @@ const WarehouseFiles = () => {
                     </div>
                   )}
 
+                  {/* Save to System Button */}
+                  <button
+                    type="button"
+                    onClick={handleSaveToStorage}
+                    disabled={savingFile}
+                    className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50"
+                    title={i18n.language === 'az' ? 'Dəyişiklikləri faylda yadda saxla' : 'Сохранить изменения в файле'}
+                  >
+                    {savingFile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    <span>{i18n.language === 'az' ? 'Yadda saxla' : 'Сохранить'}</span>
+                  </button>
+
                   {/* Fullscreen toggle */}
                   <button
                     type="button"
@@ -1164,6 +1304,7 @@ const WarehouseFiles = () => {
                     type="button"
                     onClick={handleDownloadEdited}
                     className="flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-gray-700 border border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 transition-all shadow-xs"
+                    title={i18n.language === 'az' ? 'Kompüterə yüklə' : 'Скачать на компьютер'}
                   >
                     <Download className="w-4 h-4 text-emerald-600" />
                     <span className="hidden sm:inline">{i18n.language === 'az' ? 'Yüklə' : 'Скачать'}</span>
@@ -1295,10 +1436,30 @@ const WarehouseFiles = () => {
                                     </div>
                                   )}
 
-                                  {/* Text / Value */}
-                                  {cell.displayVal !== '' && cell.displayVal !== undefined && cell.displayVal !== null && (
-                                    <div className={`leading-snug break-words ${cell.images?.length > 0 ? 'text-center mt-1 text-[11px]' : ''}`}>
-                                      {cell.displayVal}
+                                  {/* Text / Editable Value */}
+                                  {isSelected ? (
+                                    <input
+                                      autoFocus
+                                      type="text"
+                                      value={focusedCell?.formula || focusedCell?.displayVal || ''}
+                                      onChange={(e) => handleFormulaChange(e.target.value)}
+                                      onKeyDown={(e) => handleCellKeyDown(e, cell)}
+                                      className="w-full bg-white text-gray-900 border border-emerald-500 rounded px-1.5 py-0.5 text-xs outline-none shadow-xs font-semibold focus:ring-1 focus:ring-emerald-500"
+                                      style={{
+                                        textAlign: cell.style?.textAlign || 'inherit',
+                                        fontWeight: cell.style?.fontWeight || 'inherit',
+                                        fontSize: cell.style?.fontSize || 'inherit',
+                                        color: cell.style?.color || 'inherit'
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  ) : (
+                                    <div className={`leading-snug break-words min-h-[22px] cursor-text ${cell.images?.length > 0 ? 'text-center mt-1 text-[11px]' : ''}`}>
+                                      {cell.displayVal !== '' && cell.displayVal !== undefined && cell.displayVal !== null ? (
+                                        cell.displayVal
+                                      ) : (
+                                        <span className="opacity-0 select-none">&nbsp;</span>
+                                      )}
                                     </div>
                                   )}
                                 </td>
@@ -1306,6 +1467,20 @@ const WarehouseFiles = () => {
                             })}
                           </tr>
                         ))}
+
+                        {/* Add Row Button Row */}
+                        <tr>
+                          <td colSpan={activeSheetData.columns.length + 1} className="p-2 bg-gray-50/50 border-t border-gray-300">
+                            <button
+                              type="button"
+                              onClick={handleAddRow}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 border border-dashed border-gray-300 hover:border-emerald-400 transition-all"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>{i18n.language === 'az' ? 'Yeni sətir əlavə et' : 'Добавить строку'}</span>
+                            </button>
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
