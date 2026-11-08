@@ -226,7 +226,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [openMenuId, setOpenMenuId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
   const [supplierFilter, setSupplierFilter] = useState('all');
+  const [priceFilter, setPriceFilter] = useState({ min: '', max: '', type: 'sale' });
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showPriceFilterDropdown, setShowPriceFilterDropdown] = useState(false);
+  const priceFilterRef = useRef(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [receiptToDelete, setReceiptToDelete] = useState(null);
   const [dispatchToDelete, setDispatchToDelete] = useState(null);
@@ -371,6 +374,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       }
       if (filterRef.current && !filterRef.current.contains(e.target)) {
         setShowFilterDropdown(false);
+      }
+      if (priceFilterRef.current && !priceFilterRef.current.contains(e.target)) {
+        setShowPriceFilterDropdown(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -1745,7 +1751,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   // Reset page to 1 when filters or search change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedCategory, statusFilter, supplierFilter]);
+  }, [searchTerm, selectedCategory, statusFilter, supplierFilter, priceFilter]);
+
+  const isPriceFilterActive = Boolean(
+    (priceFilter.min !== '' && !isNaN(parseFloat(priceFilter.min))) ||
+    (priceFilter.max !== '' && !isNaN(parseFloat(priceFilter.max)))
+  );
 
   // Ultra-fast single-pass memoized product filter
   const filteredProducts = useMemo(() => {
@@ -1816,9 +1827,37 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         return false;
       }
 
+      // Price range filter
+      if (priceFilter.min !== '' || priceFilter.max !== '') {
+        const minVal = priceFilter.min !== '' && !isNaN(parseFloat(priceFilter.min)) ? parseFloat(priceFilter.min) : null;
+        const maxVal = priceFilter.max !== '' && !isNaN(parseFloat(priceFilter.max)) ? parseFloat(priceFilter.max) : null;
+
+        if (minVal !== null || maxVal !== null) {
+          let itemPrice = null;
+          if (priceFilter.type === 'cost') {
+            itemPrice = p.purchase_price !== null && p.purchase_price !== undefined && p.purchase_price !== ''
+              ? parseFloat(p.purchase_price)
+              : null;
+          } else if (priceFilter.type === 'factory') {
+            const rawFp = getFactoryPrice(p, suppliers);
+            const cleanFp = (rawFp || '').replace(/[₼$￥¥€₺\s]/g, '').trim();
+            itemPrice = cleanFp !== '' && !isNaN(parseFloat(cleanFp)) ? parseFloat(cleanFp) : null;
+          } else {
+            // sale price
+            itemPrice = p.price !== null && p.price !== undefined && p.price !== ''
+              ? parseFloat(p.price)
+              : null;
+          }
+
+          if (itemPrice === null || isNaN(itemPrice)) return false;
+          if (minVal !== null && itemPrice < minVal) return false;
+          if (maxVal !== null && itemPrice > maxVal) return false;
+        }
+      }
+
       return true;
     });
-  }, [products, serverSearchResults, searchTerm, selectedCategory, descendantMap, statusFilter, supplierFilter, currentWarehouseId, warehouses]);
+  }, [products, serverSearchResults, searchTerm, selectedCategory, descendantMap, statusFilter, supplierFilter, currentWarehouseId, warehouses, priceFilter, suppliers]);
 
   // Windowed / paginated items for 60 FPS rendering
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / (pageSize === 'all' ? filteredProducts.length || 1 : pageSize)));
@@ -3544,7 +3583,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                 </div>
 
                 {activeTab === 'finished' && (
-                  <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto xl:ml-auto items-stretch sm:items-center">
                     <div className="w-full sm:w-64 shrink-0">
                       <Dropdown
                         multiple
@@ -3580,6 +3619,205 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         />
                       </div>
                     )}
+
+                    {/* Price Range Filter */}
+                    <div className="relative shrink-0" ref={priceFilterRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowPriceFilterDropdown(!showPriceFilterDropdown)}
+                        className={`min-h-[38px] px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center justify-between gap-2 border transition-all ${
+                          isPriceFilterActive
+                            ? 'bg-blue-50 border-merkez-blue text-merkez-blue ring-1 ring-merkez-blue/30 shadow-sm'
+                            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <DollarSign className={`w-4 h-4 shrink-0 ${isPriceFilterActive ? 'text-merkez-blue' : 'text-gray-400'}`} />
+                          <span className="whitespace-nowrap">
+                            {isPriceFilterActive ? (
+                              <>
+                                <span className="text-[11px] font-bold uppercase text-merkez-blue/80 mr-1">
+                                  {priceFilter.type === 'cost' ? (i18n.language === 'ru' ? 'Себест:' : 'Maya:') : priceFilter.type === 'factory' ? (i18n.language === 'ru' ? 'Завод:' : 'Zavod:') : ''}
+                                </span>
+                                <span>
+                                  {priceFilter.min || '0'} - {priceFilter.max || '∞'} {priceFilter.type === 'factory' ? '$' : '₼'}
+                                </span>
+                              </>
+                            ) : (
+                              i18n.language === 'ru' ? 'Фильтр цены' : i18n.language === 'en' ? 'Price range' : 'Qiymət aralığı'
+                            )}
+                          </span>
+                        </div>
+                        {isPriceFilterActive ? (
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPriceFilter({ min: '', max: '', type: priceFilter.type });
+                            }}
+                            className="p-0.5 hover:bg-blue-200/60 rounded-full text-merkez-blue transition-colors ml-1 cursor-pointer"
+                            title={i18n.language === 'ru' ? 'Сбросить' : 'Sıfırla'}
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </span>
+                        ) : (
+                          <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showPriceFilterDropdown ? 'rotate-180' : ''}`} />
+                        )}
+                      </button>
+
+                      {showPriceFilterDropdown && (
+                        <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 w-72 sm:w-80 animate-in fade-in zoom-in-95">
+                          <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-blue-50 text-merkez-blue flex items-center justify-center font-bold text-xs">
+                                {priceFilter.type === 'factory' ? '$' : '₼'}
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">
+                                  {i18n.language === 'ru' ? 'Фильтр по цене' : i18n.language === 'en' ? 'Price Filter' : 'Qiymət filtri'}
+                                </h4>
+                                <p className="text-[10px] text-gray-400">
+                                  {i18n.language === 'ru' ? 'Фильтрация товаров по сумме' : 'Məhsulları qiymətə görə filterləyin'}
+                                </p>
+                              </div>
+                            </div>
+                            {isPriceFilterActive && (
+                              <button
+                                type="button"
+                                onClick={() => setPriceFilter({ min: '', max: '', type: priceFilter.type })}
+                                className="text-[11px] font-bold text-red-500 hover:text-red-700 hover:underline"
+                              >
+                                {i18n.language === 'ru' ? 'Сбросить' : 'Sıfırla'}
+                              </button>
+                            )}
+                          </div>
+
+                          {canSeeCostAndFactoryPrices && (
+                            <div className="mb-3">
+                              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                {i18n.language === 'ru' ? 'Тип цены' : 'Qiymət növü'}
+                              </label>
+                              <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl">
+                                {[
+                                  { id: 'sale', label: i18n.language === 'ru' ? 'Продажа' : 'Satış' },
+                                  { id: 'cost', label: i18n.language === 'ru' ? 'Себест.' : 'Maya' },
+                                  { id: 'factory', label: i18n.language === 'ru' ? 'Завод' : 'Zavod' }
+                                ].map(t => (
+                                  <button
+                                    key={t.id}
+                                    type="button"
+                                    onClick={() => setPriceFilter(prev => ({ ...prev, type: t.id }))}
+                                    className={`py-1 text-xs font-bold rounded-lg transition-all ${
+                                      priceFilter.type === t.id
+                                        ? 'bg-white text-merkez-blue shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                    }`}
+                                  >
+                                    {t.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div>
+                              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1 block">
+                                {i18n.language === 'ru' ? 'Мин. цена' : 'Min qiymət'}
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  placeholder="0"
+                                  value={priceFilter.min}
+                                  onChange={(e) => setPriceFilter(prev => ({ ...prev, min: e.target.value }))}
+                                  className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue outline-none transition-all"
+                                />
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold pointer-events-none">
+                                  {priceFilter.type === 'factory' ? '$' : '₼'}
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1 block">
+                                {i18n.language === 'ru' ? 'Макс. цена' : 'Maks qiymət'}
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  step="any"
+                                  min="0"
+                                  placeholder="∞"
+                                  value={priceFilter.max}
+                                  onChange={(e) => setPriceFilter(prev => ({ ...prev, max: e.target.value }))}
+                                  className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue outline-none transition-all"
+                                />
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold pointer-events-none">
+                                  {priceFilter.type === 'factory' ? '$' : '₼'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
+                              {i18n.language === 'ru' ? 'Быстрый выбор' : 'Hazır aralıqlar'}
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { label: '0 - 50', min: '0', max: '50' },
+                                { label: '50 - 150', min: '50', max: '150' },
+                                { label: '150 - 500', min: '150', max: '500' },
+                                { label: '500+', min: '500', max: '' }
+                              ].map((preset, idx) => {
+                                const isSelected = String(priceFilter.min) === preset.min && String(priceFilter.max) === preset.max;
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => setPriceFilter(prev => ({
+                                      ...prev,
+                                      min: isSelected ? '' : preset.min,
+                                      max: isSelected ? '' : preset.max
+                                    }))}
+                                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                                      isSelected
+                                        ? 'bg-blue-50 border-merkez-blue text-merkez-blue ring-1 ring-merkez-blue'
+                                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                    }`}
+                                  >
+                                    {preset.label} {priceFilter.type === 'factory' ? '$' : '₼'}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPriceFilter({ min: '', max: '', type: 'sale' });
+                                setShowPriceFilterDropdown(false);
+                              }}
+                              className="flex-1 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                            >
+                              {i18n.language === 'ru' ? 'Сбросить' : 'Təmizlə'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowPriceFilterDropdown(false)}
+                              className="flex-1 py-2 text-xs font-bold text-white bg-merkez-blue hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 transition-all"
+                            >
+                              {i18n.language === 'ru' ? 'Применить' : 'Tətbiq et'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
