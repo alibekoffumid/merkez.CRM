@@ -36,7 +36,7 @@ import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from 
 import ProductReturnModal from './ProductReturnModal';
 import CashboxExpensesModal from './CashboxExpensesModal';
 import { printThermalReceipt57mm, printThermalReturnReceipt57mm } from './thermalReceiptService';
-import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor } from './categoryUtils';
+import { formatCategoriesHierarchically, getSupplierCurrency, getCategoryDepthColor, CURRENCY_OPTIONS, getCurrencySymbol } from './categoryUtils';
 import { parseProductAttributes } from './productAttributesHelper';
 import WarehouseStaffManager from './WarehouseStaffManager';
 import WarehouseClientManager from './WarehouseClientManager';
