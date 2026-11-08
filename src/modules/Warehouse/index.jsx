@@ -2430,7 +2430,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             <DebtBook />
           </div>
         ) : activeTab === 'clients' ? (
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar flex flex-col p-4 sm:p-6">
+          <div className="flex-1 min-h-0 flex flex-col p-2 sm:p-4 overflow-hidden">
             <WarehouseClientManager />
           </div>
         ) : activeTab === 'repairs' ? (

@@ -5,12 +5,14 @@ import { useUser } from '../../core/UserContext';
 import { useTranslation } from 'react-i18next';
 import { 
   Users, Plus, Trash2, Edit3, Search, 
-  Loader2, CheckCircle, AlertCircle, Save, X, Phone, MapPin, UserPlus, FileText
+  Loader2, CheckCircle, AlertCircle, Save, X, Phone, MapPin, UserPlus, FileText,
+  Eye, User
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import WarehouseCreditManager from './WarehouseCreditManager';
 import { syncCreditSales } from './creditSyncService';
+import CustomerDetailModal from './CustomerDetailModal';
 
 const WarehouseClientManager = () => {
   const { t, i18n } = useTranslation();
@@ -25,6 +27,8 @@ const WarehouseClientManager = () => {
   const [editingClient, setEditingClient] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [selectedCustomerForCard, setSelectedCustomerForCard] = useState(null);
+  const [isCustomerCardOpen, setIsCustomerCardOpen] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -100,6 +104,17 @@ const WarehouseClientManager = () => {
     
     setRelativesInfo(client.relatives_info || '');
     setIsModalOpen(true);
+  };
+
+  const handleViewCustomer = (clientOrId) => {
+    if (!clientOrId) return;
+    if (typeof clientOrId === 'string') {
+      const found = clients.find(c => c.id === clientOrId);
+      setSelectedCustomerForCard(found || { id: clientOrId });
+    } else {
+      setSelectedCustomerForCard(clientOrId);
+    }
+    setIsCustomerCardOpen(true);
   };
 
   const handleSubmit = async (e) => {
@@ -276,12 +291,12 @@ const WarehouseClientManager = () => {
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-7 flex flex-col shadow-xs w-full min-h-full">
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 flex flex-col shadow-xs w-full h-full flex-1 min-h-0 overflow-hidden">
       {portalTarget && createPortal(topBarContent, portalTarget)}
       {actionTarget && createPortal(actionContent, actionTarget)}
 
       {/* Tab Header Actions */}
-      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-6 border-b border-gray-100 mb-6">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-4 border-b border-gray-100 mb-4 shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <div>
             <h2 className="text-xl font-black text-gray-900 tracking-tight">
@@ -354,7 +369,7 @@ const WarehouseClientManager = () => {
           <>
 
       {/* Main Content List */}
-      <div className="w-full overflow-x-auto">
+      <div className="w-full flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center text-gray-400">
             <Loader2 className="w-8 h-8 animate-spin mb-3 text-merkez-blue" />
@@ -369,8 +384,8 @@ const WarehouseClientManager = () => {
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/90 sticky top-0 z-10 backdrop-blur-xs">
+            <thead className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-xs">
+              <tr className="border-b border-gray-100">
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Ad / Şirkət' : 'Имя / Компания'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Əlaqə məlumatları' : 'Контактные данные'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Kredit Məlumatları' : 'Кредитные данные'}</th>
@@ -382,7 +397,16 @@ const WarehouseClientManager = () => {
               {filteredClients.map((client) => (
                 <tr key={client.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                   <td className="p-4">
-                    <div className="font-bold text-gray-900 text-sm">{client.name}</div>
+                    <button
+                      type="button"
+                      onClick={() => handleViewCustomer(client)}
+                      className="text-left group/cust block"
+                    >
+                      <div className="font-bold text-gray-900 text-sm group-hover/cust:text-merkez-blue group-hover/cust:underline transition-colors flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-gray-400 group-hover/cust:text-merkez-blue shrink-0" />
+                        <span>{client.name}</span>
+                      </div>
+                    </button>
                   </td>
                   <td className="p-4 text-xs">
                     <div className="space-y-1">
@@ -439,6 +463,13 @@ const WarehouseClientManager = () => {
                   <td className="p-4 text-right">
                     <div className="flex gap-2 justify-end">
                       <button
+                        onClick={() => handleViewCustomer(client)}
+                        className="p-1.5 hover:bg-blue-50 text-merkez-blue rounded-lg transition-colors"
+                        title={i18n.language === 'az' ? 'Müştəri kartı' : 'Карточка клиента'}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleOpenEdit(client)}
                         className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg transition-colors"
                         title="Redaktə et"
@@ -467,7 +498,7 @@ const WarehouseClientManager = () => {
       </div>
       </>
       ) : (
-        <WarehouseCreditManager searchTerm={searchTerm} />
+        <WarehouseCreditManager searchTerm={searchTerm} onViewCustomer={handleViewCustomer} />
       )}
 
       {/* Edit/Add Client Modal */}
@@ -643,6 +674,17 @@ const WarehouseClientManager = () => {
           </div>
         </ModalPortal>
       )}
+
+      {/* Customer Detail Card Modal */}
+      <CustomerDetailModal
+        isOpen={isCustomerCardOpen}
+        onClose={() => setIsCustomerCardOpen(false)}
+        customerId={selectedCustomerForCard?.id}
+        customerData={selectedCustomerForCard}
+        onEdit={(cust) => {
+          handleOpenEdit(cust);
+        }}
+      />
     </div>
   );
 };

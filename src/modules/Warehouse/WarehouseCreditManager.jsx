@@ -10,7 +10,7 @@ import { toast } from 'react-hot-toast';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { syncCreditSales } from './creditSyncService';
 
-const WarehouseCreditManager = ({ searchTerm = '' }) => {
+const WarehouseCreditManager = ({ searchTerm = '', onViewCustomer }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(true);
@@ -350,10 +350,10 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
   );
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
 
       {/* Top Toolbar */}
-      <div className="flex items-center justify-between pb-3 mb-2 border-b border-gray-100">
+      <div className="flex items-center justify-between pb-3 mb-2 border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-gray-500">
             {i18n.language === 'az' ? 'Cəmi müqavilə:' : 'Всего договоров:'}{' '}
@@ -391,7 +391,7 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
       </div>
 
       {/* Credits List */}
-      <div className="w-full overflow-x-auto">
+      <div className="w-full flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar">
         {loading ? (
           <div className="h-64 flex flex-col items-center justify-center text-gray-400">
             <Loader2 className="w-8 h-8 animate-spin mb-3 text-merkez-blue" />
@@ -406,8 +406,8 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
           </div>
         ) : (
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/90 sticky top-0 z-10 backdrop-blur-xs">
+            <thead className="sticky top-0 z-10 bg-gray-50/95 backdrop-blur-xs">
+              <tr className="border-b border-gray-100">
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Müştəri' : 'Клиент'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'Məbləğ' : 'Сумма'}</th>
                 <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">{i18n.language === 'az' ? 'Aylıq Ödəniş' : 'Ежемесячно'}</th>
@@ -420,8 +420,17 @@ const WarehouseCreditManager = ({ searchTerm = '' }) => {
               {filteredCredits.map((credit) => (
                 <tr key={credit.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                   <td className="p-4">
-                    <div className="font-bold text-gray-900 text-sm">{credit.customer?.name || 'Walk-in'}</div>
-                    <div className="text-[10px] font-bold text-gray-400 font-mono mt-0.5">{credit.customer?.phone || '—'}</div>
+                    <button
+                      type="button"
+                      onClick={() => onViewCustomer && onViewCustomer(credit.customer || credit.customer_id)}
+                      className="text-left group/cust block"
+                    >
+                      <div className="font-bold text-gray-900 text-sm group-hover/cust:text-merkez-blue group-hover/cust:underline transition-colors flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-gray-400 group-hover/cust:text-merkez-blue shrink-0" />
+                        <span>{credit.customer?.name || 'Walk-in'}</span>
+                      </div>
+                      <div className="text-[10px] font-bold text-gray-400 font-mono mt-0.5">{credit.customer?.phone || '—'}</div>
+                    </button>
                   </td>
                   <td className="p-4 text-right font-black text-gray-900 text-sm">
                     ₼{Number(credit.total_amount || 0).toFixed(2)}
