@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import {
   Package,
@@ -18,6 +18,7 @@ import {
   Barcode,
   Wrench,
   Settings,
+  TrendingUp,
 } from 'lucide-react-native';
 
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -28,17 +29,19 @@ import { POSScreen } from './src/screens/POSScreen';
 import { RepairsScreen } from './src/screens/RepairsScreen';
 import { PCGunScreen } from './src/screens/PCGunScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { ReportsScreen } from './src/screens/ReportsScreen';
 import { ScannerModal, ScannerMode } from './src/components/ScannerModal';
 import { StaffPinGuardModal } from './src/components/StaffPinGuardModal';
 import { Product, POSCartItem } from './src/types';
 import { productService } from './src/services/productService';
 import { scannerSyncService } from './src/services/scannerSyncService';
 
-type Tab = 'warehouse' | 'operations' | 'pos' | 'repairs' | 'pcgun' | 'settings';
+type Tab = 'warehouse' | 'operations' | 'pos' | 'reports' | 'repairs' | 'pcgun' | 'settings';
 
 // Main Application entry point
 
 function MainApp() {
+  const insets = useSafeAreaInsets();
   const { session, loading, currentStaff, permissions, isStaffLocked } = useAuth();
   const [currentTab, setCurrentTab] = useState<Tab>('warehouse');
   const [loadedTabs, setLoadedTabs] = useState<Set<Tab>>(new Set(['warehouse']));
@@ -181,7 +184,7 @@ function MainApp() {
   const totalCartCount = cart.reduce((acc, i) => acc + i.quantity, 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar style="dark" />
 
       {/* Screen Views - Preserved in memory once loaded for instant 0ms tab switching */}
@@ -217,6 +220,12 @@ function MainApp() {
           </View>
         )}
 
+        {loadedTabs.has('reports') && (
+          <View style={[styles.screenTab, currentTab !== 'reports' && styles.screenHidden]}>
+            <ReportsScreen />
+          </View>
+        )}
+
         {loadedTabs.has('repairs') && (
           <View style={[styles.screenTab, currentTab !== 'repairs' && styles.screenHidden]}>
             <RepairsScreen />
@@ -240,7 +249,15 @@ function MainApp() {
       </View>
 
       {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNav}>
+      <View
+        style={[
+          styles.bottomNav,
+          {
+            paddingBottom: Math.max(insets.bottom, 6),
+            height: 56 + Math.max(insets.bottom, 6),
+          },
+        ]}
+      >
         {/* If Master: Show Repairs */}
         {permissions.isMaster ? (
           <TouchableOpacity
@@ -327,6 +344,27 @@ function MainApp() {
           </TouchableOpacity>
         )}
 
+        {/* Tab: Reports (Hesabatlar) - Hidden for Cashier and Master */}
+        {!permissions.isCashier && !permissions.isMaster && (
+          <TouchableOpacity
+            style={styles.navItem}
+            onPress={() => handleTabPress('reports')}
+          >
+            <TrendingUp
+              size={21}
+              color={currentTab === 'reports' ? '#10B981' : '#9CA3AF'}
+            />
+            <Text
+              style={[
+                styles.navLabel,
+                currentTab === 'reports' && styles.navLabelActive,
+              ]}
+            >
+              Hesabat
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Tab 4: Repairs */}
         {!permissions.isMaster && (
           <TouchableOpacity
@@ -387,10 +425,15 @@ function MainApp() {
         </TouchableOpacity>
       </View>
 
-      {/* Floating Scanner Action Button (Right Edge above bottom menu) - hidden on POS and Settings screens */}
-      {currentTab !== 'pos' && currentTab !== 'settings' && (
+      {/* Floating Scanner Action Button (Right Edge above bottom menu) - hidden on POS, Settings and Reports screens */}
+      {currentTab !== 'pos' && currentTab !== 'settings' && currentTab !== 'reports' && (
         <TouchableOpacity
-          style={styles.floatingScannerFab}
+          style={[
+            styles.floatingScannerFab,
+            {
+              bottom: 68 + Math.max(insets.bottom, 6),
+            },
+          ]}
           onPress={() => handleOpenScanner(permissions.isCashier ? 'pos' : 'terminal')}
           activeOpacity={0.85}
         >
@@ -457,8 +500,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    height: Platform.OS === 'ios' ? 76 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 16 : 6,
     paddingTop: 6,
     position: 'relative',
     shadowColor: '#000',

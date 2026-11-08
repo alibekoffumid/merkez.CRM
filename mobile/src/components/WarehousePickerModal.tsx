@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Store,
   Check,
@@ -39,6 +40,7 @@ export const WarehousePickerModal: React.FC<WarehousePickerModalProps> = ({
   onClose,
   onWarehouseCreated,
 }) => {
+  const insets = useSafeAreaInsets();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newAddress, setNewAddress] = useState('');
@@ -76,7 +78,7 @@ export const WarehousePickerModal: React.FC<WarehousePickerModalProps> = ({
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         
-        <View style={styles.content}>
+        <View style={[styles.content, { paddingBottom: Math.max(insets.bottom, 24) }]}>
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
