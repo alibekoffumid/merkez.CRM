@@ -251,7 +251,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [bulkExactPrices, setBulkExactPrices] = useState({
     price: '',
     purchase_price: '',
-    factory_price: ''
+    factory_price: '',
+    currency: ''
   });
   const [bulkRelativeConfig, setBulkRelativeConfig] = useState({
     target: 'price', // 'price' | 'purchase_price' | 'both'
@@ -1009,17 +1010,38 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       const hasPrice = bulkExactPrices.price !== '' && !isNaN(parseFloat(bulkExactPrices.price));
       const hasPurchase = isManager && bulkExactPrices.purchase_price !== '' && !isNaN(parseFloat(bulkExactPrices.purchase_price));
       const hasFactory = isManager && bulkExactPrices.factory_price.trim() !== '';
+      const hasCurrency = isManager && !!bulkExactPrices.currency;
 
-      if (!hasPrice && !hasPurchase && !hasFactory) {
-        toast.error(i18n.language === 'az' ? 'Ən azı bir qiymət daxil edin' : 'Введите хотя бы одну цену');
+      if (!hasPrice && !hasPurchase && !hasFactory && !hasCurrency) {
+        toast.error(i18n.language === 'az' ? 'Ən azı bir qiymət və ya valyuta daxil edin' : 'Введите хотя бы одну цену или выберите валюту');
         return;
       }
 
       setLoading(true);
       try {
-        const selectedProducts = products.filter(p => selectedItems.includes(p.id));
+        // Collect all selected products from local state, fetching any missing IDs from Supabase
+        const allAvailable = [...(products || []), ...(serverSearchResults || [])];
+        const selectedMap = new Map();
+        allAvailable.forEach(p => {
+          if (p && p.id && selectedItems.includes(p.id)) {
+            selectedMap.set(p.id, p);
+          }
+        });
 
-        if (!hasFactory) {
+        const missingIds = selectedItems.filter(id => !selectedMap.has(id));
+        if (missingIds.length > 0) {
+          const { data: fetchedMissing } = await supabase
+            .from('products')
+            .select('*, categories(name), warehouses(name)')
+            .in('id', missingIds);
+          if (fetchedMissing) {
+            fetchedMissing.forEach(p => selectedMap.set(p.id, p));
+          }
+        }
+
+        const selectedProducts = selectedItems.map(id => selectedMap.get(id)).filter(Boolean);
+
+        if (!hasFactory && !hasCurrency) {
           const patch = {};
           if (hasPrice) patch.price = parseFloat(bulkExactPrices.price);
           if (hasPurchase) patch.purchase_price = parseFloat(bulkExactPrices.purchase_price);
@@ -1034,15 +1056,50 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           setProducts(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, ...patch } : p));
           setServerSearchResults(prev => prev.map(p => selectedItems.includes(p.id) ? { ...p, ...patch } : p));
         } else {
+          const currencySymbol = hasCurrency ? getCurrencySymbol(bulkExactPrices.currency) : '';
+
           const updates = selectedProducts.map(async (p) => {
             const patch = {};
             if (hasPrice) patch.price = parseFloat(bulkExactPrices.price);
             if (hasPurchase) patch.purchase_price = parseFloat(bulkExactPrices.purchase_price);
 
-            let lines = (p.description || '').split('\n').filter(l => !l.toLowerCase().includes('zavod'));
-            lines.unshift(`Zavod qiyməti: ${bulkExactPrices.factory_price.trim()}`);
-            patch.description = lines.join('\n').trim() || null;
-            patch.factory_price = bulkExactPrices.factory_price.trim();
+            let finalFactoryVal = '';
+
+            if (hasFactory) {
+              const rawInput = bulkExactPrices.factory_price.trim();
+              const cleanInputNumber = rawInput.replace(/[₼$￥¥€₺\s]/g, '').trim();
+
+              if (hasCurrency) {
+                finalFactoryVal = cleanInputNumber ? `${currencySymbol}${cleanInputNumber}` : rawInput;
+              } else {
+                if (/[₼$￥¥€₺]/.test(rawInput)) {
+                  finalFactoryVal = rawInput;
+                } else {
+                  const existingFp = getFactoryPrice(p, suppliers);
+                  const existingSymMatch = existingFp.match(/^[₼$￥¥€₺]/);
+                  const symToUse = existingSymMatch ? existingSymMatch[0] : (getSupplierCurrency(p.suppliers?.name || (suppliers || []).find(s => s.id === p.supplier_id)?.name) || '$');
+                  finalFactoryVal = `${symToUse}${cleanInputNumber || rawInput}`;
+                }
+              }
+            } else if (hasCurrency) {
+              // Mass currency re-tagging: keep existing numeric amount and apply new currency
+              const existingFp = getFactoryPrice(p, suppliers);
+              const cleanExistingNumber = existingFp ? existingFp.replace(/[₼$￥¥€₺\s]/g, '').trim() : '';
+              if (cleanExistingNumber) {
+                finalFactoryVal = `${currencySymbol}${cleanExistingNumber}`;
+              }
+            }
+
+            if (finalFactoryVal) {
+              let lines = (p.description || '').split('\n').filter(l => 
+                !l.toLowerCase().includes('zavod qiyməti') && 
+                !l.toLowerCase().includes('zavod qiym?ti') && 
+                !l.toLowerCase().startsWith('zavod:')
+              );
+              lines.unshift(`Zavod qiyməti: ${finalFactoryVal}`);
+              patch.description = lines.join('\n').trim() || null;
+              patch.factory_price = finalFactoryVal;
+            }
 
             let res = await supabase.from('products').update(patch).eq('id', p.id);
             if (res.error && res.error.message && res.error.message.includes('factory_price')) {
@@ -1054,13 +1111,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           });
 
           const results = await Promise.all(updates);
+          const resultMap = new Map(results.map(r => [r.id, r.patch]));
+
           setProducts(prev => prev.map(p => {
-            const matched = results.find(r => r.id === p.id);
-            return matched ? { ...p, ...matched.patch } : p;
+            const patch = resultMap.get(p.id);
+            return patch ? { ...p, ...patch } : p;
           }));
           setServerSearchResults(prev => prev.map(p => {
-            const matched = results.find(r => r.id === p.id);
-            return matched ? { ...p, ...matched.patch } : p;
+            const patch = resultMap.get(p.id);
+            return patch ? { ...p, ...patch } : p;
           }));
         }
 
@@ -1092,7 +1151,26 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       setLoading(true);
       try {
-        const selectedProducts = products.filter(p => selectedItems.includes(p.id));
+        const allAvailable = [...(products || []), ...(serverSearchResults || [])];
+        const selectedMap = new Map();
+        allAvailable.forEach(p => {
+          if (p && p.id && selectedItems.includes(p.id)) {
+            selectedMap.set(p.id, p);
+          }
+        });
+
+        const missingIds = selectedItems.filter(id => !selectedMap.has(id));
+        if (missingIds.length > 0) {
+          const { data: fetchedMissing } = await supabase
+            .from('products')
+            .select('*')
+            .in('id', missingIds);
+          if (fetchedMissing) {
+            fetchedMissing.forEach(p => selectedMap.set(p.id, p));
+          }
+        }
+
+        const selectedProducts = selectedItems.map(id => selectedMap.get(id)).filter(Boolean);
 
         const updates = selectedProducts.map(async (p) => {
           const patch = {};
@@ -1117,14 +1195,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         });
 
         const results = await Promise.all(updates);
+        const resultMap = new Map(results.map(r => [r.id, r.patch]));
 
         setProducts(prev => prev.map(p => {
-          const matched = results.find(r => r.id === p.id);
-          return matched ? { ...p, ...matched.patch } : p;
+          const patch = resultMap.get(p.id);
+          return patch ? { ...p, ...patch } : p;
         }));
         setServerSearchResults(prev => prev.map(p => {
-          const matched = results.find(r => r.id === p.id);
-          return matched ? { ...p, ...matched.patch } : p;
+          const patch = resultMap.get(p.id);
+          return patch ? { ...p, ...patch } : p;
         }));
 
         toast.success(
@@ -1998,7 +2077,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                             </button>
                             <button
                               onClick={() => {
-                                setBulkExactPrices({ price: '', purchase_price: '', factory_price: '' });
+                                setBulkExactPrices({ price: '', purchase_price: '', factory_price: '', currency: '' });
                                 setBulkRelativeConfig({ target: 'price', action: 'increase', type: 'percent', value: '' });
                                 setBulkPriceTab('exact');
                                 setShowBulkPriceModal(true);
