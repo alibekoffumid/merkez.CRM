@@ -419,9 +419,13 @@ const WarehouseFiles = () => {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-      const filePath = `${profile.id}/${fileName}`;
+      const rawExt = String(file?.name || '').split('.').pop()?.toLowerCase();
+      const ALLOWED_EXTS = ['xlsx', 'xls', 'csv', 'pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp', 'txt'];
+      const fileExt = ALLOWED_EXTS.find(ext => ext === rawExt) || 'bin';
+      const safeUserId = String(profile?.id || 'default').replace(/[^a-zA-Z0-9_-]/g, '');
+      const safeRand = Math.random().toString(36).substring(2, 10).replace(/[^a-z0-9]/g, '');
+      const fileName = `${Date.now()}_${safeRand}.${fileExt}`;
+      const filePath = `${safeUserId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('warehouse-files')
@@ -555,7 +559,26 @@ const WarehouseFiles = () => {
     setPreviewLoading(true);
     setFocusedCell(null);
     try {
-      const response = await fetch(file.file_url);
+      if (!file?.file_url || typeof file.file_url !== 'string') {
+        throw new Error('Invalid file URL');
+      }
+      const targetUrl = new URL(file.file_url, window.location.href);
+      if (!['http:', 'https:'].includes(targetUrl.protocol)) {
+        throw new Error('Invalid URL protocol');
+      }
+      const hostname = targetUrl.hostname.toLowerCase();
+      if (
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '0.0.0.0' ||
+        hostname === '169.254.169.254' ||
+        hostname.endsWith('.internal') ||
+        hostname.endsWith('.local')
+      ) {
+        throw new Error('Forbidden host address');
+      }
+
+      const response = await fetch(targetUrl.href);
       const arrayBuffer = await response.arrayBuffer();
 
       // Load with ExcelJS
