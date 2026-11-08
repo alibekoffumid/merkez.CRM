@@ -222,12 +222,13 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-3 sm:p-5" onClick={onClose}>
-        <div
+        <form
+          onSubmit={handleSubmit}
           className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden animate-in fade-in zoom-in-95 flex flex-col border border-gray-100"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex justify-between items-center px-6 py-4 sm:px-7 sm:py-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+          <div className="flex justify-between items-center px-6 py-4 sm:px-7 sm:py-4 border-b border-gray-100 bg-gray-50/70 shrink-0">
             <div className="flex items-center gap-3.5">
               <div className="w-11 h-11 rounded-2xl bg-merkez-blue/10 flex items-center justify-center text-merkez-blue shadow-xs">
                 <Plus className="w-6 h-6 text-merkez-blue" />
@@ -239,17 +240,38 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                 </p>
               </div>
             </div>
-            <button 
-              onClick={onClose} 
-              className="w-10 h-10 rounded-xl bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-colors border border-gray-200 shadow-xs"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-200/60 transition-colors"
+              >
+                {i18n.language === 'az' ? 'İmtina' : 'Отмена'}
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-gradient-primary px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center disabled:opacity-50 shadow-md shadow-merkez-blue/20"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                ) : (
+                  <Save className="w-5 h-5 mr-2" />
+                )}
+                {t('warehouse.saveProduct')}
+              </button>
+              <button 
+                type="button"
+                onClick={onClose} 
+                className="w-10 h-10 rounded-xl bg-white hover:bg-gray-100 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-colors border border-gray-200 shadow-xs ml-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-            <div className="p-6 sm:p-7 overflow-y-auto flex-1 custom-scrollbar">
+          <div className="p-6 sm:p-7 overflow-y-auto flex-1 custom-scrollbar">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                 {/* Left Column (Core Info, Pricing, Stocks & Barcode) */}
@@ -497,33 +519,9 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
               </div>
             </div>
-
-            {/* Modal Actions Footer */}
-            <div className="px-6 py-4 sm:px-7 bg-gray-50/90 border-t border-gray-100 flex items-center justify-between shrink-0">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-200/60 transition-colors"
-              >
-                {i18n.language === 'az' ? 'İmtina' : 'Отмена'}
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-gradient-primary px-7 py-3 rounded-xl text-sm font-bold flex items-center justify-center disabled:opacity-50 shadow-md shadow-merkez-blue/20"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                ) : (
-                  <Save className="w-5 h-5 mr-2" />
-                )}
-                {t('warehouse.saveProduct')}
-              </button>
-            </div>
           </form>
         </div>
-      </div>
-    </ModalPortal>
+      </ModalPortal>
   );
 };
 
