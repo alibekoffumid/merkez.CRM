@@ -89,6 +89,38 @@ export const getFactoryPrice = (item, suppliers = []) => {
   return rawVal;
 };
 
+export const detectProductPriceCurrency = (p, type = 'sale', suppliers = []) => {
+  if (!p) return 'AZN';
+  if (type === 'factory') {
+    const rawFp = getFactoryPrice(p, suppliers);
+    if (!rawFp) return 'USD';
+    if (rawFp.includes('₼') || rawFp.toUpperCase().includes('AZN')) return 'AZN';
+    if (rawFp.includes('¥') || rawFp.includes('￥') || rawFp.toUpperCase().includes('UAN') || rawFp.toUpperCase().includes('CNY')) return 'UAN';
+    if (rawFp.includes('₺') || rawFp.toUpperCase().includes('TRY') || rawFp.toUpperCase().includes('TL')) return 'TRY';
+    if (rawFp.includes('$') || rawFp.toUpperCase().includes('USD')) return 'USD';
+
+    const sup = (suppliers || []).find(s => s.id === p.supplier_id);
+    const supName = sup?.name || sup?.company_name || p.suppliers?.name || '';
+    const supCurr = getSupplierCurrency(supName);
+    if (supCurr === '₼') return 'AZN';
+    if (supCurr === '¥' || supCurr === '￥') return 'UAN';
+    if (supCurr === '₺') return 'TRY';
+    if (supCurr === '$') return 'USD';
+
+    return 'USD';
+  }
+
+  // Cost and Sale price currency
+  if (p.currency) {
+    const c = String(p.currency).toUpperCase();
+    if (c.includes('USD') || c === '$') return 'USD';
+    if (c.includes('TRY') || c.includes('TL') || c === '₺') return 'TRY';
+    if (c.includes('UAN') || c.includes('CNY') || c === '¥' || c === '￥') return 'UAN';
+    if (c.includes('AZN') || c === '₼') return 'AZN';
+  }
+  return 'AZN';
+};
+
 const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActiveTab }) => {
   const { t, i18n } = useTranslation();
   const { profile, activeModules, currentStaff } = useUser();
@@ -226,7 +258,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [openMenuId, setOpenMenuId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'in' | 'low' | 'out'
   const [supplierFilter, setSupplierFilter] = useState('all');
-  const [priceFilter, setPriceFilter] = useState({ min: '', max: '', type: 'sale' });
+  const [priceFilter, setPriceFilter] = useState({ min: '', max: '', type: 'sale', currency: 'all' });
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showPriceFilterDropdown, setShowPriceFilterDropdown] = useState(false);
   const priceFilterRef = useRef(null);
@@ -1755,7 +1787,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
   const isPriceFilterActive = Boolean(
     (priceFilter.min !== '' && !isNaN(parseFloat(priceFilter.min))) ||
-    (priceFilter.max !== '' && !isNaN(parseFloat(priceFilter.max)))
+    (priceFilter.max !== '' && !isNaN(parseFloat(priceFilter.max))) ||
+    (priceFilter.currency && priceFilter.currency !== 'all')
   );
 
   // Ultra-fast single-pass memoized product filter
@@ -1827,12 +1860,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         return false;
       }
 
-      // Price range filter
-      if (priceFilter.min !== '' || priceFilter.max !== '') {
-        const minVal = priceFilter.min !== '' && !isNaN(parseFloat(priceFilter.min)) ? parseFloat(priceFilter.min) : null;
-        const maxVal = priceFilter.max !== '' && !isNaN(parseFloat(priceFilter.max)) ? parseFloat(priceFilter.max) : null;
+      // Price range & currency filter
+      const hasMin = priceFilter.min !== '' && !isNaN(parseFloat(priceFilter.min));
+      const hasMax = priceFilter.max !== '' && !isNaN(parseFloat(priceFilter.max));
+      const hasCurrency = priceFilter.currency && priceFilter.currency !== 'all';
 
-        if (minVal !== null || maxVal !== null) {
+      if (hasMin || hasMax || hasCurrency) {
+        // 1. Currency filter
+        if (hasCurrency) {
+          const prodCurrency = detectProductPriceCurrency(p, priceFilter.type, suppliers);
+          if (prodCurrency !== priceFilter.currency) {
+            return false;
+          }
+        }
+
+        // 2. Price range filter
+        if (hasMin || hasMax) {
+          const minVal = hasMin ? parseFloat(priceFilter.min) : null;
+          const maxVal = hasMax ? parseFloat(priceFilter.max) : null;
           let itemPrice = null;
           if (priceFilter.type === 'cost') {
             itemPrice = p.purchase_price !== null && p.purchase_price !== undefined && p.purchase_price !== ''
@@ -3622,201 +3667,252 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
                     {/* Price Range Filter */}
                     <div className="relative shrink-0" ref={priceFilterRef}>
-                      <button
-                        type="button"
-                        onClick={() => setShowPriceFilterDropdown(!showPriceFilterDropdown)}
-                        className={`min-h-[38px] px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center justify-between gap-2 border transition-all ${
-                          isPriceFilterActive
-                            ? 'bg-blue-50 border-merkez-blue text-merkez-blue ring-1 ring-merkez-blue/30 shadow-sm'
-                            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <DollarSign className={`w-4 h-4 shrink-0 ${isPriceFilterActive ? 'text-merkez-blue' : 'text-gray-400'}`} />
-                          <span className="whitespace-nowrap">
-                            {isPriceFilterActive ? (
-                              <>
-                                <span className="text-[11px] font-bold uppercase text-merkez-blue/80 mr-1">
-                                  {priceFilter.type === 'cost' ? (i18n.language === 'ru' ? 'Себест:' : 'Maya:') : priceFilter.type === 'factory' ? (i18n.language === 'ru' ? 'Завод:' : 'Zavod:') : ''}
-                                </span>
-                                <span>
-                                  {priceFilter.min || '0'} - {priceFilter.max || '∞'} {priceFilter.type === 'factory' ? '$' : '₼'}
-                                </span>
-                              </>
-                            ) : (
-                              i18n.language === 'ru' ? 'Фильтр цены' : i18n.language === 'en' ? 'Price range' : 'Qiymət aralığı'
-                            )}
-                          </span>
-                        </div>
-                        {isPriceFilterActive ? (
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPriceFilter({ min: '', max: '', type: priceFilter.type });
-                            }}
-                            className="p-0.5 hover:bg-blue-200/60 rounded-full text-merkez-blue transition-colors ml-1 cursor-pointer"
-                            title={i18n.language === 'ru' ? 'Сбросить' : 'Sıfırla'}
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </span>
-                        ) : (
-                          <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showPriceFilterDropdown ? 'rotate-180' : ''}`} />
-                        )}
-                      </button>
+                      {(() => {
+                        const activeCurrencySymbol = priceFilter.currency && priceFilter.currency !== 'all'
+                          ? getCurrencySymbol(priceFilter.currency)
+                          : (priceFilter.type === 'factory' ? '$' : '₼');
 
-                      {showPriceFilterDropdown && (
-                        <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 w-72 sm:w-80 animate-in fade-in zoom-in-95">
-                          <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-lg bg-blue-50 text-merkez-blue flex items-center justify-center font-bold text-xs">
-                                {priceFilter.type === 'factory' ? '$' : '₼'}
-                              </div>
-                              <div>
-                                <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">
-                                  {i18n.language === 'ru' ? 'Фильтр по цене' : i18n.language === 'en' ? 'Price Filter' : 'Qiymət filtri'}
-                                </h4>
-                                <p className="text-[10px] text-gray-400">
-                                  {i18n.language === 'ru' ? 'Фильтрация товаров по сумме' : 'Məhsulları qiymətə görə filterləyin'}
-                                </p>
-                              </div>
-                            </div>
-                            {isPriceFilterActive && (
-                              <button
-                                type="button"
-                                onClick={() => setPriceFilter({ min: '', max: '', type: priceFilter.type })}
-                                className="text-[11px] font-bold text-red-500 hover:text-red-700 hover:underline"
-                              >
-                                {i18n.language === 'ru' ? 'Сбросить' : 'Sıfırla'}
-                              </button>
-                            )}
-                          </div>
-
-                          {canSeeCostAndFactoryPrices && (
-                            <div className="mb-3">
-                              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
-                                {i18n.language === 'ru' ? 'Тип цены' : 'Qiymət növü'}
-                              </label>
-                              <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl">
-                                {[
-                                  { id: 'sale', label: i18n.language === 'ru' ? 'Продажа' : 'Satış' },
-                                  { id: 'cost', label: i18n.language === 'ru' ? 'Себест.' : 'Maya' },
-                                  { id: 'factory', label: i18n.language === 'ru' ? 'Завод' : 'Zavod' }
-                                ].map(t => (
-                                  <button
-                                    key={t.id}
-                                    type="button"
-                                    onClick={() => setPriceFilter(prev => ({ ...prev, type: t.id }))}
-                                    className={`py-1 text-xs font-bold rounded-lg transition-all ${
-                                      priceFilter.type === t.id
-                                        ? 'bg-white text-merkez-blue shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-900'
-                                    }`}
-                                  >
-                                    {t.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-2 gap-2 mb-3">
-                            <div>
-                              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1 block">
-                                {i18n.language === 'ru' ? 'Мин. цена' : 'Min qiymət'}
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  min="0"
-                                  placeholder="0"
-                                  value={priceFilter.min}
-                                  onChange={(e) => setPriceFilter(prev => ({ ...prev, min: e.target.value }))}
-                                  className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue outline-none transition-all"
-                                />
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold pointer-events-none">
-                                  {priceFilter.type === 'factory' ? '$' : '₼'}
-                                </span>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1 block">
-                                {i18n.language === 'ru' ? 'Макс. цена' : 'Maks qiymət'}
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="number"
-                                  step="any"
-                                  min="0"
-                                  placeholder="∞"
-                                  value={priceFilter.max}
-                                  onChange={(e) => setPriceFilter(prev => ({ ...prev, max: e.target.value }))}
-                                  className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue outline-none transition-all"
-                                />
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold pointer-events-none">
-                                  {priceFilter.type === 'factory' ? '$' : '₼'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mb-4">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
-                              {i18n.language === 'ru' ? 'Быстрый выбор' : 'Hazır aralıqlar'}
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {[
-                                { label: '0 - 50', min: '0', max: '50' },
-                                { label: '50 - 150', min: '50', max: '150' },
-                                { label: '150 - 500', min: '150', max: '500' },
-                                { label: '500+', min: '500', max: '' }
-                              ].map((preset, idx) => {
-                                const isSelected = String(priceFilter.min) === preset.min && String(priceFilter.max) === preset.max;
-                                return (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setPriceFilter(prev => ({
-                                      ...prev,
-                                      min: isSelected ? '' : preset.min,
-                                      max: isSelected ? '' : preset.max
-                                    }))}
-                                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
-                                      isSelected
-                                        ? 'bg-blue-50 border-merkez-blue text-merkez-blue ring-1 ring-merkez-blue'
-                                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                                    }`}
-                                  >
-                                    {preset.label} {priceFilter.type === 'factory' ? '$' : '₼'}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                        return (
+                          <>
                             <button
                               type="button"
-                              onClick={() => {
-                                setPriceFilter({ min: '', max: '', type: 'sale' });
-                                setShowPriceFilterDropdown(false);
-                              }}
-                              className="flex-1 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                              onClick={() => setShowPriceFilterDropdown(!showPriceFilterDropdown)}
+                              className={`min-h-[38px] px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center justify-between gap-2 border transition-all ${
+                                isPriceFilterActive
+                                  ? 'bg-blue-50 border-merkez-blue text-merkez-blue ring-1 ring-merkez-blue/30 shadow-sm'
+                                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+                              }`}
                             >
-                              {i18n.language === 'ru' ? 'Сбросить' : 'Təmizlə'}
+                              <div className="flex items-center gap-1.5">
+                                <DollarSign className={`w-4 h-4 shrink-0 ${isPriceFilterActive ? 'text-merkez-blue' : 'text-gray-400'}`} />
+                                <span className="whitespace-nowrap">
+                                  {isPriceFilterActive ? (
+                                    <>
+                                      <span className="text-[11px] font-bold uppercase text-merkez-blue/80 mr-1">
+                                        {priceFilter.type === 'cost' 
+                                          ? (i18n.language === 'ru' ? 'Себест:' : 'Maya:') 
+                                          : priceFilter.type === 'factory' 
+                                            ? (i18n.language === 'ru' ? 'Завод:' : 'Zavod:') 
+                                            : ''}
+                                      </span>
+                                      <span>
+                                        {priceFilter.min !== '' || priceFilter.max !== '' ? (
+                                          `${priceFilter.min || '0'} - ${priceFilter.max || '∞'} ${activeCurrencySymbol}`
+                                        ) : (
+                                          `${priceFilter.currency} (${getCurrencySymbol(priceFilter.currency)})`
+                                        )}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    i18n.language === 'ru' ? 'Фильтр цены' : i18n.language === 'en' ? 'Price range' : 'Qiymət aralığı'
+                                  )}
+                                </span>
+                              </div>
+                              {isPriceFilterActive ? (
+                                <span
+                                  role="button"
+                                  tabIndex={0}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPriceFilter({ min: '', max: '', type: 'sale', currency: 'all' });
+                                  }}
+                                  className="p-0.5 hover:bg-blue-200/60 rounded-full text-merkez-blue transition-colors ml-1 cursor-pointer"
+                                  title={i18n.language === 'ru' ? 'Сбросить' : 'Sıfırla'}
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </span>
+                              ) : (
+                                <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showPriceFilterDropdown ? 'rotate-180' : ''}`} />
+                              )}
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowPriceFilterDropdown(false)}
-                              className="flex-1 py-2 text-xs font-bold text-white bg-merkez-blue hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 transition-all"
-                            >
-                              {i18n.language === 'ru' ? 'Применить' : 'Tətbiq et'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
+
+                            {showPriceFilterDropdown && (
+                              <div className="absolute right-0 top-full mt-2 z-50 bg-white border border-gray-100 rounded-2xl shadow-2xl p-4 w-72 sm:w-80 animate-in fade-in zoom-in-95">
+                                <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-merkez-blue flex items-center justify-center font-bold text-xs">
+                                      {activeCurrencySymbol}
+                                    </div>
+                                    <div>
+                                      <h4 className="text-xs font-black text-gray-800 uppercase tracking-wider">
+                                        {i18n.language === 'ru' ? 'Фильтр по цене' : i18n.language === 'en' ? 'Price Filter' : 'Qiymət filtri'}
+                                      </h4>
+                                      <p className="text-[10px] text-gray-400">
+                                        {i18n.language === 'ru' ? 'Фильтрация товаров по сумме и валюте' : 'Məhsulları qiymət və valyutaya görə filterləyin'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {isPriceFilterActive && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPriceFilter({ min: '', max: '', type: priceFilter.type, currency: 'all' })}
+                                      className="text-[11px] font-bold text-red-500 hover:text-red-700 hover:underline"
+                                    >
+                                      {i18n.language === 'ru' ? 'Сбросить' : 'Sıfırla'}
+                                    </button>
+                                  )}
+                                </div>
+
+                                {canSeeCostAndFactoryPrices && (
+                                  <div className="mb-3">
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                      {i18n.language === 'ru' ? 'Тип цены' : 'Qiymət növü'}
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl">
+                                      {[
+                                        { id: 'sale', label: i18n.language === 'ru' ? 'Продажа' : 'Satış' },
+                                        { id: 'cost', label: i18n.language === 'ru' ? 'Себест.' : 'Maya' },
+                                        { id: 'factory', label: i18n.language === 'ru' ? 'Завод' : 'Zavod' }
+                                      ].map(t => (
+                                        <button
+                                          key={t.id}
+                                          type="button"
+                                          onClick={() => setPriceFilter(prev => ({ ...prev, type: t.id }))}
+                                          className={`py-1 text-xs font-bold rounded-lg transition-all ${
+                                            priceFilter.type === t.id
+                                              ? 'bg-white text-merkez-blue shadow-sm'
+                                              : 'text-gray-500 hover:text-gray-900'
+                                          }`}
+                                        >
+                                          {t.label}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Currency Selection Section */}
+                                <div className="mb-3">
+                                  <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                    {i18n.language === 'ru' ? 'Валюта' : i18n.language === 'en' ? 'Currency' : 'Valyuta'}
+                                  </label>
+                                  <div className="grid grid-cols-5 gap-1 bg-gray-100 p-1 rounded-xl">
+                                    {[
+                                      { code: 'all', label: i18n.language === 'ru' ? 'Все' : 'Bütün', symbol: '' },
+                                      { code: 'AZN', label: 'AZN', symbol: '₼' },
+                                      { code: 'USD', label: 'USD', symbol: '$' },
+                                      { code: 'UAN', label: 'UAN', symbol: '¥' },
+                                      { code: 'TRY', label: 'TRY', symbol: '₺' }
+                                    ].map(c => {
+                                      const isSelected = (priceFilter.currency || 'all') === c.code;
+                                      return (
+                                        <button
+                                          key={c.code}
+                                          type="button"
+                                          onClick={() => setPriceFilter(prev => ({ ...prev, currency: c.code }))}
+                                          className={`py-1 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-0.5 ${
+                                            isSelected
+                                              ? 'bg-white text-merkez-blue shadow-sm ring-1 ring-black/5'
+                                              : 'text-gray-500 hover:text-gray-900'
+                                          }`}
+                                        >
+                                          {c.symbol && <span className="text-[10px] opacity-75">{c.symbol}</span>}
+                                          <span>{c.label}</span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                  <div>
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1 block">
+                                      {i18n.language === 'ru' ? 'Мин. цена' : 'Min qiymət'}
+                                    </label>
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        step="any"
+                                        min="0"
+                                        placeholder="0"
+                                        value={priceFilter.min}
+                                        onChange={(e) => setPriceFilter(prev => ({ ...prev, min: e.target.value }))}
+                                        className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue outline-none transition-all"
+                                      />
+                                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold pointer-events-none">
+                                        {activeCurrencySymbol}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1 block">
+                                      {i18n.language === 'ru' ? 'Макс. цена' : 'Maks qiymət'}
+                                    </label>
+                                    <div className="relative">
+                                      <input
+                                        type="number"
+                                        step="any"
+                                        min="0"
+                                        placeholder="∞"
+                                        value={priceFilter.max}
+                                        onChange={(e) => setPriceFilter(prev => ({ ...prev, max: e.target.value }))}
+                                        className="w-full pl-7 pr-2 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:bg-white focus:border-merkez-blue focus:ring-1 focus:ring-merkez-blue outline-none transition-all"
+                                      />
+                                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold pointer-events-none">
+                                        {activeCurrencySymbol}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="mb-4">
+                                  <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1.5 block">
+                                    {i18n.language === 'ru' ? 'Быстрый выбор' : 'Hazır aralıqlar'}
+                                  </label>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {[
+                                      { label: '0 - 50', min: '0', max: '50' },
+                                      { label: '50 - 150', min: '50', max: '150' },
+                                      { label: '150 - 500', min: '150', max: '500' },
+                                      { label: '500+', min: '500', max: '' }
+                                    ].map((preset, idx) => {
+                                      const isSelected = String(priceFilter.min) === preset.min && String(priceFilter.max) === preset.max;
+                                      return (
+                                        <button
+                                          key={idx}
+                                          type="button"
+                                          onClick={() => setPriceFilter(prev => ({
+                                            ...prev,
+                                            min: isSelected ? '' : preset.min,
+                                            max: isSelected ? '' : preset.max
+                                          }))}
+                                          className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                                            isSelected
+                                              ? 'bg-blue-50 border-merkez-blue text-merkez-blue ring-1 ring-merkez-blue'
+                                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                          }`}
+                                        >
+                                          {preset.label} {activeCurrencySymbol}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPriceFilter({ min: '', max: '', type: 'sale', currency: 'all' });
+                                      setShowPriceFilterDropdown(false);
+                                    }}
+                                    className="flex-1 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                                  >
+                                    {i18n.language === 'ru' ? 'Сбросить' : 'Təmizlə'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowPriceFilterDropdown(false)}
+                                    className="flex-1 py-2 text-xs font-bold text-white bg-merkez-blue hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 transition-all"
+                                  >
+                                    {i18n.language === 'ru' ? 'Применить' : 'Tətbiq et'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
