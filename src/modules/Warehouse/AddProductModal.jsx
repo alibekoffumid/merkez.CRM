@@ -88,6 +88,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       const curr = getSupplierCurrency(currentSup?.name || currentSup?.company_name);
       if (curr === '₼') setFactoryCurrency('AZN');
       else if (curr === '¥' || curr === '￥') setFactoryCurrency('UAN');
+      else if (curr === '₺') setFactoryCurrency('TRY');
       else if (curr === '$') setFactoryCurrency('USD');
     }
   }, [formData.supplier_id, suppliers]);
@@ -160,7 +161,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
     const cleanAttrs = cleanAttributesForSave(attributes);
     let desc = '';
     if (canSeeCostAndFactoryPrices && formData.factory_price && formData.factory_price.trim()) {
-      const cleanNum = formData.factory_price.trim().replace(/[₼$￥¥€\s]/g, '');
+      const cleanNum = formData.factory_price.trim().replace(/[₼$￥¥€₺\s]/g, '');
       const sym = getCurrencySymbol(factoryCurrency);
       const valToSave = cleanNum ? `${sym}${cleanNum}` : formData.factory_price.trim();
       desc += 'Zavod qiyməti: ' + valToSave + '\n';
@@ -316,13 +317,13 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                               <Dropdown
                                 value={factoryCurrency}
                                 onChange={(val) => setFactoryCurrency(val)}
-                                menuWidth={115}
+                                menuWidth={130}
                                 trigger={
-                                  <div className="flex items-center gap-1 px-2.5 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors select-none cursor-pointer">
+                                  <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors select-none cursor-pointer">
                                     <span className="text-xs font-black text-gray-800">
-                                      {getCurrencySymbol(factoryCurrency)}
+                                      {getCurrencySymbol(factoryCurrency)} {factoryCurrency}
                                     </span>
-                                    <ChevronDown className="w-3 h-3 text-gray-500" />
+                                    <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
                                   </div>
                                 }
                                 options={CURRENCY_OPTIONS.map((c) => ({

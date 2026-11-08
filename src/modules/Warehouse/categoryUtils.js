@@ -107,12 +107,14 @@ export const CURRENCY_OPTIONS = [
   { code: 'AZN', symbol: '₼', label: 'AZN (₼)' },
   { code: 'USD', symbol: '$', label: 'USD ($)' },
   { code: 'UAN', symbol: '¥', label: 'UAN (¥)' },
+  { code: 'TRY', symbol: '₺', label: 'TRY (₺)' },
 ];
 
 export const getCurrencySymbol = (code) => {
   if (code === 'USD' || code === '$') return '$';
   if (code === 'UAN' || code === 'CNY' || code === '¥' || code === '￥') return '¥';
   if (code === 'AZN' || code === '₼') return '₼';
+  if (code === 'TRY' || code === '₺' || code === 'TL') return '₺';
   return '$';
 };
 
@@ -126,6 +128,7 @@ export const getSupplierCurrency = (supplierName) => {
 
   if (norm.includes('yerli')) return '₼';
   if (norm.includes('lade')) return '¥';
+  if (norm.includes('turk') || norm.includes('turkiy') || norm.includes('türkiy') || norm.includes('istanbul')) return '₺';
   if (norm.includes('gidoo') || norm.includes('gido')) return '$';
   if (norm.includes('iran')) return '₼';
   if (norm.includes('aroma')) return '$';

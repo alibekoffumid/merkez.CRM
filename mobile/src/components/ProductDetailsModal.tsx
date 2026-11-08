@@ -57,7 +57,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const [priceInput, setPriceInput] = useState(String(product.sale_price ?? product.price ?? 0));
   const [costInput, setCostInput] = useState(String(product.purchase_price ?? 0));
   const [factoryPriceInput, setFactoryPriceInput] = useState(String(product.factory_price ?? ''));
-  const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN'>('USD');
+  const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN' | 'TRY'>('USD');
   const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
 
   useEffect(() => {
@@ -77,10 +77,12 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         fp.toUpperCase().includes('CNY')
       ) {
         setFactoryCurrency('UAN');
+      } else if (fp.includes('₺') || fp.toUpperCase().includes('TRY') || fp.toUpperCase().includes('TL')) {
+        setFactoryCurrency('TRY');
       } else if (fp.includes('$') || fp.toUpperCase().includes('USD')) {
         setFactoryCurrency('USD');
       }
-      const cleanFp = fp.replace(/[₼$￥¥€\s]/g, '').trim();
+      const cleanFp = fp.replace(/[₼$￥¥€₺\s]/g, '').trim();
       setFactoryPriceInput(cleanFp || fp);
 
       setAttributes(parseProductAttributes(product));
@@ -130,8 +132,8 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
       setSaving(true);
       let formattedFp = factoryPriceInput.trim();
       if (formattedFp) {
-        const cleanNum = formattedFp.replace(/[₼$￥¥€\s]/g, '');
-        const sym = factoryCurrency === 'USD' ? '$' : factoryCurrency === 'UAN' ? '¥' : '₼';
+        const cleanNum = formattedFp.replace(/[₼$￥¥€₺\s]/g, '');
+        const sym = factoryCurrency === 'USD' ? '$' : factoryCurrency === 'UAN' ? '¥' : factoryCurrency === 'TRY' ? '₺' : '₼';
         formattedFp = cleanNum ? `${sym}${cleanNum}` : formattedFp;
       }
 
@@ -266,8 +268,8 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                     <Text style={styles.inputLabel}>Zavod qiyməti</Text>
                     <View style={{ flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2 }}>
-                      {(['AZN', 'USD', 'UAN'] as const).map((curr) => {
-                        const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : '¥';
+                      {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
+                        const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
                         const isSel = factoryCurrency === curr;
                         return (
                           <TouchableOpacity
@@ -275,7 +277,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                             disabled={!canManageProducts}
                             onPress={() => setFactoryCurrency(curr)}
                             style={{
-                              paddingHorizontal: 4,
+                              paddingHorizontal: 3,
                               paddingVertical: 1,
                               borderRadius: 4,
                               backgroundColor: isSel ? '#FFFFFF' : 'transparent',
@@ -293,7 +295,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                     style={styles.textInput}
                     value={factoryPriceInput}
                     onChangeText={setFactoryPriceInput}
-                    placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : '¥'}26.71`}
+                    placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}26.71`}
                     editable={canManageProducts}
                   />
                 </View>
