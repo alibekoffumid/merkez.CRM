@@ -559,27 +559,31 @@ const WarehouseFiles = () => {
     setPreviewLoading(true);
     setFocusedCell(null);
     try {
-      if (!file?.file_url || typeof file.file_url !== 'string') {
-        throw new Error('Invalid file URL');
-      }
-      const targetUrl = new URL(file.file_url, window.location.href);
-      if (!['http:', 'https:'].includes(targetUrl.protocol)) {
-        throw new Error('Invalid URL protocol');
-      }
-      const hostname = targetUrl.hostname.toLowerCase();
-      if (
-        hostname === 'localhost' ||
-        hostname === '127.0.0.1' ||
-        hostname === '0.0.0.0' ||
-        hostname === '169.254.169.254' ||
-        hostname.endsWith('.internal') ||
-        hostname.endsWith('.local')
-      ) {
-        throw new Error('Forbidden host address');
+      let arrayBuffer = null;
+      let path = file?.file_path;
+      if (!path && file?.file_url) {
+        const parts = String(file.file_url).split('/warehouse-files/');
+        if (parts.length > 1) {
+          path = decodeURIComponent(parts[1].split('?')[0]);
+        }
       }
 
-      const response = await fetch(targetUrl.href);
-      const arrayBuffer = await response.arrayBuffer();
+      if (path) {
+        const cleanPath = String(path).replace(/\.\./g, '').replace(/^\/+/, '');
+        const { data: blobData, error: dlError } = await supabase.storage
+          .from('warehouse-files')
+          .download(cleanPath);
+
+        if (!dlError && blobData) {
+          arrayBuffer = await blobData.arrayBuffer();
+        } else if (dlError) {
+          console.warn('Supabase storage download error:', dlError);
+        }
+      }
+
+      if (!arrayBuffer) {
+        throw new Error(i18n.language === 'az' ? 'Fayl yüklənə bilmədi' : 'Не удалось загрузить файл');
+      }
 
       // Load with ExcelJS
       const excelWb = new ExcelJS.Workbook();
