@@ -191,6 +191,10 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   const filteredProducts = useMemo(() => {
     let result = products;
 
+    if (activeWarehouseId) {
+      result = result.filter((p) => !p.warehouse_id || p.warehouse_id === activeWarehouseId);
+    }
+
     if (showLowStockOnly && permissions.canViewStockStats) {
       result = result.filter(
         (p) => Number(p.stock_quantity || 0) <= (p.critical_stock && p.critical_stock > 0 ? p.critical_stock : 5)
@@ -216,7 +220,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
     }
 
     return result;
-  }, [products, searchTerm, selectedCategory, showLowStockOnly, permissions.canViewStockStats]);
+  }, [products, activeWarehouseId, searchTerm, selectedCategory, showLowStockOnly, permissions.canViewStockStats]);
 
   // Inventory stats summary
   const stats = useMemo(() => {

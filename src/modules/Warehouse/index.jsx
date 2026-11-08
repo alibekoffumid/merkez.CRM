@@ -268,7 +268,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return (products || []).filter(p => idSet.has(p.id));
   }, [selectedItems, products]);
   const [warehouses, setWarehouses] = useState([]);
-  const [currentWarehouseId, setCurrentWarehouseId] = useState(null);
+  const [currentWarehouseId, setCurrentWarehouseId] = useState(() => {
+    try {
+      return localStorage.getItem('warehouse_active_id') || null;
+    } catch (e) {
+      return null;
+    }
+  });
   const [showAddWarehouse, setShowAddWarehouse] = useState(false);
   const [showTour, setShowTour] = useState(false);
   const [printingItems, setPrintingItems] = useState(null);
@@ -292,7 +298,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return () => window.removeEventListener('focus', handleFocus);
   }, [products.length]);
 
-  // Debounced server-side product search across all active products globally
+  // Debounced server-side product search strictly within the current warehouse
   useEffect(() => {
     const term = searchTerm.trim();
     if (!term || !profile?.id) {
@@ -305,16 +311,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       setIsSearchingServer(true);
       try {
         const safeTerm = term.replace(/[%_,()]/g, ' ');
-        const { data, error } = await supabase
+        let query = supabase
           .from('products')
           .select('*, categories(name), warehouses(name)')
           .eq('is_deleted', false)
           .eq('user_id', profile.id)
-          .or(`barcode.ilike.%${safeTerm}%,name.ilike.%${safeTerm}%`)
-          .limit(100);
+          .or(`barcode.ilike.%${safeTerm}%,name.ilike.%${safeTerm}%`);
+
+        if (currentWarehouseId) {
+          query = query.eq('warehouse_id', currentWarehouseId);
+        }
+
+        const { data, error } = await query.limit(100);
 
         if (!error && data) {
-          setServerSearchResults(data);
+          const strictlyCurrentWarehouseData = currentWarehouseId
+            ? data.filter(p => p.warehouse_id === currentWarehouseId)
+            : data;
+          setServerSearchResults(strictlyCurrentWarehouseData);
         }
       } catch (err) {
         console.error('Error in server search:', err);
@@ -324,7 +338,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, profile?.id]);
+  }, [searchTerm, profile?.id, currentWarehouseId]);
 
   useEffect(() => {
     if (profile?.id) {
@@ -447,10 +461,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         }
       } else {
         setWarehouses(data);
-        const activeId = currentWarehouseId || data[0].id;
-        if (!currentWarehouseId) {
-          setCurrentWarehouseId(data[0].id);
-        }
+        const savedId = (() => {
+          try { return localStorage.getItem('warehouse_active_id'); } catch (e) { return null; }
+        })();
+        const isValidSaved = savedId && data.some(w => w.id === savedId);
+        const activeId = isValidSaved ? savedId : ((currentWarehouseId && data.some(w => w.id === currentWarehouseId)) ? currentWarehouseId : data[0].id);
+        setCurrentWarehouseId(activeId);
+        try { localStorage.setItem('warehouse_active_id', activeId); } catch (e) {}
         return activeId;
       }
     }
@@ -780,18 +797,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (!matchedProduct && profile?.id) {
       try {
         const safeTerm = term.replace(/[%_,()]/g, ' ');
-        const { data } = await supabase
+        let query = supabase
           .from('products')
           .select('*, categories(name), warehouses(name)')
           .eq('is_deleted', false)
           .eq('user_id', profile.id)
-          .or(`barcode.eq.${term},name.ilike.%${safeTerm}%`)
-          .limit(5);
+          .or(`barcode.eq.${term},name.ilike.%${safeTerm}%`);
+
+        if (currentWarehouseId) {
+          query = query.eq('warehouse_id', currentWarehouseId);
+        }
+
+        const { data } = await query.limit(10);
 
         if (data && data.length > 0) {
-          const exactBarcodeMatch = data.find(p => p.barcode === term || (p.barcode && p.barcode.toLowerCase() === term.toLowerCase()));
-          matchedProduct = exactBarcodeMatch || data[0];
-          setServerSearchResults(data);
+          const strictlyCurrent = currentWarehouseId
+            ? data.filter(p => p.warehouse_id === currentWarehouseId)
+            : data;
+          if (strictlyCurrent.length > 0) {
+            const exactBarcodeMatch = strictlyCurrent.find(p => p.barcode === term || (p.barcode && p.barcode.toLowerCase() === term.toLowerCase()));
+            matchedProduct = exactBarcodeMatch || strictlyCurrent[0];
+            setServerSearchResults(strictlyCurrent);
+          }
         }
       } catch (err) {
         console.error('Error searching product on server:', err);
@@ -1647,12 +1674,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     if (searchTerm.trim() && serverSearchResults.length > 0) {
       const localIds = new Set(list.map(p => p.id));
       const additionalServerItems = serverSearchResults
-        .filter(sp => !localIds.has(sp.id))
+        .filter(sp => !localIds.has(sp.id) && (!currentWarehouseId || sp.warehouse_id === currentWarehouseId))
         .map(sp => {
           const wName = sp.warehouses?.name || warehouses.find(w => w.id === sp.warehouse_id)?.name;
           return {
             ...sp,
-            isOtherWarehouse: sp.warehouse_id !== currentWarehouseId,
+            isOtherWarehouse: false,
             warehouseName: wName
           };
         });
@@ -1673,7 +1700,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
       : null;
 
     return list.filter(p => {
-      // Category filter (if search term is active, search globally)
+      // Must strictly belong to the current active warehouse
+      if (currentWarehouseId && p.warehouse_id && p.warehouse_id !== currentWarehouseId) {
+        return false;
+      }
+
+      // Category filter (if search term is active, search within the current warehouse)
       if (!term && validCategoryIds) {
         if (p.category_id == null || p.category_id === '') return false;
         if (!validCategoryIds.has(String(p.category_id))) return false;
@@ -1794,7 +1826,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       ...(warehouses || []).map(w => ({
                         id: w.id,
                         label: w.name,
-                        onClick: () => setCurrentWarehouseId(w.id),
+                        onClick: () => {
+                          setCurrentWarehouseId(w.id);
+                          setServerSearchResults([]);
+                          try { localStorage.setItem('warehouse_active_id', w.id); } catch (e) {}
+                        },
                         active: w.id === currentWarehouseId
                       })),
                       {
