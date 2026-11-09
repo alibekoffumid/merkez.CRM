@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   MapPin,
   Building2,
   ChevronRight,
+  Package,
 } from 'lucide-react-native';
 import { Warehouse } from '../types';
 import { productService } from '../services/productService';
@@ -45,6 +46,16 @@ export const WarehousePickerModal: React.FC<WarehousePickerModalProps> = ({
   const [newName, setNewName] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (visible && warehouses.length > 0) {
+      productService
+        .getWarehouseProductCounts(warehouses.map((w) => w.id))
+        .then(setCounts)
+        .catch((e) => console.error('Error loading warehouse counts:', e));
+    }
+  }, [visible, warehouses]);
 
   const handleCreate = async () => {
     if (!newName.trim()) {
@@ -132,6 +143,13 @@ export const WarehousePickerModal: React.FC<WarehousePickerModalProps> = ({
                         </View>
                       ) : null}
                     </View>
+                  </View>
+
+                  <View style={[styles.stockBadge, isSelected && styles.stockBadgeActive]}>
+                    <Package size={11} color={isSelected ? '#1D4ED8' : '#6B7280'} />
+                    <Text style={[styles.stockBadgeText, isSelected && styles.stockBadgeTextActive]}>
+                      {counts[w.id] !== undefined ? `${counts[w.id]} ədəd` : '...'}
+                    </Text>
                   </View>
 
                   {isSelected ? (
@@ -311,6 +329,30 @@ const styles = StyleSheet.create({
   itemAddress: {
     fontSize: 11,
     color: '#9CA3AF',
+  },
+  stockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  stockBadgeActive: {
+    backgroundColor: '#DBEAFE',
+    borderColor: '#BFDBFE',
+  },
+  stockBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#4B5563',
+  },
+  stockBadgeTextActive: {
+    color: '#1D4ED8',
   },
   defaultBadge: {
     backgroundColor: '#E0E7FF',

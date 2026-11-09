@@ -330,30 +330,20 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
       <View style={styles.container}>
         {/* Top Header */}
         <View style={styles.header}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <TouchableOpacity
-              style={styles.warehouseDropdownBtn}
-              onPress={() => setWarehousePickerVisible(true)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.warehouseDropdownLeft}>
-                <Store size={16} color="#2563EB" />
-                <Text style={styles.warehouseDropdownText} numberOfLines={1}>
-                  {warehouses.find((w) => w.id === activeWarehouseId)?.name || 'DÜKKAN - ƏHMƏDLİ'}
-                </Text>
-              </View>
-              <ChevronDown size={14} color="#2563EB" />
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.warehouseDropdownBtn}
+            onPress={() => setWarehousePickerVisible(true)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.warehouseDropdownLeft}>
+              <Store size={16} color="#2563EB" />
+              <Text style={styles.warehouseDropdownText} numberOfLines={1}>
+                {warehouses.find((w) => w.id === activeWarehouseId)?.name || 'DÜKKAN - ƏHMƏDLİ'}
+              </Text>
+            </View>
+            <ChevronDown size={14} color="#2563EB" />
+          </TouchableOpacity>
 
-            <Text style={styles.brandSub} numberOfLines={1}>
-              {currentStaff === 'owner'
-                ? `Sahib (${profile?.full_name || 'İdarəçi'})`
-                : currentStaff
-                ? `${currentStaff.name} · ${currentStaff.role}`
-                : profile?.full_name || user?.email || 'Anbar'}
-              {permissions.canViewStockStats ? ` · ${stats.totalCount} ədəd` : ''}
-            </Text>
-          </View>
           <View style={styles.headerRight}>
             <TouchableOpacity
               style={styles.switchStaffBtn}
@@ -767,8 +757,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 4,
+    paddingTop: 6,
+    paddingBottom: 6,
   },
   warehouseDropdownBtn: {
     flexDirection: 'row',
@@ -778,12 +768,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#BFDBFE',
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 14,
-    alignSelf: 'flex-start',
+    height: 38,
+    borderRadius: 12,
     gap: 8,
-    maxWidth: 240,
-    marginBottom: 4,
+    maxWidth: 220,
   },
   warehouseDropdownLeft: {
     flexDirection: 'row',
@@ -796,18 +784,6 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#1D4ED8',
     letterSpacing: -0.3,
-  },
-  brandTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#111827',
-    letterSpacing: -0.5,
-  },
-  brandSub: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
-    fontWeight: '500',
   },
   headerRight: {
     flexDirection: 'row',
@@ -840,7 +816,7 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: '#ECFDF5',
     paddingHorizontal: 10,
-    paddingVertical: 8,
+    height: 38,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#A7F3D0',

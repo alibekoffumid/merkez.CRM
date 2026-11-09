@@ -165,6 +165,37 @@ export const productService = {
     return data;
   },
 
+  async getWarehouseProductCounts(warehouseIds?: string[]): Promise<Record<string, number>> {
+    try {
+      const userId = await getActiveUserId();
+      const whs = warehouseIds && warehouseIds.length > 0 
+        ? warehouseIds 
+        : (await this.getWarehouses()).map((w) => w.id);
+
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        whs.map(async (wId) => {
+          let query = supabase
+            .from('products')
+            .select('id', { count: 'exact', head: true })
+            .eq('warehouse_id', wId)
+            .eq('is_deleted', false);
+          if (userId) {
+            query = query.eq('user_id', userId);
+          }
+          const { count, error } = await query;
+          if (!error && typeof count === 'number') {
+            counts[wId] = count;
+          }
+        })
+      );
+      return counts;
+    } catch (e) {
+      console.error('getWarehouseProductCounts error:', e);
+      return {};
+    }
+  },
+
   async getProducts(forceRefresh = false, targetWarehouseId?: string): Promise<Product[]> {
     const wId = targetWarehouseId || (await this.getActiveWarehouseId());
 
