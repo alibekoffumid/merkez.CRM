@@ -526,37 +526,40 @@ export const POSScreen: React.FC<POSScreenProps> = ({
 
             return (
               <View style={[styles.itemRow, item.isGift && styles.itemRowGift]}>
-                <View style={styles.itemInfo}>
-                  <View style={styles.itemNameRow}>
-                    <Text style={styles.itemName} numberOfLines={1}>
-                      {item.product.name}
-                    </Text>
-                    {item.isGift && (
-                      <View style={styles.giftBadge}>
-                        <Gift size={10} color="#7C3AED" />
-                        <Text style={styles.giftBadgeText}>HƏDİYYƏ</Text>
-                      </View>
-                    )}
-                  </View>
-                  
-                  {/* Price display with edit tap */}
+                {/* Top Row: Product Name & Gift Badge */}
+                <View style={styles.itemTopRow}>
+                  <Text style={styles.itemName} numberOfLines={2}>
+                    {item.product.name}
+                  </Text>
+                  {item.isGift && (
+                    <View style={styles.giftBadge}>
+                      <Gift size={11} color="#7C3AED" />
+                      <Text style={styles.giftBadgeText}>HƏDİYYƏ</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Bottom Row: Price on left, Quantity + Gift + Delete on right */}
+                <View style={styles.itemBottomRow}>
+                  {/* Left: Total price for this item & unit price */}
                   <TouchableOpacity
-                    style={styles.itemPriceRow}
+                    style={styles.itemPriceCol}
                     onPress={() => handleOpenItemModal(item)}
                     activeOpacity={0.7}
                   >
+                    <Text style={[styles.itemTotal, item.isGift && styles.itemTotalGift]}>
+                      {item.isGift ? '0.00 ₼' : `${itemTotal.toFixed(2)} ₼`}
+                    </Text>
+
                     {item.isGift ? (
                       <View style={styles.giftPriceContainer}>
                         <Text style={styles.originalPriceStrikethrough}>
                           {(item.originalPrice ?? basePrice).toFixed(2)} ₼
                         </Text>
-                        <Text style={styles.giftZeroPrice}>
-                          0.00 ₼ (Hədiyyə)
-                        </Text>
                       </View>
                     ) : (
-                      <>
-                        <Text style={styles.itemPrice}>
+                      <View style={styles.itemUnitPriceRow}>
+                        <Text style={styles.itemUnitPriceText}>
                           {effectivePrice.toFixed(2)} ₼ / {item.product.unit || 'əd.'}
                         </Text>
 
@@ -576,43 +579,47 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                             <Edit2 size={11} color="#9CA3AF" />
                           </View>
                         )}
-                      </>
+                      </View>
                     )}
                   </TouchableOpacity>
-                </View>
 
-                {/* Counter */}
-                <View style={styles.counterRow}>
-                  <TouchableOpacity
-                    style={styles.stepBtn}
-                    onPress={() => onUpdateQuantity(item.product.id, -1)}
-                  >
-                    <Minus size={16} color="#6B7280" />
-                  </TouchableOpacity>
-                  <Text style={styles.qtyText}>{item.quantity}</Text>
-                  <TouchableOpacity
-                    style={styles.stepBtn}
-                    onPress={() => onUpdateQuantity(item.product.id, 1)}
-                  >
-                    <Plus size={16} color="#111827" />
-                  </TouchableOpacity>
-                </View>
+                  {/* Right: Quantity Selector + Gift Button + Delete Button on ONE line */}
+                  <View style={styles.itemControlsRow}>
+                    {/* Counter */}
+                    <View style={styles.counterRow}>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => onUpdateQuantity(item.product.id, -1)}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                      >
+                        <Minus size={15} color="#4B5563" />
+                      </TouchableOpacity>
+                      <Text style={styles.qtyText}>{item.quantity}</Text>
+                      <TouchableOpacity
+                        style={styles.stepBtn}
+                        onPress={() => onUpdateQuantity(item.product.id, 1)}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                      >
+                        <Plus size={15} color="#111827" />
+                      </TouchableOpacity>
+                    </View>
 
-                <View style={styles.itemTotalCol}>
-                  <Text style={[styles.itemTotal, item.isGift && styles.itemTotalGift]}>
-                    {item.isGift ? '0.00 ₼' : `${itemTotal.toFixed(2)} ₼`}
-                  </Text>
-                  <View style={styles.itemActionsRow}>
+                    {/* Gift button */}
                     <TouchableOpacity
                       style={[styles.giftBtn, item.isGift && styles.giftBtnActive]}
                       onPress={() => onToggleItemGift?.(item.product.id)}
                       activeOpacity={0.7}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
-                      <Gift size={15} color={item.isGift ? "#7C3AED" : "#9CA3AF"} />
+                      <Gift size={16} color={item.isGift ? "#7C3AED" : "#6B7280"} />
                     </TouchableOpacity>
+
+                    {/* Delete button */}
                     <TouchableOpacity
                       style={styles.deleteBtn}
                       onPress={() => onRemoveItem(item.product.id)}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
                       <Trash2 size={16} color="#EF4444" />
                     </TouchableOpacity>
@@ -1646,24 +1653,58 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  itemInfo: {
-    flex: 1,
-    marginRight: 10,
+  itemTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 8,
   },
   itemName: {
-    fontSize: 14,
+    flex: 1,
+    fontSize: 15,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 4,
+    lineHeight: 20,
+  },
+  itemBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  itemPriceCol: {
+    justifyContent: 'center',
+    flexShrink: 1,
+  },
+  itemTotal: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  itemUnitPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  itemUnitPriceText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
   },
   itemPriceRow: {
     flexDirection: 'row',
@@ -1680,9 +1721,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     backgroundColor: '#ECFDF5',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 5,
     borderWidth: 1,
     borderColor: '#A7F3D0',
   },
@@ -1694,37 +1735,60 @@ const styles = StyleSheet.create({
   itemPriceEditBtn: {
     padding: 2,
   },
+  itemControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   counterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F3F4F6',
-    borderRadius: 8,
+    borderRadius: 10,
     paddingHorizontal: 4,
-    paddingVertical: 2,
-    gap: 6,
+    height: 38,
+    gap: 2,
   },
   stepBtn: {
-    padding: 6,
+    width: 28,
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   qtyText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
     color: '#111827',
-    minWidth: 18,
+    minWidth: 22,
     textAlign: 'center',
   },
   itemTotalCol: {
     alignItems: 'flex-end',
     marginLeft: 12,
   },
-  itemTotal: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#111827',
+  giftBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  giftBtnActive: {
+    backgroundColor: '#EDE9FE',
+    borderColor: '#DDD6FE',
   },
   deleteBtn: {
-    marginTop: 4,
-    padding: 4,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#FEF2F2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
   },
   emptyCart: {
     alignItems: 'center',
@@ -2543,14 +2607,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  giftBtn: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: '#F3F4F6',
-  },
-  giftBtnActive: {
-    backgroundColor: '#EDE9FE',
   },
   modalGiftToggleBtn: {
     flexDirection: 'row',
