@@ -12,6 +12,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Modal,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -107,6 +108,28 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   // Item Price / Discount Editing Modal State
   const [editingItem, setEditingItem] = useState<POSCartItem | null>(null);
   const [itemCustomPriceInput, setItemCustomPriceInput] = useState('');
+
+  // Keyboard avoidance height tracking
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
   const [itemDiscountPercentInput, setItemDiscountPercentInput] = useState('');
 
   // Calculate effective price for each item
@@ -615,11 +638,20 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             </View>
           }
           contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         />
 
         {/* Footer Checkout Panel */}
         {cart.length > 0 && (
-          <View style={styles.footer}>
+          <View
+            style={[
+              styles.footer,
+              keyboardHeight > 0 && {
+                marginBottom: Platform.OS === 'android' ? keyboardHeight : 0,
+              },
+            ]}
+          >
             {/* Payment Methods: Nağd | Kart | Terminal | Qarışıq | Kredit | Birmarket | Beh (Avans) | Köçürmə */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.methodTabs}>
               <TouchableOpacity
@@ -1307,6 +1339,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       keyboardType="numeric"
                       value={discountInput}
                       onChangeText={setDiscountInput}
+                      returnKeyType="done"
+                      onSubmitEditing={Keyboard.dismiss}
                     />
                     <Text style={styles.discountInputUnit}>
                       {discountType === 'percent' ? '%' : '₼'}

@@ -7,6 +7,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -47,6 +48,22 @@ function MainApp() {
   const [loadedTabs, setLoadedTabs] = useState<Set<Tab>>(new Set(['warehouse']));
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scannerMode, setScannerMode] = useState<ScannerMode>('terminal');
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  React.useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleTabPress = (tab: Tab) => {
     setLoadedTabs((prev) => {
@@ -249,15 +266,16 @@ function MainApp() {
       </View>
 
       {/* Bottom Navigation Bar */}
-      <View
-        style={[
-          styles.bottomNav,
-          {
-            paddingBottom: Math.max(insets.bottom, 6),
-            height: 56 + Math.max(insets.bottom, 6),
-          },
-        ]}
-      >
+      {!isKeyboardVisible && (
+        <View
+          style={[
+            styles.bottomNav,
+            {
+              paddingBottom: Math.max(insets.bottom, 6),
+              height: 56 + Math.max(insets.bottom, 6),
+            },
+          ]}
+        >
         {/* If Master: Show Repairs */}
         {permissions.isMaster ? (
           <TouchableOpacity
@@ -424,6 +442,7 @@ function MainApp() {
           </Text>
         </TouchableOpacity>
       </View>
+      )}
 
       {/* Floating Scanner Action Button (Right Edge above bottom menu) - hidden on POS, Settings and Reports screens */}
       {currentTab !== 'pos' && currentTab !== 'settings' && currentTab !== 'reports' && (
