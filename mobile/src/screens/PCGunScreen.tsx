@@ -9,7 +9,6 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Radio,
   Barcode,
@@ -92,7 +91,7 @@ export const PCGunScreen: React.FC<PCGunScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -204,7 +203,7 @@ export const PCGunScreen: React.FC<PCGunScreenProps> = ({
           }
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -218,8 +217,8 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 6,
   },
   title: {
     fontSize: 22,

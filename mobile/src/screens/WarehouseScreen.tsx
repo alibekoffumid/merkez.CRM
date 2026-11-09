@@ -12,7 +12,6 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Search,
   Barcode,
@@ -326,7 +325,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
       <View style={styles.container}>
         {/* Top Header */}
@@ -398,8 +397,8 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                   style={[styles.statBox, !showLowStockOnly && styles.statBoxActive]}
                   onPress={() => setShowLowStockOnly(false)}
                 >
-                  <Text style={styles.statVal}>{stats.totalCount}</Text>
-                  <Text style={styles.statLabel}>Bütün mallar</Text>
+                  <Text style={styles.statVal} numberOfLines={1} adjustsFontSizeToFit>{stats.totalCount}</Text>
+                  <Text style={styles.statLabel} numberOfLines={1}>Bütün mallar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -407,10 +406,10 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                   onPress={() => setShowLowStockOnly(!showLowStockOnly)}
                 >
                   <View style={styles.statLabelWithIcon}>
-                    <AlertTriangle size={13} color="#EF4444" />
-                    <Text style={styles.statValRed}>{stats.lowStockCount}</Text>
+                    <AlertTriangle size={12} color="#EF4444" />
+                    <Text style={styles.statValRed} numberOfLines={1} adjustsFontSizeToFit>{stats.lowStockCount}</Text>
                   </View>
-                  <Text style={styles.statLabel}>Bitmək üzrədir</Text>
+                  <Text style={styles.statLabel} numberOfLines={1}>Bitmək üzrədir</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -426,12 +425,22 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                   }}
                 >
                   <View style={styles.statLabelWithIcon}>
-                    <Printer size={13} color={selectionMode ? '#2563EB' : '#475569'} />
-                    <Text style={[styles.statVal, selectionMode && { color: '#2563EB' }]}>
+                    <Printer size={12} color={selectionMode ? '#2563EB' : '#475569'} />
+                    <Text
+                      style={[
+                        styles.statValText,
+                        selectionMode && { color: '#2563EB' },
+                      ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
                       {selectionMode ? selectedProductIds.size : 'Çap'}
                     </Text>
                   </View>
-                  <Text style={[styles.statLabel, selectionMode && { color: '#2563EB', fontWeight: '800' }]}>
+                  <Text
+                    style={[styles.statLabel, selectionMode && { color: '#2563EB', fontWeight: '800' }]}
+                    numberOfLines={1}
+                  >
                     {selectionMode ? 'Seçildi' : 'Etiketlər'}
                   </Text>
                 </TouchableOpacity>
@@ -444,12 +453,14 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                   onPress={() => setRentalsListVisible(true)}
                 >
                   <View style={styles.statLabelWithIcon}>
-                    <KeyRound size={13} color={overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5'} />
+                    <KeyRound size={12} color={overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5'} />
                     <Text
                       style={[
-                        styles.statVal,
+                        styles.statValText,
                         { color: overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5' },
                       ]}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
                     >
                       {overdueRentalsCount > 0 ? `${overdueRentalsCount}!` : 'İcarə'}
                     </Text>
@@ -459,6 +470,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                       styles.statLabel,
                       overdueRentalsCount > 0 && { color: '#DC2626', fontWeight: '800' },
                     ]}
+                    numberOfLines={1}
                   >
                     {overdueRentalsCount > 0 ? 'Gecikən' : 'Siyahı'}
                   </Text>
@@ -468,8 +480,8 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                   style={styles.addStatBox}
                   onPress={() => setNewProductVisible(true)}
                 >
-                  <Plus size={16} color="#10B981" />
-                  <Text style={styles.addStatText}>Əlavə et</Text>
+                  <Plus size={15} color="#10B981" />
+                  <Text style={styles.addStatText} numberOfLines={1}>Əlavə et</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -738,7 +750,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -755,8 +767,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
   warehouseDropdownBtn: {
     flexDirection: 'row',
@@ -851,17 +863,21 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    gap: 8,
-    marginVertical: 10,
+    gap: 6,
+    marginTop: 6,
+    marginBottom: 8,
   },
   statBox: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 54,
   },
   statBoxActive: {
     borderColor: '#10B981',
@@ -876,43 +892,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#EFF6FF',
   },
   statVal: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
     color: '#111827',
   },
   statValRed: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
     color: '#EF4444',
+  },
+  statValText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#111827',
   },
   statLabelWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    gap: 3,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#6B7280',
     marginTop: 2,
-    fontWeight: '500',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   addStatBox: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#A7F3D0',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 54,
     gap: 2,
   },
   addStatText: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#059669',
     fontWeight: '700',
+    textAlign: 'center',
   },
   searchBar: {
     flexDirection: 'row',

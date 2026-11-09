@@ -11,7 +11,6 @@ import {
   TextInput,
   Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Wrench, Plus, CheckCircle, Clock, X, User } from 'lucide-react-native';
 import { WarehouseRepair, WarehouseMaster } from '../types';
 import { repairService } from '../services/repairService';
@@ -107,7 +106,7 @@ export const RepairsScreen: React.FC = () => {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -328,7 +327,7 @@ export const RepairsScreen: React.FC = () => {
           </View>
         </Modal>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -345,8 +344,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 6,
   },
   title: {
     fontSize: 22,
