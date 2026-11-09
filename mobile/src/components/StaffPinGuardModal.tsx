@@ -9,6 +9,7 @@ import {
   Animated,
   ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -28,6 +29,7 @@ import {
   Store,
   Hammer,
   ArrowRight,
+  Settings,
 } from 'lucide-react-native';
 import { StaffMember, StaffRole } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -37,12 +39,14 @@ interface StaffPinGuardModalProps {
   visible: boolean;
   canCancel?: boolean;
   onClose?: () => void;
+  onOpenSettings?: () => void;
 }
 
 export const StaffPinGuardModal: React.FC<StaffPinGuardModalProps> = ({
   visible,
   canCancel = false,
   onClose,
+  onOpenSettings,
 }) => {
   const { profile, staffList, selectStaff, logout, currentStaff } = useAuth();
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | 'owner' | null>(null);
@@ -166,23 +170,54 @@ export const StaffPinGuardModal: React.FC<StaffPinGuardModalProps> = ({
         {/* VIEW 1: SELECT PROFILE ("Kim işləyir?") */}
         {!selectedStaff ? (
           <View style={styles.container}>
-            {/* Top Bar with Cancel (if optional) */}
+            {/* Top Bar with Cancel & Action Buttons (Settings + Logout) */}
             <View style={styles.headerBar}>
-              {canCancel ? (
-                <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-                  <ChevronLeft size={22} color="#111827" />
-                  <Text style={styles.closeBtnText}>Geri</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={{ width: 40 }} />
-              )}
+              <View style={styles.headerLeft}>
+                {canCancel ? (
+                  <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7}>
+                    <ChevronLeft size={22} color="#111827" />
+                    <Text style={styles.closeBtnText}>Geri</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={{ width: 80 }} />
+                )}
+              </View>
 
               <View style={styles.headerBadge}>
                 <Lock size={14} color="#10B981" />
                 <Text style={styles.headerBadgeText}>Təhlükəsiz Giriş</Text>
               </View>
 
-              <View style={{ width: 40 }} />
+              <View style={styles.headerRightActions}>
+                <TouchableOpacity
+                  style={styles.headerActionBtn}
+                  onPress={() => {
+                    if (onOpenSettings) onOpenSettings();
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Tənzimləmələr"
+                >
+                  <Settings size={19} color="#374151" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.headerActionBtn, styles.headerLogoutBtn]}
+                  onPress={() => {
+                    Alert.alert(
+                      'Hesabdan çıxış',
+                      'Sistemdən çıxmaq istədiyinizə əminsiniz?',
+                      [
+                        { text: 'Ləğv et', style: 'cancel' },
+                        { text: 'Çıxış', style: 'destructive', onPress: logout },
+                      ]
+                    );
+                  }}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Çıxış"
+                >
+                  <LogOut size={18} color="#DC2626" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -306,7 +341,12 @@ export const StaffPinGuardModal: React.FC<StaffPinGuardModalProps> = ({
                     </View>
                     <View style={styles.profileInfo}>
                       <View style={styles.nameRow}>
-                        <Text style={styles.ownerTitle}>
+                        <Text
+                          style={[
+                            styles.ownerTitle,
+                            currentStaff === 'owner' && styles.ownerTitleActive,
+                          ]}
+                        >
                           {profile?.full_name || 'Sahib / İdarəçi'}
                         </Text>
                         {currentStaff === 'owner' && (
@@ -316,8 +356,20 @@ export const StaffPinGuardModal: React.FC<StaffPinGuardModalProps> = ({
                         )}
                       </View>
                       <View style={styles.roleRow}>
-                        <View style={styles.ownerBadge}>
-                          <Text style={styles.ownerBadgeText}>İdarəçi · Tam Giriş</Text>
+                        <View
+                          style={[
+                            styles.ownerBadge,
+                            currentStaff === 'owner' && styles.ownerBadgeActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.ownerBadgeText,
+                              currentStaff === 'owner' && styles.ownerBadgeTextActive,
+                            ]}
+                          >
+                            İdarəçi · Tam Giriş
+                          </Text>
                         </View>
                       </View>
                     </View>
@@ -661,12 +713,37 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
+  headerLeft: {
+    minWidth: 80,
+    alignItems: 'flex-start',
+  },
+  headerRightActions: {
+    minWidth: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  headerActionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  headerLogoutBtn: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
   closeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
   },
   closeBtnText: {
     fontSize: 14,
@@ -847,6 +924,9 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#fff',
   },
+  ownerTitleActive: {
+    color: '#0F172A',
+  },
   staffName: {
     fontSize: 16,
     fontWeight: '800',
@@ -872,10 +952,17 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 8,
   },
+  ownerBadgeActive: {
+    backgroundColor: '#DBEAFE',
+  },
   ownerBadgeText: {
     color: '#93C5FD',
     fontSize: 11,
     fontWeight: '700',
+  },
+  ownerBadgeTextActive: {
+    color: '#1D4ED8',
+    fontWeight: '800',
   },
   roleBadge: {
     flexDirection: 'row',

@@ -43,7 +43,7 @@ type Tab = 'warehouse' | 'operations' | 'pos' | 'reports' | 'repairs' | 'pcgun' 
 
 function MainApp() {
   const insets = useSafeAreaInsets();
-  const { session, loading, currentStaff, permissions, isStaffLocked } = useAuth();
+  const { session, loading, currentStaff, permissions, isStaffLocked, unlockStaff } = useAuth();
   const [currentTab, setCurrentTab] = useState<Tab>('warehouse');
   const [loadedTabs, setLoadedTabs] = useState<Set<Tab>>(new Set(['warehouse']));
   const [scannerVisible, setScannerVisible] = useState(false);
@@ -260,7 +260,11 @@ function MainApp() {
 
         {loadedTabs.has('settings') && (
           <View style={[styles.screenTab, currentTab !== 'settings' && styles.screenHidden]}>
-            <SettingsScreen />
+            <SettingsScreen
+              onBack={() => handleTabPress('warehouse')}
+              onOpenScanner={handleOpenScanner}
+              lastBeamedBarcode={lastBeamedBarcode}
+            />
           </View>
         )}
       </View>
@@ -403,44 +407,6 @@ function MainApp() {
             </Text>
           </TouchableOpacity>
         )}
-
-        {/* Tab 5: Wireless PC Gun */}
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => handleTabPress('pcgun')}
-        >
-          <Radio
-            size={22}
-            color={currentTab === 'pcgun' ? '#10B981' : '#9CA3AF'}
-          />
-          <Text
-            style={[
-              styles.navLabel,
-              currentTab === 'pcgun' && styles.navLabelActive,
-            ]}
-          >
-            PC Skaner
-          </Text>
-        </TouchableOpacity>
-
-        {/* Tab 6: Settings (Tənzimləmələr) */}
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => handleTabPress('settings')}
-        >
-          <Settings
-            size={22}
-            color={currentTab === 'settings' ? '#10B981' : '#9CA3AF'}
-          />
-          <Text
-            style={[
-              styles.navLabel,
-              currentTab === 'settings' && styles.navLabelActive,
-            ]}
-          >
-            Tənzimləmə
-          </Text>
-        </TouchableOpacity>
       </View>
       )}
 
@@ -473,6 +439,11 @@ function MainApp() {
       <StaffPinGuardModal
         visible={isStaffLocked}
         canCancel={!!currentStaff}
+        onClose={unlockStaff}
+        onOpenSettings={() => {
+          unlockStaff();
+          handleTabPress('settings');
+        }}
       />
     </SafeAreaView>
   );

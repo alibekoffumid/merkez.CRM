@@ -18,6 +18,7 @@ import {
   Laptop,
   ArrowRight,
   Trash2,
+  ChevronLeft,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { scannerSyncService } from '../services/scannerSyncService';
@@ -25,6 +26,7 @@ import { scannerSyncService } from '../services/scannerSyncService';
 interface PCGunScreenProps {
   onOpenScanner: (mode: 'gun') => void;
   lastBeamedBarcode?: string | null;
+  onBack?: () => void;
 }
 
 interface ScanLog {
@@ -37,6 +39,7 @@ interface ScanLog {
 export const PCGunScreen: React.FC<PCGunScreenProps> = ({
   onOpenScanner,
   lastBeamedBarcode,
+  onBack,
 }) => {
   const [roomCode, setRoomCode] = useState('merkez-pc-1');
   const [connected, setConnected] = useState(false);
@@ -95,6 +98,12 @@ export const PCGunScreen: React.FC<PCGunScreenProps> = ({
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
+          {onBack && (
+            <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
+              <ChevronLeft size={18} color="#10B981" />
+              <Text style={styles.backButtonText}>Tənzimləmələrə qayıt</Text>
+            </TouchableOpacity>
+          )}
           <Text style={styles.title}>PC üçün Simsiz Skaner</Text>
           <Text style={styles.sub}>
             Telefon kompüter üçün lazer skaner rolunu oynayır
@@ -217,8 +226,24 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingTop: 8,
     paddingBottom: 6,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#ECFDF5',
+  },
+  backButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#10B981',
   },
   title: {
     fontSize: 22,
