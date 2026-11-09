@@ -1151,11 +1151,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <View style={styles.menuItemContent}>
             <View style={styles.menuItemTopRow}>
               <Text style={styles.menuItemTitle}>Çap və Printerlər</Text>
-              <View style={[styles.menuStatusBadge, { backgroundColor: activePrinter ? '#ECFDF5' : '#F3F4F6' }]}>
-                <Text style={[styles.menuStatusText, { color: activePrinter ? '#059669' : '#6B7280' }]}>
-                  {activePrinter ? `${activePrinter.ipAddress}` : 'Qoşulmayıb'}
-                </Text>
-              </View>
             </View>
             <Text style={styles.menuItemDesc}>
               Wi-Fi və şəbəkə printerləri, RawBT, sınaq çapı və kağız formatı
@@ -1176,9 +1171,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <View style={styles.menuItemContent}>
             <View style={styles.menuItemTopRow}>
               <Text style={styles.menuItemTitle}>PC Skaner (Simsiz Barkod Oxuyucu)</Text>
-              <View style={[styles.menuStatusBadge, { backgroundColor: '#EFF6FF' }]}>
-                <Text style={[styles.menuStatusText, { color: '#2563EB' }]}>merkez-pc-1</Text>
-              </View>
             </View>
             <Text style={styles.menuItemDesc}>
               Telefonu kompüter üçün lazer skaner kimi istifadə edin (1C, CRM, Veb)
@@ -1276,7 +1268,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <View style={styles.menuItemTopRow}>
               <Text style={styles.menuItemTitle}>Tətbiq Haqqında</Text>
               <View style={styles.versionBadge}>
-                <Text style={styles.versionBadgeText}>v1.1.7 (Build 18)</Text>
+                <Text style={styles.versionBadgeText}>v1.1.8 (Build 19)</Text>
               </View>
             </View>
             <Text style={styles.menuItemDesc}>
