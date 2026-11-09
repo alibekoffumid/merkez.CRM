@@ -14,7 +14,6 @@ import {
   Modal,
   Keyboard,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ShoppingBag,
   Barcode,
@@ -480,7 +479,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -1578,7 +1577,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         onClose={() => setSuccessModalVisible(false)}
         onOpenPrinterSettings={() => setPrinterModalVisible(true)}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -1595,8 +1594,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 4,
+    paddingBottom: 6,
   },
   headerActions: {
     flexDirection: 'row',
@@ -1649,7 +1648,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 6,
     paddingBottom: 20,
   },
   itemRow: {
