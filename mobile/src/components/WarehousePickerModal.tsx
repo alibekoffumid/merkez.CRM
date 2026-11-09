@@ -85,10 +85,10 @@ export const WarehousePickerModal: React.FC<WarehousePickerModalProps> = ({
               <View style={styles.iconBox}>
                 <Store size={20} color="#2563EB" />
               </View>
-              <div>
+              <View>
                 <Text style={styles.title}>Filial və Anbar Seçimi</Text>
                 <Text style={styles.subtitle}>Cari mağaza və ya anbarı dəyişin</Text>
-              </div>
+              </View>
             </View>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
               <X size={18} color="#6B7280" />
