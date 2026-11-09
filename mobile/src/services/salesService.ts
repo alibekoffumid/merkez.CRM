@@ -23,7 +23,13 @@ export interface SplitSaleDetails {
   creditMarkupPercent?: number;
 }
 
-export type POSPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT' | 'SPLIT';
+export interface BirmarketSaleDetails {
+  category: 'Alətlər' | 'Aksesuarlar';
+  grossAmount: number;
+  pureProfit: number;
+}
+
+export type POSPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT' | 'SPLIT' | 'BIRMARKET';
 
 export interface ProcessSaleOptions {
   discountAmount?: number;
@@ -37,6 +43,7 @@ export interface ProcessSaleOptions {
     advanceRecipient?: string;
   };
   splitDetails?: SplitSaleDetails;
+  birmarketDetails?: BirmarketSaleDetails;
 }
 
 export const salesService = {
@@ -67,6 +74,7 @@ export const salesService = {
     let creditDetails = creditDetailsArg;
     let depositDetails: { advanceAmount: number; advanceRecipient?: string } | undefined;
     let splitDetails: SplitSaleDetails | undefined;
+    let birmarketDetails: BirmarketSaleDetails | undefined;
 
     if (typeof discountOrOptions === 'object' && discountOrOptions !== null) {
       discountAmount = discountOrOptions.discountAmount || 0;
@@ -76,6 +84,7 @@ export const salesService = {
       creditDetails = discountOrOptions.creditDetails ?? creditDetailsArg;
       depositDetails = discountOrOptions.depositDetails;
       splitDetails = discountOrOptions.splitDetails;
+      birmarketDetails = discountOrOptions.birmarketDetails;
     } else {
       discountAmount = Number(discountOrOptions) || 0;
       discountValue = discountAmount;
@@ -87,10 +96,19 @@ export const salesService = {
       return sum + price * item.quantity;
     }, 0);
 
+    const netSaleBase = Math.max(0, subtotal - discountAmount);
+    const birmarketGross = birmarketDetails?.grossAmount ?? (
+      birmarketDetails?.category === 'Aksesuarlar'
+        ? Number((netSaleBase * 1.245).toFixed(2))
+        : Math.floor(netSaleBase * 1.1751 * 100) / 100
+    );
+
     const total =
       paymentMethod === 'CREDIT' && creditDetails
         ? creditDetails.contractTotal
-        : Math.max(0, subtotal - discountAmount);
+        : paymentMethod === 'BIRMARKET'
+        ? birmarketGross
+        : netSaleBase;
 
     // 2. Decrement stock using movementService with reason 'sale'
     const dispatchItems = items.map((i) => ({
@@ -105,6 +123,12 @@ export const salesService = {
     if (paymentMethod === 'CREDIT' && creditDetails) {
       channelPrefix = `[Kanal: Kredit - ${creditDetails.bank}] `;
       saleDetailsNote = `Kredit Satışı (${creditDetails.months} ay): Müqavilə: ₼${creditDetails.contractTotal.toFixed(2)}, Aylıq: ₼${creditDetails.monthlyPayment.toFixed(2)}, Faiz: ${creditDetails.markupPercent.toFixed(1)}%`;
+    } else if (paymentMethod === 'BIRMARKET') {
+      channelPrefix = '[Kanal: Birmarket] ';
+      const cat = birmarketDetails?.category || 'Alətlər';
+      const gross = birmarketDetails?.grossAmount ?? birmarketGross;
+      const profit = birmarketDetails?.pureProfit ?? netSaleBase;
+      saleDetailsNote = `Satış (${cat}): Kassaya/Saytda: ₼${gross.toFixed(2)}, Mənfəət: ₼${profit.toFixed(2)}`;
     } else if (paymentMethod === 'SPLIT' && splitDetails) {
       const spCredit = splitDetails.credit > 0
         ? `, Kredit: ₼${splitDetails.credit.toFixed(2)} (${splitDetails.creditBank} - ${splitDetails.creditMonths} ay, Müqavilə: ₼${(splitDetails.creditContract || 0).toFixed(2)})`

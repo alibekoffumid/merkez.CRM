@@ -36,6 +36,7 @@ import {
   Printer,
   Gift,
   Layers,
+  Store,
 } from 'lucide-react-native';
 import { POSCartItem } from '../types';
 import { productService } from '../services/productService';
@@ -95,6 +96,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [clientPhone, setClientPhone] = useState('');
   const [advanceAmountInput, setAdvanceAmountInput] = useState('');
   const [advanceRecipientInput, setAdvanceRecipientInput] = useState('');
+  const [birmarketCategory, setBirmarketCategory] = useState<'Alətlər' | 'Aksesuarlar'>('Alətlər');
   const [processing, setProcessing] = useState(false);
 
   // Printer & Checkout Success Modals
@@ -195,9 +197,26 @@ export const POSScreen: React.FC<POSScreenProps> = ({
     else if (type === 'credit') setSplitCredit(rem > 0 ? rem.toString() : '');
   };
 
+  const birmarketResult = useMemo(() => {
+    const net = discountedBase;
+    const gross = birmarketCategory === 'Alətlər'
+      ? Math.floor(net * 1.1751 * 100) / 100
+      : Number((net * 1.245).toFixed(2));
+    const markupRate = birmarketCategory === 'Alətlər' ? 17.51 : 24.5;
+    const siteCommissionRate = birmarketCategory === 'Alətlər' ? 10 : 15;
+    return {
+      gross,
+      profit: net,
+      markupRate,
+      siteCommissionRate,
+    };
+  }, [discountedBase, birmarketCategory]);
+
   const total =
     paymentMethod === 'CREDIT'
       ? creditResult.contractTotal
+      : paymentMethod === 'BIRMARKET'
+      ? birmarketResult.gross
       : discountedBase;
 
   // Checkout Handler
@@ -291,6 +310,11 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             creditGross: splitCreditResult.grossAmount,
             creditMarkupPercent: splitCreditResult.markupPercent,
           } : undefined,
+          birmarketDetails: paymentMethod === 'BIRMARKET' ? {
+            category: birmarketCategory,
+            grossAmount: birmarketResult.gross,
+            pureProfit: birmarketResult.profit,
+          } : undefined,
         }
       );
 
@@ -301,13 +325,15 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           ? 'Kart'
           : paymentMethod === 'TERMINAL'
           ? 'Terminal'
-          : paymentMethod === 'TRANSFER'
-          ? 'Köçürmə'
-          : paymentMethod === 'DEPOSIT'
-          ? 'Beh (Avans)'
           : paymentMethod === 'SPLIT'
           ? 'Qarışıq (Bölünmüş)'
-          : 'Kredit';
+          : paymentMethod === 'CREDIT'
+          ? 'Kredit (Hissə-hissə)'
+          : paymentMethod === 'BIRMARKET'
+          ? 'Birmarket'
+          : paymentMethod === 'DEPOSIT'
+          ? 'Beh (Avans)'
+          : 'Köçürmə';
 
       const receiptData: SaleReceiptData = {
         saleId: res.saleId,
@@ -361,6 +387,14 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 advanceAmount: parseFloat(advanceAmountInput) || 0,
                 advanceRecipient: advanceRecipientInput.trim(),
                 remainingBalance: Math.max(0, res.total - (parseFloat(advanceAmountInput) || 0)),
+              }
+            : undefined,
+        birmarketDetails:
+          paymentMethod === 'BIRMARKET'
+            ? {
+                category: birmarketCategory,
+                grossAmount: birmarketResult.gross,
+                pureProfit: birmarketResult.profit,
               }
             : undefined,
         clientName: formattedClient,
@@ -586,7 +620,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         {/* Footer Checkout Panel */}
         {cart.length > 0 && (
           <View style={styles.footer}>
-            {/* Payment Methods: Nəğd | Kart | Terminal | Beh | Köçürmə | Kredit */}
+            {/* Payment Methods: Nağd | Kart | Terminal | Qarışıq | Kredit | Birmarket | Beh (Avans) | Köçürmə */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.methodTabs}>
               <TouchableOpacity
                 style={[styles.methodTab, paymentMethod === 'CASH' && styles.methodTabActive]}
@@ -599,7 +633,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     paymentMethod === 'CASH' && styles.methodTabTextActive,
                   ]}
                 >
-                  Nəğd
+                  Nağd
                 </Text>
               </TouchableOpacity>
 
@@ -649,6 +683,36 @@ export const POSScreen: React.FC<POSScreenProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
+                style={[styles.methodTab, paymentMethod === 'CREDIT' && styles.methodTabActiveBlue]}
+                onPress={() => setPaymentMethod('CREDIT')}
+              >
+                <Calculator size={15} color={paymentMethod === 'CREDIT' ? '#2563EB' : '#6B7280'} />
+                <Text
+                  style={[
+                    styles.methodTabText,
+                    paymentMethod === 'CREDIT' && styles.methodTabTextActiveBlue,
+                  ]}
+                >
+                  Kredit
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.methodTab, paymentMethod === 'BIRMARKET' && styles.methodTabActiveRose]}
+                onPress={() => setPaymentMethod('BIRMARKET')}
+              >
+                <Store size={15} color={paymentMethod === 'BIRMARKET' ? '#E11D48' : '#6B7280'} />
+                <Text
+                  style={[
+                    styles.methodTabText,
+                    paymentMethod === 'BIRMARKET' && styles.methodTabTextActiveRose,
+                  ]}
+                >
+                  Birmarket
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={[styles.methodTab, paymentMethod === 'DEPOSIT' && styles.methodTabActiveAmber]}
                 onPress={() => setPaymentMethod('DEPOSIT')}
               >
@@ -675,21 +739,6 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   ]}
                 >
                   Köçürmə
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'CREDIT' && styles.methodTabActiveBlue]}
-                onPress={() => setPaymentMethod('CREDIT')}
-              >
-                <Calculator size={15} color={paymentMethod === 'CREDIT' ? '#2563EB' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'CREDIT' && styles.methodTabTextActiveBlue,
-                  ]}
-                >
-                  Kredit
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -1139,6 +1188,64 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     <Text style={styles.metricLabel}>Qalıq borc:</Text>
                     <Text style={{ fontSize: 13, fontWeight: '900', color: '#2563EB' }}>
                       {Math.max(0, total - (parseFloat(advanceAmountInput) || 0)).toFixed(2)} ₼
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* If BIRMARKET: Render Category picker and breakdown */}
+            {paymentMethod === 'BIRMARKET' && (
+              <View style={styles.birmarketCalcBox}>
+                <Text style={styles.birmarketSectionLabel}>Birmarket Kateqoriyası:</Text>
+                <View style={styles.chipsRow}>
+                  <TouchableOpacity
+                    style={[styles.birmarketChip, birmarketCategory === 'Alətlər' && styles.birmarketChipActive]}
+                    onPress={() => setBirmarketCategory('Alətlər')}
+                  >
+                    <Text style={[styles.birmarketChipText, birmarketCategory === 'Alətlər' && styles.birmarketChipTextActive]}>
+                      Alətlər (10% komissiya)
+                    </Text>
+                    <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Alətlər' && styles.birmarketChipSubTextActive]}>
+                      +17.51% artım
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.birmarketChip, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipActive]}
+                    onPress={() => setBirmarketCategory('Aksesuarlar')}
+                  >
+                    <Text style={[styles.birmarketChipText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipTextActive]}>
+                      Aksesuarlar (15% komissiya)
+                    </Text>
+                    <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipSubTextActive]}>
+                      +24.5% artım
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Calculation breakdown */}
+                <View style={styles.birmarketSummaryBox}>
+                  <View style={styles.metricRow}>
+                    <Text style={styles.metricLabel}>Məhsulun ilkin cəmi:</Text>
+                    <Text style={styles.metricVal}>{discountedBase.toFixed(2)} ₼</Text>
+                  </View>
+                  <View style={styles.metricRow}>
+                    <Text style={styles.metricLabel}>Sayt üçün artım (Markup):</Text>
+                    <Text style={[styles.metricVal, { color: '#E11D48', fontWeight: '700' }]}>+{birmarketResult.markupRate}%</Text>
+                  </View>
+                  <View style={styles.metricRow}>
+                    <Text style={styles.metricLabel}>Saytda / Kassaya məbləğ:</Text>
+                    <Text style={[styles.metricVal, { color: '#E11D48', fontWeight: '900', fontSize: 13 }]}>
+                      {birmarketResult.gross.toFixed(2)} ₼
+                    </Text>
+                  </View>
+                  <View style={[styles.metricRow, { borderTopWidth: 1, borderTopColor: '#FECDD3', paddingTop: 4, marginTop: 2 }]}>
+                    <Text style={[styles.metricLabel, { fontWeight: '700', color: '#059669' }]}>
+                      Mağazanın xalis mənfəəti:
+                    </Text>
+                    <Text style={[styles.metricVal, { color: '#059669', fontWeight: '900', fontSize: 13 }]}>
+                      {birmarketResult.profit.toFixed(2)} ₼
                     </Text>
                   </View>
                 </View>
@@ -1669,6 +1776,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#7C3AED',
   },
+  methodTabActiveRose: {
+    backgroundColor: '#FFF1F2',
+    borderWidth: 1,
+    borderColor: '#E11D48',
+  },
   methodTabText: {
     fontSize: 12,
     fontWeight: '700',
@@ -1689,6 +1801,66 @@ const styles = StyleSheet.create({
   methodTabTextActivePurple: {
     color: '#7C3AED',
     fontWeight: '800',
+  },
+  methodTabTextActiveRose: {
+    color: '#E11D48',
+    fontWeight: '800',
+  },
+  birmarketCalcBox: {
+    backgroundColor: '#FFF1F2',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+  },
+  birmarketSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9F1239',
+    marginBottom: 6,
+  },
+  birmarketChip: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  birmarketChipActive: {
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
+  },
+  birmarketChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+    textAlign: 'center',
+  },
+  birmarketChipTextActive: {
+    color: '#fff',
+  },
+  birmarketChipSubText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#E11D48',
+    marginTop: 2,
+  },
+  birmarketChipSubTextActive: {
+    color: '#FFE4E6',
+  },
+  birmarketSummaryBox: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+    marginTop: 6,
+    gap: 4,
   },
   depositCalcBox: {
     backgroundColor: '#FFFBEB',

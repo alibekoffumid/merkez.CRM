@@ -269,6 +269,11 @@ export interface SaleReceiptData {
     creditContract?: number;
     creditMonthlyPayment?: number;
   };
+  birmarketDetails?: {
+    category: 'Alətlər' | 'Aksesuarlar';
+    grossAmount: number;
+    pureProfit: number;
+  };
   clientName?: string;
   clientPhone?: string;
   cashierName?: string;
@@ -685,6 +690,15 @@ export const receiptService = {
         lines.push(padRow('Avans alan:', data.depositDetails.advanceRecipient, width));
       }
       lines.push(padRow('Qalıq borc:', `${Number(data.depositDetails.remainingBalance).toFixed(2)} ₼`, width));
+    }
+
+    // Birmarket breakdown if applicable
+    if (data.birmarketDetails) {
+      lines.push(dividerSingle);
+      lines.push(padCenter('BİRMARKET SATIŞI', width));
+      lines.push(padRow('Kateqoriya:', data.birmarketDetails.category, width));
+      lines.push(padRow('Saytda məbləğ:', `${Number(data.birmarketDetails.grossAmount).toFixed(2)} ₼`, width));
+      lines.push(padRow('Xalis mənfəət:', `${Number(data.birmarketDetails.pureProfit).toFixed(2)} ₼`, width));
     }
 
     lines.push(dividerDouble);
@@ -1175,6 +1189,19 @@ export const receiptService = {
           `
               : ''
           }
+
+          ${
+            data.birmarketDetails
+              ? `
+            <div class="credit-info" style="margin-top: 4px; padding: 3px 0; border-top: 1px dashed #000;">
+              <div class="bold">BİRMARKET SATIŞI</div>
+              <div>Kateqoriya: ${escapeHtml(data.birmarketDetails.category)}</div>
+              <div>Saytda məbləğ: ${Number(data.birmarketDetails.grossAmount || 0).toFixed(2)} AZN</div>
+              <div>Xalis mənfəət: ${Number(data.birmarketDetails.pureProfit || 0).toFixed(2)} AZN</div>
+            </div>
+          `
+              : ''
+          }
         </div>
 
         ${
@@ -1353,6 +1380,15 @@ export const receiptService = {
         builder.line(padRow('Avans alan:', cleanAzeriText(data.depositDetails.advanceRecipient), width));
       }
       builder.line(padRow('Qaliq borc:', `${Number(data.depositDetails.remainingBalance).toFixed(2)} AZN`, width));
+    }
+
+    // Birmarket details
+    if (data.birmarketDetails) {
+      builder.line(dividerSingle);
+      centerWrapped(builder, 'BIRMARKET SATISI', width);
+      builder.line(padRow('Kateqoriya:', cleanAzeriText(data.birmarketDetails.category), width));
+      builder.line(padRow('Saytda mebleg:', `${Number(data.birmarketDetails.grossAmount).toFixed(2)} AZN`, width));
+      builder.line(padRow('Xalis menfeet:', `${Number(data.birmarketDetails.pureProfit).toFixed(2)} AZN`, width));
     }
 
     builder.line(dividerDouble);
