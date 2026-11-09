@@ -43,7 +43,7 @@ const server = http.createServer((req, res) => {
           <h2>📦 Merkez Склад & Сканер</h2>
           <p>Android üçün rəsmi quraşdırma faylı (Release APK)</p>
           <a class="btn" href="/merkez-mobile.apk">Yüklə (APK Endir)</a>
-          <div class="size">Fayl ölçüsü: ~98.4 MB · Versiya: 1.0.0</div>
+          <div class="size">Fayl ölçüsü: ~98.7 MB · Versiya: 1.0.1 (Build 2)</div>
         </div>
       </body>
       </html>
