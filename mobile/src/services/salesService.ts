@@ -37,6 +37,7 @@ export interface ProcessSaleOptions {
   discountValue?: number;
   clientName?: string;
   clientPhone?: string;
+  salesChannel?: string;
   creditDetails?: CreditSaleDetails;
   depositDetails?: {
     advanceAmount: number;
@@ -75,6 +76,7 @@ export const salesService = {
     let depositDetails: { advanceAmount: number; advanceRecipient?: string } | undefined;
     let splitDetails: SplitSaleDetails | undefined;
     let birmarketDetails: BirmarketSaleDetails | undefined;
+    let salesChannel = 'Mağaza';
 
     if (typeof discountOrOptions === 'object' && discountOrOptions !== null) {
       discountAmount = discountOrOptions.discountAmount || 0;
@@ -85,6 +87,7 @@ export const salesService = {
       depositDetails = discountOrOptions.depositDetails;
       splitDetails = discountOrOptions.splitDetails;
       birmarketDetails = discountOrOptions.birmarketDetails;
+      salesChannel = discountOrOptions.salesChannel || 'Mağaza';
     } else {
       discountAmount = Number(discountOrOptions) || 0;
       discountValue = discountAmount;
@@ -117,7 +120,7 @@ export const salesService = {
       warehouseId: (i.product as any).warehouse_id,
     }));
 
-    let channelPrefix = '[Kanal: Mağaza] ';
+    let channelPrefix = `[Kanal: ${salesChannel}] `;
     let saleDetailsNote = '';
 
     if (paymentMethod === 'CREDIT' && creditDetails) {
@@ -136,6 +139,8 @@ export const salesService = {
       saleDetailsNote = `POS Satış #${saleId} [Qarışıq: Nağd: ₼${splitDetails.cash.toFixed(2)}, Kart: ₼${splitDetails.card.toFixed(2)}, Terminal: ₼${splitDetails.terminal.toFixed(2)}${spCredit}]`;
       if (splitDetails.credit > 0 && splitDetails.creditBank) {
         channelPrefix = `[Kanal: Kredit - ${splitDetails.creditBank}] `;
+      } else {
+        channelPrefix = `[Kanal: ${salesChannel}] `;
       }
     } else if (paymentMethod === 'DEPOSIT') {
       saleDetailsNote = `Məhsul Satışı (Ödəniş: Beh)`;

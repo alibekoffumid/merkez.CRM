@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
   KeyboardAvoidingView,
   Modal,
   Keyboard,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import {
   ShoppingBag,
@@ -37,10 +39,17 @@ import {
   Gift,
   Layers,
   Store,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  KeyRound,
 } from 'lucide-react-native';
 import { POSCartItem } from '../types';
 import { productService } from '../services/productService';
 import { salesService, POSPaymentMethod } from '../services/salesService';
+import { salesChannelService, DEFAULT_SALES_CHANNELS } from '../services/salesChannelService';
+import { SalesChannelPickerModal } from '../components/SalesChannelPickerModal';
+import { RentProductModal } from '../components/RentProductModal';
 import {
   CREDIT_BANKS,
   CreditBank,
@@ -108,6 +117,50 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [editingItem, setEditingItem] = useState<POSCartItem | null>(null);
   const [itemCustomPriceInput, setItemCustomPriceInput] = useState('');
 
+  // Sales Channel State
+  const [salesChannel, setSalesChannel] = useState('Mağaza');
+  const [channels, setChannels] = useState<string[]>(DEFAULT_SALES_CHANNELS);
+  const [customChannels, setCustomChannels] = useState<string[]>([]);
+  const [channelPickerVisible, setChannelPickerVisible] = useState(false);
+  const [rentModalVisible, setRentModalVisible] = useState(false);
+
+  const handleOpenRentModal = () => {
+    if (cart.length === 0) {
+      Alert.alert('Səbət boşdur', 'İcarəyə vermək üçün əvvəlcə səbətə məhsul əlavə edin');
+      return;
+    }
+    setRentModalVisible(true);
+  };
+
+  useEffect(() => {
+    loadSalesChannels();
+  }, []);
+
+  const loadSalesChannels = async () => {
+    try {
+      const res = await salesChannelService.getChannels();
+      setChannels(res.allChannels);
+      setCustomChannels(res.customChannels);
+    } catch (e) {
+      console.warn('Failed to load sales channels:', e);
+    }
+  };
+
+  const handleAddCustomChannel = async (name: string) => {
+    const res = await salesChannelService.addChannel(name);
+    setChannels(res.allChannels);
+    setCustomChannels(res.customChannels);
+  };
+
+  const handleDeleteCustomChannel = async (name: string) => {
+    const res = await salesChannelService.deleteChannel(name);
+    setChannels(res.allChannels);
+    setCustomChannels(res.customChannels);
+    if (salesChannel === name) {
+      setSalesChannel('Mağaza');
+    }
+  };
+
   // Keyboard avoidance height tracking
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
@@ -130,6 +183,136 @@ export const POSScreen: React.FC<POSScreenProps> = ({
     };
   }, []);
   const [itemDiscountPercentInput, setItemDiscountPercentInput] = useState('');
+
+  // Swipeable Bottom Checkout Sheet State & Gesture (100% Native Driver, no mount/unmount jump)
+  const [isSheetCollapsed, setIsSheetCollapsed] = useState(false);
+  const [bottomBarHeight, setBottomBarHeight] = useState(58);
+  const isSheetCollapsedRef = useRef(false);
+  const sheetTranslateY = useRef(new Animated.Value(0)).current;
+  const currentTranslateYRef = useRef(0);
+  const dragStartYRef = useRef(0);
+  const sheetBodyHeightRef = useRef(360);
+  const footerScrollRef = useRef<ScrollView>(null);
+  const footerScrollOffsetRef = useRef(0);
+
+  useEffect(() => {
+    const subId = sheetTranslateY.addListener(({ value }) => {
+      currentTranslateYRef.current = value;
+    });
+    return () => {
+      sheetTranslateY.removeListener(subId);
+    };
+  }, [sheetTranslateY]);
+
+  const snapToCollapsed = (velocity = 0) => {
+    Keyboard.dismiss();
+    const target = Math.max(0, sheetBodyHeightRef.current);
+    isSheetCollapsedRef.current = true;
+    Animated.spring(sheetTranslateY, {
+      toValue: target,
+      velocity: Math.max(0, velocity),
+      useNativeDriver: true,
+      damping: 28,
+      stiffness: 280,
+      mass: 0.8,
+      overshootClamping: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        setIsSheetCollapsed(true);
+      }
+    });
+  };
+
+  const snapToExpanded = (velocity = 0) => {
+    isSheetCollapsedRef.current = false;
+    Animated.spring(sheetTranslateY, {
+      toValue: 0,
+      velocity: Math.min(0, velocity),
+      useNativeDriver: true,
+      damping: 28,
+      stiffness: 280,
+      mass: 0.8,
+      overshootClamping: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        setIsSheetCollapsed(false);
+      }
+    });
+  };
+
+  const toggleSheetCollapsed = () => {
+    if (isSheetCollapsedRef.current) {
+      snapToExpanded();
+    } else {
+      snapToCollapsed();
+    }
+  };
+
+  const handleSelectPaymentMethod = (method: POSPaymentMethod) => {
+    setPaymentMethod(method);
+    footerScrollRef.current?.scrollTo({ y: 0, animated: false });
+    footerScrollOffsetRef.current = 0;
+    if (isSheetCollapsedRef.current) {
+      snapToExpanded();
+    }
+  };
+
+  const sheetPanResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        const dy = gestureState.dy;
+        const dx = gestureState.dx;
+        if (Math.abs(dy) < 8 || Math.abs(dy) < Math.abs(dx) * 1.35) {
+          return false;
+        }
+        if (isSheetCollapsedRef.current) {
+          return dy < -8;
+        }
+        if (dy > 8 && footerScrollOffsetRef.current <= 4) {
+          return true;
+        }
+        return false;
+      },
+      onPanResponderGrant: () => {
+        sheetTranslateY.stopAnimation((val) => {
+          currentTranslateYRef.current = val;
+          dragStartYRef.current = val;
+        });
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const maxOffset = Math.max(0, sheetBodyHeightRef.current);
+        const nextY = Math.max(0, Math.min(maxOffset, dragStartYRef.current + gestureState.dy));
+        sheetTranslateY.setValue(nextY);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const dy = gestureState.dy;
+        const vy = gestureState.vy;
+        const maxOffset = Math.max(0, sheetBodyHeightRef.current);
+        const currentY = currentTranslateYRef.current;
+
+        if (isSheetCollapsedRef.current) {
+          if (dy < -28 || vy < -0.25 || currentY < maxOffset * 0.72) {
+            snapToExpanded(vy);
+          } else {
+            snapToCollapsed(vy);
+          }
+        } else {
+          if (dy > 32 || vy > 0.25 || currentY > maxOffset * 0.25) {
+            snapToCollapsed(vy);
+          } else {
+            snapToExpanded(vy);
+          }
+        }
+      },
+      onPanResponderTerminate: () => {
+        if (isSheetCollapsedRef.current) {
+          snapToCollapsed();
+        } else {
+          snapToExpanded();
+        }
+      },
+    })
+  ).current;
 
   // Calculate effective price for each item
   const getItemEffectivePrice = (item: POSCartItem): number => {
@@ -315,6 +498,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           discountValue: discountVal,
           clientName: formattedClient,
           clientPhone: clientPhone.trim() || undefined,
+          salesChannel,
           creditDetails,
           depositDetails: paymentMethod === 'DEPOSIT' ? {
             advanceAmount: parseFloat(advanceAmountInput) || 0,
@@ -421,6 +605,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             : undefined,
         clientName: formattedClient,
         clientPhone: clientPhone.trim() || undefined,
+        salesChannel,
       };
 
       setCompletedReceiptData(receiptData);
@@ -510,16 +695,17 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           </View>
         </View>
 
-        {/* Cart items list */}
+        {/* Cart items list (always rendered behind/above the swipeable bottom checkout sheet) */}
         <FlatList
           data={cart}
+          style={styles.cartList}
           keyExtractor={(item) => item.product.id}
           renderItem={({ item }) => {
             const effectivePrice = getItemEffectivePrice(item);
             const basePrice = item.product.sale_price ?? item.product.price ?? 0;
             const itemTotal = effectivePrice * item.quantity;
             const hasCustomDiscount =
-              item.customPrice !== undefined ||
+              (item.customPrice !== undefined && Math.abs(item.customPrice - basePrice) > 0.005) ||
               (item.discount && item.discount > 0) ||
               (item.product.discount_value && item.product.discount_value > 0);
 
@@ -643,143 +829,186 @@ export const POSScreen: React.FC<POSScreenProps> = ({
               </TouchableOpacity>
             </View>
           }
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            cart.length > 0 && {
+              paddingBottom: 340,
+            },
+          ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         />
 
-        {/* Footer Checkout Panel */}
+        {/* Swipeable Footer Checkout Panel */}
         {cart.length > 0 && (
-          <View
+          <>
+          <Animated.View
+            {...sheetPanResponder.panHandlers}
             style={[
               styles.footer,
+              {
+                bottom: bottomBarHeight,
+                transform: [{ translateY: sheetTranslateY }],
+              },
               keyboardHeight > 0 && {
                 marginBottom: Platform.OS === 'android' ? keyboardHeight : 0,
               },
             ]}
           >
-            {/* Payment Methods: Nağd | Kart | Terminal | Qarışıq | Kredit | Birmarket | Beh (Avans) | Köçürmə */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.methodTabs}>
+            <View style={styles.sheetTopHeader}>
+              {/* Swipe Handle Bar */}
               <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'CASH' && styles.methodTabActive]}
-                onPress={() => setPaymentMethod('CASH')}
+                style={styles.sheetHandleArea}
+                onPress={toggleSheetCollapsed}
+                activeOpacity={0.8}
               >
-                <Banknote size={15} color={paymentMethod === 'CASH' ? '#10B981' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'CASH' && styles.methodTabTextActive,
-                  ]}
-                >
-                  Nağd
-                </Text>
+                <View style={styles.sheetHandlePill} />
+                <View style={styles.sheetHandleSubRow}>
+                  <Text style={styles.sheetHandleHintText}>
+                    {isSheetCollapsed
+                      ? `Ödəniş panelini aç (${cart.length} məhsul)`
+                      : `Səbətə baxmaq üçün aşağı sürüşdürün (${cart.length} məhsul)`}
+                  </Text>
+                  {isSheetCollapsed ? (
+                    <ChevronUp size={15} color="#64748B" />
+                  ) : (
+                    <ChevronDown size={15} color="#64748B" />
+                  )}
+                </View>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'CARD' && styles.methodTabActive]}
-                onPress={() => setPaymentMethod('CARD')}
+              {/* Payment Methods: Nağd | Kart | Terminal | Qarışıq | Kredit | Birmarket */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.methodTabsScroll}
+                contentContainerStyle={styles.methodTabs}
               >
-                <CreditCard size={15} color={paymentMethod === 'CARD' ? '#10B981' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'CARD' && styles.methodTabTextActive,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, paymentMethod === 'CASH' && styles.methodTabActive]}
+                  onPress={() => handleSelectPaymentMethod('CASH')}
                 >
-                  Kart
-                </Text>
-              </TouchableOpacity>
+                  <Banknote size={15} color={paymentMethod === 'CASH' ? '#10B981' : '#6B7280'} />
+                  <Text
+                    style={[
+                      styles.methodTabText,
+                      paymentMethod === 'CASH' && styles.methodTabTextActive,
+                    ]}
+                  >
+                    Nağd
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'TERMINAL' && styles.methodTabActive]}
-                onPress={() => setPaymentMethod('TERMINAL')}
-              >
-                <CreditCard size={15} color={paymentMethod === 'TERMINAL' ? '#10B981' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'TERMINAL' && styles.methodTabTextActive,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, paymentMethod === 'CARD' && styles.methodTabActive]}
+                  onPress={() => handleSelectPaymentMethod('CARD')}
                 >
-                  Terminal
-                </Text>
-              </TouchableOpacity>
+                  <CreditCard size={15} color={paymentMethod === 'CARD' ? '#10B981' : '#6B7280'} />
+                  <Text
+                    style={[
+                      styles.methodTabText,
+                      paymentMethod === 'CARD' && styles.methodTabTextActive,
+                    ]}
+                  >
+                    Kart
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'SPLIT' && styles.methodTabActivePurple]}
-                onPress={() => setPaymentMethod('SPLIT')}
-              >
-                <Layers size={15} color={paymentMethod === 'SPLIT' ? '#7C3AED' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'SPLIT' && styles.methodTabTextActivePurple,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, paymentMethod === 'TERMINAL' && styles.methodTabActive]}
+                  onPress={() => handleSelectPaymentMethod('TERMINAL')}
                 >
-                  Qarışıq
-                </Text>
-              </TouchableOpacity>
+                  <CreditCard size={15} color={paymentMethod === 'TERMINAL' ? '#10B981' : '#6B7280'} />
+                  <Text
+                    style={[
+                      styles.methodTabText,
+                      paymentMethod === 'TERMINAL' && styles.methodTabTextActive,
+                    ]}
+                  >
+                    Terminal
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'CREDIT' && styles.methodTabActiveBlue]}
-                onPress={() => setPaymentMethod('CREDIT')}
-              >
-                <Calculator size={15} color={paymentMethod === 'CREDIT' ? '#2563EB' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'CREDIT' && styles.methodTabTextActiveBlue,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, paymentMethod === 'SPLIT' && styles.methodTabActivePurple]}
+                  onPress={() => handleSelectPaymentMethod('SPLIT')}
                 >
-                  Kredit
-                </Text>
-              </TouchableOpacity>
+                  <Layers size={15} color={paymentMethod === 'SPLIT' ? '#7C3AED' : '#6B7280'} />
+                  <Text
+                    style={[
+                      styles.methodTabText,
+                      paymentMethod === 'SPLIT' && styles.methodTabTextActivePurple,
+                    ]}
+                  >
+                    Qarışıq
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'BIRMARKET' && styles.methodTabActiveRose]}
-                onPress={() => setPaymentMethod('BIRMARKET')}
-              >
-                <Store size={15} color={paymentMethod === 'BIRMARKET' ? '#E11D48' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'BIRMARKET' && styles.methodTabTextActiveRose,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, paymentMethod === 'CREDIT' && styles.methodTabActiveBlue]}
+                  onPress={() => handleSelectPaymentMethod('CREDIT')}
                 >
-                  Birmarket
-                </Text>
-              </TouchableOpacity>
+                  <Calculator size={15} color={paymentMethod === 'CREDIT' ? '#2563EB' : '#6B7280'} />
+                  <Text
+                    style={[
+                      styles.methodTabText,
+                      paymentMethod === 'CREDIT' && styles.methodTabTextActiveBlue,
+                    ]}
+                  >
+                    Kredit
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'DEPOSIT' && styles.methodTabActiveAmber]}
-                onPress={() => setPaymentMethod('DEPOSIT')}
-              >
-                <Tag size={15} color={paymentMethod === 'DEPOSIT' ? '#D97706' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'DEPOSIT' && styles.methodTabTextActiveAmber,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, paymentMethod === 'BIRMARKET' && styles.methodTabActiveRose]}
+                  onPress={() => handleSelectPaymentMethod('BIRMARKET')}
                 >
-                  Beh (Avans)
-                </Text>
-              </TouchableOpacity>
+                  <Store size={15} color={paymentMethod === 'BIRMARKET' ? '#E11D48' : '#6B7280'} />
+                  <Text
+                    style={[
+                      styles.methodTabText,
+                      paymentMethod === 'BIRMARKET' && styles.methodTabTextActiveRose,
+                    ]}
+                  >
+                    Birmarket
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.methodTab, paymentMethod === 'TRANSFER' && styles.methodTabActive]}
-                onPress={() => setPaymentMethod('TRANSFER')}
-              >
-                <Smartphone size={15} color={paymentMethod === 'TRANSFER' ? '#10B981' : '#6B7280'} />
-                <Text
-                  style={[
-                    styles.methodTabText,
-                    paymentMethod === 'TRANSFER' && styles.methodTabTextActive,
-                  ]}
+                <TouchableOpacity
+                  style={[styles.methodTab, styles.methodTabIndigo]}
+                  onPress={handleOpenRentModal}
                 >
-                  Köçürmə
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
+                  <KeyRound size={15} color="#4F46E5" />
+                  <Text style={[styles.methodTabText, styles.methodTabTextIndigo]}>
+                    İcarə
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+
+            <ScrollView
+              ref={footerScrollRef}
+              style={styles.footerScroll}
+              contentContainerStyle={styles.footerScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
+              scrollEnabled={true}
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0) {
+                  sheetBodyHeightRef.current = h;
+                  if (isSheetCollapsedRef.current) {
+                    sheetTranslateY.setValue(h);
+                    currentTranslateYRef.current = h;
+                  }
+                }
+              }}
+              onScroll={(e) => {
+                footerScrollOffsetRef.current = e.nativeEvent.contentOffset.y;
+              }}
+              scrollEventThrottle={16}
+            >
 
             {/* If CREDIT: Render live Credit Calculator */}
             {paymentMethod === 'CREDIT' && (
@@ -790,6 +1019,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.chipsRow}
+                  nestedScrollEnabled={true}
                 >
                   {CREDIT_BANKS.map((b) => (
                     <TouchableOpacity
@@ -810,6 +1040,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.chipsRow}
+                  nestedScrollEnabled={true}
                 >
                   {availableMonths.map((m) => {
                     const mRes = calculateCredit(discountedBase, selectedBank, m);
@@ -893,7 +1124,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 {/* Customer Information Form */}
                 <View style={styles.clientForm}>
                   <View style={styles.clientInputWrapper}>
-                    <User size={14} color="#9CA3AF" />
+                    <User size={16} color="#64748B" />
                     <TextInput
                       style={styles.clientInput}
                       placeholder="Müştəri adı *"
@@ -904,7 +1135,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   </View>
 
                   <View style={styles.clientInputWrapper}>
-                    <Phone size={14} color="#9CA3AF" />
+                    <Phone size={16} color="#64748B" />
                     <TextInput
                       style={styles.clientInput}
                       placeholder="Əlaqə nömrəsi"
@@ -926,241 +1157,264 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   <Text style={styles.splitTotalHeader}>Yekun: {discountedBase.toFixed(2)} ₼</Text>
                 </View>
 
-                {/* 1. Nağd */}
-                <View style={styles.splitInputCard}>
-                  <View style={styles.splitInputHeader}>
-                    <View style={styles.splitLabelWithDot}>
-                      <View style={[styles.splitColorDot, { backgroundColor: '#10B981' }]} />
-                      <Text style={styles.splitFieldLabel}>Nağd</Text>
-                    </View>
-                    {remainingSplit > 0 && numSplitCash === 0 && (
-                      <TouchableOpacity
-                        style={styles.splitFillBtn}
-                        onPress={() => fillRemainingSplit('cash')}
-                      >
-                        <Text style={styles.splitFillBtnText}>+ Qalıq (₼{remainingSplit.toFixed(2)})</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View style={styles.splitInputWrapper}>
-                    <Text style={styles.splitCurrencyPrefix}>₼</Text>
-                    <TextInput
-                      style={styles.splitTextInput}
-                      placeholder="0.00"
-                      placeholderTextColor="#9CA3AF"
-                      keyboardType="numeric"
-                      value={splitCash}
-                      onChangeText={setSplitCash}
-                    />
-                  </View>
-                </View>
-
-                {/* 2. Kart */}
-                <View style={styles.splitInputCard}>
-                  <View style={styles.splitInputHeader}>
-                    <View style={styles.splitLabelWithDot}>
-                      <View style={[styles.splitColorDot, { backgroundColor: '#3B82F6' }]} />
-                      <Text style={styles.splitFieldLabel}>Kart</Text>
-                    </View>
-                    {remainingSplit > 0 && numSplitCard === 0 && (
-                      <TouchableOpacity
-                        style={styles.splitFillBtn}
-                        onPress={() => fillRemainingSplit('card')}
-                      >
-                        <Text style={styles.splitFillBtnText}>+ Qalıq (₼{remainingSplit.toFixed(2)})</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View style={styles.splitInputWrapper}>
-                    <Text style={styles.splitCurrencyPrefix}>₼</Text>
-                    <TextInput
-                      style={styles.splitTextInput}
-                      placeholder="0.00"
-                      placeholderTextColor="#9CA3AF"
-                      keyboardType="numeric"
-                      value={splitCard}
-                      onChangeText={setSplitCard}
-                    />
-                  </View>
-                </View>
-
-                {/* 3. Terminal */}
-                <View style={styles.splitInputCard}>
-                  <View style={styles.splitInputHeader}>
-                    <View style={styles.splitLabelWithDot}>
-                      <View style={[styles.splitColorDot, { backgroundColor: '#06B6D4' }]} />
-                      <Text style={styles.splitFieldLabel}>Terminal</Text>
-                    </View>
-                    {remainingSplit > 0 && numSplitTerminal === 0 && (
-                      <TouchableOpacity
-                        style={styles.splitFillBtn}
-                        onPress={() => fillRemainingSplit('terminal')}
-                      >
-                        <Text style={styles.splitFillBtnText}>+ Qalıq (₼{remainingSplit.toFixed(2)})</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View style={styles.splitInputWrapper}>
-                    <Text style={styles.splitCurrencyPrefix}>₼</Text>
-                    <TextInput
-                      style={styles.splitTextInput}
-                      placeholder="0.00"
-                      placeholderTextColor="#9CA3AF"
-                      keyboardType="numeric"
-                      value={splitTerminal}
-                      onChangeText={setSplitTerminal}
-                    />
-                  </View>
-                </View>
-
-                {/* 4. Kredit Payı */}
-                <View style={styles.splitInputCard}>
-                  <View style={styles.splitInputHeader}>
-                    <View style={styles.splitLabelWithDot}>
-                      <View style={[styles.splitColorDot, { backgroundColor: '#8B5CF6' }]} />
-                      <Text style={styles.splitFieldLabel}>Kredit payı (istəyə görə)</Text>
-                    </View>
-                    {remainingSplit > 0 && numSplitCredit === 0 && (
-                      <TouchableOpacity
-                        style={styles.splitFillBtn}
-                        onPress={() => fillRemainingSplit('credit')}
-                      >
-                        <Text style={styles.splitFillBtnText}>+ Qalıq (₼{remainingSplit.toFixed(2)})</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <View style={styles.splitInputWrapper}>
-                    <Text style={styles.splitCurrencyPrefix}>₼</Text>
-                    <TextInput
-                      style={styles.splitTextInput}
-                      placeholder="0.00"
-                      placeholderTextColor="#9CA3AF"
-                      keyboardType="numeric"
-                      value={splitCredit}
-                      onChangeText={setSplitCredit}
-                    />
-                  </View>
-
-                  {/* If Kredit Payı > 0, show Bank selector, Months selector, and Full Details Panel */}
-                  {numSplitCredit > 0 && (
-                    <View style={styles.splitCreditSubBox}>
-                      <Text style={styles.creditSectionLabel}>Kredit Bankı:</Text>
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.chipsRow}
-                      >
-                        {CREDIT_BANKS.map((b) => (
+                {/* 2x2 Grid for Split Methods: Row 1 (Nağd, Kart), Row 2 (Terminal, Kredit) */}
+                <View style={styles.splitGrid}>
+                  {/* Row 1: Nağd & Kart */}
+                  <View style={styles.splitGridRow}>
+                    {/* 1. Nağd */}
+                    <View style={styles.splitGridCol}>
+                      <View style={styles.splitInputHeader}>
+                        <View style={styles.splitLabelWithDot}>
+                          <View style={[styles.splitColorDot, { backgroundColor: '#10B981' }]} />
+                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Nağd</Text>
+                        </View>
+                        {remainingSplit > 0 && numSplitCash === 0 && (
                           <TouchableOpacity
-                            key={b}
-                            style={[styles.bankChip, splitCreditBank === b && styles.bankChipActive]}
-                            onPress={() => setSplitCreditBank(b)}
+                            style={styles.splitFillBtn}
+                            onPress={() => fillRemainingSplit('cash')}
+                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                           >
-                            <Text style={[styles.bankChipText, splitCreditBank === b && styles.bankChipTextActive]}>
-                              {b}
+                            <Text style={styles.splitFillBtnText}>
+                              + Qalıq (₼{remainingSplit.toFixed(remainingSplit % 1 === 0 ? 0 : 2)})
                             </Text>
                           </TouchableOpacity>
-                        ))}
-                      </ScrollView>
-
-                      <Text style={styles.creditSectionLabel}>Müddət (Aylar):</Text>
-                      <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.chipsRow}
-                      >
-                        {splitAvailableMonths.map((m) => {
-                          const isSel = splitCreditMonths === m;
-                          const mRes = calculateCredit(numSplitCredit, splitCreditBank, m);
-                          return (
-                            <TouchableOpacity
-                              key={m}
-                              style={[styles.monthChip, isSel && styles.monthChipActive]}
-                              onPress={() => setSplitCreditMonths(m)}
-                            >
-                              <Text style={[styles.monthChipText, isSel && styles.monthChipTextActive]}>
-                                {m} ay
-                              </Text>
-                              <Text style={[styles.monthSubText, isSel && styles.monthSubTextActive]}>
-                                +{mRes.markupPercent.toFixed(1)}%
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </ScrollView>
-
-                      {/* Detailed Credit Calculation Metrics for Split */}
-                      <View style={styles.creditMetricsCard}>
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Məhsulun dəyəri (Kredit payı):</Text>
-                          <Text style={styles.metricValBold}>{numSplitCredit.toFixed(2)} ₼</Text>
-                        </View>
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Faiz dərəcəsi:</Text>
-                          <Text style={styles.metricValOrange}>
-                            {splitCreditResult.markupPercent.toFixed(1)}%
-                          </Text>
-                        </View>
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Cəmi:</Text>
-                          <Text style={styles.metricValBold}>{splitCreditResult.contractTotal.toFixed(2)} ₼</Text>
-                        </View>
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Faiz məbləği (Manatla):</Text>
-                          <Text style={styles.metricValOrange}>
-                            +{splitCreditResult.interestAmount.toFixed(2)} ₼
-                          </Text>
-                        </View>
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Kredit şöbəsinə göndərilən məbləğ:</Text>
-                          <Text style={styles.metricValBold}>{splitCreditResult.bankSentAmount.toFixed(2)} ₼</Text>
-                        </View>
-
-                        {/* Monthly payment highlighted */}
-                        <View style={styles.monthlyHighlightBox}>
-                          <Text style={styles.monthlyHighlightLabel}>Aylıq ödəniş:</Text>
-                          <Text style={styles.monthlyHighlightVal}>
-                            {splitCreditResult.monthlyPayment.toFixed(2)} ₼ / ay
-                          </Text>
-                        </View>
-
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Kassaya vurulan məbləğ:</Text>
-                          <Text style={styles.metricValBold}>{splitCreditResult.grossAmount.toFixed(2)} ₼</Text>
-                        </View>
-                        <View style={styles.metricRow}>
-                          <Text style={styles.metricLabel}>Alver cədvəlinə yazılan məbləğ:</Text>
-                          <Text style={styles.metricValBold}>{splitCreditResult.alverAmount.toFixed(2)} ₼</Text>
-                        </View>
+                        )}
                       </View>
-
-                      {/* Client info required for credit */}
-                      <View style={styles.clientForm}>
-                        <View style={styles.clientInputWrapper}>
-                          <User size={14} color="#9CA3AF" />
-                          <TextInput
-                            style={styles.clientInput}
-                            placeholder="Müştəri adı *"
-                            placeholderTextColor="#9CA3AF"
-                            value={clientName}
-                            onChangeText={setClientName}
-                          />
-                        </View>
-                        <View style={styles.clientInputWrapper}>
-                          <Phone size={14} color="#9CA3AF" />
-                          <TextInput
-                            style={styles.clientInput}
-                            placeholder="Əlaqə nömrəsi"
-                            placeholderTextColor="#9CA3AF"
-                            value={clientPhone}
-                            onChangeText={setClientPhone}
-                            keyboardType="phone-pad"
-                          />
-                        </View>
+                      <View style={styles.splitInputWrapper}>
+                        <Text style={styles.splitCurrencyPrefix}>₼</Text>
+                        <TextInput
+                          style={styles.splitTextInput}
+                          placeholder="0.00"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="numeric"
+                          value={splitCash}
+                          onChangeText={setSplitCash}
+                        />
                       </View>
                     </View>
-                  )}
+
+                    {/* 2. Kart */}
+                    <View style={styles.splitGridCol}>
+                      <View style={styles.splitInputHeader}>
+                        <View style={styles.splitLabelWithDot}>
+                          <View style={[styles.splitColorDot, { backgroundColor: '#3B82F6' }]} />
+                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Kart</Text>
+                        </View>
+                        {remainingSplit > 0 && numSplitCard === 0 && (
+                          <TouchableOpacity
+                            style={styles.splitFillBtn}
+                            onPress={() => fillRemainingSplit('card')}
+                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                          >
+                            <Text style={styles.splitFillBtnText}>
+                              + Qalıq (₼{remainingSplit.toFixed(remainingSplit % 1 === 0 ? 0 : 2)})
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      <View style={styles.splitInputWrapper}>
+                        <Text style={styles.splitCurrencyPrefix}>₼</Text>
+                        <TextInput
+                          style={styles.splitTextInput}
+                          placeholder="0.00"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="numeric"
+                          value={splitCard}
+                          onChangeText={setSplitCard}
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Row 2: Terminal & Kredit */}
+                  <View style={styles.splitGridRow}>
+                    {/* 3. Terminal */}
+                    <View style={styles.splitGridCol}>
+                      <View style={styles.splitInputHeader}>
+                        <View style={styles.splitLabelWithDot}>
+                          <View style={[styles.splitColorDot, { backgroundColor: '#06B6D4' }]} />
+                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Terminal</Text>
+                        </View>
+                        {remainingSplit > 0 && numSplitTerminal === 0 && (
+                          <TouchableOpacity
+                            style={styles.splitFillBtn}
+                            onPress={() => fillRemainingSplit('terminal')}
+                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                          >
+                            <Text style={styles.splitFillBtnText}>
+                              + Qalıq (₼{remainingSplit.toFixed(remainingSplit % 1 === 0 ? 0 : 2)})
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      <View style={styles.splitInputWrapper}>
+                        <Text style={styles.splitCurrencyPrefix}>₼</Text>
+                        <TextInput
+                          style={styles.splitTextInput}
+                          placeholder="0.00"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="numeric"
+                          value={splitTerminal}
+                          onChangeText={setSplitTerminal}
+                        />
+                      </View>
+                    </View>
+
+                    {/* 4. Kredit Payı */}
+                    <View style={styles.splitGridCol}>
+                      <View style={styles.splitInputHeader}>
+                        <View style={styles.splitLabelWithDot}>
+                          <View style={[styles.splitColorDot, { backgroundColor: '#8B5CF6' }]} />
+                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Kredit payı</Text>
+                        </View>
+                        {remainingSplit > 0 && numSplitCredit === 0 && (
+                          <TouchableOpacity
+                            style={styles.splitFillBtn}
+                            onPress={() => fillRemainingSplit('credit')}
+                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                          >
+                            <Text style={styles.splitFillBtnText}>
+                              + Qalıq (₼{remainingSplit.toFixed(remainingSplit % 1 === 0 ? 0 : 2)})
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      <View style={styles.splitInputWrapper}>
+                        <Text style={styles.splitCurrencyPrefix}>₼</Text>
+                        <TextInput
+                          style={styles.splitTextInput}
+                          placeholder="0.00"
+                          placeholderTextColor="#9CA3AF"
+                          keyboardType="numeric"
+                          value={splitCredit}
+                          onChangeText={setSplitCredit}
+                        />
+                      </View>
+                    </View>
+                  </View>
                 </View>
+
+                {/* If Kredit Payı > 0, show Bank selector, Months selector, and Full Details Panel */}
+                {numSplitCredit > 0 && (
+                  <View style={styles.splitCreditSubBox}>
+                    <Text style={styles.creditSectionLabel}>Kredit Bankı:</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.chipsRow}
+                      nestedScrollEnabled={true}
+                    >
+                      {CREDIT_BANKS.map((b) => (
+                        <TouchableOpacity
+                          key={b}
+                          style={[styles.bankChip, splitCreditBank === b && styles.bankChipActive]}
+                          onPress={() => setSplitCreditBank(b)}
+                        >
+                          <Text style={[styles.bankChipText, splitCreditBank === b && styles.bankChipTextActive]}>
+                            {b}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    <Text style={styles.creditSectionLabel}>Müddət (Aylar):</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.chipsRow}
+                      nestedScrollEnabled={true}
+                    >
+                      {splitAvailableMonths.map((m) => {
+                        const isSel = splitCreditMonths === m;
+                        const mRes = calculateCredit(numSplitCredit, splitCreditBank, m);
+                        return (
+                          <TouchableOpacity
+                            key={m}
+                            style={[styles.monthChip, isSel && styles.monthChipActive]}
+                            onPress={() => setSplitCreditMonths(m)}
+                          >
+                            <Text style={[styles.monthChipText, isSel && styles.monthChipTextActive]}>
+                              {m} ay
+                            </Text>
+                            <Text style={[styles.monthSubText, isSel && styles.monthSubTextActive]}>
+                              +{mRes.markupPercent.toFixed(1)}%
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+
+                    {/* Detailed Credit Calculation Metrics for Split */}
+                    <View style={styles.creditMetricsCard}>
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Məhsulun dəyəri (Kredit payı):</Text>
+                        <Text style={styles.metricValBold}>{numSplitCredit.toFixed(2)} ₼</Text>
+                      </View>
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Faiz dərəcəsi:</Text>
+                        <Text style={styles.metricValOrange}>
+                          {splitCreditResult.markupPercent.toFixed(1)}%
+                        </Text>
+                      </View>
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Cəmi:</Text>
+                        <Text style={styles.metricValBold}>{splitCreditResult.contractTotal.toFixed(2)} ₼</Text>
+                      </View>
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Faiz məbləği (Manatla):</Text>
+                        <Text style={styles.metricValOrange}>
+                          +{splitCreditResult.interestAmount.toFixed(2)} ₼
+                        </Text>
+                      </View>
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Kredit şöbəsinə göndərilən məbləğ:</Text>
+                        <Text style={styles.metricValBold}>{splitCreditResult.bankSentAmount.toFixed(2)} ₼</Text>
+                      </View>
+
+                      {/* Monthly payment highlighted */}
+                      <View style={styles.monthlyHighlightBox}>
+                        <Text style={styles.monthlyHighlightLabel}>Aylıq ödəniş:</Text>
+                        <Text style={styles.monthlyHighlightVal}>
+                          {splitCreditResult.monthlyPayment.toFixed(2)} ₼ / ay
+                        </Text>
+                      </View>
+
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Kassaya vurulan məbləğ:</Text>
+                        <Text style={styles.metricValBold}>{splitCreditResult.grossAmount.toFixed(2)} ₼</Text>
+                      </View>
+                      <View style={styles.metricRow}>
+                        <Text style={styles.metricLabel}>Alver cədvəlinə yazılan məbləğ:</Text>
+                        <Text style={styles.metricValBold}>{splitCreditResult.alverAmount.toFixed(2)} ₼</Text>
+                      </View>
+                    </View>
+
+                    {/* Client info required for credit */}
+                    <View style={styles.clientForm}>
+                      <View style={styles.clientInputWrapper}>
+                        <User size={16} color="#64748B" />
+                        <TextInput
+                          style={styles.clientInput}
+                          placeholder="Müştəri adı *"
+                          placeholderTextColor="#9CA3AF"
+                          value={clientName}
+                          onChangeText={setClientName}
+                        />
+                      </View>
+                      <View style={styles.clientInputWrapper}>
+                        <Phone size={16} color="#64748B" />
+                        <TextInput
+                          style={styles.clientInput}
+                          placeholder="Əlaqə nömrəsi"
+                          placeholderTextColor="#9CA3AF"
+                          value={clientPhone}
+                          onChangeText={setClientPhone}
+                          keyboardType="phone-pad"
+                        />
+                      </View>
+                    </View>
+                  </View>
+                )}
 
                 {/* Live Split Status indicator */}
                 <View style={[
@@ -1290,6 +1544,33 @@ export const POSScreen: React.FC<POSScreenProps> = ({
               </View>
             )}
 
+            {/* Satış Kanalı Selector */}
+            <View style={styles.channelContainer}>
+              <View style={styles.channelHeaderRow}>
+                <Text style={styles.channelSectionLabel}>SATIŞ KANALI</Text>
+                <TouchableOpacity
+                  style={styles.addChannelQuickBtn}
+                  onPress={() => setChannelPickerVisible(true)}
+                  activeOpacity={0.7}
+                >
+                  <Plus size={13} color="#2563EB" />
+                  <Text style={styles.addChannelQuickBtnText}>Yeni kanal</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.channelPickerBtn}
+                onPress={() => setChannelPickerVisible(true)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.channelPickerLeft}>
+                  <Share2 size={16} color="#2563EB" />
+                  <Text style={styles.channelPickerText}>{salesChannel}</Text>
+                </View>
+                <ChevronDown size={18} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
             {/* Discount Panel (Always available and interactive) */}
             <View style={styles.discountContainer}>
               <View style={styles.discountHeaderRow}>
@@ -1393,34 +1674,51 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 </View>
               </View>
             )}
+          </ScrollView>
+        </Animated.View>
 
-            {/* Checkout Action Button */}
-            <TouchableOpacity
-              style={[
-                styles.checkoutBtn,
-                paymentMethod === 'CREDIT' && styles.checkoutBtnBlue,
-                paymentMethod === 'SPLIT' && styles.checkoutBtnPurple,
-              ]}
-              onPress={handleCheckout}
-              disabled={processing}
-            >
-              {processing ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <CheckCircle2 size={20} color="#fff" />
-                  <Text style={styles.checkoutBtnText}>
-                    {paymentMethod === 'CREDIT'
-                      ? `Kreditlə təsdiqlə (${creditResult.monthlyPayment.toFixed(2)} ₼ / ay)`
-                      : paymentMethod === 'SPLIT'
-                      ? `Bölgünü təsdiqlə (${discountedBase.toFixed(2)} ₼)`
-                      : `Ödənişi təsdiqlə (${total.toFixed(2)} ₼)`}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Fixed Bottom Checkout Action Bar (stays pinned at bottom while sheet slides smoothly behind it) */}
+        <View
+          onLayout={(e) => {
+            const h = e.nativeEvent.layout.height;
+            if (h > 0 && Math.abs(h - bottomBarHeight) > 1) {
+              setBottomBarHeight(h);
+            }
+          }}
+          style={[
+            styles.bottomCheckoutBar,
+            keyboardHeight > 0 && {
+              marginBottom: Platform.OS === 'android' ? keyboardHeight : 0,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.checkoutBtn,
+              paymentMethod === 'CREDIT' && styles.checkoutBtnBlue,
+              paymentMethod === 'SPLIT' && styles.checkoutBtnPurple,
+            ]}
+            onPress={handleCheckout}
+            disabled={processing}
+          >
+            {processing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <CheckCircle2 size={20} color="#fff" />
+                <Text style={styles.checkoutBtnText}>
+                  {paymentMethod === 'CREDIT'
+                    ? `Kreditlə təsdiqlə (${creditResult.monthlyPayment.toFixed(2)} ₼ / ay)`
+                    : paymentMethod === 'SPLIT'
+                    ? `Bölgünü təsdiqlə (${discountedBase.toFixed(2)} ₼)`
+                    : `Ödənişi təsdiqlə (${total.toFixed(2)} ₼)`}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+        </>
+      )}
       </KeyboardAvoidingView>
 
       {/* Item Custom Price & Discount Modal */}
@@ -1577,6 +1875,31 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         onClose={() => setSuccessModalVisible(false)}
         onOpenPrinterSettings={() => setPrinterModalVisible(true)}
       />
+      {/* Sales Channel Picker Modal */}
+      <SalesChannelPickerModal
+        visible={channelPickerVisible}
+        onClose={() => setChannelPickerVisible(false)}
+        selectedChannel={salesChannel}
+        onSelectChannel={(ch) => setSalesChannel(ch)}
+        channels={channels}
+        customChannels={customChannels}
+        onAddChannel={handleAddCustomChannel}
+        onDeleteChannel={handleDeleteCustomChannel}
+      />
+      {/* Rent / Lease Product Modal (Girovla İcarəyə Ver) */}
+      <RentProductModal
+        visible={rentModalVisible}
+        onClose={() => setRentModalVisible(false)}
+        products={cart.map((item) => ({
+          ...item.product,
+          price: getItemEffectivePrice(item),
+          sale_price: getItemEffectivePrice(item),
+        }))}
+        onSuccess={() => {
+          setRentModalVisible(false);
+          onClearCart();
+        }}
+      />
     </View>
   );
 };
@@ -1585,9 +1908,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+    overflow: 'hidden',
   },
   container: {
     flex: 1,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
@@ -1824,26 +2149,95 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  cartList: {
+    flex: 1,
+  },
   footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 58,
+    zIndex: 20,
+    elevation: 14,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
     paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 16 : 8,
+    paddingTop: 5,
+    paddingBottom: 2,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 6,
+    borderTopColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    maxHeight: '89%',
+  },
+  bottomCheckoutBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 25,
+    elevation: 24,
+    backgroundColor: '#fff',
+    paddingHorizontal: 14,
+    paddingTop: 4,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 6,
+  },
+  sheetTopHeader: {
+    flexShrink: 0,
+    flexGrow: 0,
+    backgroundColor: '#fff',
+    zIndex: 5,
+    paddingBottom: 6,
+  },
+  sheetHandleArea: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 2,
+    paddingBottom: 4,
+  },
+  sheetHandlePill: {
+    width: 42,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#CBD5E1',
+    marginBottom: 3,
+  },
+  sheetHandleSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  sheetHandleHintText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  footerScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    overflow: 'hidden',
+  },
+  footerScrollContent: {
+    paddingTop: 2,
+    paddingBottom: 24,
+  },
+  methodTabsScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 42,
+    minHeight: 42,
+    maxHeight: 42,
   },
   methodTabs: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    marginBottom: 10,
     paddingHorizontal: 2,
+    height: 42,
   },
   methodTab: {
     flexDirection: 'row',
@@ -1851,11 +2245,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 40,
+    height: 38,
+    minHeight: 38,
+    maxHeight: 38,
     borderRadius: 10,
     backgroundColor: '#F3F4F6',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'transparent',
   },
   methodTabActive: {
@@ -1883,6 +2278,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E11D48',
   },
+  methodTabIndigo: {
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+  },
   methodTabText: {
     fontSize: 12,
     fontWeight: '700',
@@ -1906,6 +2306,10 @@ const styles = StyleSheet.create({
   },
   methodTabTextActiveRose: {
     color: '#E11D48',
+    fontWeight: '800',
+  },
+  methodTabTextIndigo: {
+    color: '#4F46E5',
     fontWeight: '800',
   },
   birmarketCalcBox: {
@@ -1989,38 +2393,46 @@ const styles = StyleSheet.create({
   },
   creditCalcBox: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
+    borderRadius: 14,
+    padding: 8,
+    marginBottom: 5,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   creditSectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#475569',
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#334155',
     marginBottom: 4,
   },
   chipsRow: {
     flexDirection: 'row',
-    gap: 6,
-    marginBottom: 8,
+    gap: 7,
+    marginBottom: 5,
   },
   bankChip: {
     backgroundColor: '#fff',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#CBD5E1',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 38,
   },
   bankChipActive: {
     backgroundColor: '#2563EB',
     borderColor: '#2563EB',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   bankChipText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13.5,
+    fontWeight: '700',
     color: '#334155',
   },
   bankChipTextActive: {
@@ -2029,27 +2441,36 @@ const styles = StyleSheet.create({
   },
   monthChip: {
     backgroundColor: '#fff',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#CBD5E1',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    borderRadius: 10,
+    paddingHorizontal: 13,
+    paddingVertical: 6,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 45,
+    minWidth: 58,
   },
   monthChipActive: {
     backgroundColor: '#2563EB',
     borderColor: '#2563EB',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   monthChipText: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13.5,
+    fontWeight: '800',
     color: '#334155',
   },
   monthChipTextActive: {
     color: '#fff',
   },
   monthSubText: {
-    fontSize: 9,
+    fontSize: 10.5,
+    fontWeight: '700',
     color: '#64748B',
     marginTop: 1,
   },
@@ -2058,34 +2479,37 @@ const styles = StyleSheet.create({
   },
   creditMetricsCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 8,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    marginBottom: 8,
-    gap: 4,
+    marginBottom: 6,
+    gap: 2,
   },
   metricRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 1,
   },
   metricLabel: {
-    fontSize: 11,
+    fontSize: 12.5,
     color: '#64748B',
+    fontWeight: '500',
   },
   metricVal: {
-    fontSize: 11,
+    fontSize: 13.5,
     color: '#1E293B',
-    fontWeight: '600',
-  },
-  metricValOrange: {
-    fontSize: 11,
-    color: '#EA580C',
     fontWeight: '700',
   },
+  metricValOrange: {
+    fontSize: 13.5,
+    color: '#EA580C',
+    fontWeight: '800',
+  },
   metricValBold: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#0F172A',
     fontWeight: '800',
   },
@@ -2094,45 +2518,102 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
     borderColor: '#BFDBFE',
-    marginTop: 2,
+    marginVertical: 2,
   },
   monthlyHighlightLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#1E40AF',
     fontWeight: '800',
   },
   monthlyHighlightVal: {
-    fontSize: 15,
+    fontSize: 16.5,
     color: '#1D4ED8',
     fontWeight: '900',
   },
   clientForm: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     marginTop: 2,
   },
   clientInputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
-    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    paddingHorizontal: 10,
     gap: 6,
-    height: 36,
+    height: 42,
   },
   clientInput: {
     flex: 1,
     paddingVertical: 2,
-    fontSize: 12,
+    fontSize: 13.5,
+    fontWeight: '600',
     color: '#111827',
+  },
+
+  // Sales Channel Styles
+  channelContainer: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 6,
+  },
+  channelHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  channelSectionLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#64748B',
+    letterSpacing: 0.5,
+  },
+  addChannelQuickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+  },
+  addChannelQuickBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563EB',
+  },
+  channelPickerBtn: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#3B82F6',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  channelPickerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  channelPickerText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
   },
 
   // Discount Container Styles
@@ -2140,8 +2621,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
+    paddingVertical: 8,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
@@ -2225,7 +2706,7 @@ const styles = StyleSheet.create({
 
   // Summary box styles
   summaryBox: {
-    marginBottom: 10,
+    marginBottom: 6,
     gap: 3,
   },
   summaryRow: {
@@ -2239,14 +2720,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   summaryLabel: {
-    fontSize: 13,
+    fontSize: 13.5,
     color: '#6B7280',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   summaryVal: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#4B5563',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   discountLabelGreen: {
     fontSize: 13,
@@ -2269,8 +2750,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 11,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 2,
   },
   checkoutBtnBlue: {
     backgroundColor: '#2563EB',
@@ -2280,16 +2762,16 @@ const styles = StyleSheet.create({
   },
   checkoutBtnText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '800',
   },
 
   // Split Payment Styles
   splitCalcBox: {
     backgroundColor: '#FAFAFE',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
+    borderRadius: 14,
+    padding: 9,
+    marginBottom: 5,
     borderWidth: 1,
     borderColor: '#E0E7FF',
   },
@@ -2297,39 +2779,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingBottom: 6,
+    marginBottom: 6,
+    paddingBottom: 5,
     borderBottomWidth: 1,
     borderBottomColor: '#EEF2FF',
   },
   splitSectionTitle: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '800',
     color: '#4338CA',
   },
   splitTotalHeader: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '900',
     color: '#1E1B4B',
   },
-  splitInputCard: {
+  splitGrid: {
+    gap: 6,
+    marginBottom: 6,
+  },
+  splitGridRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  splitGridCol: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 8,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    marginBottom: 6,
+  },
+  splitInputCard: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 5,
   },
   splitInputHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
+    gap: 4,
   },
   splitLabelWithDot: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
+    flexShrink: 1,
   },
   splitColorDot: {
     width: 8,
@@ -2337,18 +2837,20 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   splitFieldLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: '#334155',
+    flexShrink: 1,
   },
   splitFillBtn: {
     backgroundColor: '#EEF2FF',
     paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingVertical: 2.5,
+    borderRadius: 5,
+    flexShrink: 0,
   },
   splitFillBtnText: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontWeight: '800',
     color: '#4F46E5',
   },
@@ -2357,20 +2859,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    height: 36,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 38,
   },
   splitCurrencyPrefix: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#94A3B8',
     marginRight: 4,
   },
   splitTextInput: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
     paddingVertical: 4,
@@ -2382,8 +2884,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#E2E8F0',
   },
   splitStatusBox: {
-    padding: 8,
-    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 10,
     marginTop: 4,
     borderWidth: 1,
   },
@@ -2400,19 +2903,19 @@ const styles = StyleSheet.create({
     borderColor: '#FECACA',
   },
   splitStatusTextSuccess: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#065F46',
     textAlign: 'center',
   },
   splitStatusTextWarning: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#92400E',
     textAlign: 'center',
   },
   splitStatusTextDanger: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#991B1B',
     textAlign: 'center',

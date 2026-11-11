@@ -8,7 +8,7 @@ import ModalPortal from '../../components/Common/ModalPortal';
 import Dropdown from '../../components/Common/Dropdown';
 import MultiImageUpload from '../../components/Common/MultiImageUpload';
 
-const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
+const SendToRepairModal = ({ isOpen, onClose, onSuccess, defaultMasterId }) => {
   const { t, i18n } = useTranslation();
   const { profile } = useUser();
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [serialNumber, setSerialNumber] = useState('');
-  const [selectedMasterId, setSelectedMasterId] = useState('');
+  const [selectedMasterId, setSelectedMasterId] = useState(defaultMasterId || '');
   const [issueDescription, setIssueDescription] = useState('');
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -49,7 +49,7 @@ const SendToRepairModal = ({ isOpen, onClose, onSuccess }) => {
       setItemName('');
       setQuantity(1);
       setSerialNumber('');
-      setSelectedMasterId('');
+      setSelectedMasterId(defaultMasterId || '');
       setIssueDescription('');
       setClientName('');
       setClientPhone('');

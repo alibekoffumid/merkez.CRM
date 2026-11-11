@@ -33,8 +33,9 @@ interface CategoryPickerModalProps {
   categories: Category[];
   selectedCategoryId: string;
   onSelectCategory: (categoryId: string) => void;
-  products: Product[];
+  products?: Product[];
   canViewStockStats?: boolean;
+  hideAllOption?: boolean;
 }
 
 export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
@@ -43,8 +44,9 @@ export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
   categories,
   selectedCategoryId,
   onSelectCategory,
-  products,
+  products = [],
   canViewStockStats = true,
+  hideAllOption = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
@@ -190,49 +192,85 @@ export const CategoryPickerModal: React.FC<CategoryPickerModalProps> = ({
             keyboardShouldPersistTaps="handled"
             ListHeaderComponent={
               !searchTerm.trim() ? (
-                <TouchableOpacity
-                  style={[
-                    styles.itemRow,
-                    styles.allCategoriesRow,
-                    selectedCategoryId === 'ALL' && styles.itemRowActive,
-                  ]}
-                  onPress={() => {
-                    onSelectCategory('ALL');
-                    onClose();
-                  }}
-                >
-                  <View style={styles.itemLeft}>
-                    <View
-                      style={[
-                        styles.folderIconWrap,
-                        selectedCategoryId === 'ALL' && styles.folderIconActive,
-                      ]}
-                    >
-                      <Layers
-                        size={18}
-                        color={selectedCategoryId === 'ALL' ? '#10B981' : '#4B5563'}
-                      />
-                    </View>
-                    <Text
-                      style={[
-                        styles.allCategoryTitle,
-                        selectedCategoryId === 'ALL' && styles.itemTitleActive,
-                      ]}
-                    >
-                      Bütün kateqoriyalar
-                    </Text>
-                  </View>
-                  <View style={styles.itemRight}>
-                    {canViewStockStats && (
-                      <View style={styles.countBadgeAll}>
-                        <Text style={styles.countTextAll}>{totalProducts} əd.</Text>
+                hideAllOption ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.itemRow,
+                      styles.allCategoriesRow,
+                      !selectedCategoryId && styles.itemRowActive,
+                    ]}
+                    onPress={() => {
+                      onSelectCategory('');
+                      onClose();
+                    }}
+                  >
+                    <View style={styles.itemLeft}>
+                      <View style={[styles.folderIconWrap, !selectedCategoryId && styles.folderIconActive]}>
+                        <Folder
+                          size={18}
+                          color={!selectedCategoryId ? '#10B981' : '#9CA3AF'}
+                        />
                       </View>
-                    )}
-                    {selectedCategoryId === 'ALL' && (
-                      <Check size={18} color="#10B981" style={{ marginLeft: 8 }} />
-                    )}
-                  </View>
-                </TouchableOpacity>
+                      <Text
+                        style={[
+                          styles.allCategoryTitle,
+                          !selectedCategoryId && styles.itemTitleActive,
+                        ]}
+                      >
+                        Kateqoriyasız
+                      </Text>
+                    </View>
+                    <View style={styles.itemRight}>
+                      {!selectedCategoryId && (
+                        <Check size={18} color="#10B981" style={{ marginLeft: 8 }} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.itemRow,
+                      styles.allCategoriesRow,
+                      selectedCategoryId === 'ALL' && styles.itemRowActive,
+                    ]}
+                    onPress={() => {
+                      onSelectCategory('ALL');
+                      onClose();
+                    }}
+                  >
+                    <View style={styles.itemLeft}>
+                      <View
+                        style={[
+                          styles.folderIconWrap,
+                          selectedCategoryId === 'ALL' && styles.folderIconActive,
+                        ]}
+                      >
+                        <Layers
+                          size={18}
+                          color={selectedCategoryId === 'ALL' ? '#10B981' : '#4B5563'}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.allCategoryTitle,
+                          selectedCategoryId === 'ALL' && styles.itemTitleActive,
+                        ]}
+                      >
+                        Bütün kateqoriyalar
+                      </Text>
+                    </View>
+                    <View style={styles.itemRight}>
+                      {canViewStockStats && (
+                        <View style={styles.countBadgeAll}>
+                          <Text style={styles.countTextAll}>{totalProducts} əd.</Text>
+                        </View>
+                      )}
+                      {selectedCategoryId === 'ALL' && (
+                        <Check size={18} color="#10B981" style={{ marginLeft: 8 }} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )
               ) : null
             }
             renderItem={({ item }) => {

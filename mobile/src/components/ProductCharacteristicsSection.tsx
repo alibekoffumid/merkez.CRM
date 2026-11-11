@@ -51,7 +51,7 @@ export const ProductCharacteristicsSection: React.FC<ProductCharacteristicsSecti
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <View style={styles.iconWrap}>
-            <SlidersHorizontal size={14} color="#2563EB" />
+            <SlidersHorizontal size={18} color="#2563EB" />
           </View>
           <Text style={styles.title}>Xüsusiyyətlər</Text>
           {attributes.length > 0 && (
@@ -61,49 +61,44 @@ export const ProductCharacteristicsSection: React.FC<ProductCharacteristicsSecti
           )}
         </View>
 
-        <TouchableOpacity style={styles.addBtn} onPress={() => handleAdd('')}>
-          <Plus size={14} color="#fff" />
-          <Text style={styles.addBtnText}>Xüsusiyyət əlavə et</Text>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => handleAdd('')}
+          activeOpacity={0.75}
+        >
+          <Plus size={20} color="#fff" strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 
       {/* Quick suggestions */}
-      <View style={styles.suggestionsRow}>
+      <View style={[styles.suggestionsSection, attributes.length === 0 && { marginBottom: 0 }]}>
         <View style={styles.suggIconWrap}>
-          <Sparkles size={11} color="#F59E0B" />
-          <Text style={styles.suggLabel}>Tövsiyə:</Text>
+          <Sparkles size={14} color="#F59E0B" />
+          <Text style={styles.suggLabel}>Tövsiyə (tez əlavə et):</Text>
         </View>
-        {SUGGESTIONS.map((sugg) => {
-          const isUsed = attributes.some(
-            (a) => a.name?.trim().toLowerCase() === sugg.toLowerCase()
-          );
-          return (
-            <TouchableOpacity
-              key={sugg}
-              style={[styles.suggChip, isUsed && styles.suggChipActive]}
-              onPress={() => handleQuickAdd(sugg)}
-            >
-              <Text style={[styles.suggChipText, isUsed && styles.suggChipTextActive]}>
-                + {sugg}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+        <View style={styles.suggestionsRow}>
+          {SUGGESTIONS.map((sugg) => {
+            const isUsed = attributes.some(
+              (a) => a.name?.trim().toLowerCase() === sugg.toLowerCase()
+            );
+            return (
+              <TouchableOpacity
+                key={sugg}
+                style={[styles.suggChip, isUsed && styles.suggChipActive]}
+                onPress={() => handleQuickAdd(sugg)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.suggChipText, isUsed && styles.suggChipTextActive]}>
+                  + {sugg}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {/* Rows */}
-      {attributes.length === 0 ? (
-        <TouchableOpacity
-          style={styles.emptyCard}
-          onPress={() => handleAdd('')}
-          activeOpacity={0.7}
-        >
-          <Tag size={16} color="#9CA3AF" />
-          <Text style={styles.emptyText}>
-            Ölçü, rəng və ya digər parametrlər daxil etmək üçün toxunun
-          </Text>
-        </TouchableOpacity>
-      ) : (
+      {attributes.length > 0 && (
         <View style={styles.list}>
           {attributes.map((attr, index) => (
             <View key={attr.id || index} style={styles.row}>
@@ -130,8 +125,9 @@ export const ProductCharacteristicsSection: React.FC<ProductCharacteristicsSecti
               <TouchableOpacity
                 style={styles.trashBtn}
                 onPress={() => handleRemove(attr.id)}
+                activeOpacity={0.7}
               >
-                <Trash2 size={16} color="#EF4444" />
+                <Trash2 size={18} color="#EF4444" />
               </TouchableOpacity>
             </View>
           ))}
@@ -144,8 +140,8 @@ export const ProductCharacteristicsSection: React.FC<ProductCharacteristicsSecti
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     marginBottom: 16,
@@ -154,151 +150,167 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 14,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   iconWrap: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 34,
+    height: 34,
+    borderRadius: 10,
     backgroundColor: '#DBEAFE',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#334155',
+    color: '#1E293B',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   countBadge: {
     backgroundColor: '#DBEAFE',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
     borderRadius: 10,
   },
   countText: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '800',
     color: '#1D4ED8',
   },
   addBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  suggestionsSection: {
+    marginBottom: 14,
+  },
+  suggIconWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    gap: 5,
+    marginBottom: 8,
   },
-  addBtnText: {
-    fontSize: 11,
+  suggLabel: {
+    fontSize: 12.5,
     fontWeight: '700',
-    color: '#fff',
+    color: '#64748B',
   },
   suggestionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10,
-  },
-  suggIconWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    marginRight: 2,
-  },
-  suggLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#94A3B8',
+    gap: 8,
   },
   suggChip: {
     backgroundColor: '#fff',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#CBD5E1',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 11,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   suggChipActive: {
     backgroundColor: '#EFF6FF',
-    borderColor: '#93C5FD',
+    borderColor: '#60A5FA',
   },
   suggChipText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#475569',
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#334155',
   },
   suggChipTextActive: {
     color: '#2563EB',
+    fontWeight: '800',
   },
   emptyCard: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: '#CBD5E1',
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
     backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
   },
   emptyText: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '500',
+    flex: 1,
+    fontSize: 13.5,
+    color: '#475569',
+    fontWeight: '600',
+    lineHeight: 18,
   },
   list: {
-    gap: 8,
+    gap: 10,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     backgroundColor: '#fff',
-    padding: 8,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
   rowNum: {
-    width: 22,
+    width: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },
   rowNumText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#64748B',
   },
   input: {
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    fontSize: 12,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
+    fontSize: 14,
     color: '#0F172A',
   },
   nameInput: {
     flex: 1,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   valueInput: {
     flex: 1,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#2563EB',
   },
   trashBtn: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

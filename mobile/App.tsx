@@ -75,14 +75,16 @@ function MainApp() {
     setCurrentTab(tab);
   };
 
-  // Switch default tab if Master
+  // Switch default tab if Master or if non-owner is on restricted tab
   React.useEffect(() => {
     if (permissions.isMaster) {
       handleTabPress('repairs');
-    } else if (permissions.isCashier && currentTab === 'operations') {
+    } else if (permissions.isCashier && (currentTab === 'operations' || currentTab === 'reports')) {
       handleTabPress('pos');
+    } else if (currentStaff !== 'owner' && currentTab === 'reports') {
+      handleTabPress('warehouse');
     }
-  }, [permissions.isMaster, permissions.isCashier]);
+  }, [permissions.isMaster, permissions.isCashier, currentStaff, currentTab]);
 
   // Global POS Cart
   const [cart, setCart] = useState<POSCartItem[]>([]);
@@ -185,12 +187,17 @@ function MainApp() {
       prev.map((item) => {
         if (item.product.id === productId) {
           const nextIsGift = !item.isGift;
-          const origPrice = item.originalPrice ?? item.customPrice ?? item.product.sale_price ?? item.product.price ?? 0;
+          const basePrice = item.product.sale_price ?? item.product.price ?? 0;
+          const origPrice = item.originalPrice ?? item.customPrice ?? basePrice;
           return {
             ...item,
             isGift: nextIsGift,
             originalPrice: origPrice,
-            customPrice: nextIsGift ? 0 : origPrice,
+            customPrice: nextIsGift
+              ? 0
+              : Math.abs(origPrice - basePrice) > 0.005
+              ? origPrice
+              : undefined,
           };
         }
         return item;
@@ -237,7 +244,7 @@ function MainApp() {
           </View>
         )}
 
-        {loadedTabs.has('reports') && (
+        {currentStaff === 'owner' && loadedTabs.has('reports') && (
           <View style={[styles.screenTab, currentTab !== 'reports' && styles.screenHidden]}>
             <ReportsScreen />
           </View>
@@ -366,8 +373,8 @@ function MainApp() {
           </TouchableOpacity>
         )}
 
-        {/* Tab: Reports (Hesabatlar) - Hidden for Cashier and Master */}
-        {!permissions.isCashier && !permissions.isMaster && (
+        {/* Tab: Reports (Hesabatlar) - Strictly only for Owner/Admin (Sahib) */}
+        {currentStaff === 'owner' && (
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => handleTabPress('reports')}

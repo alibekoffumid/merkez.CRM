@@ -276,6 +276,7 @@ export interface SaleReceiptData {
   };
   clientName?: string;
   clientPhone?: string;
+  salesChannel?: string;
   cashierName?: string;
   warehouseName?: string;
   notes?: string;

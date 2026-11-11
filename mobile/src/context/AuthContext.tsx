@@ -26,6 +26,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   selectStaff: (staff: StaffMember | 'owner', pin: string) => Promise<{ success: boolean; error?: string }>;
   lockStaff: () => void;
+  unlockStaff: () => void;
   refreshStaffList: () => Promise<void>;
 }
 
@@ -56,6 +57,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   selectStaff: async () => ({ success: false }),
   lockStaff: () => {},
+  unlockStaff: () => {},
   refreshStaffList: async () => {},
 });
 
@@ -208,6 +210,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsStaffLocked(true);
   };
 
+  const unlockStaff = () => {
+    setIsStaffLocked(false);
+  };
+
   const permissions = staffService.computePermissions(currentStaff);
 
   return (
@@ -225,6 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         selectStaff,
         lockStaff,
+        unlockStaff,
         refreshStaffList,
       }}
     >

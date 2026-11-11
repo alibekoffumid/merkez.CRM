@@ -1268,7 +1268,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <View style={styles.menuItemTopRow}>
               <Text style={styles.menuItemTitle}>Tətbiq Haqqında</Text>
               <View style={styles.versionBadge}>
-                <Text style={styles.versionBadgeText}>v1.1.8 (Build 19)</Text>
+                <Text style={styles.versionBadgeText}>v1.1.22 (Build 33)</Text>
               </View>
             </View>
             <Text style={styles.menuItemDesc}>

@@ -359,22 +359,6 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                   : 'Heyət'}
               </Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.logoutHeaderBtn}
-              onPress={() => {
-                Alert.alert(
-                  'Hesabdan çıxış',
-                  'Sistemdən çıxmaq istədiyinizə əminsiniz?',
-                  [
-                    { text: 'Ləğv et', style: 'cancel' },
-                    { text: 'Çıxış', style: 'destructive', onPress: logout },
-                  ]
-                );
-              }}
-            >
-              <LogOut size={18} color="#6B7280" />
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -432,37 +416,6 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
                     numberOfLines={1}
                   >
                     {selectionMode ? 'Seçildi' : 'Etiketlər'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.statBox,
-                    overdueRentalsCount > 0 && { backgroundColor: '#FEF2F2', borderColor: '#FCA5A5' },
-                  ]}
-                  onPress={() => setRentalsListVisible(true)}
-                >
-                  <View style={styles.statLabelWithIcon}>
-                    <KeyRound size={12} color={overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5'} />
-                    <Text
-                      style={[
-                        styles.statValText,
-                        { color: overdueRentalsCount > 0 ? '#DC2626' : '#4F46E5' },
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {overdueRentalsCount > 0 ? `${overdueRentalsCount}!` : 'İcarə'}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.statLabel,
-                      overdueRentalsCount > 0 && { color: '#DC2626', fontWeight: '800' },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {overdueRentalsCount > 0 ? 'Gecikən' : 'Siyahı'}
                   </Text>
                 </TouchableOpacity>
 
