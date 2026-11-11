@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Type': 'application/vnd.android.package-archive',
       'Content-Length': stat.size,
-      'Content-Disposition': 'attachment; filename="merkez-mobile-v1.1.23.apk"',
+      'Content-Disposition': 'attachment; filename="merkez-mobile-v1.1.24.apk"',
     });
     fs.createReadStream(apkPath).pipe(res);
   } else {
@@ -43,7 +43,7 @@ const server = http.createServer((req, res) => {
           <h2>📦 Merkez Склад & Сканер</h2>
           <p>Android üçün rəsmi quraşdırma faylı (Release APK)</p>
           <a class="btn" href="/merkez-mobile.apk">Yüklə (APK Endir)</a>
-          <div class="size">Fayl ölçüsü: ~98.8 MB · Versiya: 1.1.23 (Build 34)</div>
+          <div class="size">Fayl ölçüsü: ~98.8 MB · Versiya: 1.1.24 (Build 35)</div>
         </div>
       </body>
       </html>

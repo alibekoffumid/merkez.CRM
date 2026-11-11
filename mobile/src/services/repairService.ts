@@ -39,6 +39,7 @@ export const repairService = {
 
   async createRepair(repair: {
     item_name: string;
+    quantity?: number;
     serial_number?: string;
     issue_description?: string;
     type: 'INTERNAL_STOCK' | 'CLIENT_ITEM';
@@ -47,24 +48,96 @@ export const repairService = {
   }): Promise<WarehouseRepair> {
     const userId = await getActiveUserId();
     const repairCode = `REP-${Date.now().toString().slice(-6)}`;
+    const qty = repair.quantity && repair.quantity > 0 ? Math.floor(repair.quantity) : 1;
+    const cleanName = repair.item_name.replace(/\s*\(x\d+\)\s*/g, '').trim();
+    const formattedName = qty > 1 ? `${cleanName} (x${qty})` : cleanName;
 
-    const { data, error } = await supabase
+    const insertPayload: any = {
+      ...repair,
+      item_name: formattedName,
+      quantity: qty,
+      repair_code: repairCode,
+      status: 'SENT_TO_WORKSHOP',
+      user_id: userId,
+      created_at: new Date().toISOString(),
+    };
+
+    let { data, error } = await supabase
       .from('warehouse_repairs')
-      .insert([{
-        ...repair,
-        repair_code: repairCode,
-        status: 'SENT_TO_MASTER',
-        user_id: userId,
-        created_at: new Date().toISOString(),
-      }])
+      .insert([insertPayload])
       .select()
       .single();
+
+    if (error && (error.code === '42703' || error.message?.includes('quantity'))) {
+      delete insertPayload.quantity;
+      const res = await supabase
+        .from('warehouse_repairs')
+        .insert([insertPayload])
+        .select()
+        .single();
+      data = res.data;
+      error = res.error;
+    }
 
     if (error) throw error;
     return data;
   },
 
-  async updateStatus(repairId: string, status: 'SENT_TO_MASTER' | 'READY' | 'RETURNED_TO_STOCK'): Promise<void> {
+  async updateQuantity(
+    repairId: string,
+    quantity: number,
+    itemName: string,
+    status: string = 'BEING_REPAIRED'
+  ): Promise<void> {
+    const userId = await getActiveUserId();
+    const payload: any = {
+      quantity,
+      item_name: itemName,
+      status,
+      updated_at: new Date().toISOString(),
+    };
+    let { error } = await supabase
+      .from('warehouse_repairs')
+      .update(payload)
+      .eq('id', repairId)
+      .eq('user_id', userId);
+
+    if (error && (error.code === '42703' || error.message?.includes('quantity'))) {
+      delete payload.quantity;
+      await supabase
+        .from('warehouse_repairs')
+        .update(payload)
+        .eq('id', repairId)
+        .eq('user_id', userId);
+    }
+  },
+
+  async createMaster(name: string, phone?: string): Promise<WarehouseMaster> {
+    const userId = await getActiveUserId();
+    const { data, error } = await supabase
+      .from('warehouse_masters')
+      .insert([{
+        user_id: userId,
+        name: name.trim(),
+        phone: phone?.trim() || null,
+      }])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteRepair(repairId: string): Promise<void> {
+    const userId = await getActiveUserId();
+    const { error } = await supabase
+      .from('warehouse_repairs')
+      .delete()
+      .eq('id', repairId)
+      .eq('user_id', userId);
+    if (error) throw error;
+  },
+
+  async updateStatus(repairId: string, status: string): Promise<void> {
     const userId = await getActiveUserId();
     const { error } = await supabase
       .from('warehouse_repairs')

@@ -140,11 +140,12 @@ export interface WarehouseRepair {
   type: 'INTERNAL_STOCK' | 'CLIENT_ITEM';
   product_id?: string;
   item_name: string;
+  quantity?: number;
   serial_number?: string;
   master_id?: string;
   master_name?: string;
   issue_description?: string;
-  status: 'SENT_TO_MASTER' | 'READY' | 'RETURNED_TO_STOCK';
+  status: string;
   master_fee?: number;
   parts_cost?: number;
   created_at?: string;
