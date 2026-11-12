@@ -194,7 +194,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
       result = result.filter((p) => !p.warehouse_id || p.warehouse_id === activeWarehouseId);
     }
 
-    if (showLowStockOnly && permissions.canViewStockStats) {
+    if (showLowStockOnly) {
       result = result.filter(
         (p) => Number(p.stock_quantity || 0) <= (p.critical_stock && p.critical_stock > 0 ? p.critical_stock : 5)
       );
@@ -219,7 +219,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
     }
 
     return result;
-  }, [products, activeWarehouseId, searchTerm, selectedCategory, showLowStockOnly, permissions.canViewStockStats]);
+  }, [products, activeWarehouseId, searchTerm, selectedCategory, showLowStockOnly]);
 
   // Inventory stats summary
   const stats = useMemo(() => {
@@ -305,7 +305,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
         onAddToCart={onAddToCart ? () => handleProductAddToCart(item) : undefined}
         canViewCostPrices={permissions.canViewCostPrices}
         canViewSupplier={permissions.canViewSupplier}
-        canViewLowStock={permissions.canViewStockStats}
+        canViewLowStock={true}
         selectionMode={selectionMode}
         isSelected={selectedProductIds.has(item.id)}
         onToggleSelect={() => toggleProductSelection(item.id)}
@@ -362,74 +362,64 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           </View>
         </View>
 
-        {/* Stats Row: Only visible if user has permission to see stock stats or add products */}
-        {(permissions.canViewStockStats || permissions.canManageProducts) && (
-          <View style={styles.statsRow}>
-            {permissions.canViewStockStats && (
-              <>
-                <TouchableOpacity
-                  style={[styles.statBox, !showLowStockOnly && styles.statBoxActive]}
-                  onPress={() => setShowLowStockOnly(false)}
-                >
-                  <Text style={styles.statVal} numberOfLines={1} adjustsFontSizeToFit>{stats.totalCount}</Text>
-                  <Text style={styles.statLabel} numberOfLines={1}>Bütün mallar</Text>
-                </TouchableOpacity>
+        {/* Stats Row: Bütün mallar, Bitmək üzrədir, Çap Etiketlər, Əlavə et (available for all staff) */}
+        <View style={styles.statsRow}>
+          <TouchableOpacity
+            style={[styles.statBox, !showLowStockOnly && styles.statBoxActive]}
+            onPress={() => setShowLowStockOnly(false)}
+          >
+            <Text style={styles.statVal} numberOfLines={1} adjustsFontSizeToFit>{stats.totalCount}</Text>
+            <Text style={styles.statLabel} numberOfLines={1}>Bütün mallar</Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={[styles.statBox, showLowStockOnly && styles.statBoxActiveRed]}
-                  onPress={() => setShowLowStockOnly(!showLowStockOnly)}
-                >
-                  <View style={styles.statLabelWithIcon}>
-                    <AlertTriangle size={12} color="#EF4444" />
-                    <Text style={styles.statValRed} numberOfLines={1} adjustsFontSizeToFit>{stats.lowStockCount}</Text>
-                  </View>
-                  <Text style={styles.statLabel} numberOfLines={1}>Bitmək üzrədir</Text>
-                </TouchableOpacity>
-              </>
-            )}
+          <TouchableOpacity
+            style={[styles.statBox, showLowStockOnly && styles.statBoxActiveRed]}
+            onPress={() => setShowLowStockOnly(!showLowStockOnly)}
+          >
+            <View style={styles.statLabelWithIcon}>
+              <AlertTriangle size={12} color="#EF4444" />
+              <Text style={styles.statValRed} numberOfLines={1} adjustsFontSizeToFit>{stats.lowStockCount}</Text>
+            </View>
+            <Text style={styles.statLabel} numberOfLines={1}>Bitmək üzrədir</Text>
+          </TouchableOpacity>
 
-            {permissions.canManageProducts && (
-              <>
-                <TouchableOpacity
-                  style={[styles.statBox, selectionMode && styles.statBoxActiveBlue]}
-                  onPress={() => {
-                    const next = !selectionMode;
-                    setSelectionMode(next);
-                    if (!next) setSelectedProductIds(new Set());
-                  }}
-                >
-                  <View style={styles.statLabelWithIcon}>
-                    <Printer size={12} color={selectionMode ? '#2563EB' : '#475569'} />
-                    <Text
-                      style={[
-                        styles.statValText,
-                        selectionMode && { color: '#2563EB' },
-                      ]}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {selectionMode ? selectedProductIds.size : 'Çap'}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[styles.statLabel, selectionMode && { color: '#2563EB', fontWeight: '800' }]}
-                    numberOfLines={1}
-                  >
-                    {selectionMode ? 'Seçildi' : 'Etiketlər'}
-                  </Text>
-                </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.statBox, selectionMode && styles.statBoxActiveBlue]}
+            onPress={() => {
+              const next = !selectionMode;
+              setSelectionMode(next);
+              if (!next) setSelectedProductIds(new Set());
+            }}
+          >
+            <View style={styles.statLabelWithIcon}>
+              <Printer size={12} color={selectionMode ? '#2563EB' : '#475569'} />
+              <Text
+                style={[
+                  styles.statValText,
+                  selectionMode && { color: '#2563EB' },
+                ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {selectionMode ? selectedProductIds.size : 'Çap'}
+              </Text>
+            </View>
+            <Text
+              style={[styles.statLabel, selectionMode && { color: '#2563EB', fontWeight: '800' }]}
+              numberOfLines={1}
+            >
+              {selectionMode ? 'Seçildi' : 'Etiketlər'}
+            </Text>
+          </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={styles.addStatBox}
-                  onPress={() => setNewProductVisible(true)}
-                >
-                  <Plus size={15} color="#10B981" />
-                  <Text style={styles.addStatText} numberOfLines={1}>Əlavə et</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        )}
+          <TouchableOpacity
+            style={styles.addStatBox}
+            onPress={() => setNewProductVisible(true)}
+          >
+            <Plus size={15} color="#10B981" />
+            <Text style={styles.addStatText} numberOfLines={1}>Əlavə et</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
@@ -607,7 +597,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           selectedCategoryId={selectedCategory}
           onSelectCategory={(id) => setSelectedCategory(id)}
           products={products}
-          canViewStockStats={permissions.canViewStockStats}
+          canViewStockStats={true}
         />
 
         {/* Label Print Modal */}
