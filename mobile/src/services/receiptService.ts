@@ -24,6 +24,11 @@ export interface PrinterConfig {
   objectCode?: string;
   kassaNumber?: string;
   filialName?: string;
+  // Label printer (TSPL / Xprinter XP-350B)
+  labelProtocol?: 'tspl' | 'escpos';
+  labelWidthMm?: number;
+  labelHeightMm?: number;
+  labelGapMm?: number;
 }
 
 export interface SavedPrinter {
@@ -60,6 +65,10 @@ export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   objectCode: '5501238362-20001',
   kassaNumber: 'V1E0969392',
   filialName: 'DÜKKAN - ƏHMƏDLİ',
+  labelProtocol: 'tspl',
+  labelWidthMm: 58,
+  labelHeightMm: 40,
+  labelGapMm: 2,
 };
 
 export function uint8ToBase64(bytes: Uint8Array): string {

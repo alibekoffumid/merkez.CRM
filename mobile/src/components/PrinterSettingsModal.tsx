@@ -23,12 +23,15 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Tag,
+  Barcode,
 } from 'lucide-react-native';
 import {
   receiptService,
   PrinterConfig,
   DEFAULT_PRINTER_CONFIG,
 } from '../services/receiptService';
+import { labelPrintService } from '../services/labelPrintService';
 
 interface PrinterSettingsModalProps {
   visible: boolean;
@@ -44,6 +47,7 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
   const [config, setConfig] = useState<PrinterConfig>(DEFAULT_PRINTER_CONFIG);
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [testingLabel, setTestingLabel] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
@@ -96,6 +100,21 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
       Alert.alert('Çap Xətası', e.message || 'Sınaq çapı göndərilə bilmədi');
     } finally {
       setTesting(false);
+    }
+  };
+
+  const handleTestLabelPrint = async () => {
+    setTestingLabel(true);
+    try {
+      await labelPrintService.printTestLabel(config);
+      Alert.alert(
+        '✅ Sınaq Etiketi Göndərildi',
+        `Sınaq etiketi (TSPL formatında) printerə göndərildi!\n\nÜnvan: ${config.ipAddress}:${config.port || 9100}\nÖlçü: ${config.labelWidthMm || 58}x${config.labelHeightMm || 40} mm\n\nZəhmət olmasa Xprinteri yoxlayın.`
+      );
+    } catch (e: any) {
+      Alert.alert('Çap Xətası', e.message || 'Sınaq etiketi göndərilə bilmədi');
+    } finally {
+      setTestingLabel(false);
     }
   };
 
@@ -292,6 +311,112 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                     thumbColor={config.autoCut !== false ? '#10B981' : '#F3F4F6'}
                   />
                 </View>
+              </View>
+
+              {/* Label Printer Settings (Xprinter XP-350B & TSPL) */}
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <Tag size={16} color="#2563EB" />
+                  <Text style={[styles.cardTitle, { color: '#2563EB' }]}>ETİKET / BARKOD ÇAPI (XPRINTER XP-350B)</Text>
+                </View>
+
+                {/* Protocol Selector */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Etiket Çap Protokolu (Dili)</Text>
+                  <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        config.labelProtocol !== 'escpos' && styles.toggleBtnActiveBlue,
+                      ]}
+                      onPress={() => setConfig({ ...config, labelProtocol: 'tspl' })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          config.labelProtocol !== 'escpos' && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        🏷️ TSPL (Xprinter / TSC)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        config.labelProtocol === 'escpos' && styles.toggleBtnActiveBlue,
+                      ]}
+                      onPress={() => setConfig({ ...config, labelProtocol: 'escpos' })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          config.labelProtocol === 'escpos' && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        🧾 ESC/POS
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={styles.hint}>
+                    Xprinter XP-350B, XP-365B və digər etiket printerləri üçün mütləq TSPL seçilməlidir.
+                  </Text>
+                </View>
+
+                {/* Label Dimensions */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Etiket Kağızı Ölçüsü</Text>
+                  <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        (!config.labelWidthMm || (config.labelWidthMm === 58 && config.labelHeightMm === 40)) && styles.toggleBtnActiveBlue,
+                      ]}
+                      onPress={() => setConfig({ ...config, labelWidthMm: 58, labelHeightMm: 40, labelGapMm: 2 })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          (!config.labelWidthMm || (config.labelWidthMm === 58 && config.labelHeightMm === 40)) && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        58 × 40 mm (Standart)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        config.labelWidthMm === 40 && config.labelHeightMm === 30 && styles.toggleBtnActiveBlue,
+                      ]}
+                      onPress={() => setConfig({ ...config, labelWidthMm: 40, labelHeightMm: 30, labelGapMm: 2 })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          config.labelWidthMm === 40 && config.labelHeightMm === 30 && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        40 × 30 mm
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Test Label Button */}
+                <TouchableOpacity
+                  style={[styles.testLabelBtn, testingLabel && styles.btnDisabled]}
+                  onPress={handleTestLabelPrint}
+                  disabled={testingLabel}
+                  activeOpacity={0.8}
+                >
+                  {testingLabel ? (
+                    <ActivityIndicator size="small" color="#2563EB" />
+                  ) : (
+                    <>
+                      <Tag size={15} color="#2563EB" />
+                      <Text style={styles.testLabelBtnText}>🏷️ Sınaq Etiketi Çap Et (XP-350B TSPL)</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
 
               {/* Store & Header Details */}
@@ -637,6 +762,9 @@ const styles = StyleSheet.create({
   toggleBtnActive: {
     backgroundColor: '#10B981',
   },
+  toggleBtnActiveBlue: {
+    backgroundColor: '#2563EB',
+  },
   toggleBtnText: {
     fontSize: 13,
     fontWeight: '600',
@@ -729,6 +857,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#059669',
+  },
+  testLabelBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    borderRadius: 10,
+    paddingVertical: 11,
+    marginTop: 8,
+  },
+  testLabelBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1D4ED8',
   },
   testBtn: {
     flexDirection: 'row',

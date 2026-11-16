@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import { Product } from '../types';
 import { labelPrintService, LabelPrintItem } from '../services/labelPrintService';
+import { receiptService, PrinterConfig } from '../services/receiptService';
 import { PrinterSettingsModal } from './PrinterSettingsModal';
 
 interface LabelPrintModalProps {
@@ -38,6 +39,13 @@ export const LabelPrintModal: React.FC<LabelPrintModalProps> = ({
   const [items, setItems] = useState<LabelPrintItem[]>([]);
   const [printing, setPrinting] = useState(false);
   const [printerSettingsVisible, setPrinterSettingsVisible] = useState(false);
+  const [printerConfig, setPrinterConfig] = useState<PrinterConfig | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      receiptService.getConfig().then(setPrinterConfig);
+    }
+  }, [visible]);
 
   useEffect(() => {
     if (visible && products && products.length > 0) {
@@ -119,7 +127,7 @@ export const LabelPrintModal: React.FC<LabelPrintModalProps> = ({
               <View>
                 <Text style={styles.headerTitle}>Barkod Etiketlərinin Çapı</Text>
                 <Text style={styles.headerSubtitle}>
-                  {items.length} məhsul · Termo 58×40 mm
+                  {items.length} məhsul · Termo {printerConfig?.labelWidthMm || 58}×{printerConfig?.labelHeightMm || 40} mm ({printerConfig?.labelProtocol === 'escpos' ? 'ESC/POS' : 'TSPL'})
                 </Text>
               </View>
             </View>
@@ -248,6 +256,7 @@ export const LabelPrintModal: React.FC<LabelPrintModalProps> = ({
       <PrinterSettingsModal
         visible={printerSettingsVisible}
         onClose={() => setPrinterSettingsVisible(false)}
+        onSaved={(newCfg) => setPrinterConfig(newCfg)}
       />
     </Modal>
   );

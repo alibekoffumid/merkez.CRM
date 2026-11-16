@@ -12,25 +12,188 @@ export interface LabelPrintItem {
   printQty: number;
 }
 
+export function sanitizeTsplString(str: string): string {
+  if (!str) return '';
+  return cleanAzeriText(str)
+    .replace(/"/g, "''")
+    .replace(/\\/g, '/')
+    .replace(/[\r\n]+/g, ' ')
+    .trim();
+}
+
+export function wrapText(text: string, maxCharsPerLine = 26): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if (!currentLine) {
+      currentLine = word;
+    } else if ((currentLine + ' ' + word).length <= maxCharsPerLine) {
+      currentLine += ' ' + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+      if (lines.length === 2) break;
+    }
+  }
+  if (currentLine && lines.length < 2) {
+    lines.push(currentLine);
+  }
+
+  if (lines.length === 0 && text.length > 0) {
+    lines.push(text.slice(0, maxCharsPerLine));
+    if (text.length > maxCharsPerLine) {
+      lines.push(text.slice(maxCharsPerLine, maxCharsPerLine * 2));
+    }
+  }
+
+  return lines;
+}
+
+export function stringToAsciiBytes(str: string): Uint8Array {
+  const bytes = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    bytes[i] = code <= 255 ? code : 63;
+  }
+  return bytes;
+}
+
+export function uint8ToBase64(bytes: Uint8Array): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 3) {
+    const b1 = bytes[i];
+    const b2 = i + 1 < len ? bytes[i + 1] : NaN;
+    const b3 = i + 2 < len ? bytes[i + 2] : NaN;
+
+    const e1 = b1 >> 2;
+    const e2 = ((b1 & 3) << 4) | (isNaN(b2) ? 0 : b2 >> 4);
+    const e3 = isNaN(b2) ? 64 : ((b2 & 15) << 2) | (isNaN(b3) ? 0 : b3 >> 6);
+    const e4 = isNaN(b3) ? 64 : b3 & 63;
+
+    output += chars.charAt(e1) + chars.charAt(e2) + chars.charAt(e3) + chars.charAt(e4);
+  }
+  return output;
+}
+
 function utf8ToBase64(str: string): string {
   const utf8 = unescape(encodeURIComponent(str));
   let output = '';
   for (let i = 0; i < utf8.length; i++) {
     output += String.fromCharCode(utf8.charCodeAt(i));
   }
-  return btoa(output);
-}
-
-function uint8ToBase64(bytes: Uint8Array): string {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+  return uint8ToBase64(stringToAsciiBytes(output));
 }
 
 export const labelPrintService = {
+  /**
+   * Generates TSPL2 byte array for Xprinter (XP-350B, XP-365B, XP-420B, etc.) and TSC label printers
+   */
+  formatLabelsTspl(items: LabelPrintItem[], config: PrinterConfig): Uint8Array {
+    const widthMm = config.labelWidthMm || 58;
+    const heightMm = config.labelHeightMm || 40;
+    const gapMm = config.labelGapMm || 2;
+    const storeName = sanitizeTsplString(config.storeName || 'MERKEZ MUSIQI').toUpperCase();
+
+    const widthDots = Math.round(widthMm * 8); // 464 for 58mm
+    const heightDots = Math.round(heightMm * 8); // 320 for 40mm
+
+    const commands: string[] = [];
+    const CRLF = '\r\n';
+
+    // 1. Hardware Initialization for TSPL
+    commands.push(`SIZE ${widthMm} mm, ${heightMm} mm`);
+    commands.push(`GAP ${gapMm} mm, 0 mm`);
+    commands.push('DIRECTION 1');
+    commands.push('REFERENCE 0,0');
+    commands.push('OFFSET 0 mm');
+    commands.push('SET PEEL OFF');
+    commands.push('SET CUTTER OFF');
+    commands.push('SET TEAR ON');
+    commands.push('CODEPAGE 1252');
+
+    // 2. Iterate each label item
+    items.forEach((item) => {
+      const qty = Math.max(1, item.printQty || 1);
+      const barcodeRaw = (item.barcode || item.id?.replace(/-/g, '').slice(0, 10) || '0000000000').trim();
+      const barcodeStr = sanitizeTsplString(barcodeRaw);
+      const priceNum = Number(item.price || 0);
+      const priceStr = `${priceNum.toFixed(2)} AZN`;
+      const cleanTitle = sanitizeTsplString(item.name || 'Mehsul');
+
+      // Clear image buffer before drawing
+      commands.push('CLS');
+
+      // --- Product Title ---
+      // Maximum characters per line based on width: approx (widthDots - 32) / 16
+      const maxChars = Math.max(16, Math.floor((widthDots - 32) / 16));
+      const titleLines = wrapText(cleanTitle, maxChars);
+
+      if (titleLines.length === 1) {
+        const line = titleLines[0];
+        const textWidth = line.length * 16;
+        const x = Math.max(16, Math.floor((widthDots - textWidth) / 2));
+        const y = 20;
+        commands.push(`TEXT ${x},${y},"3",0,1,1,"${line}"`);
+      } else if (titleLines.length >= 2) {
+        const line1 = titleLines[0];
+        const line2 = titleLines[1];
+        const x1 = Math.max(16, Math.floor((widthDots - line1.length * 16) / 2));
+        const x2 = Math.max(16, Math.floor((widthDots - line2.length * 16) / 2));
+        commands.push(`TEXT ${x1},12,"3",0,1,1,"${line1}"`);
+        commands.push(`TEXT ${x2},38,"3",0,1,1,"${line2}"`);
+      }
+
+      // --- Linear Barcode (Code 128) ---
+      // Module width (narrow): 2 dots for standard length <= 13 chars, 1 dot for longer
+      const isLong = barcodeStr.length > 13;
+      const narrow = isLong ? 1 : 2;
+      const wide = narrow;
+      const estimatedBarcodeWidth = (barcodeStr.length + 2) * 11 * narrow;
+      const barcodeX = Math.max(16, Math.floor((widthDots - estimatedBarcodeWidth) / 2));
+      const barcodeY = titleLines.length > 1 ? 72 : 62;
+      const barcodeHeight = 52;
+
+      // TSPL: BARCODE x,y,"128",height,human_readable,rotation,narrow,wide,"content"
+      // human_readable = 2 (centered text below barcode)
+      commands.push(`BARCODE ${barcodeX},${barcodeY},"128",${barcodeHeight},2,0,${narrow},${wide},"${barcodeStr}"`);
+
+      // --- Divider Line ---
+      const dividerY = barcodeY + barcodeHeight + 28;
+      if (dividerY + 50 <= heightDots) {
+        commands.push(`BAR 20,${dividerY},${widthDots - 40},2`);
+      }
+
+      // --- Price ---
+      // Font "4" (24x32 dots)
+      const priceTextWidth = priceStr.length * 24;
+      const priceX = Math.max(16, Math.floor((widthDots - priceTextWidth) / 2));
+      const priceY = dividerY + 10;
+      commands.push(`TEXT ${priceX},${priceY},"4",0,1,1,"${priceStr}"`);
+
+      // --- Store Footer ---
+      if (storeName && priceY + 40 <= heightDots - 12) {
+        const footerText = storeName.slice(0, 32);
+        const footerWidth = footerText.length * 12; // Font "2" is 12x20
+        const footerX = Math.max(16, Math.floor((widthDots - footerWidth) / 2));
+        const footerY = priceY + 38;
+        if (footerY + 16 <= heightDots) {
+          commands.push(`TEXT ${footerX},${footerY},"2",0,1,1,"${footerText}"`);
+        }
+      }
+
+      // --- Print Command ---
+      // TSPL prints 'qty' copies of this label
+      commands.push(`PRINT ${qty},1`);
+    });
+
+    const fullScript = commands.join(CRLF) + CRLF;
+    return stringToAsciiBytes(fullScript);
+  },
+
   /**
    * Generates ESC/POS byte array for thermal label printers (Direct TCP)
    */
@@ -43,22 +206,17 @@ export const labelPrintService = {
       const qty = Math.max(1, item.printQty || 1);
       const barcodeStr = (item.barcode || item.id.replace(/-/g, '').slice(0, 10)).trim();
       const priceStr = `${Number(item.price || 0).toFixed(2)} AZN`;
-      const nameStr = cleanAzeriText(item.name || 'Məhsul');
+      const nameStr = cleanAzeriText(item.name || 'Mehsul');
 
       for (let q = 0; q < qty; q++) {
         builder.align('center');
 
-        // 1. Product Title (bold, single height, max 24 chars per line)
+        // 1. Product Title
         builder.bold(true);
         builder.line(nameStr.slice(0, 30));
         builder.bold(false);
 
         // 2. Barcode (Hardware ESC/POS Code128)
-        // GS h 64 (height 64 dots)
-        // GS w 2  (width multiplier 2)
-        // GS H 2  (HRI characters placed below barcode)
-        // GS f 0  (Font A for HRI)
-        // GS k 73 len+2 {B data
         const barcodeBytes: number[] = [];
         for (let i = 0; i < barcodeStr.length; i++) {
           barcodeBytes.push(barcodeStr.charCodeAt(i));
@@ -70,13 +228,12 @@ export const labelPrintService = {
           0x1D, 0x48, 2,          // GS H (HRI text below barcode)
           0x1D, 0x66, 0,          // GS f (Font A)
           0x1D, 0x6B, 73, barcodeBytes.length + 2, 0x7B, 0x42, ...barcodeBytes, // Code 128 Set B
-          0x0A
+          0x0A,
         ];
 
-        // Push raw barcode bytes into buffer
         bData.forEach((byte) => (builder as any).buffer.push(byte));
 
-        // 3. Price (Large, bold)
+        // 3. Price
         builder.align('center');
         builder.bold(true);
         builder.doubleSize(true);
@@ -84,7 +241,7 @@ export const labelPrintService = {
         builder.doubleSize(false);
         builder.bold(false);
 
-        // Gap spacing between thermal labels (approx 3 line feeds)
+        // Gap spacing between thermal labels
         builder.newLine(3);
       }
     });
@@ -213,7 +370,11 @@ export const labelPrintService = {
     // Direct TCP Print
     if (config.connectionType !== 'rawbt' && DirectPrinter?.printRaw) {
       try {
-        const bytes = this.formatLabelsEscPos(validItems, config);
+        const useTspl = config.labelProtocol !== 'escpos';
+        const bytes = useTspl
+          ? this.formatLabelsTspl(validItems, config)
+          : this.formatLabelsEscPos(validItems, config);
+
         const b64 = uint8ToBase64(bytes);
         const port = Number(config.port) || 9100;
         await DirectPrinter.printRaw(config.ipAddress, port, b64, 5000);
@@ -241,6 +402,36 @@ export const labelPrintService = {
 
     // Fallback or explicit RawBT
     return this.printViaRawbt(validItems);
+  },
+
+  /**
+   * Prints a single test label in TSPL (Xprinter XP-350B) to verify setup
+   */
+  async printTestLabel(customConfig?: PrinterConfig): Promise<boolean> {
+    const config = customConfig || (await receiptService.getConfig());
+    const testItems: LabelPrintItem[] = [
+      {
+        id: 'test-item-01',
+        name: 'TEST ETIKETI · XP-350B',
+        barcode: '123456789012',
+        price: 99.00,
+        printQty: 1,
+      },
+    ];
+
+    if (config.connectionType !== 'rawbt' && DirectPrinter?.printRaw) {
+      const useTspl = config.labelProtocol !== 'escpos';
+      const bytes = useTspl
+        ? this.formatLabelsTspl(testItems, config)
+        : this.formatLabelsEscPos(testItems, config);
+
+      const b64 = uint8ToBase64(bytes);
+      const port = Number(config.port) || 9100;
+      await DirectPrinter.printRaw(config.ipAddress, port, b64, 5000);
+      return true;
+    } else {
+      return this.printViaRawbt(testItems);
+    }
   },
 
   /**
