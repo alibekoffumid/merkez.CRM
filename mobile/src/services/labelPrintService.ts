@@ -138,14 +138,14 @@ export const labelPrintService = {
         let fontCharWidth = 8;
         let titleLines: string[] = [];
 
-        if (cleanTitle.length <= 22) {
+        if (cleanTitle.length <= 19) {
           useFont = '2';
           fontCharWidth = 12;
           titleLines = [cleanTitle];
         } else {
           useFont = '1';
           fontCharWidth = 8;
-          titleLines = wrapText(cleanTitle, 34);
+          titleLines = wrapText(cleanTitle, 19);
         }
 
         let barcodeY = 24;
@@ -399,7 +399,21 @@ export const labelPrintService = {
       return false;
     }
 
-    // Direct TCP Print
+    // 1. Direct Rendered Bitmap TSPL Print (matches web version pixel-for-pixel!)
+    if (config.connectionType !== 'rawbt' && DirectPrinter?.printLabelsRendered && config.labelProtocol !== 'escpos') {
+      try {
+        const widthMm = config.labelWidthMm || 40;
+        const heightMm = config.labelHeightMm || 20;
+        const itemsJson = JSON.stringify(validItems);
+        const port = Number(config.port) || 9100;
+        await DirectPrinter.printLabelsRendered(config.ipAddress, port, itemsJson, widthMm, heightMm, 5000);
+        return true;
+      } catch (renderErr: any) {
+        console.warn('Direct rendered label print failed, attempting raw TSPL fallback:', renderErr);
+      }
+    }
+
+    // 2. Direct TCP Raw TSPL Print
     if (config.connectionType !== 'rawbt' && DirectPrinter?.printRaw) {
       try {
         const useTspl = config.labelProtocol !== 'escpos';
@@ -444,12 +458,25 @@ export const labelPrintService = {
     const testItems: LabelPrintItem[] = [
       {
         id: 'test-item-01',
-        name: 'TEST MƏHSUL (40x20mm)',
-        barcode: '1138886586540',
-        price: 130.00,
+        name: 'ALLEGRO BOYUK TEK PEDAL - AUX',
+        barcode: '8868311174678',
+        price: 20.00,
         printQty: 1,
       },
     ];
+
+    if (config.connectionType !== 'rawbt' && DirectPrinter?.printLabelsRendered && config.labelProtocol !== 'escpos') {
+      try {
+        const widthMm = config.labelWidthMm || 40;
+        const heightMm = config.labelHeightMm || 20;
+        const itemsJson = JSON.stringify(testItems);
+        const port = Number(config.port) || 9100;
+        await DirectPrinter.printLabelsRendered(config.ipAddress, port, itemsJson, widthMm, heightMm, 5000);
+        return true;
+      } catch (e: any) {
+        console.warn('Rendered test label failed, falling back to raw:', e);
+      }
+    }
 
     if (config.connectionType !== 'rawbt' && DirectPrinter?.printRaw) {
       const useTspl = config.labelProtocol !== 'escpos';
