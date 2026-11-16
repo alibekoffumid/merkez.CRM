@@ -127,7 +127,7 @@ export const LabelPrintModal: React.FC<LabelPrintModalProps> = ({
               <View>
                 <Text style={styles.headerTitle}>Barkod Etiketlərinin Çapı</Text>
                 <Text style={styles.headerSubtitle}>
-                  {items.length} məhsul · Termo {printerConfig?.labelWidthMm || 58}×{printerConfig?.labelHeightMm || 40} mm ({printerConfig?.labelProtocol === 'escpos' ? 'ESC/POS' : 'TSPL'})
+                  {items.length} məhsul · Termo {printerConfig?.labelWidthMm || 40}×{printerConfig?.labelHeightMm || 20} mm ({printerConfig?.labelProtocol === 'escpos' ? 'ESC/POS' : 'TSPL'})
                 </Text>
               </View>
             </View>

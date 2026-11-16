@@ -21,7 +21,7 @@ export function sanitizeTsplString(str: string): string {
     .trim();
 }
 
-export function wrapText(text: string, maxCharsPerLine = 26): string[] {
+export function wrapText(text: string, maxCharsPerLine = 34): string[] {
   const words = text.split(' ');
   const lines: string[] = [];
   let currentLine = '';
@@ -90,17 +90,18 @@ function utf8ToBase64(str: string): string {
 
 export const labelPrintService = {
   /**
-   * Generates TSPL2 byte array for Xprinter (XP-350B, XP-365B, XP-420B, etc.) and TSC label printers
+   * Generates TSPL2 byte array for Xprinter (XP-350B, XP-365B, XP-420B, etc.) and TSC label printers.
+   * Matches the exact layout, font sizing and geometry of the web version (40x20mm standard).
    */
   formatLabelsTspl(items: LabelPrintItem[], config: PrinterConfig): Uint8Array {
-    const widthMm = config.labelWidthMm || 58;
-    const heightMm = config.labelHeightMm || 40;
+    const widthMm = config.labelWidthMm || 40;
+    const heightMm = config.labelHeightMm || 20;
     const gapMm = config.labelGapMm || 2;
-    const storeName = sanitizeTsplString(config.storeName || 'MERKEZ MUSIQI').toUpperCase();
 
-    const widthDots = Math.round(widthMm * 8); // 464 for 58mm
-    const heightDots = Math.round(heightMm * 8); // 320 for 40mm
+    const widthDots = Math.round(widthMm * 8); // 320 dots for 40mm, 464 for 58mm
+    const heightDots = Math.round(heightMm * 8); // 160 dots for 20mm, 320 for 40mm
 
+    const isCompact = heightMm <= 25; // 40x20mm standard sticker
     const commands: string[] = [];
     const CRLF = '\r\n';
 
@@ -124,69 +125,102 @@ export const labelPrintService = {
       const priceStr = `${priceNum.toFixed(2)} AZN`;
       const cleanTitle = sanitizeTsplString(item.name || 'Mehsul');
 
-      // Clear image buffer before drawing
+      // Clear image buffer before drawing each label
       commands.push('CLS');
 
-      // --- Product Title ---
-      // Maximum characters per line based on width: approx (widthDots - 32) / 16
-      const maxChars = Math.max(16, Math.floor((widthDots - 32) / 16));
-      const titleLines = wrapText(cleanTitle, maxChars);
+      if (isCompact) {
+        // --- 40x20mm Layout (Identical to Web Version: Title -> Barcode -> Price) ---
 
-      if (titleLines.length === 1) {
-        const line = titleLines[0];
-        const textWidth = line.length * 16;
-        const x = Math.max(16, Math.floor((widthDots - textWidth) / 2));
-        const y = 20;
-        commands.push(`TEXT ${x},${y},"3",0,1,1,"${line}"`);
-      } else if (titleLines.length >= 2) {
-        const line1 = titleLines[0];
-        const line2 = titleLines[1];
-        const x1 = Math.max(16, Math.floor((widthDots - line1.length * 16) / 2));
-        const x2 = Math.max(16, Math.floor((widthDots - line2.length * 16) / 2));
-        commands.push(`TEXT ${x1},12,"3",0,1,1,"${line1}"`);
-        commands.push(`TEXT ${x2},38,"3",0,1,1,"${line2}"`);
-      }
+        // 1. Product Title
+        // Font "1" is 8x12 dots (matches web 8px font). Fits ~36 chars per line in 320 dots.
+        // If short title (<= 20 chars), Font "2" (12x20 dots) fits on 1 line.
+        let useFont = '1';
+        let fontCharWidth = 8;
+        let titleLines: string[] = [];
 
-      // --- Linear Barcode (Code 128) ---
-      // Module width (narrow): 2 dots for standard length <= 13 chars, 1 dot for longer
-      const isLong = barcodeStr.length > 13;
-      const narrow = isLong ? 1 : 2;
-      const wide = narrow;
-      const estimatedBarcodeWidth = (barcodeStr.length + 2) * 11 * narrow;
-      const barcodeX = Math.max(16, Math.floor((widthDots - estimatedBarcodeWidth) / 2));
-      const barcodeY = titleLines.length > 1 ? 72 : 62;
-      const barcodeHeight = 52;
-
-      // TSPL: BARCODE x,y,"128",height,human_readable,rotation,narrow,wide,"content"
-      // human_readable = 2 (centered text below barcode)
-      commands.push(`BARCODE ${barcodeX},${barcodeY},"128",${barcodeHeight},2,0,${narrow},${wide},"${barcodeStr}"`);
-
-      // --- Divider Line ---
-      const dividerY = barcodeY + barcodeHeight + 28;
-      if (dividerY + 50 <= heightDots) {
-        commands.push(`BAR 20,${dividerY},${widthDots - 40},2`);
-      }
-
-      // --- Price ---
-      // Font "4" (24x32 dots)
-      const priceTextWidth = priceStr.length * 24;
-      const priceX = Math.max(16, Math.floor((widthDots - priceTextWidth) / 2));
-      const priceY = dividerY + 10;
-      commands.push(`TEXT ${priceX},${priceY},"4",0,1,1,"${priceStr}"`);
-
-      // --- Store Footer ---
-      if (storeName && priceY + 40 <= heightDots - 12) {
-        const footerText = storeName.slice(0, 32);
-        const footerWidth = footerText.length * 12; // Font "2" is 12x20
-        const footerX = Math.max(16, Math.floor((widthDots - footerWidth) / 2));
-        const footerY = priceY + 38;
-        if (footerY + 16 <= heightDots) {
-          commands.push(`TEXT ${footerX},${footerY},"2",0,1,1,"${footerText}"`);
+        if (cleanTitle.length <= 22) {
+          useFont = '2';
+          fontCharWidth = 12;
+          titleLines = [cleanTitle];
+        } else {
+          useFont = '1';
+          fontCharWidth = 8;
+          titleLines = wrapText(cleanTitle, 34);
         }
+
+        let barcodeY = 24;
+
+        if (titleLines.length === 1) {
+          const line = titleLines[0];
+          const textWidth = line.length * fontCharWidth;
+          const x = Math.max(8, Math.floor((widthDots - textWidth) / 2));
+          const y = useFont === '2' ? 4 : 5;
+          commands.push(`TEXT ${x},${y},"${useFont}",0,1,1,"${line}"`);
+          barcodeY = useFont === '2' ? 28 : 22;
+        } else {
+          const line1 = titleLines[0];
+          const line2 = titleLines[1];
+          const x1 = Math.max(8, Math.floor((widthDots - line1.length * fontCharWidth) / 2));
+          const x2 = Math.max(8, Math.floor((widthDots - line2.length * fontCharWidth) / 2));
+          commands.push(`TEXT ${x1},3,"${useFont}",0,1,1,"${line1}"`);
+          commands.push(`TEXT ${x2},16,"${useFont}",0,1,1,"${line2}"`);
+          barcodeY = 30;
+        }
+
+        // 2. Barcode (Code 128)
+        // narrow=1 module width (0.125mm). 13-digit code is ~165 dots wide, centered in 320 dots.
+        const narrow = 1;
+        const wide = 1;
+        const estimatedBarcodeWidth = (barcodeStr.length + 2) * 11 * narrow;
+        const barcodeX = Math.max(8, Math.floor((widthDots - estimatedBarcodeWidth) / 2));
+        const barcodeHeight = 44; // bars height
+
+        // human_readable = 2 places numbers centered under the bars
+        commands.push(`BARCODE ${barcodeX},${barcodeY},"128",${barcodeHeight},2,0,${narrow},${wide},"${barcodeStr}"`);
+
+        // 3. Price
+        // Font "3" (16x24 dots bold) matches web 11.5px bold font
+        const priceTextWidth = priceStr.length * 16;
+        const priceX = Math.max(8, Math.floor((widthDots - priceTextWidth) / 2));
+        const priceY = barcodeY + barcodeHeight + 20; // around y = 88-94
+        commands.push(`TEXT ${priceX},${priceY},"3",0,1,1,"${priceStr}"`);
+
+      } else {
+        // --- 58x40mm Layout ---
+        const maxChars = Math.max(16, Math.floor((widthDots - 32) / 16));
+        const titleLines = wrapText(cleanTitle, maxChars);
+
+        if (titleLines.length === 1) {
+          const line = titleLines[0];
+          const textWidth = line.length * 16;
+          const x = Math.max(16, Math.floor((widthDots - textWidth) / 2));
+          commands.push(`TEXT ${x},20,"3",0,1,1,"${line}"`);
+        } else if (titleLines.length >= 2) {
+          const line1 = titleLines[0];
+          const line2 = titleLines[1];
+          const x1 = Math.max(16, Math.floor((widthDots - line1.length * 16) / 2));
+          const x2 = Math.max(16, Math.floor((widthDots - line2.length * 16) / 2));
+          commands.push(`TEXT ${x1},12,"3",0,1,1,"${line1}"`);
+          commands.push(`TEXT ${x2},38,"3",0,1,1,"${line2}"`);
+        }
+
+        const isLong = barcodeStr.length > 13;
+        const narrow = isLong ? 1 : 2;
+        const wide = narrow;
+        const estimatedBarcodeWidth = (barcodeStr.length + 2) * 11 * narrow;
+        const barcodeX = Math.max(16, Math.floor((widthDots - estimatedBarcodeWidth) / 2));
+        const barcodeY = titleLines.length > 1 ? 72 : 62;
+        const barcodeHeight = 52;
+
+        commands.push(`BARCODE ${barcodeX},${barcodeY},"128",${barcodeHeight},2,0,${narrow},${wide},"${barcodeStr}"`);
+
+        const priceTextWidth = priceStr.length * 24;
+        const priceX = Math.max(16, Math.floor((widthDots - priceTextWidth) / 2));
+        const priceY = barcodeY + barcodeHeight + 38;
+        commands.push(`TEXT ${priceX},${priceY},"4",0,1,1,"${priceStr}"`);
       }
 
-      // --- Print Command ---
-      // TSPL prints 'qty' copies of this label
+      // 4. Print Command
       commands.push(`PRINT ${qty},1`);
     });
 
@@ -201,7 +235,6 @@ export const labelPrintService = {
     const builder = new EscPosBuilder();
     builder.init();
 
-    // Iterate through items, respecting printQty
     items.forEach((item) => {
       const qty = Math.max(1, item.printQty || 1);
       const barcodeStr = (item.barcode || item.id.replace(/-/g, '').slice(0, 10)).trim();
@@ -216,18 +249,18 @@ export const labelPrintService = {
         builder.line(nameStr.slice(0, 30));
         builder.bold(false);
 
-        // 2. Barcode (Hardware ESC/POS Code128)
+        // 2. Barcode
         const barcodeBytes: number[] = [];
         for (let i = 0; i < barcodeStr.length; i++) {
           barcodeBytes.push(barcodeStr.charCodeAt(i));
         }
 
         const bData: number[] = [
-          0x1D, 0x68, 55,         // GS h (barcode height)
-          0x1D, 0x77, 2,          // GS w (barcode width module)
-          0x1D, 0x48, 2,          // GS H (HRI text below barcode)
-          0x1D, 0x66, 0,          // GS f (Font A)
-          0x1D, 0x6B, 73, barcodeBytes.length + 2, 0x7B, 0x42, ...barcodeBytes, // Code 128 Set B
+          0x1D, 0x68, 45,
+          0x1D, 0x77, 2,
+          0x1D, 0x48, 2,
+          0x1D, 0x66, 0,
+          0x1D, 0x6B, 73, barcodeBytes.length + 2, 0x7B, 0x42, ...barcodeBytes,
           0x0A,
         ];
 
@@ -241,8 +274,7 @@ export const labelPrintService = {
         builder.doubleSize(false);
         builder.bold(false);
 
-        // Gap spacing between thermal labels
-        builder.newLine(3);
+        builder.newLine(2);
       }
     });
 
@@ -259,7 +291,7 @@ export const labelPrintService = {
       const qty = Math.max(1, item.printQty || 1);
       const barcodeStr = (item.barcode || item.id.replace(/-/g, '').slice(0, 10)).trim();
       const priceStr = `${Number(item.price || 0).toFixed(2)} ₼`;
-      const svgBarcode = generateCode128Svg(barcodeStr, 40, 1.4);
+      const svgBarcode = generateCode128Svg(barcodeStr, 32, 1.1);
 
       for (let q = 0; q < qty; q++) {
         stickerBlocks.push(`
@@ -291,9 +323,9 @@ export const labelPrintService = {
             color: #000;
           }
           .sticker-page {
-            width: 58mm;
-            height: 40mm;
-            padding: 2mm 3mm;
+            width: 40mm;
+            height: 20mm;
+            padding: 1mm 1.5mm;
             page-break-after: always;
             display: flex;
             align-items: center;
@@ -309,10 +341,10 @@ export const labelPrintService = {
             text-align: center;
           }
           .sticker-title {
-            font-size: 11px;
+            font-size: 8px;
             font-weight: 800;
-            line-height: 1.2;
-            max-height: 28px;
+            line-height: 1.1;
+            max-height: 18px;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
@@ -323,27 +355,27 @@ export const labelPrintService = {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 2px 0;
+            margin: 1px 0;
           }
           .sticker-barcode-text {
             font-family: monospace;
-            font-size: 10px;
+            font-size: 8px;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             margin-top: 1px;
           }
           .sticker-price {
-            font-size: 16px;
+            font-size: 11px;
             font-weight: 900;
           }
           @media print {
             @page {
-              size: 58mm 40mm;
+              size: 40mm 20mm;
               margin: 0;
             }
             .sticker-page {
-              width: 58mm;
-              height: 40mm;
+              width: 40mm;
+              height: 20mm;
             }
           }
         </style>
@@ -405,16 +437,16 @@ export const labelPrintService = {
   },
 
   /**
-   * Prints a single test label in TSPL (Xprinter XP-350B) to verify setup
+   * Prints a single test label in TSPL (Xprinter XP-350B, 40x20mm standard)
    */
   async printTestLabel(customConfig?: PrinterConfig): Promise<boolean> {
     const config = customConfig || (await receiptService.getConfig());
     const testItems: LabelPrintItem[] = [
       {
         id: 'test-item-01',
-        name: 'TEST ETIKETI · XP-350B',
-        barcode: '123456789012',
-        price: 99.00,
+        name: 'TEST MƏHSUL (40x20mm)',
+        barcode: '1138886586540',
+        price: 130.00,
         printQty: 1,
       },
     ];

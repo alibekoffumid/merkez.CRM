@@ -369,17 +369,33 @@ export const PrinterSettingsModal: React.FC<PrinterSettingsModalProps> = ({
                     <TouchableOpacity
                       style={[
                         styles.toggleBtn,
-                        (!config.labelWidthMm || (config.labelWidthMm === 58 && config.labelHeightMm === 40)) && styles.toggleBtnActiveBlue,
+                        (!config.labelWidthMm || (config.labelWidthMm === 40 && config.labelHeightMm === 20)) && styles.toggleBtnActiveBlue,
+                      ]}
+                      onPress={() => setConfig({ ...config, labelWidthMm: 40, labelHeightMm: 20, labelGapMm: 2 })}
+                    >
+                      <Text
+                        style={[
+                          styles.toggleBtnText,
+                          (!config.labelWidthMm || (config.labelWidthMm === 40 && config.labelHeightMm === 20)) && styles.toggleBtnTextActive,
+                        ]}
+                      >
+                        40 × 20 mm (Standart)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.toggleBtn,
+                        config.labelWidthMm === 58 && config.labelHeightMm === 40 && styles.toggleBtnActiveBlue,
                       ]}
                       onPress={() => setConfig({ ...config, labelWidthMm: 58, labelHeightMm: 40, labelGapMm: 2 })}
                     >
                       <Text
                         style={[
                           styles.toggleBtnText,
-                          (!config.labelWidthMm || (config.labelWidthMm === 58 && config.labelHeightMm === 40)) && styles.toggleBtnTextActive,
+                          config.labelWidthMm === 58 && config.labelHeightMm === 40 && styles.toggleBtnTextActive,
                         ]}
                       >
-                        58 × 40 mm (Standart)
+                        58 × 40 mm
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity

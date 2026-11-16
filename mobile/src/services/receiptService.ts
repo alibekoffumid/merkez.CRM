@@ -66,8 +66,8 @@ export const DEFAULT_PRINTER_CONFIG: PrinterConfig = {
   kassaNumber: 'V1E0969392',
   filialName: 'DÜKKAN - ƏHMƏDLİ',
   labelProtocol: 'tspl',
-  labelWidthMm: 58,
-  labelHeightMm: 40,
+  labelWidthMm: 40,
+  labelHeightMm: 20,
   labelGapMm: 2,
 };
 
