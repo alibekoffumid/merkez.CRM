@@ -33,38 +33,35 @@ export function formatAssemblySheetText({
   if (warehouseName) text += `Filial:    ${warehouseName}\n`;
   if (staffName)     text += `Göndərən:  ${staffName}\n`;
   text += `${line}\n`;
-  text += `MƏHSUL                    SAY\n`;
-  text += `${line}\n`;
 
   let totalQty = 0;
+  let totalAmount = 0;
+
   items.forEach((item, index) => {
-    const qty = item.quantity || 1;
+    const qty = Number(item.quantity) || 1;
+    const price = Number(item.price) || 0;
+    const itemTotal = Number(item.total) || (qty * price);
     totalQty += qty;
+    totalAmount += itemTotal;
+
     const num = `${index + 1}. `;
     text += `${num}${item.name}\n`;
-    if (item.barcode) {
-      text += `   Art/Barkod: ${item.barcode}\n`;
-    }
-    if (item.channel) {
-      text += `   Kanal: ${item.channel}\n`;
-    }
-    if (item.saleRef) {
-      text += `   Çek: ${item.saleRef}\n`;
-    }
     text += `   Say: ${qty} ${item.unit || 'əd'}\n`;
+    text += `   Satış qiyməti: ${price.toFixed(2)} ₼\n`;
     if (index < items.length - 1) {
       text += `   - - - - - - - - - - - - - -\n`;
     }
   });
 
   text += `${doubleLine}\n`;
-  text += `CƏMİ ÇEŞİD: ${items.length}\n`;
-  text += `CƏMİ SAY:   ${totalQty} əd\n`;
+  text += `CƏMİ ÇEŞİD:     ${items.length}\n`;
+  text += `CƏMİ SAY:       ${totalQty} əd\n`;
+  text += `YEKUN MƏBLƏĞ:   ${totalAmount.toFixed(2)} ₼\n`;
   text += `${doubleLine}\n`;
   text += `Status: PENDING (GÖZLƏYİR)\n`;
   text += `${doubleLine}\n\n\n`;
 
-  return { text, totalQty };
+  return { text, totalQty, totalAmount };
 }
 
 /**
@@ -82,7 +79,7 @@ export async function createWarehousePrintJob({
   }
 
   const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
-  const { text, totalQty } = formatAssemblySheetText({
+  const { text, totalQty, totalAmount } = formatAssemblySheetText({
     orderNumber,
     warehouseName,
     staffName,
@@ -104,6 +101,7 @@ export async function createWarehousePrintJob({
       sender_name: staffName,
       total_items: items.length,
       total_quantity: totalQty,
+      total_amount: totalAmount,
       sent_at: new Date().toISOString()
     },
     status: 'pending'
