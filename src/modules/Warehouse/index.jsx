@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound, Send } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -45,6 +45,7 @@ import DebtBook from '../CRM/DebtBook';
 import ConfirmModal from '../../components/Common/ConfirmModal';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { toast } from 'react-hot-toast';
+import { createWarehousePrintJob } from '../../services/printJobService';
 
 export const getFactoryPrice = (item, suppliers = []) => {
   if (!item) return '';
@@ -147,6 +148,8 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [historyTab, setHistoryTab] = useState('sales'); // 'sales' | 'receipts' | 'dispatches'
   const [salesChannelFilter, setSalesChannelFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [selectedSaleIds, setSelectedSaleIds] = useState([]);
+  const [isSendingToWarehouse, setIsSendingToWarehouse] = useState(false);
   const [showCategorySidebar, setShowCategorySidebar] = useState(window.innerWidth > 1536);
   const [categorySidebarWidth, setCategorySidebarWidth] = useState(() => {
     const saved = localStorage.getItem('warehouse_category_sidebar_width');
@@ -1919,6 +1922,140 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return (ingredients || []).filter(i => (i.name || '').toLowerCase().includes(term));
   }, [ingredients, searchTerm]);
 
+  // Filtered sales dispatches for the Sales History tab
+  const filteredSalesDispatches = useMemo(() => {
+    if (historyTab !== 'sales') return [];
+    return (dispatches || []).filter(dispatch => {
+      if (dispatch.reason !== 'sale') return false;
+      if (/\[STATUS:\s*EXCHANGED\]/i.test(dispatch.notes || '') && !/\[Yeni Məhsul:/i.test(dispatch.notes || '')) return false;
+      const targetDateStr = dispatch.issued_at || dispatch.created_at;
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        if (new Date(targetDateStr) < start) return false;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        if (new Date(targetDateStr) > end) return false;
+      }
+
+      // Channel filter
+      if (salesChannelFilter && salesChannelFilter !== 'all') {
+        const notesStr = (dispatch.notes || '').toLowerCase();
+        const filterLower = salesChannelFilter.toLowerCase();
+        let channelMatch = false;
+        if (notesStr.includes(`[kanal: ${filterLower}]`) || (filterLower === 'kredit' && notesStr.includes('[kanal: kredit -'))) {
+          channelMatch = true;
+        } else {
+          // Fallback checks for older/seeded rows
+          if (filterLower === 'birmarket') {
+            channelMatch = notesStr.includes('birmarket');
+          } else if (filterLower === 'tap.az') {
+            channelMatch = notesStr.includes('tap.az') || notesStr.includes('tap');
+          } else if (filterLower === 'lalafo') {
+            channelMatch = notesStr.includes('lalafo');
+          } else if (filterLower === 'tiktok') {
+            channelMatch = notesStr.includes('tiktok');
+          } else if (filterLower === 'instagram') {
+            channelMatch = notesStr.includes('instagram') || notesStr.includes('sosial');
+          } else if (filterLower === 'web site' || filterLower === 'website') {
+            channelMatch = notesStr.includes('web site') || notesStr.includes('website') || notesStr.includes('sayt');
+          } else if (filterLower === 'kredit') {
+            channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
+          } else if (filterLower.startsWith('kredit - ')) {
+            const bankPart = filterLower.replace('kredit - ', '');
+            channelMatch = notesStr.includes(bankPart);
+          } else if (filterLower === 'mağaza') {
+            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('instagram') && !notesStr.includes('web site') && !notesStr.includes('website') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
+          } else if (filterLower === 'sosial şəbəkə') {
+            channelMatch = notesStr.includes('sosial') || notesStr.includes('instagram');
+          }
+        }
+        if (!channelMatch) return false;
+      }
+
+      // Category filter
+      const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+      if (categoryFilter && categoryFilter !== 'all' && prodObj?.category_id !== categoryFilter) {
+        return false;
+      }
+
+      if (historySearchTerm) {
+        const search = historySearchTerm.toLowerCase();
+        const productName = (prodObj?.name || '').toLowerCase();
+        const barcode = (prodObj?.barcode || '').toLowerCase();
+        const notes = (dispatch.notes || '').toLowerCase();
+        return productName.includes(search) || barcode.includes(search) || notes.includes(search);
+      }
+      return true;
+    });
+  }, [dispatches, historyTab, startDate, endDate, salesChannelFilter, categoryFilter, historySearchTerm, products]);
+
+  // Handle sending selected sales items to warehouse queue (print_jobs in Supabase)
+  const handleSendSalesToWarehouseOrder = async () => {
+    if (selectedSaleIds.length === 0) return;
+    setIsSendingToWarehouse(true);
+    try {
+      const selectedDispatches = (dispatches || []).filter(d => selectedSaleIds.includes(d.id));
+      if (selectedDispatches.length === 0) {
+        toast.error(i18n.language === 'az' ? 'Seçilmiş məhsul tapılmadı' : 'Выбранные товары не найдены');
+        return;
+      }
+
+      const items = selectedDispatches.map(dispatch => {
+        const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
+        const qty = Math.abs(parseFloat(dispatch.quantity) || 1);
+        const parsed = parseSaleNote(dispatch.notes, prodObj, qty, canSeeCostAndFactoryPrices);
+        return {
+          dispatch_id: dispatch.id,
+          product_id: dispatch.product_id,
+          name: prodObj?.name || 'Məhsul',
+          barcode: prodObj?.barcode || prodObj?.article_number || '',
+          article: prodObj?.article_number || prodObj?.barcode || '',
+          quantity: qty,
+          unit: formatUnitName ? formatUnitName(prodObj?.unit) : (prodObj?.unit || 'əd'),
+          price: parsed.unitPrice,
+          total: parsed.totalAmount,
+          channel: parsed.channel || '',
+          saleRef: dispatch.notes?.match(/#SALE-\d+/)?.[0] || '',
+          sellerName: parsed.sellerName || '',
+          date: dispatch.issued_at || dispatch.created_at
+        };
+      });
+
+      const whName = warehouses.find(w => w.id === currentWarehouseId)?.name || 'Anbar';
+      const senderName = currentStaff?.name || profile?.full_name || 'Kassir';
+
+      const res = await createWarehousePrintJob({
+        warehouseId: currentWarehouseId,
+        warehouseName: whName,
+        staffName: senderName,
+        items,
+        userId: profile?.id
+      });
+
+      toast.success(
+        i18n.language === 'az'
+          ? `Sifariş anbara uğurla göndərildi! (${items.length} məhsul, № ${res.orderNumber})`
+          : `Сборочный лист успешно отправлен на склад! (${items.length} поз., № ${res.orderNumber})`
+      );
+      setSelectedSaleIds([]);
+    } catch (err) {
+      console.error('Error sending warehouse order:', err);
+      const isMissingTable = err.message?.includes('does not exist') || err.message?.includes('schema cache');
+      toast.error(
+        isMissingTable
+          ? (i18n.language === 'az'
+              ? 'Xəta: Supabase-də print_jobs cədvəli yaradılmayıb. SQL miqrasiyasını tətbiq edin.'
+              : 'Ошибка: таблица print_jobs не создана в Supabase. Примените SQL миграцию.')
+          : (err.message || 'Xəta baş verdi')
+      );
+    } finally {
+      setIsSendingToWarehouse(false);
+    }
+  };
+
   return (
     <div className="space-y-3 flex flex-col h-full w-full flex-1 min-h-0">
       {/* Modals */}
@@ -2317,6 +2454,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       setEndDate('');
                       setSalesChannelFilter('');
                       setCategoryFilter('');
+                      setSelectedSaleIds([]);
                     }}
                     className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 h-[38px] shrink-0"
                     title={t('common.clearFilters') || 'Təmizlə'}
@@ -2334,6 +2472,26 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   >
                     <Receipt className="w-4 h-4" />
                     <span className="hidden sm:inline">{i18n.language === 'az' ? 'Z-Hesabat' : 'Z-Отчет'}</span>
+                  </button>
+                )}
+
+                {historyTab === 'sales' && selectedSaleIds.length > 0 && (
+                  <button
+                    type="button"
+                    disabled={isSendingToWarehouse}
+                    onClick={handleSendSalesToWarehouseOrder}
+                    className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 h-[38px] shrink-0 shadow-sm active:scale-95 animate-in fade-in"
+                    title={i18n.language === 'az' ? 'Sklada sifariş göndər' : 'Отправить на склад'}
+                  >
+                    {isSendingToWarehouse ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                    <span>{i18n.language === 'az' ? 'Sklada sifariş göndər' : i18n.language === 'ru' ? 'Отправить на склад' : 'Send to Warehouse'}</span>
+                    <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[10px] font-black">
+                      {selectedSaleIds.length}
+                    </span>
                   </button>
                 )}
               </div>
@@ -2418,6 +2576,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => {
                       setHistoryTab('receipts');
+                      setSelectedSaleIds([]);
                       setStartDate('');
                       setEndDate('');
                       fetchReceipts();
@@ -2429,6 +2588,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => {
                       setHistoryTab('sales');
+                      setSelectedSaleIds([]);
                       if (!startDate && !endDate) {
                         const today = getTodayDateString();
                         setStartDate(today);
@@ -2443,6 +2603,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => {
                       setHistoryTab('dispatches');
+                      setSelectedSaleIds([]);
                       setStartDate('');
                       setEndDate('');
                       fetchDispatches();
@@ -2454,6 +2615,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   <button
                     onClick={() => {
                       setHistoryTab('transfers');
+                      setSelectedSaleIds([]);
                       setStartDate('');
                       setEndDate('');
                       fetchTransfers();
@@ -2506,6 +2668,28 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               <table className="w-full min-w-[850px] text-left">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
+                    {historyTab === 'sales' && (
+                      <th className="px-3 py-4 w-10 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={filteredSalesDispatches.length > 0 && selectedSaleIds.length === filteredSalesDispatches.length}
+                          ref={el => {
+                            if (el) {
+                              el.indeterminate = selectedSaleIds.length > 0 && selectedSaleIds.length < filteredSalesDispatches.length;
+                            }
+                          }}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedSaleIds(filteredSalesDispatches.map(d => d.id));
+                            } else {
+                              setSelectedSaleIds([]);
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                          title={i18n.language === 'az' ? 'Hamısını seç' : 'Выбрать все'}
+                        />
+                      </th>
+                    )}
                     <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
                       {historyTab === 'receipts' ? t('warehouse.receivedDate') :
                         historyTab === 'dispatches' ? (t('warehouse.dispatchedDate') || 'Дата операции') :
@@ -2739,73 +2923,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       })
                     )
                   ) : historyTab === 'sales' ? (
-                    dispatches.filter(dispatch => {
-                      if (dispatch.reason !== 'sale') return false;
-                      if (/\[STATUS:\s*EXCHANGED\]/i.test(dispatch.notes || '') && !/\[Yeni Məhsul:/i.test(dispatch.notes || '')) return false;
-                      const targetDateStr = dispatch.issued_at || dispatch.created_at;
-                      if (startDate) {
-                        const start = new Date(startDate);
-                        start.setHours(0, 0, 0, 0);
-                        if (new Date(targetDateStr) < start) return false;
-                      }
-                      if (endDate) {
-                        const end = new Date(endDate);
-                        end.setHours(23, 59, 59, 999);
-                        if (new Date(targetDateStr) > end) return false;
-                      }
-
-                      // Channel filter
-                      if (salesChannelFilter && salesChannelFilter !== 'all') {
-                        const notesStr = (dispatch.notes || '').toLowerCase();
-                        const filterLower = salesChannelFilter.toLowerCase();
-                        let channelMatch = false;
-                        if (notesStr.includes(`[kanal: ${filterLower}]`) || (filterLower === 'kredit' && notesStr.includes('[kanal: kredit -'))) {
-                          channelMatch = true;
-                        } else {
-                          // Fallback checks for older/seeded rows
-                          if (filterLower === 'birmarket') {
-                            channelMatch = notesStr.includes('birmarket');
-                          } else if (filterLower === 'tap.az') {
-                            channelMatch = notesStr.includes('tap.az') || notesStr.includes('tap');
-                          } else if (filterLower === 'lalafo') {
-                            channelMatch = notesStr.includes('lalafo');
-                          } else if (filterLower === 'tiktok') {
-                            channelMatch = notesStr.includes('tiktok');
-                          } else if (filterLower === 'instagram') {
-                            channelMatch = notesStr.includes('instagram') || notesStr.includes('sosial');
-                          } else if (filterLower === 'web site' || filterLower === 'website') {
-                            channelMatch = notesStr.includes('web site') || notesStr.includes('website') || notesStr.includes('sayt');
-                          } else if (filterLower === 'kredit') {
-                            channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
-                          } else if (filterLower.startsWith('kredit - ')) {
-                            const bankPart = filterLower.replace('kredit - ', '');
-                            channelMatch = notesStr.includes(bankPart);
-                          } else if (filterLower === 'mağaza') {
-                            channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('instagram') && !notesStr.includes('web site') && !notesStr.includes('website') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
-                          } else if (filterLower === 'sosial şəbəkə') {
-                            channelMatch = notesStr.includes('sosial') || notesStr.includes('instagram');
-                          }
-                        }
-                        if (!channelMatch) return false;
-                      }
-
-                      // Category filter
-                      const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
-                      if (categoryFilter && categoryFilter !== 'all' && prodObj?.category_id !== categoryFilter) {
-                        return false;
-                      }
-
-                      if (historySearchTerm) {
-                        const search = historySearchTerm.toLowerCase();
-                        const productName = (prodObj?.name || '').toLowerCase();
-                        const barcode = (prodObj?.barcode || '').toLowerCase();
-                        const notes = (dispatch.notes || '').toLowerCase();
-                        return productName.includes(search) || barcode.includes(search) || notes.includes(search);
-                      }
-                      return true;
-                    }).length === 0 ? (
+                    filteredSalesDispatches.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-6 py-20 text-center">
+                        <td colSpan={8} className="px-6 py-20 text-center">
                           <div className="flex flex-col items-center gap-3 text-gray-400">
                             <Package className="w-12 h-12 text-gray-100" />
                             <p className="font-medium">{t('warehouse.noSalesFound') || 'Satış tarixçəsi boşdur'}</p>
@@ -2813,82 +2933,38 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                         </td>
                       </tr>
                     ) : (
-                      dispatches.filter(dispatch => {
-                        if (dispatch.reason !== 'sale') return false;
-                        if (/\[STATUS:\s*EXCHANGED\]/i.test(dispatch.notes || '') && !/\[Yeni Məhsul:/i.test(dispatch.notes || '')) return false;
-                        const targetDateStr = dispatch.issued_at || dispatch.created_at;
-                        if (startDate) {
-                          const start = new Date(startDate);
-                          start.setHours(0, 0, 0, 0);
-                          if (new Date(targetDateStr) < start) return false;
-                        }
-                        if (endDate) {
-                          const end = new Date(endDate);
-                          end.setHours(23, 59, 59, 999);
-                          if (new Date(targetDateStr) > end) return false;
-                        }
-
-                        // Channel filter
-                        if (salesChannelFilter && salesChannelFilter !== 'all') {
-                          const notesStr = (dispatch.notes || '').toLowerCase();
-                          const filterLower = salesChannelFilter.toLowerCase();
-                          let channelMatch = false;
-                          if (notesStr.includes(`[kanal: ${filterLower}]`) || (filterLower === 'kredit' && notesStr.includes('[kanal: kredit -'))) {
-                            channelMatch = true;
-                          } else {
-                            // Fallback checks for older/seeded rows
-                            if (filterLower === 'birmarket') {
-                              channelMatch = notesStr.includes('birmarket');
-                            } else if (filterLower === 'tap.az') {
-                              channelMatch = notesStr.includes('tap.az') || notesStr.includes('tap');
-                            } else if (filterLower === 'lalafo') {
-                              channelMatch = notesStr.includes('lalafo');
-                            } else if (filterLower === 'tiktok') {
-                              channelMatch = notesStr.includes('tiktok');
-                            } else if (filterLower === 'instagram') {
-                              channelMatch = notesStr.includes('instagram') || notesStr.includes('sosial');
-                            } else if (filterLower === 'web site' || filterLower === 'website') {
-                              channelMatch = notesStr.includes('web site') || notesStr.includes('website') || notesStr.includes('sayt');
-                            } else if (filterLower === 'kredit') {
-                              channelMatch = notesStr.includes('kredit') || notesStr.includes('birkart') || notesStr.includes('tamkart') || notesStr.includes('abb kredit') || notesStr.includes('kapital kredit');
-                            } else if (filterLower.startsWith('kredit - ')) {
-                              const bankPart = filterLower.replace('kredit - ', '');
-                              channelMatch = notesStr.includes(bankPart);
-                            } else if (filterLower === 'mağaza') {
-                              channelMatch = notesStr.includes('nəqd') || notesStr.includes('kart') || (!notesStr.includes('birmarket') && !notesStr.includes('kredit') && !notesStr.includes('sosial') && !notesStr.includes('instagram') && !notesStr.includes('web site') && !notesStr.includes('website') && !notesStr.includes('tap') && !notesStr.includes('lalafo') && !notesStr.includes('tiktok'));
-                            } else if (filterLower === 'sosial şəbəkə') {
-                              channelMatch = notesStr.includes('sosial') || notesStr.includes('instagram');
-                            }
-                          }
-                          if (!channelMatch) return false;
-                        }
-
-                        // Category filter
-                        const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
-                        if (categoryFilter && categoryFilter !== 'all' && prodObj?.category_id !== categoryFilter) {
-                          return false;
-                        }
-
-                        if (historySearchTerm) {
-                          const search = historySearchTerm.toLowerCase();
-                          const productName = (prodObj?.name || '').toLowerCase();
-                          const barcode = (prodObj?.barcode || '').toLowerCase();
-                          const notes = (dispatch.notes || '').toLowerCase();
-                          return productName.includes(search) || barcode.includes(search) || notes.includes(search);
-                        }
-                        return true;
-                      }).map(dispatch => {
+                      filteredSalesDispatches.map(dispatch => {
                         const prodObj = dispatch.products || (products || []).find(p => p.id === dispatch.product_id);
                         const qty = Math.abs(parseFloat(dispatch.quantity) || 1);
                         const parsed = parseSaleNote(dispatch.notes, prodObj, qty, canSeeCostAndFactoryPrices);
+                        const isSelected = selectedSaleIds.includes(dispatch.id);
 
                         return (
                           <tr
                             key={dispatch.id}
                             onClick={() => setSelectedSaleDetail(dispatch)}
-                            className="hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                            className={`cursor-pointer transition-colors group ${
+                              isSelected
+                                ? 'bg-blue-50/80 hover:bg-blue-100/70 border-l-4 border-l-blue-600'
+                                : 'hover:bg-blue-50/50'
+                            }`}
                             title={i18n.language === 'az' ? 'Ətraflı satış kartı üçün klikləyin' : i18n.language === 'ru' ? 'Нажмите для просмотра карточки продажи' : 'Click to view sale card'}
                           >
+                            <td className="px-3 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedSaleIds(prev =>
+                                    prev.includes(dispatch.id)
+                                      ? prev.filter(id => id !== dispatch.id)
+                                      : [...prev, dispatch.id]
+                                  );
+                                }}
+                                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                              />
+                            </td>
                             <td className="px-6 py-4">
                               {(() => {
                                 const dt = formatHistoryDateTime(dispatch.issued_at, dispatch.created_at);
