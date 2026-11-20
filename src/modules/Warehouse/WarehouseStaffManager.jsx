@@ -41,14 +41,13 @@ const getInitials = (name = '') => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
+const isMasterRole = (role) => {
+  const r = String(role || '').trim().toLowerCase();
+  return r === 'master' || r === 'usta';
+};
+
 const getRoleConfig = (role, lang = 'az') => {
   switch (role) {
-    case 'Master':
-      return {
-        label: lang === 'az' ? 'Usta' : 'Мастер',
-        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
-        icon: Wrench,
-      };
     case 'Manager':
       return {
         label: lang === 'az' ? 'Menecer' : 'Менеджер',
@@ -130,11 +129,12 @@ const WarehouseStaffManager = () => {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      setStaffList(data || []);
+      const staffOnly = (data || []).filter(s => !isMasterRole(s.role));
+      setStaffList(staffOnly);
       
-      // Process automatic salaries if admin
-      if (isAdmin && data) {
-        checkAndAccrueSalaries(data);
+      // Process automatic salaries if admin (only for store staff, not masters)
+      if (isAdmin && staffOnly) {
+        checkAndAccrueSalaries(staffOnly);
       }
     } catch (err) {
       toast.error('Error fetching staff: ' + err.message);
@@ -293,9 +293,11 @@ const WarehouseStaffManager = () => {
   };
 
   const filteredStaff = staffList.filter(s => 
-    (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (s.role || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (s.phone || '').includes(searchTerm)
+    !isMasterRole(s.role) && (
+      (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.role || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s.phone || '').includes(searchTerm)
+    )
   );
 
   const topBarContent = (
@@ -687,7 +689,6 @@ const WarehouseStaffManager = () => {
                       { value: 'Storeman', label: i18n.language === 'az' ? 'Anbardar' : 'Кладовщик' },
                       { value: 'Cashier', label: i18n.language === 'az' ? 'Kassir' : 'Кассир' },
                       { value: 'Staff', label: i18n.language === 'az' ? 'İşçi' : 'Сотрудник' },
-                      { value: 'Master', label: i18n.language === 'az' ? 'Usta' : 'Мастер' },
                     ]}
                     buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold"
                   />
