@@ -1204,9 +1204,13 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                                   <td className="py-3 px-4 text-right font-black text-gray-900">
                                     {t.total.toFixed(2)} ₼
                                   </td>
-                                  <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                  <td className="py-3 px-4 text-center">
                                     <button
-                                      onClick={() => setSelectedReceipt(t)}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedReceipt(t);
+                                      }}
                                       className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors inline-flex items-center gap-1 text-xs font-bold"
                                       title="Çekə bax"
                                     >
@@ -1416,7 +1420,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
       {/* INDIVIDUAL SALE RECEIPT DETAIL MODAL */}
       {selectedReceipt && (
         <div 
-          className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-[100005] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
           onClick={() => setSelectedReceipt(null)}
         >
           <div 
