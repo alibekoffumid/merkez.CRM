@@ -129,6 +129,149 @@ export const translatePaymentMethodAz = (method) => {
 /**
  * Helper to identify if a sale or item has been cancelled, deleted, refunded, or hidden
  */
+
+/**
+ * Parse structured sale note to extract prices, discounts, channel, customer and payment method
+ * Identical logic with WarehouseEfficiencyCharts and SaleDetailModal
+ */
+export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin = true) => {
+  const qty = Math.abs(parseFloat(quantity) || 1);
+  const prodPrice = product?.price ? Number(product.price) : 0;
+  const prodCost = isAdmin && product?.purchase_price ? Number(product.purchase_price) : null;
+
+  let unitPrice = prodPrice;
+  const priceMatch = note.match(/\[Qiymət:\s*₼?([0-9.,]+)\]/i);
+  if (priceMatch) {
+    unitPrice = parseFloat(priceMatch[1].replace(',', '.'));
+  }
+  const originalGross = unitPrice * qty;
+  let discountAmount = 0;
+  let discountPercent = null;
+  const discBracketMatch = note.match(/\[(?:Endirim|Скидка|Discount):\s*₼?([0-9.,]+)%?\]/i);
+  if (discBracketMatch) {
+    if (discBracketMatch[0].includes('%')) {
+      discountPercent = parseFloat(discBracketMatch[1].replace(',', '.'));
+      discountAmount = (originalGross * discountPercent) / 100;
+    } else {
+      discountAmount = parseFloat(discBracketMatch[1].replace(',', '.'));
+    }
+  } else {
+    const looseDiscMatch = note.match(/(?:endirim|скидка|discount)\s*:\s*₼?([0-9.,]+)%?/i);
+    if (looseDiscMatch) {
+      if (looseDiscMatch[0].includes('%')) {
+        discountPercent = parseFloat(looseDiscMatch[1].replace(',', '.'));
+        discountAmount = (originalGross * discountPercent) / 100;
+      } else {
+        discountAmount = parseFloat(looseDiscMatch[1].replace(',', '.'));
+      }
+    }
+  }
+
+  let totalAmount = 0;
+  const totalMatch = note.match(/\[Məbləğ:\s*₼?([0-9.,]+)\]/i) || note.match(/\[Cəmi:\s*₼?([0-9.,]+)\]/i);
+  if (totalMatch) {
+    totalAmount = parseFloat(totalMatch[1].replace(',', '.'));
+    if (discountAmount === 0 && totalAmount < originalGross && unitPrice > 0) {
+      discountAmount = Math.max(0, originalGross - totalAmount);
+    }
+  } else {
+    totalAmount = Math.max(0, originalGross - discountAmount);
+  }
+
+  let paymentMethod = 'Nağd';
+  const payMatch = note.match(/\(Ödəniş:\s*([^)]+)\)/i);
+  if (payMatch) {
+    const raw = payMatch[1].trim();
+    const lower = raw.toLowerCase();
+    if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
+      paymentMethod = 'Nağd';
+    } else if (lower.includes('terminal')) {
+      paymentMethod = 'Terminal';
+    } else if (lower.includes('kart') || lower.includes('card')) {
+      paymentMethod = 'Kart';
+    } else if (lower.includes('qarışıq') || lower.includes('bölünmüş') || lower.includes('split')) {
+      paymentMethod = 'Qarışıq (Bölünmüş)';
+    } else if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) {
+      paymentMethod = 'Köçürmə';
+    } else if (lower.includes('kredit')) {
+      paymentMethod = 'Kredit';
+    } else if (lower.includes('nisyə') || lower.includes('nisye') || lower.includes('borc')) {
+      paymentMethod = 'Nisyə';
+    } else if (lower.includes('beh') || lower.includes('avans')) {
+      paymentMethod = 'Beh';
+    } else {
+      paymentMethod = raw;
+    }
+  } else if (/qarışıq|bölünmüş|split/i.test(note)) {
+    paymentMethod = 'Qarışıq (Bölünmüş)';
+  } else if (/xərc|расход|expense/i.test(note)) {
+    paymentMethod = 'Digər xərclər';
+  } else if (/beh|avans|deposit/i.test(note)) {
+    paymentMethod = 'Beh';
+  } else if (/birmarket/i.test(note)) {
+    paymentMethod = 'Kredit';
+  } else if (/kredit/i.test(note)) {
+    paymentMethod = 'Kredit';
+  } else if (/nisyə|borc/i.test(note)) {
+    paymentMethod = 'Nisyə';
+  } else if (/terminal/i.test(note)) {
+    paymentMethod = 'Terminal';
+  } else if (/kart/i.test(note)) {
+    paymentMethod = 'Kart';
+  } else {
+    paymentMethod = 'Nağd';
+  }
+
+  let splitCash = 0;
+  let splitCard = 0;
+  let splitCredit = 0;
+  const splitMatch = note.match(/\[Qarışıq:\s*([^\]]+)\]/i);
+  if (splitMatch) {
+    const cashM = splitMatch[1].match(/Nağd:\s*₼?([0-9.,]+)/i);
+    const cardM = splitMatch[1].match(/Kart:\s*₼?([0-9.,]+)/i);
+    const termM = splitMatch[1].match(/Terminal:\s*₼?([0-9.,]+)/i);
+    const credM = splitMatch[1].match(/Kredit:\s*₼?([0-9.,]+)/i);
+    if (cashM) splitCash = parseFloat(cashM[1].replace(',', '.'));
+    if (cardM) splitCard += parseFloat(cardM[1].replace(',', '.'));
+    if (termM) splitCard += parseFloat(termM[1].replace(',', '.'));
+    if (credM) splitCredit = parseFloat(credM[1].replace(',', '.'));
+  }
+
+  let customerName = null;
+  let customerPhone = null;
+  const custMatch = note.match(/\[Müştəri:\s*([^\]]+)\]/i);
+  if (custMatch) {
+    const custRaw = custMatch[1].trim();
+    const phoneMatch = custRaw.match(/\(([^)]+)\)/);
+    if (phoneMatch) {
+      customerPhone = phoneMatch[1].trim();
+      customerName = custRaw.replace(/\([^)]+\)/, '').trim();
+    } else {
+      customerName = custRaw;
+    }
+  }
+
+  const avansMatch = note.match(/\[Avans:\s*[^0-9\s]*\s*([\d.,]+)\s*[^\]\d]*\]/i);
+  const alanMatch = note.match(/\[Avans Alan:\s*([^\]]+)\]/i);
+
+  return {
+    unitPrice,
+    totalAmount,
+    discount: discountAmount,
+    discountPercent,
+    paymentMethod,
+    customerName,
+    customerPhone,
+    splitCash,
+    splitCard,
+    splitCredit,
+    advanceAmount: avansMatch ? parseFloat(avansMatch[1].replace(',', '.')) : null,
+    advanceRecipient: alanMatch ? alanMatch[1].trim() : null,
+    costPrice: prodCost,
+    totalCost: prodCost !== null ? prodCost * qty : null
+  };
+};
+
 export const isCancelledOrDeleted = (record) => {
   if (!record) return false;
   if (record.is_deleted === true) return true;
@@ -314,30 +457,49 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     }
   });
 
-  // 4. Fetch daily dispatches to enrich advance (beh) payment details & recipient
+  // 4. Fetch daily stock dispatches to capture ALL sales (including warehouse direct dispatches, credit contracts, etc.)
+  // This unifies Z-Hesabat 100% with Warehouse Satış Dinamikası (WarehouseEfficiencyCharts)
+  let allDayDispatches = [];
   const dayDispatchesMap = new Map();
   try {
-    const { data: dispatchesChunk } = await supabase
-      .from('stock_dispatches')
-      .select('id, notes, created_at')
-      .eq('user_id', userId)
-      .eq('reason', 'sale')
-      .gte('created_at', startOfDay.toISOString())
-      .lte('created_at', endOfDay.toISOString());
+    let dFrom = 0;
+    const dStep = 1000;
+    let dHasMore = true;
 
-    (dispatchesChunk || []).forEach(d => {
+    while (dHasMore) {
+      const { data: dChunk, error: dErr } = await supabase
+        .from('stock_dispatches')
+        .select(`id, product_id, quantity, issued_at, notes, created_at, reason, warehouse_id, products(${productSelectFields})`)
+        .eq('user_id', userId)
+        .gte('created_at', startOfDay.toISOString())
+        .lte('created_at', endOfDay.toISOString())
+        .order('created_at', { ascending: true })
+        .range(dFrom, dFrom + dStep - 1);
+
+      if (dErr) {
+        console.warn('Error fetching daily stock_dispatches in dailySalesReportService:', dErr);
+        break;
+      }
+      if (dChunk && dChunk.length > 0) {
+        allDayDispatches.push(...dChunk);
+        if (dChunk.length < dStep) dHasMore = false;
+        else dFrom += dStep;
+      } else {
+        dHasMore = false;
+      }
+    }
+
+    allDayDispatches.forEach(d => {
       const n = d.notes || '';
       const saleIdMatch = n.match(/\[SaleID:\s*([^\]]+)\]/i);
       const avansMatch = n.match(/\[Avans:\s*[^0-9\s]*\s*([\d.,]+)\s*[^\]\d]*\]/i);
       const alanMatch = n.match(/\[Avans Alan:\s*([^\]]+)\]/i);
 
-      const parsed = {
-        advanceAmount: avansMatch ? parseFloat(avansMatch[1].replace(',', '.')) : null,
-        advanceRecipient: alanMatch ? alanMatch[1].trim() : null
-      };
-
       if (saleIdMatch && saleIdMatch[1]) {
-        dayDispatchesMap.set(saleIdMatch[1].trim(), parsed);
+        dayDispatchesMap.set(saleIdMatch[1].trim(), {
+          advanceAmount: avansMatch ? parseFloat(avansMatch[1].replace(',', '.')) : null,
+          advanceRecipient: alanMatch ? alanMatch[1].trim() : null
+        });
       }
     });
   } catch (dispErr) {
@@ -371,17 +533,174 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     console.warn('Error fetching business_expenses for daily report:', bExpErr);
   }
 
+  // Filter valid and cancelled dispatches matching WarehouseEfficiencyCharts logic
+  const validSaleDispatches = allDayDispatches.filter(d => {
+    const notes = String(d.notes || '');
+    if (/\[STATUS:\s*(?:REFUNDED|CANCELLED|LƏĞV|QAYTARILIB)\]/i.test(notes)) return false;
+    if (/\[STATUS:\s*EXCHANGED\]/i.test(notes) && !/\[Yeni Məhsul:/i.test(notes)) return false;
+    const isSale = !d.reason || d.reason === 'sale';
+    const qty = Math.abs(parseFloat(d.quantity) || 0);
+    return isSale && qty > 0;
+  });
+
+  const cancelledDispatches = allDayDispatches.filter(d => {
+    const notes = String(d.notes || '');
+    return /\[STATUS:\s*(?:REFUNDED|CANCELLED|LƏĞV|QAYTARILIB)\]/i.test(notes);
+  });
+
   // Separate valid sales from cancelled / deleted sales
   const validSalesList = [];
   const cancelledSalesList = [];
 
-  salesList.forEach(sale => {
-    if (isCancelledOrDeleted(sale)) {
-      cancelledSalesList.push(sale);
-    } else {
-      validSalesList.push(sale);
-    }
-  });
+  if (validSaleDispatches.length > 0) {
+    // Group dispatches into distinct transactions (by POS Sale Ref, Credit Customer contract, or unique note)
+    const groups = new Map();
+    validSaleDispatches.forEach(d => {
+      const notes = d.notes || '';
+      let groupKey = null;
+      const saleIdMatch = notes.match(/\[SaleID:\s*([^\]]+)\]/i);
+      const saleRefMatch = notes.match(/#SALE-([0-9A-Za-z]+)/i);
+      const custMatch = notes.match(/\[Müştəri:\s*([^\]]+)\]/i);
+      const chanMatch = notes.match(/\[Kanal:\s*([^\]]+)\]/i);
+
+      if (saleIdMatch) {
+        groupKey = 'ID:' + saleIdMatch[1].trim();
+      } else if (saleRefMatch) {
+        groupKey = 'REF:' + saleRefMatch[0].toUpperCase();
+      } else if (custMatch) {
+        groupKey = 'CUST:' + (chanMatch ? chanMatch[1] : '') + '_' + custMatch[1].trim();
+      } else {
+        const minute = new Date(d.created_at).toISOString().substring(0, 16);
+        groupKey = 'NOTE:' + minute + '_' + notes.substring(0, 40);
+      }
+
+      if (!groups.has(groupKey)) groups.set(groupKey, []);
+      groups.get(groupKey).push(d);
+    });
+
+    const dispatchedSales = [];
+    groups.forEach((dispList, gKey) => {
+      const first = dispList[0];
+      let groupTotal = 0;
+      let groupDiscount = 0;
+      let groupMethod = 'Nağd';
+      let groupSplitCash = 0;
+      let groupSplitCard = 0;
+      let groupSplitCredit = 0;
+      let groupCust = null;
+      let groupAdvAmt = null;
+      let groupAdvRecip = null;
+
+      const groupItems = dispList.map(d => {
+        const q = Math.abs(parseFloat(d.quantity) || 1);
+        const prodMeta = d.products || productsMap.get(d.product_id) || {};
+        const p = parseSaleNote(d.notes || '', prodMeta, q, isAdmin);
+
+        groupTotal += p.totalAmount;
+        groupDiscount += p.discount;
+        groupMethod = p.paymentMethod;
+        if (p.splitCash) groupSplitCash += p.splitCash;
+        if (p.splitCard) groupSplitCard += p.splitCard;
+        if (p.splitCredit) groupSplitCredit += p.splitCredit;
+        if (p.customerName) groupCust = p.customerName;
+        if (p.advanceAmount) groupAdvAmt = p.advanceAmount;
+        if (p.advanceRecipient) groupAdvRecip = p.advanceRecipient;
+
+        const pKey = prodMeta.id || d.product_id;
+        const unit = prodMeta.unit || 'ədəd';
+        const barcode = prodMeta.barcode || '-';
+        const categoryName = (prodMeta.category_id && categoriesMap.get(prodMeta.category_id)) || 'Ümumi';
+
+        return {
+          id: d.id,
+          product_id: pKey,
+          product_name: prodMeta.name || 'Naməlum Məhsul',
+          quantity: q,
+          price_at_sale: p.unitPrice,
+          base_price: prodMeta.price || p.unitPrice,
+          discount_amount: p.discount,
+          total: p.totalAmount,
+          cost_price: isAdmin ? p.costPrice : null,
+          unit: unit,
+          barcode: barcode,
+          category_name: categoryName,
+          created_at: d.created_at
+        };
+      });
+
+      dispatchedSales.push({
+        id: first.id,
+        shortId: gKey.replace('REF:', '').replace('CUST:', '').replace('ID:', ''),
+        created_at: first.issued_at || first.created_at,
+        total_amount: groupTotal,
+        discount_amount: groupDiscount,
+        payment_method: groupMethod,
+        split_cash: groupSplitCash,
+        split_card: groupSplitCard,
+        split_credit: groupSplitCredit,
+        customer_name: groupCust,
+        advance_amount: groupAdvAmt,
+        advance_recipient: groupAdvRecip,
+        notes: first.notes || '',
+        retail_sale_items: groupItems
+      });
+    });
+
+    // Check if any retail_sales record was not represented in stock_dispatches
+    salesList.forEach(sale => {
+      if (isCancelledOrDeleted(sale)) {
+        cancelledSalesList.push(sale);
+        return;
+      }
+      const sTime = new Date(sale.created_at).getTime();
+      const hasMatchingDispatch = validSaleDispatches.some(d => {
+        const dTime = new Date(d.created_at).getTime();
+        const n = d.notes || '';
+        return n.includes(sale.id) || Math.abs(dTime - sTime) <= 15000;
+      });
+      if (!hasMatchingDispatch) {
+        dispatchedSales.push(sale);
+      }
+    });
+
+    validSalesList.push(...dispatchedSales);
+  } else {
+    // Fallback: If no dispatches exist for the day, use retail_sales
+    salesList.forEach(sale => {
+      if (isCancelledOrDeleted(sale)) {
+        cancelledSalesList.push(sale);
+      } else {
+        validSalesList.push(sale);
+      }
+    });
+  }
+
+  // Handle cancelled dispatches if any
+  if (cancelledDispatches.length > 0) {
+    cancelledDispatches.forEach(d => {
+      const q = Math.abs(parseFloat(d.quantity) || 1);
+      const prodMeta = d.products || productsMap.get(d.product_id) || {};
+      const p = parseSaleNote(d.notes || '', prodMeta, q, isAdmin);
+      cancelledSalesList.push({
+        id: d.id,
+        shortId: d.id.substring(0, 8).toUpperCase(),
+        created_at: d.created_at,
+        total_amount: p.totalAmount,
+        discount_amount: p.discount,
+        payment_method: p.paymentMethod,
+        status: 'Ləğv edilib',
+        retail_sale_items: [{
+          id: d.id,
+          product_name: prodMeta.name || 'Məhsul',
+          quantity: q,
+          price_at_sale: p.unitPrice,
+          total: p.totalAmount,
+          unit: prodMeta.unit || 'ədəd',
+          barcode: prodMeta.barcode || '-'
+        }]
+      });
+    });
+  }
 
   // Compute Aggregations strictly for VALID sales
   // Payment Breakdown - 5 Distinct Categories:
