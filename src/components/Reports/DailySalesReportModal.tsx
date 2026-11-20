@@ -33,9 +33,11 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
-  Ban
+  Ban,
+  Copy
 } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
+import { printThermalReceipt57mm } from '../../modules/Warehouse/thermalReceiptService';
 import { useUser } from '../../core/UserContext';
 import { toast } from 'react-hot-toast';
 import {
@@ -87,6 +89,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
   const [searchProductQuery, setSearchProductQuery] = useState('');
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
 
   // Report Mode: 'products_only' vs 'detailed'
   const [reportMode, setReportMode] = useState<'detailed' | 'products_only'>('detailed');
@@ -1150,6 +1153,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                               <th className="py-3 px-4 text-center">Məhsul Sayı</th>
                               <th className="py-3 px-4 text-right">Endirim</th>
                               <th className="py-3 px-4 text-right">Yekun Məbləğ</th>
+                              <th className="py-3 px-4 text-center">Baxış</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
@@ -1161,8 +1165,12 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                               </tr>
                             ) : (
                               reportData.transactions.map((t: any) => (
-                                <tr key={t.id} className="hover:bg-blue-50/30 transition-colors">
-                                  <td className="py-3 px-4 text-center font-bold text-blue-600 font-mono">
+                                <tr 
+                                  key={t.id} 
+                                  onClick={() => setSelectedReceipt(t)}
+                                  className="hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                                >
+                                  <td className="py-3 px-4 text-center font-bold text-blue-600 font-mono group-hover:underline">
                                     {t.receiptNumber}
                                   </td>
                                   <td className="py-3 px-4 text-gray-500 font-medium">
@@ -1195,6 +1203,16 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                                   </td>
                                   <td className="py-3 px-4 text-right font-black text-gray-900">
                                     {t.total.toFixed(2)} ₼
+                                  </td>
+                                  <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      onClick={() => setSelectedReceipt(t)}
+                                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors inline-flex items-center gap-1 text-xs font-bold"
+                                      title="Çekə bax"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>Bax</span>
+                                    </button>
                                   </td>
                                 </tr>
                               ))
@@ -1394,6 +1412,191 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
 
         </div>
       </div>
+
+      {/* INDIVIDUAL SALE RECEIPT DETAIL MODAL */}
+      {selectedReceipt && (
+        <div 
+          className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setSelectedReceipt(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10">
+                  <Receipt className="w-5 h-5 text-blue-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-base font-black tracking-tight">{selectedReceipt.receiptNumber}</span>
+                    {selectedReceipt.saleRef && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-500/20 text-blue-200 border border-blue-400/30 font-bold">
+                        {selectedReceipt.saleRef}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {selectedReceipt.dateTime || selectedReceipt.time}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedReceipt(null)}
+                className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Meta Tags Bar */}
+            <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-500">Ödəniş:</span>
+                <span className="px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800">
+                  {selectedReceipt.paymentMethod}
+                </span>
+                {selectedReceipt.channel && selectedReceipt.channel !== 'Mağaza' && (
+                  <span className="px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">
+                    {selectedReceipt.channel}
+                  </span>
+                )}
+              </div>
+              {selectedReceipt.customerName && (
+                <div className="text-xs text-slate-600">
+                  <span className="text-slate-400">Müştəri: </span>
+                  <span className="font-bold text-slate-800">{selectedReceipt.customerName}</span>
+                  {selectedReceipt.customerPhone && <span className="text-slate-500"> ({selectedReceipt.customerPhone})</span>}
+                </div>
+              )}
+            </div>
+
+            {/* Items List */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-3">
+              <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                Satılan Məhsullar ({selectedReceipt.itemsCount} ədəd)
+              </div>
+
+              <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl overflow-hidden">
+                {(selectedReceipt.items || []).length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    {selectedReceipt.itemsSummary || 'Məhsul detalları qeydə alınmayıb'}
+                  </div>
+                ) : (
+                  (selectedReceipt.items || []).map((it: any, iIdx: number) => (
+                    <div key={iIdx} className="p-3 bg-white hover:bg-slate-50/50 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-slate-900 truncate">{it.name}</div>
+                        {it.barcode && it.barcode !== '-' && (
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5">Barkod: {it.barcode}</div>
+                        )}
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          {it.quantity} {it.unit || 'ədəd'} × {Number(it.price || 0).toFixed(2)} ₼
+                          {it.discount > 0 && (
+                            <span className="text-rose-500 ml-1.5 font-bold">(Endirim: -{Number(it.discount).toFixed(2)} ₼)</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-black text-slate-900 text-sm">{Number(it.total || 0).toFixed(2)} ₼</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Financial Summary */}
+              <div className="bg-slate-50 rounded-2xl p-4 space-y-2 border border-slate-100 text-xs mt-4">
+                <div className="flex justify-between text-slate-500">
+                  <span>Cəmi məbləğ:</span>
+                  <span className="font-semibold text-slate-800">
+                    {(Number(selectedReceipt.total || 0) + Number(selectedReceipt.discount || 0)).toFixed(2)} ₼
+                  </span>
+                </div>
+                {selectedReceipt.discount > 0 && (
+                  <div className="flex justify-between text-rose-600 font-bold">
+                    <span>Tətbiq edilən endirim:</span>
+                    <span>-{Number(selectedReceipt.discount).toFixed(2)} ₼</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-sm">
+                  <span className="font-black text-slate-900">Yekun Ödəniş:</span>
+                  <span className="font-black text-emerald-600 text-base">{Number(selectedReceipt.total || 0).toFixed(2)} ₼</span>
+                </div>
+
+                {selectedReceipt.advanceAmount && (
+                  <div className="pt-2 border-t border-slate-200 text-amber-800 text-[11px]">
+                    Beh / Avans: <strong>{Number(selectedReceipt.advanceAmount).toFixed(2)} ₼</strong>
+                    {selectedReceipt.advanceRecipient && <span> (Qəbul edən: {selectedReceipt.advanceRecipient})</span>}
+                  </div>
+                )}
+
+                {selectedReceipt.notes && (
+                  <div className="pt-2 border-t border-slate-200 text-slate-500 text-[10px] italic">
+                    Qeyd: {selectedReceipt.notes}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `Çek: ${selectedReceipt.receiptNumber}\nTarix: ${selectedReceipt.dateTime || selectedReceipt.time}\nMəbləğ: ${Number(selectedReceipt.total).toFixed(2)} ₼\nÖdəniş: ${selectedReceipt.paymentMethod}\nMəhsullar:\n` +
+                    (selectedReceipt.items || []).map((it: any) => `- ${it.name} (${it.quantity} x ${it.price} = ${it.total} ₼)`).join('\n')
+                  );
+                  toast.success('Çek məlumatları kopyalandı');
+                }}
+                className="px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                Kopyala
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    printThermalReceipt57mm({
+                      receiptNumber: selectedReceipt.receiptNumber,
+                      date: selectedReceipt.dateTime || new Date(),
+                      customerName: selectedReceipt.customerName || '',
+                      customerPhone: selectedReceipt.customerPhone || '',
+                      paymentMethod: selectedReceipt.paymentMethod || 'Nağd',
+                      items: (selectedReceipt.items || []).map((it: any) => ({
+                        name: it.name,
+                        barcode: it.barcode,
+                        quantity: it.quantity,
+                        price: it.price,
+                        total: it.total,
+                        discount: it.discount
+                      })),
+                      subtotal: Number(selectedReceipt.total || 0) + Number(selectedReceipt.discount || 0),
+                      discountAmount: Number(selectedReceipt.discount || 0),
+                      total: Number(selectedReceipt.total || 0),
+                      notes: selectedReceipt.notes || '',
+                      paperWidth: '80mm'
+                    });
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Çap Et (80mm)
+                </button>
+                <button
+                  onClick={() => setSelectedReceipt(null)}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Bağla
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </ModalPortal>
   );
 };

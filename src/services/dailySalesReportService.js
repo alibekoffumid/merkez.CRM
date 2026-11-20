@@ -994,7 +994,29 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       discount: saleDiscount,
       total: saleAmount,
       advanceAmount: dispatchMeta?.advanceAmount ?? null,
-      advanceRecipient: dispatchMeta?.advanceRecipient ?? null
+      advanceRecipient: dispatchMeta?.advanceRecipient ?? null,
+      customerName: sale.customer_name || null,
+      customerPhone: sale.customer_phone || null,
+      sellerName: sale.seller_name || null,
+      saleRef: (sale.notes || '').match(/#SALE-[0-9A-Za-z]+/)?.[0] || null,
+      channel: (sale.notes || '').match(/\[Kanal:\s*([^\]]+)\]/)?.[1] || 'Mağaza',
+      notes: sale.notes || '',
+      splitDetails: {
+        cash: Number(sale.split_cash || 0),
+        card: Number(sale.split_card || 0),
+        credit: Number(sale.split_credit || 0)
+      },
+      items: items.map(it => ({
+        id: it.id,
+        name: it.product_name || 'Məhsul',
+        quantity: Number(it.quantity || 1),
+        price: Number(it.price_at_sale || it.base_price || 0),
+        basePrice: Number(it.base_price || it.price_at_sale || 0),
+        discount: Number(it.discount_amount || 0),
+        total: Number(it.total || (Number(it.quantity || 1) * Number(it.price_at_sale || 0))),
+        unit: it.unit || 'ədəd',
+        barcode: it.barcode || '-'
+      }))
     });
   });
 
