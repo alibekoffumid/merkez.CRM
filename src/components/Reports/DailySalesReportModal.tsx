@@ -226,14 +226,15 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
     }
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = async () => {
     if (!reportData) return;
     setIsExportingExcel(true);
     try {
-      downloadDailySalesReportExcel(reportData, businessInfo, activeOptions);
+      await downloadDailySalesReportExcel(reportData, businessInfo, activeOptions);
       toast.success('Excel (.xlsx) faylı uğurla yükləndi!');
     } catch (err: any) {
-      toast.error('Excel hazırlanarkən xəta: ' + err.message);
+      console.error('Excel download error:', err);
+      toast.error('Excel hazırlanarkən xəta: ' + (err?.message || err));
     } finally {
       setIsExportingExcel(false);
     }

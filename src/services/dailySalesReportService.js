@@ -2,7 +2,6 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
 import { robotoAzFont } from './robotoAzFont.js';
 
 /**
@@ -3007,23 +3006,21 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       });
     });
 
-    // Write file
+    // Write file directly to browser download
     const buffer = await wb.xlsx.writeBuffer();
     const filename = `Gun_Sonu_Satis_Hesabati_${data.dateStr}.xlsx`;
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-    if (typeof saveAs === 'function') {
-      saveAs(blob, filename);
-    } else {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-    }
+    }, 200);
 
     return true;
   } catch (err) {
