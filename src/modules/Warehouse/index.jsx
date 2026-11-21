@@ -2256,12 +2256,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       {selectedItems.length > 0 && (
                         <>
                           <button
-                            onClick={() => setShowRentProduct(true)}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold transition-colors flex items-center shadow-sm"
-                          >
-                            <KeyRound className="w-3.5 h-3.5 mr-1.5" /> {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'} ({selectedItems.length})
-                          </button>
-                          <button
                             onClick={() => {
                               const itemsToPrint = products.filter(p => selectedItems.includes(p.id));
                               setPrintingItems(itemsToPrint);
@@ -2503,29 +2497,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               {/* Main Warehouse Actions */}
               {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
                 <>
-                  {selectedItems.length > 0 && (
-                    <button
-                      onClick={() => setShowRentProduct(true)}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm transition-all"
-                    >
-                      <KeyRound className="w-3.5 h-3.5 mr-1.5 shrink-0" />
-                      {i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'}
-                      <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
-                        {selectedItems.length}
-                      </span>
-                    </button>
-                  )}
-
                   <button
                     onClick={() => setShowSellProduct(true)}
                     className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm"
                   >
                     <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
-                    {selectedItems.length > 0 && (
-                      <span className="ml-1.5 bg-white/20 text-white text-[11px] px-1.5 py-0.5 rounded-full font-black">
-                        {selectedItems.length}
-                      </span>
-                    )}
                   </button>
 
                   <button
@@ -5342,6 +5318,54 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           }}
         />
       )}
+
+      {/* FLOATING BOTTOM ACTION BAR FOR SELECTED PRODUCTS (İcarəyə Ver & Məhsul Sat) */}
+      {selectedItems.length > 0 && activeTab === 'finished' && currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-2 pr-3 border-r border-slate-700 text-xs font-semibold text-slate-300">
+            <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">
+              {selectedItems.length}
+            </span>
+            <span>
+              {i18n.language === 'az' ? 'məhsul seçildi' : i18n.language === 'ru' ? 'товаров выбрано' : 'items selected'}
+            </span>
+          </div>
+
+          {/* İcarəyə Ver */}
+          <button
+            onClick={() => setShowRentProduct(true)}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 active:scale-95 transition-all uppercase tracking-wide"
+          >
+            <KeyRound className="w-4 h-4 shrink-0" />
+            <span>{i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'}</span>
+            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">
+              {selectedItems.length}
+            </span>
+          </button>
+
+          {/* Məhsul Sat */}
+          <button
+            onClick={() => setShowSellProduct(true)}
+            className="btn-gradient-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all uppercase tracking-wide"
+          >
+            <DollarSign className="w-4 h-4 shrink-0" />
+            <span>{i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}</span>
+            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">
+              {selectedItems.length}
+            </span>
+          </button>
+
+          {/* Deselect / Cancel */}
+          <button
+            onClick={() => setSelectedItems([])}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors ml-1"
+            title={i18n.language === 'az' ? 'Seçimi ləğv et' : 'Снять выделение'}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
     </div>
   );
 };
