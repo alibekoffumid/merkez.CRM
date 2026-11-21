@@ -2945,7 +2945,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       views: [{ showGridLines: true }]
     });
 
-    wsProducts.columns = [
+    const pCols = [
       { key: 'p_no', width: 6 },
       { key: 'p_name', width: 38 },
       { key: 'p_barcode', width: 18 },
@@ -2956,11 +2956,12 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       { key: 'p_total', width: 16 }
     ];
     if (canShowProfit) {
-      wsProducts.columns.push(
+      pCols.push(
         { key: 'p_cost', width: 14 },
         { key: 'p_profit', width: 14 }
       );
     }
+    wsProducts.columns = pCols;
 
     const pHeaders = ['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ'];
     if (canShowProfit) {
