@@ -5321,7 +5321,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       {/* FLOATING BOTTOM ACTION BAR FOR SELECTED PRODUCTS (İcarəyə Ver & Məhsul Sat) */}
       {selectedItems.length > 0 && activeTab === 'finished' && currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] bg-slate-900/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-6 right-6 md:right-[75px] z-[60] bg-slate-900/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
           <div className="flex items-center gap-2 pr-3 border-r border-slate-700 text-xs font-semibold text-slate-300">
             <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">
               {selectedItems.length}
