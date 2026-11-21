@@ -5321,7 +5321,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
       {/* FLOATING BOTTOM ACTION BAR FOR SELECTED PRODUCTS (İcarəyə Ver & Məhsul Sat) */}
       {selectedItems.length > 0 && activeTab === 'finished' && currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && (
-        <div className="fixed bottom-6 right-6 md:right-[75px] z-[60] bg-slate-900/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-12 sm:bottom-16 right-6 md:right-[75px] z-[60] bg-slate-900/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
           <div className="flex items-center gap-2 pr-3 border-r border-slate-700 text-xs font-semibold text-slate-300">
             <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">
               {selectedItems.length}
@@ -5358,10 +5358,10 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           {/* Deselect / Cancel */}
           <button
             onClick={() => setSelectedItems([])}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors ml-1"
+            className="w-7 h-7 rounded-xl bg-red-500 hover:bg-red-600 active:scale-90 text-white flex items-center justify-center transition-all shadow-md shadow-red-500/30 ml-1 shrink-0"
             title={i18n.language === 'az' ? 'Seçimi ləğv et' : 'Снять выделение'}
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       )}
