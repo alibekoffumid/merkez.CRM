@@ -1,6 +1,8 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import { robotoAzFont } from './robotoAzFont.js';
 
 /**
@@ -2696,27 +2698,81 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
  * Generate and direct-download an Excel (.xlsx) file
  * Respects options.mode ('products_only' vs 'detailed')
  */
-export const downloadDailySalesReportExcel = (data, businessInfo = {}, options = {}) => {
+export const downloadDailySalesReportExcel = async (data, businessInfo = {}, options = {}) => {
   const mergedOptions = { ...DEFAULT_REPORT_OPTIONS, ...options };
 
   try {
-    const wb = XLSX.utils.book_new();
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Mərkəz CRM';
+    wb.created = new Date();
 
     const companyName = businessInfo.businessName || businessInfo.company_name || 'RAST MUSİC';
     const address = businessInfo.address || 'ƏHMƏDLİ TELNOV KÜÇƏSİ 18A';
     const cashierName = businessInfo.cashierName || businessInfo.full_name || 'Mətanət';
     const dateFormatted = data.formattedDate || data.dateStr;
 
+    const borderThin = {
+      top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+      right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
+    };
+
     // ==============================================================
-    // 1. PRIMARY SHEET: GÜNDƏLİK SATIŞ VƏ KASSA CƏDVƏLİ (Exact template)
+    // 1. PRIMARY SHEET: Kassa Satış Cədvəli (Exact Template from Image)
     // ==============================================================
-    const ledgerAoa = [
-      ['', '', '', '', '', '', 'ÜNVAN:', address],
-      ['MAĞAZA:', companyName, '', '', '', '', '', ''],
-      ['SATICI:', cashierName, '', '', '', '', '', ''],
-      ['VAXT:', dateFormatted, '', '', '', '', '', ''],
-      ['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN']
+    const wsLedger = wb.addWorksheet('Kassa Satış Cədvəli', {
+      views: [{ showGridLines: true }]
+    });
+
+    wsLedger.columns = [
+      { key: 'no', width: 6 },
+      { key: 'name', width: 42 },
+      { key: 'nagd', width: 14 },
+      { key: 'terminal', width: 14 },
+      { key: 'kredit', width: 14 },
+      { key: 'kart', width: 14 },
+      { key: 'borc', width: 15 },
+      { key: 'cixilan', width: 15 }
     ];
+
+    // Row 1: Address
+    const r1 = wsLedger.addRow(['', '', '', '', '', '', 'ÜNVAN:', address]);
+    r1.font = { name: 'Arial', size: 10, bold: true };
+    r1.getCell(7).alignment = { horizontal: 'right' };
+
+    // Row 2: Magaza
+    const r2 = wsLedger.addRow(['MAĞAZA:', companyName, '', '', '', '', '', '']);
+    r2.font = { name: 'Arial', size: 10, bold: true };
+
+    // Row 3: Satici
+    const r3 = wsLedger.addRow(['SATICI:', cashierName, '', '', '', '', '', '']);
+    r3.font = { name: 'Arial', size: 10 };
+    r3.getCell(1).font = { bold: true };
+
+    // Row 4: Vaxt
+    const r4 = wsLedger.addRow(['VAXT:', dateFormatted, '', '', '', '', '', '']);
+    r4.font = { name: 'Arial', size: 10 };
+    r4.getCell(1).font = { bold: true };
+
+    // Header Row 5
+    const headerRow = wsLedger.addRow(['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN']);
+    headerRow.height = 25;
+    headerRow.eachCell((cell, colNum) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF2563EB' } // Deep Royal Blue
+      };
+      cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { vertical: 'middle', horizontal: colNum === 2 ? 'left' : 'center' };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF1D4ED8' } },
+        bottom: { style: 'medium', color: { argb: 'FF1E40AF' } },
+        left: { style: 'thin', color: { argb: 'FF3B82F6' } },
+        right: { style: 'thin', color: { argb: 'FF3B82F6' } }
+      };
+    });
 
     let runningNagd = 0;
     let runningTerminal = 0;
@@ -2728,7 +2784,7 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
     const txList = data.transactions || [];
 
     txList.forEach((t, idx) => {
-      // Product names joined with '+'
+      // Malin adi joined with '+'
       let malinAdi = '';
       if (t.items && t.items.length > 0) {
         malinAdi = t.items.map(it => it.quantity > 1 ? `${it.name} (${it.quantity})` : it.name).join('+');
@@ -2738,17 +2794,9 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
         malinAdi = 'Satış';
       }
 
-      let nNagd = 0;
-      let nTerminal = 0;
-      let nKredit = 0;
-      let nKart = 0;
-      let nBorcUsta = 0;
-      let nCixilan = 0;
-
+      let nNagd = 0, nTerminal = 0, nKredit = 0, nKart = 0, nBorcUsta = 0, nCixilan = 0;
       const method = (t.paymentMethod || '').toLowerCase();
-      const raw = (t.paymentMethodRaw || '').toLowerCase();
 
-      // Check split payment details
       if (t.splitDetails && (t.splitDetails.cash > 0 || t.splitDetails.card > 0 || t.splitDetails.credit > 0)) {
         nNagd = Number(t.splitDetails.cash || 0);
         nTerminal = Number(t.splitDetails.card || 0);
@@ -2764,7 +2812,6 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       } else if (method.includes('avans') || method.includes('beh') || method.includes('deposit')) {
         nNagd = Number(t.total || 0);
       } else {
-        // Default cash payment
         nNagd = Number(t.total || 0);
       }
 
@@ -2775,119 +2822,209 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       runningBorcUsta += nBorcUsta;
       runningCixilan += nCixilan;
 
-      ledgerAoa.push([
+      const row = wsLedger.addRow([
         idx + 1,
         malinAdi,
-        nNagd > 0 ? Number(nNagd.toFixed(2)) : '',
-        nTerminal > 0 ? Number(nTerminal.toFixed(2)) : '',
-        nKredit > 0 ? Number(nKredit.toFixed(2)) : '',
-        nKart > 0 ? Number(nKart.toFixed(2)) : '',
-        nBorcUsta > 0 ? Number(nBorcUsta.toFixed(2)) : '',
-        nCixilan > 0 ? Number(nCixilan.toFixed(2)) : ''
+        nNagd > 0 ? nNagd : null,
+        nTerminal > 0 ? nTerminal : null,
+        nKredit > 0 ? nKredit : null,
+        nKart > 0 ? nKart : null,
+        nBorcUsta > 0 ? nBorcUsta : null,
+        nCixilan > 0 ? nCixilan : null
       ]);
+
+      row.height = 20;
+      const isOdd = idx % 2 === 1;
+      row.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        cell.border = borderThin;
+        cell.font = { name: 'Arial', size: 9.5 };
+        if (isOdd) {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+        }
+        if (colNum === 1) cell.alignment = { horizontal: 'center' };
+        else if (colNum === 2) cell.alignment = { horizontal: 'left' };
+        else {
+          cell.alignment = { horizontal: 'right' };
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '#,##0.00 "₼"';
+          }
+        }
+      });
     });
 
-    // Pad with empty numbered rows up to 32 rows like the user's template
+    // Pad with empty rows up to 32 rows matching template
     const minRows = Math.max(32, txList.length);
     for (let r = txList.length + 1; r <= minRows; r++) {
-      ledgerAoa.push([r, '', '', '', '', '', '', '']);
+      const emptyRow = wsLedger.addRow([r, '', null, null, null, null, null, null]);
+      emptyRow.height = 19;
+      const isOdd = (r - 1) % 2 === 1;
+      emptyRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        cell.border = borderThin;
+        cell.font = { name: 'Arial', size: 9.5, color: { argb: 'FF94A3B8' } };
+        if (isOdd) {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+        }
+        if (colNum === 1) cell.alignment = { horizontal: 'center' };
+      });
     }
 
-    // Totals rows matching Screenshot 2
-    // Row 43: ÜMUMİ MƏBLƏĞ
+    // Summary Row 1: ÜMUMİ MƏBLƏĞ
     const grandTotal = Number((runningNagd + runningTerminal + runningKredit + runningKart + runningBorcUsta).toFixed(2));
     const netCash = Number((runningNagd - runningCixilan).toFixed(2));
 
-    ledgerAoa.push([
+    const sumRow1 = wsLedger.addRow([
       '',
       'ÜMUMİ MƏBLƏĞ',
-      runningNagd > 0 ? Number(runningNagd.toFixed(2)) : '',
-      runningTerminal > 0 ? Number(runningTerminal.toFixed(2)) : '',
-      runningKredit > 0 ? Number(runningKredit.toFixed(2)) : '',
-      runningKart > 0 ? Number(runningKart.toFixed(2)) : '',
-      runningBorcUsta > 0 ? Number(runningBorcUsta.toFixed(2)) : '',
-      runningCixilan > 0 ? Number(runningCixilan.toFixed(2)) : ''
+      runningNagd > 0 ? runningNagd : 0,
+      runningTerminal > 0 ? runningTerminal : 0,
+      runningKredit > 0 ? runningKredit : 0,
+      runningKart > 0 ? runningKart : 0,
+      runningBorcUsta > 0 ? runningBorcUsta : 0,
+      runningCixilan > 0 ? runningCixilan : 0
     ]);
-
-    // Row 44: 2 YEKUN MƏBLƏĞ
-    ledgerAoa.push([
-      2,
-      'YEKUN MƏBLƏĞ',
-      '',
-      '',
-      '',
-      '',
-      '',
-      grandTotal
-    ]);
-
-    // Row 45: 3 NƏTİCƏ / NAĞD
-    ledgerAoa.push([
-      3,
-      'NƏTİCƏ / NAĞD',
-      '',
-      '',
-      '',
-      '',
-      '',
-      netCash
-    ]);
-
-    const wsLedger = XLSX.utils.aoa_to_sheet(ledgerAoa);
-    wsLedger['!cols'] = [
-      { wch: 6 },  // №
-      { wch: 38 }, // MALIN ADI
-      { wch: 14 }, // NAĞD
-      { wch: 14 }, // terminal
-      { wch: 14 }, // KREDİT
-      { wch: 14 }, // kart
-      { wch: 14 }, // BORC USTA
-      { wch: 14 }  // ÇIXILAN
-    ];
-    XLSX.utils.book_append_sheet(wb, wsLedger, 'Kassa Satış Cədvəli');
-
-    // ==============================================================
-    // 2. SECONDARY SHEET: SATILAN MƏHSULLAR (Inventory Detail)
-    // ==============================================================
-    const canShowProfit = data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null;
-    const productsHeader = ['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Vahid', 'Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ (AZN)'];
-    if (canShowProfit) productsHeader.push('Maya Dəyəri (AZN)', 'Mənfəət (AZN)');
-    const productsAoa = [productsHeader];
-
-    (data.products || []).forEach((p, idx) => {
-      const row = [
-        idx + 1,
-        p.name,
-        p.barcode || '',
-        p.category || '',
-        p.quantity,
-        p.unit || 'ədəd',
-        p.avgPrice,
-        p.totalDiscount || 0,
-        p.totalRevenue
-      ];
-      if (canShowProfit) {
-        row.push(p.totalCost || 0, Number((p.totalRevenue - (p.totalCost || 0)).toFixed(2)));
+    sumRow1.height = 24;
+    sumRow1.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.font = { name: 'Arial', size: 10, bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+      cell.border = {
+        top: { style: 'medium', color: { argb: 'FF2563EB' } },
+        bottom: { style: 'medium', color: { argb: 'FF2563EB' } },
+        left: borderThin.left,
+        right: borderThin.right
+      };
+      if (colNum >= 3) {
+        cell.alignment = { horizontal: 'right' };
+        cell.numFmt = '#,##0.00 "₼"';
       }
-      productsAoa.push(row);
     });
 
-    const wsProducts = XLSX.utils.aoa_to_sheet(productsAoa);
-    wsProducts['!cols'] = [
-      { wch: 6 },
-      { wch: 35 },
-      { wch: 18 },
-      { wch: 18 },
-      { wch: 10 },
-      { wch: 8 },
-      { wch: 14 },
-      { wch: 12 },
-      { wch: 16 }
-    ];
-    XLSX.utils.book_append_sheet(wb, wsProducts, 'Satılan Məhsullar');
+    // Summary Row 2: YEKUN MƏBLƏĞ
+    const sumRow2 = wsLedger.addRow([2, 'YEKUN MƏBLƏĞ', '', '', '', '', '', grandTotal]);
+    sumRow2.height = 24;
+    sumRow2.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.font = { name: 'Arial', size: 10.5, bold: true };
+      cell.border = borderThin;
+      if (colNum === 1) cell.alignment = { horizontal: 'center' };
+      if (colNum === 8) {
+        cell.alignment = { horizontal: 'right' };
+        cell.numFmt = '#,##0.00 "₼"';
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } }; // Amber Highlight
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+          bottom: { style: 'double', color: { argb: 'FF1F2937' } },
+          left: borderThin.left,
+          right: borderThin.right
+        };
+      }
+    });
 
+    // Summary Row 3: NƏTİCƏ / NAĞD
+    const sumRow3 = wsLedger.addRow([3, 'NƏTİCƏ / NAĞD', '', '', '', '', '', netCash]);
+    sumRow3.height = 24;
+    sumRow3.eachCell({ includeEmpty: true }, (cell, colNum) => {
+      cell.font = { name: 'Arial', size: 10.5, bold: true };
+      cell.border = borderThin;
+      if (colNum === 1) cell.alignment = { horizontal: 'center' };
+      if (colNum === 8) {
+        cell.alignment = { horizontal: 'right' };
+        cell.numFmt = '#,##0.00 "₼"';
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } }; // Light Green Highlight
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+          bottom: { style: 'medium', color: { argb: 'FF059669' } },
+          left: borderThin.left,
+          right: borderThin.right
+        };
+      }
+    });
+
+    // ==============================================================
+    // 2. SECONDARY SHEET: Satılan Məhsullar (Styled Inventory Detail)
+    // ==============================================================
+    const canShowProfit = data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null;
+    const wsProducts = wb.addWorksheet('Satılan Məhsullar', {
+      views: [{ showGridLines: true }]
+    });
+
+    wsProducts.columns = [
+      { key: 'p_no', width: 6 },
+      { key: 'p_name', width: 38 },
+      { key: 'p_barcode', width: 18 },
+      { key: 'p_category', width: 18 },
+      { key: 'p_qty', width: 12 },
+      { key: 'p_price', width: 14 },
+      { key: 'p_discount', width: 12 },
+      { key: 'p_total', width: 16 }
+    ];
+    if (canShowProfit) {
+      wsProducts.columns.push(
+        { key: 'p_cost', width: 14 },
+        { key: 'p_profit', width: 14 }
+      );
+    }
+
+    const pHeaders = ['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ'];
+    if (canShowProfit) {
+      pHeaders.push('Maya Dəyəri', 'Mənfəət');
+    }
+    const pHeaderRow = wsProducts.addRow(pHeaders);
+    pHeaderRow.height = 24;
+    pHeaderRow.eachCell((cell, colNum) => {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+      cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { vertical: 'middle', horizontal: colNum === 2 ? 'left' : 'center' };
+      cell.border = borderThin;
+    });
+
+    (data.products || []).forEach((p, idx) => {
+      const pRowValues = [
+        idx + 1,
+        p.name || 'Məhsul',
+        p.barcode || '-',
+        p.category || 'Ümumi',
+        `${p.quantity} ${p.unit || 'ədəd'}`,
+        p.avgPrice || 0,
+        p.totalDiscount || 0,
+        p.totalRevenue || 0
+      ];
+      if (canShowProfit) {
+        const cost = p.totalCost || 0;
+        pRowValues.push(cost, Number((p.totalRevenue - cost).toFixed(2)));
+      }
+      const pRow = wsProducts.addRow(pRowValues);
+      pRow.height = 19;
+      const isOdd = idx % 2 === 1;
+      pRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        cell.border = borderThin;
+        cell.font = { name: 'Arial', size: 9.5 };
+        if (isOdd) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+        if (colNum === 1) cell.alignment = { horizontal: 'center' };
+        else if (colNum === 2) cell.alignment = { horizontal: 'left' };
+        else if (colNum >= 6) {
+          cell.alignment = { horizontal: 'right' };
+          if (typeof cell.value === 'number') cell.numFmt = '#,##0.00 "₼"';
+        }
+      });
+    });
+
+    // Write file
+    const buffer = await wb.xlsx.writeBuffer();
     const filename = `Gun_Sonu_Satis_Hesabati_${data.dateStr}.xlsx`;
-    XLSX.writeFile(wb, filename);
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+    if (typeof saveAs === 'function') {
+      saveAs(blob, filename);
+    } else {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+
     return true;
   } catch (err) {
     console.error('Excel generation error:', err);
