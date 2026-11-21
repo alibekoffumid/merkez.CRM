@@ -2698,90 +2698,163 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
  */
 export const downloadDailySalesReportExcel = (data, businessInfo = {}, options = {}) => {
   const mergedOptions = { ...DEFAULT_REPORT_OPTIONS, ...options };
-  const isProductsOnly = mergedOptions.mode === 'products_only' || mergedOptions.showPrices === false;
 
   try {
     const wb = XLSX.utils.book_new();
 
-    if (isProductsOnly) {
-      // Products Only (No Prices)
-      const productsAoa = [
-        ['MƏRKƏZ CRM - GÜNLÜK SATILAN MƏHSULLARIN SİYAHISI'],
-        ['Müəssisə:', businessInfo.businessName || businessInfo.company_name || 'Mərkəz CRM'],
-        ['Hesabat Tarixi:', data.formattedDate],
-        ['Çap Tarixi:', data.generatedAt],
-        ['Cəmi Satılan Çeşid:', data.products.length],
-        ['Cəmi Satılmış Miqdar:', data.totalItemsCount],
-        [],
-        ['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Satılan Miqdar', 'Vahid', 'Sayım Yoxlaması']
-      ];
-      data.products.forEach((p, idx) => {
-        productsAoa.push([
-          idx + 1,
-          p.name,
-          p.barcode || '',
-          p.category || '',
-          p.quantity,
-          p.unit || 'ədəd',
-          ''
-        ]);
-      });
-      const wsProducts = XLSX.utils.aoa_to_sheet(productsAoa);
-      XLSX.utils.book_append_sheet(wb, wsProducts, 'Satılan Məhsullar');
+    const companyName = businessInfo.businessName || businessInfo.company_name || 'RAST MUSİC';
+    const address = businessInfo.address || 'ƏHMƏDLİ TELNOV KÜÇƏSİ 18A';
+    const cashierName = businessInfo.cashierName || businessInfo.full_name || 'Mətanət';
+    const dateFormatted = data.formattedDate || data.dateStr;
 
-      const filename = `Gunluk_Satilan_Mehsullar_${data.dateStr}.xlsx`;
-      XLSX.writeFile(wb, filename);
-      return true;
+    // ==============================================================
+    // 1. PRIMARY SHEET: GÜNDƏLİK SATIŞ VƏ KASSA CƏDVƏLİ (Exact template)
+    // ==============================================================
+    const ledgerAoa = [
+      ['', '', '', '', '', '', 'ÜNVAN:', address],
+      ['MAĞAZA:', companyName, '', '', '', '', '', ''],
+      ['SATICI:', cashierName, '', '', '', '', '', ''],
+      ['VAXT:', dateFormatted, '', '', '', '', '', ''],
+      ['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN']
+    ];
+
+    let runningNagd = 0;
+    let runningTerminal = 0;
+    let runningKredit = 0;
+    let runningKart = 0;
+    let runningBorcUsta = 0;
+    let runningCixilan = 0;
+
+    const txList = data.transactions || [];
+
+    txList.forEach((t, idx) => {
+      // Product names joined with '+'
+      let malinAdi = '';
+      if (t.items && t.items.length > 0) {
+        malinAdi = t.items.map(it => it.quantity > 1 ? `${it.name} (${it.quantity})` : it.name).join('+');
+      } else if (t.itemsSummary) {
+        malinAdi = t.itemsSummary;
+      } else {
+        malinAdi = 'Satış';
+      }
+
+      let nNagd = 0;
+      let nTerminal = 0;
+      let nKredit = 0;
+      let nKart = 0;
+      let nBorcUsta = 0;
+      let nCixilan = 0;
+
+      const method = (t.paymentMethod || '').toLowerCase();
+      const raw = (t.paymentMethodRaw || '').toLowerCase();
+
+      // Check split payment details
+      if (t.splitDetails && (t.splitDetails.cash > 0 || t.splitDetails.card > 0 || t.splitDetails.credit > 0)) {
+        nNagd = Number(t.splitDetails.cash || 0);
+        nTerminal = Number(t.splitDetails.card || 0);
+        nKredit = Number(t.splitDetails.credit || 0);
+      } else if (method.includes('terminal') || method.includes('pos')) {
+        nTerminal = Number(t.total || 0);
+      } else if (method.includes('kredit') || method.includes('tamkart') || method.includes('birbank') || method.includes('birkart') || method.includes('abb') || method.includes('kapital')) {
+        nKredit = Number(t.total || 0);
+      } else if (method.includes('kart') || method.includes('card')) {
+        nKart = Number(t.total || 0);
+      } else if (method.includes('borc') || method.includes('nisyə') || method.includes('usta')) {
+        nBorcUsta = Number(t.total || 0);
+      } else if (method.includes('avans') || method.includes('beh') || method.includes('deposit')) {
+        nNagd = Number(t.total || 0);
+      } else {
+        // Default cash payment
+        nNagd = Number(t.total || 0);
+      }
+
+      runningNagd += nNagd;
+      runningTerminal += nTerminal;
+      runningKredit += nKredit;
+      runningKart += nKart;
+      runningBorcUsta += nBorcUsta;
+      runningCixilan += nCixilan;
+
+      ledgerAoa.push([
+        idx + 1,
+        malinAdi,
+        nNagd > 0 ? Number(nNagd.toFixed(2)) : '',
+        nTerminal > 0 ? Number(nTerminal.toFixed(2)) : '',
+        nKredit > 0 ? Number(nKredit.toFixed(2)) : '',
+        nKart > 0 ? Number(nKart.toFixed(2)) : '',
+        nBorcUsta > 0 ? Number(nBorcUsta.toFixed(2)) : '',
+        nCixilan > 0 ? Number(nCixilan.toFixed(2)) : ''
+      ]);
+    });
+
+    // Pad with empty numbered rows up to 32 rows like the user's template
+    const minRows = Math.max(32, txList.length);
+    for (let r = txList.length + 1; r <= minRows; r++) {
+      ledgerAoa.push([r, '', '', '', '', '', '', '']);
     }
 
-    // Detailed Report (All figures)
-    // 1. Summary Sheet
+    // Totals rows matching Screenshot 2
+    // Row 43: ÜMUMİ MƏBLƏĞ
+    const grandTotal = Number((runningNagd + runningTerminal + runningKredit + runningKart + runningBorcUsta).toFixed(2));
+    const netCash = Number((runningNagd - runningCixilan).toFixed(2));
+
+    ledgerAoa.push([
+      '',
+      'ÜMUMİ MƏBLƏĞ',
+      runningNagd > 0 ? Number(runningNagd.toFixed(2)) : '',
+      runningTerminal > 0 ? Number(runningTerminal.toFixed(2)) : '',
+      runningKredit > 0 ? Number(runningKredit.toFixed(2)) : '',
+      runningKart > 0 ? Number(runningKart.toFixed(2)) : '',
+      runningBorcUsta > 0 ? Number(runningBorcUsta.toFixed(2)) : '',
+      runningCixilan > 0 ? Number(runningCixilan.toFixed(2)) : ''
+    ]);
+
+    // Row 44: 2 YEKUN MƏBLƏĞ
+    ledgerAoa.push([
+      2,
+      'YEKUN MƏBLƏĞ',
+      '',
+      '',
+      '',
+      '',
+      '',
+      grandTotal
+    ]);
+
+    // Row 45: 3 NƏTİCƏ / NAĞD
+    ledgerAoa.push([
+      3,
+      'NƏTİCƏ / NAĞD',
+      '',
+      '',
+      '',
+      '',
+      '',
+      netCash
+    ]);
+
+    const wsLedger = XLSX.utils.aoa_to_sheet(ledgerAoa);
+    wsLedger['!cols'] = [
+      { wch: 6 },  // №
+      { wch: 38 }, // MALIN ADI
+      { wch: 14 }, // NAĞD
+      { wch: 14 }, // terminal
+      { wch: 14 }, // KREDİT
+      { wch: 14 }, // kart
+      { wch: 14 }, // BORC USTA
+      { wch: 14 }  // ÇIXILAN
+    ];
+    XLSX.utils.book_append_sheet(wb, wsLedger, 'Kassa Satış Cədvəli');
+
+    // ==============================================================
+    // 2. SECONDARY SHEET: SATILAN MƏHSULLAR (Inventory Detail)
+    // ==============================================================
     const canShowProfit = data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null;
-
-    const summaryAoa = [
-      ['MƏRKƏZ CRM - GÜN SONU SATIŞ HESABATI'],
-      ['Müəssisə:', businessInfo.businessName || businessInfo.company_name || 'Mərkəz CRM'],
-      ['VÖEN:', businessInfo.voen || '-'],
-      ['Hesabat Tarixi:', data.formattedDate],
-      ['Çap Tarixi:', data.generatedAt],
-      [],
-      ['GÖSTƏRİCİ', 'MƏBLƏĞ / MİQDAR', 'VALYUTA / VAHİD'],
-      ['Ümumi Dövriyyə (Cəmi Satış)', data.totalRevenue, 'AZN'],
-      ['1. Nağd Satışlar (Nağd)', data.totalCash, 'AZN'],
-      ['2. Kart / Terminal Satışlar', data.totalCard, 'AZN'],
-      ['3. Kredit Satışları (Kredit)', data.totalCredit, 'AZN'],
-      ['4. Nisyə Satışlar (Nisyə / Borc)', data.totalDebt, 'AZN'],
-      ['5. Beh / Avans (Beh)', data.totalDeposit, 'AZN'],
-      ['6. Digər Xərclər (Taksi, Yemək və s.)', data.totalExpense || 0, 'AZN'],
-      ['Bölünmüş (Qarışıq) Satışlar', data.totalSplit, 'AZN'],
-      ['Cəmi Endirimlər', data.totalDiscounts, 'AZN'],
-      ['Satış Çeklərinin Sayı', data.salesCount, 'ədəd'],
-      ['Satılmış Məhsul Sayı', data.totalItemsCount, 'ədəd'],
-      ['Orta Çek Məbləği', data.averageTicket, 'AZN'],
-      ...(canShowProfit ? [
-        ['Maya Dəyəri', data.totalCostPrice, 'AZN'],
-        ['Təxmini Xalis Mənfəət', data.grossProfit, 'AZN'],
-        ['Rentabellik (%)', data.marginPercent, '%']
-      ] : []),
-      [],
-      ['AUDİT: LƏĞV EDİLMİŞ / SİLİNMİŞ ƏMƏLİYYATLAR (Dövriyyəyə daxil deyil)', '', ''],
-      ['Ləğv Edilmiş Çek Sayı', data.cancelledCount || 0, 'ədəd'],
-      ['Ləğv Edilmiş Məhsul Sayı', data.cancelledItemsCount || 0, 'ədəd'],
-      ['Ləğv Edilmiş Məbləğ', data.cancelledRevenue || 0, 'AZN']
-    ];
-    const wsSummary = XLSX.utils.aoa_to_sheet(summaryAoa);
-    XLSX.utils.book_append_sheet(wb, wsSummary, 'Maliyyə Xülasəsi');
-
-    // 2. Products Sheet (Strictly exclude cost and profit columns if !isAdmin)
-    const productsHeader = [
-      '№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Vahid', 'Orta Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ (AZN)'
-    ];
-    if (canShowProfit) {
-      productsHeader.push('Maya Dəyəri (AZN)', 'Mənfəət (AZN)');
-    }
-
+    const productsHeader = ['№', 'Məhsulun Adı', 'Barkod', 'Kateqoriya', 'Miqdar', 'Vahid', 'Satış Qiyməti', 'Endirim', 'Cəmi Məbləğ (AZN)'];
+    if (canShowProfit) productsHeader.push('Maya Dəyəri (AZN)', 'Mənfəət (AZN)');
     const productsAoa = [productsHeader];
-    data.products.forEach((p, idx) => {
+
+    (data.products || []).forEach((p, idx) => {
       const row = [
         idx + 1,
         p.name,
@@ -2798,59 +2871,22 @@ export const downloadDailySalesReportExcel = (data, businessInfo = {}, options =
       }
       productsAoa.push(row);
     });
+
     const wsProducts = XLSX.utils.aoa_to_sheet(productsAoa);
+    wsProducts['!cols'] = [
+      { wch: 6 },
+      { wch: 35 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 10 },
+      { wch: 8 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 16 }
+    ];
     XLSX.utils.book_append_sheet(wb, wsProducts, 'Satılan Məhsullar');
 
-    // 3. Transactions Sheet
-    const receiptsAoa = [
-      ['Çek №', 'ID', 'Saat', 'Tarix', 'Ödəniş Üsulu', 'Məhsul Sayı', 'Avans Məbləği (AZN)', 'Avans Alan', 'Endirim (AZN)', 'Yekun Məbləğ (AZN)']
-    ];
-    data.transactions.forEach(t => {
-      receiptsAoa.push([
-        t.receiptNumber,
-        t.shortId,
-        t.time,
-        t.dateTime,
-        t.paymentMethod,
-        t.itemsCount,
-        t.advanceAmount || '',
-        t.advanceRecipient || '',
-        t.discount || 0,
-        t.total
-      ]);
-    });
-    const wsReceipts = XLSX.utils.aoa_to_sheet(receiptsAoa);
-    XLSX.utils.book_append_sheet(wb, wsReceipts, 'Günün Çekləri');
-
-    // 4. Cancelled Sheet (Audit)
-    if (data.cancelledCount > 0) {
-      const cancelledAoa = [
-        ['MƏRKƏZ CRM - LƏĞV EDİLMİŞ / SİLİNMİŞ ƏMƏLİYYATLAR (AUDİT)'],
-        ['Hesabat Tarixi:', data.formattedDate],
-        ['Qeyd:', 'Bu əməliyyatlar kassa dövriyyəsindən çıxarılıb və yekun balansa təsir etmir.'],
-        ['Cəmi Ləğv Çek:', data.cancelledCount],
-        ['Cəmi Ləğv Məbləğ:', data.cancelledRevenue, 'AZN'],
-        [],
-        ['Ləğv Çek №', 'ID', 'Saat', 'Tarix', 'Ödəniş Üsulu', 'Məhsullar', 'Məhsul Sayı', 'Ləğv Məbləği (AZN)', 'Status']
-      ];
-      data.cancelledTransactions.forEach(t => {
-        cancelledAoa.push([
-          t.receiptNumber,
-          t.shortId,
-          t.time,
-          t.dateTime,
-          t.paymentMethod,
-          t.itemsSummary || '-',
-          t.itemsCount,
-          t.total,
-          t.status
-        ]);
-      });
-      const wsCancelled = XLSX.utils.aoa_to_sheet(cancelledAoa);
-      XLSX.utils.book_append_sheet(wb, wsCancelled, 'Ləğv Edilmişlər (Audit)');
-    }
-
-    const filename = `Gun_Sonu_Etrafli_Satis_Hesabati_${data.dateStr}.xlsx`;
+    const filename = `Gun_Sonu_Satis_Hesabati_${data.dateStr}.xlsx`;
     XLSX.writeFile(wb, filename);
     return true;
   } catch (err) {
