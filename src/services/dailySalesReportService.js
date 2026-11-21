@@ -254,6 +254,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
 
   const avansMatch = note.match(/\[Avans:\s*[^0-9\s]*\s*([\d.,]+)\s*[^\]\d]*\]/i);
   const alanMatch = note.match(/\[Avans Alan:\s*([^\]]+)\]/i);
+  const sellerMatch = note.match(/\[Satıcı:\s*([^\]]+)\]/i) || note.match(/\[Kassir:\s*([^\]]+)\]/i) || note.match(/\[Satan:\s*([^\]]+)\]/i);
 
   return {
     unitPrice,
@@ -263,6 +264,7 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     paymentMethod,
     customerName,
     customerPhone,
+    sellerName: sellerMatch ? sellerMatch[1].trim() : null,
     splitCash,
     splitCard,
     splitCredit,
@@ -591,6 +593,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       let groupCust = null;
       let groupAdvAmt = null;
       let groupAdvRecip = null;
+      let groupSeller = null;
 
       const groupItems = dispList.map(d => {
         const q = Math.abs(parseFloat(d.quantity) || 1);
@@ -606,6 +609,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
         if (p.customerName) groupCust = p.customerName;
         if (p.advanceAmount) groupAdvAmt = p.advanceAmount;
         if (p.advanceRecipient) groupAdvRecip = p.advanceRecipient;
+        if (p.sellerName) groupSeller = p.sellerName;
 
         const pKey = prodMeta.id || d.product_id;
         const unit = prodMeta.unit || 'ədəd';
@@ -642,6 +646,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
         customer_name: groupCust,
         advance_amount: groupAdvAmt,
         advance_recipient: groupAdvRecip,
+        seller_name: groupSeller,
         notes: first.notes || '',
         retail_sale_items: groupItems
       });
@@ -2724,39 +2729,50 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       views: [{ showGridLines: true }]
     });
 
+    // 9 Columns: №, MALIN ADI, NAĞD, terminal, KREDİT, kart, BORC USTA, ÇIXILAN, SATICI
     wsLedger.columns = [
       { key: 'no', width: 6 },
-      { key: 'name', width: 42 },
+      { key: 'name', width: 75 }, // Large width so long item names are completely visible!
       { key: 'nagd', width: 14 },
       { key: 'terminal', width: 14 },
       { key: 'kredit', width: 14 },
       { key: 'kart', width: 14 },
-      { key: 'borc', width: 15 },
-      { key: 'cixilan', width: 15 }
+      { key: 'borc', width: 14 },
+      { key: 'cixilan', width: 14 },
+      { key: 'satici', width: 22 } // New column for seller name!
     ];
 
-    // Row 1: Address
-    const r1 = wsLedger.addRow(['', '', '', '', '', '', 'ÜNVAN:', address]);
-    r1.font = { name: 'Arial', size: 10, bold: true };
-    r1.getCell(7).alignment = { horizontal: 'right' };
+    // Row 1: Address (G1:I1 merged for ample room)
+    wsLedger.addRow(['', '', '', '', '', '', 'ÜNVAN: ' + address, '', '']);
+    wsLedger.mergeCells('G1:I1');
+    const cellG1 = wsLedger.getCell('G1');
+    cellG1.font = { name: 'Arial', size: 10, bold: true };
+    cellG1.alignment = { horizontal: 'right', vertical: 'middle' };
 
-    // Row 2: Magaza
-    const r2 = wsLedger.addRow(['MAĞAZA:', companyName, '', '', '', '', '', '']);
-    r2.font = { name: 'Arial', size: 10, bold: true };
+    // Row 2: Magaza (A2:E2 merged so "MAĞAZA:" is 100% visible and uncropped)
+    wsLedger.addRow(['MAĞAZA: ' + companyName, '', '', '', '', '', '', '', '']);
+    wsLedger.mergeCells('A2:E2');
+    const cellA2 = wsLedger.getCell('A2');
+    cellA2.font = { name: 'Arial', size: 10.5, bold: true };
+    cellA2.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    // Row 3: Satici
-    const r3 = wsLedger.addRow(['SATICI:', cashierName, '', '', '', '', '', '']);
-    r3.font = { name: 'Arial', size: 10 };
-    r3.getCell(1).font = { bold: true };
+    // Row 3: Satici (A3:E3 merged so "SATICI:" is 100% visible and uncropped)
+    wsLedger.addRow(['SATICI: ' + cashierName, '', '', '', '', '', '', '', '']);
+    wsLedger.mergeCells('A3:E3');
+    const cellA3 = wsLedger.getCell('A3');
+    cellA3.font = { name: 'Arial', size: 10 };
+    cellA3.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    // Row 4: Vaxt
-    const r4 = wsLedger.addRow(['VAXT:', dateFormatted, '', '', '', '', '', '']);
-    r4.font = { name: 'Arial', size: 10 };
-    r4.getCell(1).font = { bold: true };
+    // Row 4: Vaxt (A4:E4 merged so "VAXT:" is 100% visible and uncropped)
+    wsLedger.addRow(['VAXT: ' + dateFormatted, '', '', '', '', '', '', '', '']);
+    wsLedger.mergeCells('A4:E4');
+    const cellA4 = wsLedger.getCell('A4');
+    cellA4.font = { name: 'Arial', size: 10 };
+    cellA4.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    // Header Row 5
-    const headerRow = wsLedger.addRow(['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN']);
-    headerRow.height = 25;
+    // Header Row 5: Blue fill, bold white text
+    const headerRow = wsLedger.addRow(['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN', 'SATICI']);
+    headerRow.height = 26;
     headerRow.eachCell((cell, colNum) => {
       cell.fill = {
         type: 'pattern',
@@ -2780,10 +2796,14 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     let runningBorcUsta = 0;
     let runningCixilan = 0;
 
-    const txList = data.transactions || [];
+    let rowSequence = 0;
 
-    txList.forEach((t, idx) => {
-      // Malin adi joined with '+'
+    // 1. Add all Sales Transactions
+    const txList = data.transactions || [];
+    txList.forEach((t) => {
+      rowSequence++;
+
+      // Compound product names joined with '+'
       let malinAdi = '';
       if (t.items && t.items.length > 0) {
         malinAdi = t.items.map(it => it.quantity > 1 ? `${it.name} (${it.quantity})` : it.name).join('+');
@@ -2796,6 +2816,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       let nNagd = 0, nTerminal = 0, nKredit = 0, nKart = 0, nBorcUsta = 0, nCixilan = 0;
       const method = (t.paymentMethod || '').toLowerCase();
 
+      // Determine payment distribution
       if (t.splitDetails && (t.splitDetails.cash > 0 || t.splitDetails.card > 0 || t.splitDetails.credit > 0)) {
         nNagd = Number(t.splitDetails.cash || 0);
         nTerminal = Number(t.splitDetails.card || 0);
@@ -2821,29 +2842,34 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       runningBorcUsta += nBorcUsta;
       runningCixilan += nCixilan;
 
+      const sellerText = t.sellerName || cashierName || '-';
+
       const row = wsLedger.addRow([
-        idx + 1,
+        rowSequence,
         malinAdi,
         nNagd > 0 ? nNagd : null,
         nTerminal > 0 ? nTerminal : null,
         nKredit > 0 ? nKredit : null,
         nKart > 0 ? nKart : null,
         nBorcUsta > 0 ? nBorcUsta : null,
-        nCixilan > 0 ? nCixilan : null
+        nCixilan > 0 ? nCixilan : null,
+        sellerText
       ]);
 
       row.height = 20;
-      const isOdd = idx % 2 === 1;
+      const isOdd = rowSequence % 2 === 1;
       row.eachCell({ includeEmpty: true }, (cell, colNum) => {
         cell.border = borderThin;
         cell.font = { name: 'Arial', size: 9.5 };
         if (isOdd) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
         }
-        if (colNum === 1) cell.alignment = { horizontal: 'center' };
-        else if (colNum === 2) cell.alignment = { horizontal: 'left' };
-        else {
-          cell.alignment = { horizontal: 'right' };
+        if (colNum === 1 || colNum === 9) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else if (colNum === 2) {
+          cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+        } else {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
           if (typeof cell.value === 'number') {
             cell.numFmt = '#,##0.00 "₼"';
           }
@@ -2851,10 +2877,55 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       });
     });
 
-    // Pad with empty rows up to 32 rows matching template
-    const minRows = Math.max(32, txList.length);
-    for (let r = txList.length + 1; r <= minRows; r++) {
-      const emptyRow = wsLedger.addRow([r, '', null, null, null, null, null, null]);
+    // 2. Add Store Expenses into ÇIXILAN column (from business_expenses modal)
+    const storeExpenses = data.storeExpenses || [];
+    storeExpenses.forEach((exp) => {
+      rowSequence++;
+      const expAmt = Number(exp.amount || 0);
+      runningCixilan += expAmt;
+
+      const desc = String(exp.description || '');
+      const recipientMatch = desc.match(/\[Xərcləyən:\s*([^\]]+)\]/i) || desc.match(/\[Alan:\s*([^\]]+)\]/i);
+      const expPerson = recipientMatch ? recipientMatch[1].trim() : (exp.recipient || exp.staff_name || cashierName || '-');
+      const cleanDesc = desc.replace(/\[.*?\]/g, '').trim();
+      const expTitle = `Xərc: ${exp.category || 'Xərc'}${cleanDesc ? ' (' + cleanDesc + ')' : ''}`;
+
+      const expRow = wsLedger.addRow([
+        rowSequence,
+        expTitle,
+        null,
+        null,
+        null,
+        null,
+        null,
+        expAmt > 0 ? expAmt : null,
+        expPerson
+      ]);
+
+      expRow.height = 20;
+      expRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
+        cell.border = borderThin;
+        cell.font = { name: 'Arial', size: 9.5 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } }; // Soft rose highlight for expenses
+        if (colNum === 1 || colNum === 9) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        } else if (colNum === 2) {
+          cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+          cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF991B1B' } };
+        } else {
+          cell.alignment = { horizontal: 'right', vertical: 'middle' };
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '#,##0.00 "₼"';
+            cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FFDC2626' } };
+          }
+        }
+      });
+    });
+
+    // 3. Pad with empty numbered rows up to at least 32 rows matching template
+    const minRows = Math.max(32, rowSequence);
+    for (let r = rowSequence + 1; r <= minRows; r++) {
+      const emptyRow = wsLedger.addRow([r, '', null, null, null, null, null, null, '']);
       emptyRow.height = 19;
       const isOdd = (r - 1) % 2 === 1;
       emptyRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
@@ -2863,14 +2934,15 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         if (isOdd) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
         }
-        if (colNum === 1) cell.alignment = { horizontal: 'center' };
+        if (colNum === 1 || colNum === 9) cell.alignment = { horizontal: 'center' };
       });
     }
 
-    // Summary Row 1: ÜMUMİ MƏBLƏĞ
+    // 4. Totals rows matching Screenshot 2
     const grandTotal = Number((runningNagd + runningTerminal + runningKredit + runningKart + runningBorcUsta).toFixed(2));
     const netCash = Number((runningNagd - runningCixilan).toFixed(2));
 
+    // Summary Row 1: ÜMUMİ MƏBLƏĞ
     const sumRow1 = wsLedger.addRow([
       '',
       'ÜMUMİ MƏBLƏĞ',
@@ -2879,33 +2951,34 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       runningKredit > 0 ? runningKredit : 0,
       runningKart > 0 ? runningKart : 0,
       runningBorcUsta > 0 ? runningBorcUsta : 0,
-      runningCixilan > 0 ? runningCixilan : 0
+      runningCixilan > 0 ? runningCixilan : 0,
+      ''
     ]);
     sumRow1.height = 24;
     sumRow1.eachCell({ includeEmpty: true }, (cell, colNum) => {
       cell.font = { name: 'Arial', size: 10, bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } }; // Light blue
       cell.border = {
         top: { style: 'medium', color: { argb: 'FF2563EB' } },
         bottom: { style: 'medium', color: { argb: 'FF2563EB' } },
         left: borderThin.left,
         right: borderThin.right
       };
-      if (colNum >= 3) {
-        cell.alignment = { horizontal: 'right' };
+      if (colNum >= 3 && colNum <= 8) {
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
         cell.numFmt = '#,##0.00 "₼"';
       }
     });
 
-    // Summary Row 2: YEKUN MƏBLƏĞ
-    const sumRow2 = wsLedger.addRow([2, 'YEKUN MƏBLƏĞ', '', '', '', '', '', grandTotal]);
+    // Summary Row 2: 2 YEKUN MƏBLƏĞ
+    const sumRow2 = wsLedger.addRow([2, 'YEKUN MƏBLƏĞ', '', '', '', '', '', grandTotal, '']);
     sumRow2.height = 24;
     sumRow2.eachCell({ includeEmpty: true }, (cell, colNum) => {
       cell.font = { name: 'Arial', size: 10.5, bold: true };
       cell.border = borderThin;
-      if (colNum === 1) cell.alignment = { horizontal: 'center' };
+      if (colNum === 1) cell.alignment = { horizontal: 'center', vertical: 'middle' };
       if (colNum === 8) {
-        cell.alignment = { horizontal: 'right' };
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
         cell.numFmt = '#,##0.00 "₼"';
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } }; // Amber Highlight
         cell.border = {
@@ -2917,15 +2990,15 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       }
     });
 
-    // Summary Row 3: NƏTİCƏ / NAĞD
-    const sumRow3 = wsLedger.addRow([3, 'NƏTİCƏ / NAĞD', '', '', '', '', '', netCash]);
+    // Summary Row 3: 3 NƏTİCƏ / NAĞD
+    const sumRow3 = wsLedger.addRow([3, 'NƏTİCƏ / NAĞD', '', '', '', '', '', netCash, '']);
     sumRow3.height = 24;
     sumRow3.eachCell({ includeEmpty: true }, (cell, colNum) => {
       cell.font = { name: 'Arial', size: 10.5, bold: true };
       cell.border = borderThin;
-      if (colNum === 1) cell.alignment = { horizontal: 'center' };
+      if (colNum === 1) cell.alignment = { horizontal: 'center', vertical: 'middle' };
       if (colNum === 8) {
-        cell.alignment = { horizontal: 'right' };
+        cell.alignment = { horizontal: 'right', vertical: 'middle' };
         cell.numFmt = '#,##0.00 "₼"';
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } }; // Light Green Highlight
         cell.border = {
@@ -2947,7 +3020,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
 
     const pCols = [
       { key: 'p_no', width: 6 },
-      { key: 'p_name', width: 38 },
+      { key: 'p_name', width: 45 },
       { key: 'p_barcode', width: 18 },
       { key: 'p_category', width: 18 },
       { key: 'p_qty', width: 12 },
