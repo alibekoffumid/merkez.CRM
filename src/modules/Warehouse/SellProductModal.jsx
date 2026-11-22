@@ -23,6 +23,14 @@ const BANK_RATES = {
   'Ferrum DTI': { 3: 0.08, 6: 0.12, 9: 0.16, 12: 0.19 }
 };
 
+const getTodayLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, activeRepairsMap = {}, initialProducts = [] }) => {
   const { t, i18n } = useTranslation();
   const { profile, currentStaff } = useUser();
@@ -42,8 +50,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const barcodeInputRef = useRef(null);
   const [showCameraScanner, setShowCameraScanner] = useState(false);
 
-  // Sale metadata
-  const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
+  // Sale metadata - use local date instead of UTC to prevent off-by-one day bug past midnight
+  const [saleDate, setSaleDate] = useState(getTodayLocalDate);
   const [selectedCustomerId, setSelectedCustomerId] = useState(''); // Empty string = Walk-in guest
   const [paymentMethod, setPaymentMethod] = useState('cash'); // 'cash' | 'card' | 'terminal' | 'credit' | 'split' | 'birmarket'
   const [advanceAmount, setAdvanceAmount] = useState('');
@@ -244,7 +252,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           setTimeout(() => barcodeInputRef.current?.focus(), 150);
         }
         setBarcodeBuffer('');
-        setSaleDate(new Date().toISOString().split('T')[0]);
+        setSaleDate(getTodayLocalDate());
         setSelectedCustomerId('');
         setPaymentMethod('cash');
         setAdvanceAmount('');
@@ -1035,12 +1043,15 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
         dispatchNote = channelPrefix + dispatchNote;
 
+        const todayStr = getTodayLocalDate();
+        const effectiveIssuedAt = (saleDate === todayStr) ? new Date().toISOString() : (saleDate || new Date().toISOString());
+
         const { error: dispatchError } = await supabase
           .from('stock_dispatches')
           .insert([{ 
             product_id: item.product_id,
             quantity: item.quantity,
-            issued_at: saleDate,
+            issued_at: effectiveIssuedAt,
             reason: 'sale',
             notes: dispatchNote,
             user_id: profile?.id,

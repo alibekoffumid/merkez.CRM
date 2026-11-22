@@ -125,6 +125,14 @@ export const parseExpenseDetails = (description = '') => {
   };
 };
 
+const getTodayLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) => {
   const { t, i18n } = useTranslation();
   const { profile, currentStaff } = useUser();
@@ -147,9 +155,9 @@ const CashboxExpensesModal = ({ isOpen, onClose, warehouseId, warehouseName }) =
   const [description, setDescription] = useState('');
   const [recipient, setRecipient] = useState('');
   const [paymentSource, setPaymentSource] = useState('Nağd Kassa'); // 'Nağd Kassa' | 'Bank / Kart hesabı'
-  const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
+  const [expenseDate, setExpenseDate] = useState(getTodayLocalDate);
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => getTodayLocalDate(), []);
 
   // Fetch expenses, cash sales and staff
   const fetchData = async () => {

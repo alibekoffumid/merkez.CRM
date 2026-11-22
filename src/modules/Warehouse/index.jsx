@@ -184,8 +184,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           dateObj = dDate;
         } else {
           const dDateOnly = typeof dateVal === 'string' ? dateVal.split('T')[0] : '';
-          const cDateOnly = dateObj.toISOString().split('T')[0];
-          if (dDateOnly && dDateOnly !== cDateOnly) {
+          const cLocalDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+          const cUtcDate = dateObj.toISOString().split('T')[0];
+          // If dDateOnly matches the UTC date of dateObj but differs from local calendar date,
+          // it was caused by the midnight UTC offset bug: do NOT overwrite dateObj with dDate!
+          const isUtcOffsetBug = dDateOnly && dDateOnly === cUtcDate && dDateOnly !== cLocalDate;
+          if (dDateOnly && dDateOnly !== cLocalDate && !isUtcOffsetBug) {
             dateObj = dDate;
           }
         }
@@ -1928,16 +1932,40 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return (dispatches || []).filter(dispatch => {
       if (dispatch.reason !== 'sale') return false;
       if (/\[STATUS:\s*EXCHANGED\]/i.test(dispatch.notes || '') && !/\[Yeni Məhsul:/i.test(dispatch.notes || '')) return false;
-      const targetDateStr = dispatch.issued_at || dispatch.created_at;
+
+      // Determine effective sale date in local time
+      let targetDate = null;
+      if (dispatch.created_at) {
+        const cDate = new Date(dispatch.created_at);
+        if (!isNaN(cDate.getTime())) targetDate = cDate;
+      }
+      if (dispatch.issued_at) {
+        const dDate = new Date(dispatch.issued_at);
+        if (!isNaN(dDate.getTime())) {
+          if (!targetDate) {
+            targetDate = dDate;
+          } else {
+            const dStr = typeof dispatch.issued_at === 'string' ? dispatch.issued_at.substring(0, 10) : '';
+            const cLocalStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+            const cUtcStr = targetDate.toISOString().split('T')[0];
+            const isUtcArtifact = (dStr === cUtcStr && dStr !== cLocalStr);
+            if (!isUtcArtifact && dStr && dStr !== cLocalStr) {
+              targetDate = dDate;
+            }
+          }
+        }
+      }
+      if (!targetDate) targetDate = new Date();
+
       if (startDate) {
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
-        if (new Date(targetDateStr) < start) return false;
+        if (targetDate < start) return false;
       }
       if (endDate) {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        if (new Date(targetDateStr) > end) return false;
+        if (targetDate > end) return false;
       }
 
       // Channel filter
@@ -2703,11 +2731,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   {historyTab === 'receipts' ? (
                     receipts.filter(receipt => {
                       if (historyFilter && receipt.supplier_id !== historyFilter) return false;
-                      if (startDate && new Date(receipt.received_at) < new Date(startDate)) return false;
+                      if (startDate) {
+                        const start = new Date(startDate);
+                        start.setHours(0, 0, 0, 0);
+                        if (new Date(receipt.received_at || receipt.created_at) < start) return false;
+                      }
                       if (endDate) {
                         const end = new Date(endDate);
                         end.setHours(23, 59, 59, 999);
-                        if (new Date(receipt.received_at) > end) return false;
+                        if (new Date(receipt.received_at || receipt.created_at) > end) return false;
                       }
                       if (historySearchTerm) {
                         const search = historySearchTerm.toLowerCase();
@@ -2730,11 +2762,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     ) : (
                       receipts.filter(receipt => {
                         if (historyFilter && receipt.supplier_id !== historyFilter) return false;
-                        if (startDate && new Date(receipt.received_at) < new Date(startDate)) return false;
+                        if (startDate) {
+                          const start = new Date(startDate);
+                          start.setHours(0, 0, 0, 0);
+                          if (new Date(receipt.received_at || receipt.created_at) < start) return false;
+                        }
                         if (endDate) {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);
-                          if (new Date(receipt.received_at) > end) return false;
+                          if (new Date(receipt.received_at || receipt.created_at) > end) return false;
                         }
                         if (historySearchTerm) {
                           const search = historySearchTerm.toLowerCase();
@@ -2805,11 +2841,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   ) : historyTab === 'dispatches' ? (
                     dispatches.filter(dispatch => {
                       if (dispatch.reason === 'sale') return false;
-                      if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                      if (startDate) {
+                        const start = new Date(startDate);
+                        start.setHours(0, 0, 0, 0);
+                        if (new Date(dispatch.issued_at || dispatch.created_at) < start) return false;
+                      }
                       if (endDate) {
                         const end = new Date(endDate);
                         end.setHours(23, 59, 59, 999);
-                        if (new Date(dispatch.issued_at) > end) return false;
+                        if (new Date(dispatch.issued_at || dispatch.created_at) > end) return false;
                       }
                       if (historySearchTerm) {
                         const search = historySearchTerm.toLowerCase();
@@ -2832,11 +2872,15 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     ) : (
                       dispatches.filter(dispatch => {
                         if (dispatch.reason === 'sale') return false;
-                        if (startDate && new Date(dispatch.issued_at) < new Date(startDate)) return false;
+                        if (startDate) {
+                          const start = new Date(startDate);
+                          start.setHours(0, 0, 0, 0);
+                          if (new Date(dispatch.issued_at || dispatch.created_at) < start) return false;
+                        }
                         if (endDate) {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);
-                          if (new Date(dispatch.issued_at) > end) return false;
+                          if (new Date(dispatch.issued_at || dispatch.created_at) > end) return false;
                         }
                         if (historySearchTerm) {
                           const search = historySearchTerm.toLowerCase();
@@ -3161,7 +3205,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                   ) : (
                     /* Transfers Tab */
                     transfers.filter(transfer => {
-                      if (startDate && new Date(transfer.created_at) < new Date(startDate)) return false;
+                      if (startDate) {
+                        const start = new Date(startDate);
+                        start.setHours(0, 0, 0, 0);
+                        if (new Date(transfer.created_at) < start) return false;
+                      }
                       if (endDate) {
                         const end = new Date(endDate);
                         end.setHours(23, 59, 59, 999);
@@ -3191,7 +3239,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                       </tr>
                     ) : (
                       transfers.filter(transfer => {
-                        if (startDate && new Date(transfer.created_at) < new Date(startDate)) return false;
+                        if (startDate) {
+                          const start = new Date(startDate);
+                          start.setHours(0, 0, 0, 0);
+                          if (new Date(transfer.created_at) < start) return false;
+                        }
                         if (endDate) {
                           const end = new Date(endDate);
                           end.setHours(23, 59, 59, 999);

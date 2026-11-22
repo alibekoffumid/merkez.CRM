@@ -9,6 +9,14 @@ import Dropdown from '../../components/Common/Dropdown';
 import DatePicker from '../../components/Common/DatePicker';
 import { formatCategoriesHierarchically } from './categoryUtils';
 
+const getTodayLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'product', warehouseId }) => {
   const { t } = useTranslation();
   const { profile } = useUser();
@@ -44,7 +52,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
 
   // Header info
   const [headerData, setHeaderData] = useState({
-    issued_at: new Date().toISOString().split('T')[0],
+    issued_at: getTodayLocalDate(),
     reason: 'sale',
     notes: ''
   });
@@ -73,7 +81,7 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
       }
       setBarcodeBuffer('');
       setHeaderData({
-        issued_at: new Date().toISOString().split('T')[0],
+        issued_at: getTodayLocalDate(),
         reason: 'sale',
         notes: ''
       });

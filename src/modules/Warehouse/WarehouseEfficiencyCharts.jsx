@@ -350,7 +350,29 @@ const WarehouseEfficiencyCharts = ({
         const netProfit = canSeeCostAndProfit ? (parsed.profit ?? (totalAmount - costTotal)) : 0;
         const profitMargin = totalAmount > 0 && canSeeCostAndProfit ? (netProfit / totalAmount) * 100 : 0;
 
-        const dateObj = new Date(d.issued_at || d.created_at || Date.now());
+        // Determine effective sale date in local time, safely handling UTC offset differences
+        let dateObj = null;
+        if (d.created_at) {
+          const cDate = new Date(d.created_at);
+          if (!isNaN(cDate.getTime())) dateObj = cDate;
+        }
+        if (d.issued_at) {
+          const dDate = new Date(d.issued_at);
+          if (!isNaN(dDate.getTime())) {
+            if (!dateObj) {
+              dateObj = dDate;
+            } else {
+              const dStr = typeof d.issued_at === 'string' ? d.issued_at.substring(0, 10) : '';
+              const cLocalStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+              const cUtcStr = dateObj.toISOString().split('T')[0];
+              const isUtcArtifact = (dStr === cUtcStr && dStr !== cLocalStr);
+              if (!isUtcArtifact && dStr && dStr !== cLocalStr) {
+                dateObj = dDate;
+              }
+            }
+          }
+        }
+        if (!dateObj) dateObj = new Date();
 
         return {
           id: d.id,

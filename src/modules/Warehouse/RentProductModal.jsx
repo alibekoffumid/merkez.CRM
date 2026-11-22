@@ -30,6 +30,13 @@ import DatePicker from '../../components/Common/DatePicker';
 import Dropdown from '../../components/Common/Dropdown';
 import { rentalService } from '../../services/rentalService';
 
+const getLocalDateString = (d = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const RentProductModal = ({
   isOpen,
   onClose,
@@ -55,11 +62,11 @@ const RentProductModal = ({
   const [conditionNotes, setConditionNotes] = useState('');
 
   // Duration
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(() => getLocalDateString());
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
-    return d.toISOString().split('T')[0];
+    return getLocalDateString(d);
   });
 
   // Financials
@@ -100,11 +107,11 @@ const RentProductModal = ({
       setClientIdSerial('');
       setClientFin('');
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       setStartDate(today);
       const in3Days = new Date();
       in3Days.setDate(in3Days.getDate() + 3);
-      setDueDate(in3Days.toISOString().split('T')[0]);
+      setDueDate(getLocalDateString(in3Days));
     }
   }, [isOpen, totalRetailPrice]);
 
@@ -114,7 +121,7 @@ const RentProductModal = ({
   const applyDurationDays = (days) => {
     const base = startDate ? new Date(startDate) : new Date();
     base.setDate(base.getDate() + days);
-    setDueDate(base.toISOString().split('T')[0]);
+    setDueDate(getLocalDateString(base));
   };
 
   // Upload handler for ID front/back

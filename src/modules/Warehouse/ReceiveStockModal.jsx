@@ -10,6 +10,14 @@ import DatePicker from '../../components/Common/DatePicker';
 import { formatCategoriesHierarchically } from './categoryUtils';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 
+const getTodayLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product', warehouseId }) => {
   if (!isOpen) return null;
 
@@ -50,7 +58,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
   // Header info
   const [headerData, setHeaderData] = useState({
     supplier_id: '',
-    received_at: new Date().toISOString().split('T')[0],
+    received_at: getTodayLocalDate(),
     notes: ''
   });
 
@@ -81,7 +89,7 @@ const ReceiveStockModal = ({ isOpen, onClose, onStockReceived, type = 'product',
       setBarcodeBuffer('');
       setHeaderData({
         supplier_id: '',
-        received_at: new Date().toISOString().split('T')[0],
+        received_at: getTodayLocalDate(),
         notes: ''
       });
       setCurrentItem({
