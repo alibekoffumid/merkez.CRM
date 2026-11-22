@@ -200,7 +200,7 @@ export interface ScanResult {
   timestamp: number;
 }
 
-export type StaffRole = 'Owner' | 'Admin' | 'Manager' | 'Storeman' | 'Cashier' | 'Master' | 'Staff';
+export type StaffRole = 'Owner' | 'Admin' | 'Manager' | 'Storeman' | 'Cashier' | 'Master' | 'Staff' | 'Operator' | 'Kreditor' | 'Online Media' | 'Direktor' | 'Adminstrator' | 'Baş menecer' | 'Mağaza müdiri' | 'Baş Kassir';
 
 export interface StaffMember {
   id: string;

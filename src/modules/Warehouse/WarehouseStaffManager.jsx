@@ -48,6 +48,54 @@ const isMasterRole = (role) => {
 
 const getRoleConfig = (role, lang = 'az') => {
   switch (role) {
+    case 'Direktor':
+      return {
+        label: lang === 'az' ? 'Direktor' : 'Директор',
+        badgeClass: 'bg-red-50 text-red-800 border-red-200/80',
+        icon: Shield,
+      };
+    case 'Adminstrator':
+      return {
+        label: lang === 'az' ? 'Adminstrator' : 'Администратор',
+        badgeClass: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+        icon: Shield,
+      };
+    case 'Baş menecer':
+      return {
+        label: lang === 'az' ? 'Baş menecer' : 'Главный менеджер',
+        badgeClass: 'bg-blue-50 text-blue-800 border-blue-200/80',
+        icon: Shield,
+      };
+    case 'Mağaza müdiri':
+      return {
+        label: lang === 'az' ? 'Mağaza müdiri' : 'Директор магазина',
+        badgeClass: 'bg-cyan-50 text-cyan-800 border-cyan-200/80',
+        icon: Shield,
+      };
+    case 'Baş Kassir':
+      return {
+        label: lang === 'az' ? 'Baş Kassir' : 'Главный кассир',
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200/80',
+        icon: Wallet,
+      };
+    case 'Kreditor':
+      return {
+        label: lang === 'az' ? 'Kreditor' : 'Кредитор',
+        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+        icon: Wallet,
+      };
+    case 'Operator':
+      return {
+        label: lang === 'az' ? 'Operator' : 'Оператор',
+        badgeClass: 'bg-teal-50 text-teal-800 border-teal-200/80',
+        icon: UserCheck,
+      };
+    case 'Online Media':
+      return {
+        label: lang === 'az' ? 'Online Media' : 'Онлайн медиа',
+        badgeClass: 'bg-pink-50 text-pink-800 border-pink-200/80',
+        icon: UserCheck,
+      };
     case 'Manager':
       return {
         label: lang === 'az' ? 'Menecer' : 'Менеджер',
@@ -69,7 +117,7 @@ const getRoleConfig = (role, lang = 'az') => {
     case 'Staff':
     default:
       return {
-        label: lang === 'az' ? 'İşçi' : 'Сотрудник',
+        label: role || (lang === 'az' ? 'İşçi' : 'Сотрудник'),
         badgeClass: 'bg-slate-50 text-slate-800 border-slate-200/80',
         icon: UserCheck,
       };
@@ -685,9 +733,17 @@ const WarehouseStaffManager = () => {
                     value={role}
                     onChange={setRole}
                     options={[
-                      { value: 'Manager', label: i18n.language === 'az' ? 'Menecer' : 'Менеджер' },
-                      { value: 'Storeman', label: i18n.language === 'az' ? 'Anbardar' : 'Кладовщик' },
+                      { value: 'Operator', label: i18n.language === 'az' ? 'Operator' : 'Оператор' },
+                      { value: 'Kreditor', label: i18n.language === 'az' ? 'Kreditor' : 'Кредитор' },
+                      { value: 'Online Media', label: i18n.language === 'az' ? 'Online Media' : 'Онлайн медиа' },
+                      { value: 'Direktor', label: i18n.language === 'az' ? 'Direktor' : 'Директор' },
+                      { value: 'Adminstrator', label: i18n.language === 'az' ? 'Adminstrator' : 'Администратор' },
+                      { value: 'Baş menecer', label: i18n.language === 'az' ? 'Baş menecer' : 'Главный менеджер' },
+                      { value: 'Mağaza müdiri', label: i18n.language === 'az' ? 'Mağaza müdiri' : 'Директор магазина' },
+                      { value: 'Baş Kassir', label: i18n.language === 'az' ? 'Baş Kassir' : 'Главный кассир' },
                       { value: 'Cashier', label: i18n.language === 'az' ? 'Kassir' : 'Кассир' },
+                      { value: 'Storeman', label: i18n.language === 'az' ? 'Anbardar' : 'Кладовщик' },
+                      { value: 'Manager', label: i18n.language === 'az' ? 'Menecer' : 'Менеджер' },
                       { value: 'Staff', label: i18n.language === 'az' ? 'İşçi' : 'Сотрудник' },
                     ]}
                     buttonClassName="rounded-lg px-4 py-2.5 text-sm font-bold"

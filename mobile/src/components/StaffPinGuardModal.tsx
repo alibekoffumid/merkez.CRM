@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   ShieldCheck,
-  User,
+  User, UserCheck,
   Users,
   ChevronLeft,
   Delete,
@@ -147,16 +147,25 @@ export const StaffPinGuardModal: React.FC<StaffPinGuardModalProps> = ({
 
   const getRoleIcon = (role?: StaffRole) => {
     switch (role) {
+      case 'Baş Kassir':
       case 'Cashier':
+      case 'Kreditor':
         return <ShoppingBag size={14} color="#D97706" />;
       case 'Storeman':
         return <Package size={14} color="#059669" />;
       case 'Master':
         return <Wrench size={14} color="#4F46E5" />;
+      case 'Direktor':
+      case 'Adminstrator':
+      case 'Baş menecer':
+      case 'Mağaza müdiri':
       case 'Manager':
       case 'Admin':
       case 'Owner':
         return <ShieldCheck size={14} color="#2563EB" />;
+      case 'Operator':
+      case 'Online Media':
+        return <UserCheck size={14} color="#DB2777" />;
       default:
         return <User size={14} color="#4B5563" />;
     }

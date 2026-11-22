@@ -53,11 +53,19 @@ export const staffService = {
     }
 
     const role = staff.role;
-    const isOwnerOrAdmin = role === 'Admin' || role === 'Owner' || role === 'Manager';
-    const canDeleteHistory = role === 'Admin' || role === 'Owner';
-    const isManager = role === 'Manager';
+    const isOwnerOrAdmin = 
+      role === 'Admin' || 
+      role === 'Owner' || 
+      role === 'Manager' || 
+      role === 'Direktor' || 
+      role === 'Adminstrator' || 
+      role === 'Baş menecer' || 
+      role === 'Mağaza müdiri';
+
+    const canDeleteHistory = role === 'Admin' || role === 'Owner' || role === 'Direktor' || role === 'Adminstrator';
+    const isManager = role === 'Manager' || role === 'Baş menecer' || role === 'Mağaza müdiri' || role === 'Direktor';
     const isStoreman = role === 'Storeman';
-    const isCashier = role === 'Cashier';
+    const isCashier = role === 'Cashier' || role === 'Baş Kassir' || role === 'Kreditor';
     const isMaster = role === 'Master';
 
     return {
@@ -80,7 +88,22 @@ export const staffService = {
       case 'Owner':
         return 'Sahib';
       case 'Admin':
-        return 'İdarəçi';
+      case 'Adminstrator':
+        return 'Adminstrator';
+      case 'Direktor':
+        return 'Direktor';
+      case 'Baş menecer':
+        return 'Baş menecer';
+      case 'Mağaza müdiri':
+        return 'Mağaza müdiri';
+      case 'Baş Kassir':
+        return 'Baş Kassir';
+      case 'Kreditor':
+        return 'Kreditor';
+      case 'Operator':
+        return 'Operator';
+      case 'Online Media':
+        return 'Online Media';
       case 'Manager':
         return 'Menecer';
       case 'Storeman':
@@ -100,13 +123,22 @@ export const staffService = {
     switch (role) {
       case 'Owner':
       case 'Admin':
-        return { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' };
+      case 'Adminstrator':
+      case 'Direktor':
+        return { bg: '#FEF2F2', text: '#DC2626', border: '#FECACA' };
+      case 'Baş menecer':
+      case 'Mağaza müdiri':
       case 'Manager':
-        return { bg: '#F5F3FF', text: '#7C3AED', border: '#DDD6FE' };
+        return { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' };
+      case 'Baş Kassir':
+      case 'Cashier':
+      case 'Kreditor':
+        return { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' };
+      case 'Operator':
+      case 'Online Media':
+        return { bg: '#FDF2F8', text: '#DB2777', border: '#FBCFE8' };
       case 'Storeman':
         return { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' };
-      case 'Cashier':
-        return { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' };
       case 'Master':
         return { bg: '#EEF2FF', text: '#4F46E5', border: '#C7D2FE' };
       case 'Staff':
@@ -142,4 +174,68 @@ export const staffService = {
       return null;
     }
   },
+
+  async getAllStaff(userId: string): Promise<StaffMember[]> {
+    try {
+      const { data, error } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('user_id', userId)
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as StaffMember[];
+    } catch (e) {
+      console.error('getAllStaff error:', e);
+      return [];
+    }
+  },
+
+  async saveStaff(staff: Partial<StaffMember>, userId: string): Promise<StaffMember> {
+    if (staff.id) {
+      const { data, error } = await supabase
+        .from('staff')
+        .update({
+          name: staff.name,
+          role: staff.role,
+          pin: staff.pin,
+          phone: staff.phone,
+          status: staff.status || 'Active'
+        })
+        .eq('id', staff.id)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as StaffMember;
+    } else {
+      const { data, error } = await supabase
+        .from('staff')
+        .insert([{
+          name: staff.name,
+          role: staff.role || 'Staff',
+          pin: staff.pin || '0000',
+          phone: staff.phone || null,
+          status: staff.status || 'Active',
+          user_id: userId,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as StaffMember;
+    }
+  },
+
+  async deleteStaff(staffId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('staff')
+      .delete()
+      .eq('id', staffId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  }
 };

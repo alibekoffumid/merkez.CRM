@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ManageStaffModal } from '../components/ManageStaffModal';
 import {
   View,
   Text,
@@ -34,6 +35,7 @@ import {
   ExternalLink,
   Radio,
   Users,
+  Briefcase,
   LogOut,
   Smartphone,
   Info,
@@ -63,6 +65,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   lastBeamedBarcode,
 }) => {
   const { currentStaff, permissions, logout, lockStaff } = useAuth();
+  const [showStaffModal, setShowStaffModal] = useState(false);
 
   // Active sub-section inside settings
   const [activeSection, setActiveSection] = useState<SettingsSection>('menu');
@@ -1239,6 +1242,26 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <ChevronRight size={18} color="#9CA3AF" />
         </TouchableOpacity>
 
+        {/* Staff & Roles Management */}
+        <TouchableOpacity
+          style={styles.menuItemCard}
+          onPress={() => setShowStaffModal(true)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.menuItemIconBox, { backgroundColor: '#EEF2FF' }]}>
+            <Briefcase size={22} color="#4F46E5" />
+          </View>
+          <View style={styles.menuItemContent}>
+            <View style={styles.menuItemTopRow}>
+              <Text style={styles.menuItemTitle}>Heyət və Rollar (Personal)</Text>
+            </View>
+            <Text style={styles.menuItemDesc}>
+              Əməkdaşları idarə edin, kateqoriya və vəzifə təyin edin
+            </Text>
+          </View>
+          <ChevronRight size={18} color="#9CA3AF" />
+        </TouchableOpacity>
+
         {/* Item 6: Switch Staff / PIN Lock */}
         <TouchableOpacity
           style={styles.menuItemCard}
@@ -1297,6 +1320,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <ChevronRight size={18} color="#FCA5A5" />
         </TouchableOpacity>
       </View>
+      <ManageStaffModal
+        visible={showStaffModal}
+        onClose={() => setShowStaffModal(false)}
+      />
     </ScrollView>
   );
 };
