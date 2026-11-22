@@ -2729,7 +2729,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       views: [{ showGridLines: true }]
     });
 
-    // 9 Columns: №, MALIN ADI, NAĞD, terminal, KREDİT, kart, BORC USTA, ÇIXILAN, SATICI
+    // 10 Columns: №, MALIN ADI, NAĞD, terminal, KREDİT, kart, BORC USTA, ÇIXILAN, SATICI, SAAT
     wsLedger.columns = [
       { key: 'no', width: 6 },
       { key: 'name', width: 75 }, // Large width so long item names are completely visible!
@@ -2739,39 +2739,40 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       { key: 'kart', width: 14 },
       { key: 'borc', width: 14 },
       { key: 'cixilan', width: 14 },
-      { key: 'satici', width: 22 } // New column for seller name!
+      { key: 'satici', width: 22 }, // Column for seller name
+      { key: 'saat', width: 13 } // Column for exact sale/expense time
     ];
 
-    // Row 1: Address (G1:I1 merged for ample room)
-    wsLedger.addRow(['', '', '', '', '', '', 'ÜNVAN: ' + address, '', '']);
-    wsLedger.mergeCells('G1:I1');
-    const cellG1 = wsLedger.getCell('G1');
-    cellG1.font = { name: 'Arial', size: 10, bold: true };
-    cellG1.alignment = { horizontal: 'right', vertical: 'middle' };
+    // Row 1: Address (H1:J1 merged for ample room)
+    wsLedger.addRow(['', '', '', '', '', '', '', 'ÜNVAN: ' + address, '', '']);
+    wsLedger.mergeCells('H1:J1');
+    const cellH1 = wsLedger.getCell('H1');
+    cellH1.font = { name: 'Arial', size: 10, bold: true };
+    cellH1.alignment = { horizontal: 'right', vertical: 'middle' };
 
-    // Row 2: Magaza (A2:E2 merged so "MAĞAZA:" is 100% visible and uncropped)
-    wsLedger.addRow(['MAĞAZA: ' + companyName, '', '', '', '', '', '', '', '']);
-    wsLedger.mergeCells('A2:E2');
+    // Row 2: Magaza (A2:F2 merged so "MAĞAZA:" is 100% visible and uncropped)
+    wsLedger.addRow(['MAĞAZA: ' + companyName, '', '', '', '', '', '', '', '', '']);
+    wsLedger.mergeCells('A2:F2');
     const cellA2 = wsLedger.getCell('A2');
     cellA2.font = { name: 'Arial', size: 10.5, bold: true };
     cellA2.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    // Row 3: Satici (A3:E3 merged so "SATICI:" is 100% visible and uncropped)
-    wsLedger.addRow(['SATICI: ' + cashierName, '', '', '', '', '', '', '', '']);
-    wsLedger.mergeCells('A3:E3');
+    // Row 3: Satici (A3:F3 merged so "SATICI:" is 100% visible and uncropped)
+    wsLedger.addRow(['SATICI: ' + cashierName, '', '', '', '', '', '', '', '', '']);
+    wsLedger.mergeCells('A3:F3');
     const cellA3 = wsLedger.getCell('A3');
     cellA3.font = { name: 'Arial', size: 10 };
     cellA3.alignment = { horizontal: 'left', vertical: 'middle' };
 
-    // Row 4: Vaxt (A4:E4 merged so "VAXT:" is 100% visible and uncropped)
-    wsLedger.addRow(['VAXT: ' + dateFormatted, '', '', '', '', '', '', '', '']);
-    wsLedger.mergeCells('A4:E4');
+    // Row 4: Vaxt (A4:F4 merged so "VAXT:" is 100% visible and uncropped)
+    wsLedger.addRow(['VAXT: ' + dateFormatted, '', '', '', '', '', '', '', '', '']);
+    wsLedger.mergeCells('A4:F4');
     const cellA4 = wsLedger.getCell('A4');
     cellA4.font = { name: 'Arial', size: 10 };
     cellA4.alignment = { horizontal: 'left', vertical: 'middle' };
 
     // Header Row 5: Blue fill, bold white text
-    const headerRow = wsLedger.addRow(['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN', 'SATICI']);
+    const headerRow = wsLedger.addRow(['№', 'MALIN ADI', 'NAĞD', 'terminal', 'KREDİT', 'kart', 'BORC USTA', 'ÇIXILAN', 'SATICI', 'SAAT']);
     headerRow.height = 26;
     headerRow.eachCell((cell, colNum) => {
       cell.fill = {
@@ -2843,6 +2844,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       runningCixilan += nCixilan;
 
       const sellerText = t.sellerName || cashierName || '-';
+      const saleTimeText = t.time || (t.createdAt ? formatTimeAz(t.createdAt) : (t.created_at ? formatTimeAz(t.created_at) : ''));
 
       const row = wsLedger.addRow([
         rowSequence,
@@ -2853,7 +2855,8 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         nKart > 0 ? nKart : null,
         nBorcUsta > 0 ? nBorcUsta : null,
         nCixilan > 0 ? nCixilan : null,
-        sellerText
+        sellerText,
+        saleTimeText
       ]);
 
       row.height = 20;
@@ -2864,7 +2867,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         if (isOdd) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
         }
-        if (colNum === 1 || colNum === 9) {
+        if (colNum === 1 || colNum === 9 || colNum === 10) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else if (colNum === 2) {
           cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
@@ -2887,6 +2890,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       const desc = String(exp.description || '');
       const recipientMatch = desc.match(/\[Xərcləyən:\s*([^\]]+)\]/i) || desc.match(/\[Alan:\s*([^\]]+)\]/i);
       const expPerson = recipientMatch ? recipientMatch[1].trim() : (exp.recipient || exp.staff_name || cashierName || '-');
+      const expTimeText = exp.created_at ? formatTimeAz(exp.created_at) : '';
       const cleanDesc = desc.replace(/\[.*?\]/g, '').trim();
       const expTitle = `Xərc: ${exp.category || 'Xərc'}${cleanDesc ? ' (' + cleanDesc + ')' : ''}`;
 
@@ -2899,7 +2903,8 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         null,
         null,
         expAmt > 0 ? expAmt : null,
-        expPerson
+        expPerson,
+        expTimeText
       ]);
 
       expRow.height = 20;
@@ -2907,7 +2912,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         cell.border = borderThin;
         cell.font = { name: 'Arial', size: 9.5 };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF1F2' } }; // Soft rose highlight for expenses
-        if (colNum === 1 || colNum === 9) {
+        if (colNum === 1 || colNum === 9 || colNum === 10) {
           cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else if (colNum === 2) {
           cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
@@ -2925,7 +2930,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     // 3. Pad with empty numbered rows up to at least 32 rows matching template
     const minRows = Math.max(32, rowSequence);
     for (let r = rowSequence + 1; r <= minRows; r++) {
-      const emptyRow = wsLedger.addRow([r, '', null, null, null, null, null, null, '']);
+      const emptyRow = wsLedger.addRow([r, '', null, null, null, null, null, null, '', '']);
       emptyRow.height = 19;
       const isOdd = (r - 1) % 2 === 1;
       emptyRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
@@ -2934,7 +2939,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         if (isOdd) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
         }
-        if (colNum === 1 || colNum === 9) cell.alignment = { horizontal: 'center' };
+        if (colNum === 1 || colNum === 9 || colNum === 10) cell.alignment = { horizontal: 'center' };
       });
     }
 
@@ -2952,6 +2957,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       runningKart > 0 ? runningKart : 0,
       runningBorcUsta > 0 ? runningBorcUsta : 0,
       runningCixilan > 0 ? runningCixilan : 0,
+      '',
       ''
     ]);
     sumRow1.height = 24;
@@ -2971,7 +2977,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     });
 
     // Summary Row 2: 2 YEKUN MƏBLƏĞ
-    const sumRow2 = wsLedger.addRow([2, 'YEKUN MƏBLƏĞ', '', '', '', '', '', grandTotal, '']);
+    const sumRow2 = wsLedger.addRow([2, 'YEKUN MƏBLƏĞ', '', '', '', '', '', grandTotal, '', '']);
     sumRow2.height = 24;
     sumRow2.eachCell({ includeEmpty: true }, (cell, colNum) => {
       cell.font = { name: 'Arial', size: 10.5, bold: true };
@@ -2991,7 +2997,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     });
 
     // Summary Row 3: 3 NƏTİCƏ / NAĞD
-    const sumRow3 = wsLedger.addRow([3, 'NƏTİCƏ / NAĞD', '', '', '', '', '', netCash, '']);
+    const sumRow3 = wsLedger.addRow([3, 'NƏTİCƏ / NAĞD', '', '', '', '', '', netCash, '', '']);
     sumRow3.height = 24;
     sumRow3.eachCell({ includeEmpty: true }, (cell, colNum) => {
       cell.font = { name: 'Arial', size: 10.5, bold: true };
