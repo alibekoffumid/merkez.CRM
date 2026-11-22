@@ -359,8 +359,18 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           .from('products')
           .select('*, categories(name), warehouses(name)')
           .eq('is_deleted', false)
-          .eq('user_id', profile.id)
-          .or(`barcode.ilike.%${safeTerm}%,name.ilike.%${safeTerm}%`);
+          .eq('user_id', profile.id);
+
+        const termNoDash = safeTerm.replace(/[-\s]/g, '');
+        const termWildcard = safeTerm.replace(/[-\s]+/g, '%');
+        const orClauses = [
+          'barcode.ilike.%' + safeTerm + '%',
+          'name.ilike.%' + safeTerm + '%',
+          'name.ilike.%' + termNoDash + '%',
+          'name.ilike.%' + termWildcard + '%',
+          'barcode.ilike.%' + termNoDash + '%'
+        ].join(',');
+        query = query.or(orClauses);
 
         if (currentWarehouseId) {
           query = query.eq('warehouse_id', currentWarehouseId);
@@ -1842,10 +1852,13 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         if (!validCategoryIds.has(String(p.category_id))) return false;
       }
 
-      // Search term filter
+      // Search term filter (hyphen & space tolerant)
       if (term) {
-        const nameMatch = (p.name || '').toLowerCase().includes(term);
-        const barcodeMatch = (p.barcode || '').toLowerCase().includes(term);
+        const normTerm = term.replace(/[-\s]/g, '');
+        const normName = (p.name || '').toLowerCase().replace(/[-\s]/g, '');
+        const normBarcode = (p.barcode || '').toLowerCase().replace(/[-\s]/g, '');
+        const nameMatch = (p.name || '').toLowerCase().includes(term) || (normTerm && normName.includes(normTerm));
+        const barcodeMatch = (p.barcode || '').toLowerCase().includes(term) || (normTerm && normBarcode.includes(normTerm));
         const descMatch = (p.description || '').toLowerCase().includes(term);
         const attrMatch = Array.isArray(p.attributes) && p.attributes.some(a =>
           (a?.name || '').toLowerCase().includes(term) || (a?.value || '').toLowerCase().includes(term)

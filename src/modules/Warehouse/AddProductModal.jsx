@@ -211,6 +211,26 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
     setLoading(false);
     if (!error && data) {
+      // Auto-replicate new product across all other warehouses of the user with stock 0
+      try {
+        const { data: allWhs } = await supabase
+          .from('warehouses')
+          .select('id')
+          .eq('user_id', profile?.id);
+
+        const otherWhs = (allWhs || []).filter(w => w.id && w.id !== warehouseId);
+        if (otherWhs.length > 0) {
+          const otherPayloads = otherWhs.map(ow => ({
+            ...productPayload,
+            warehouse_id: ow.id,
+            stock_quantity: 0
+          }));
+          await supabase.from('products').insert(otherPayloads);
+        }
+      } catch (replicaErr) {
+        console.warn('Could not auto-replicate product to other warehouses:', replicaErr);
+      }
+
       onProductAdded(data[0]);
       onClose();
       setImageFile(null);

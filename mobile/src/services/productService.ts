@@ -476,6 +476,27 @@ export const productService = {
         attributes: data.attributes || cleanAttrs,
       };
 
+      // Auto-replicate new product across all other warehouses of the user with stock 0
+      try {
+        const { data: allWhs } = await supabase
+          .from('warehouses')
+          .select('id')
+          .eq('user_id', userId);
+
+        const otherWhs = (allWhs || []).filter(w => w.id !== currentWarehouseId);
+        if (otherWhs.length > 0) {
+          const otherPayloads = otherWhs.map(ow => ({
+            ...payload,
+            warehouse_id: ow.id,
+            stock_quantity: 0,
+            created_at: new Date().toISOString()
+          }));
+          await supabase.from('products').insert(otherPayloads);
+        }
+      } catch (replicaErr) {
+        console.warn('Could not auto-replicate product in mobile:', replicaErr);
+      }
+
       if (cachedProducts) {
         cachedProducts = [savedProd, ...cachedProducts];
       }

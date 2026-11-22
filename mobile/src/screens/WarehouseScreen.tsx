@@ -208,9 +208,12 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
 
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase().trim();
+      const qNorm = q.replace(/[-\s]/g, '');
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
+          (qNorm && p.name.toLowerCase().replace(/[-\s]/g, '').includes(qNorm)) ||
+          (qNorm && p.barcode && p.barcode.replace(/[-\s]/g, '').includes(qNorm)) ||
           (p.barcode && p.barcode.includes(q)) ||
           (p.article_number && p.article_number.toLowerCase().includes(q)) ||
           (p.description && p.description.toLowerCase().includes(q)) ||
