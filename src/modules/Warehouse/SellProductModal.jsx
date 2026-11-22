@@ -23,6 +23,26 @@ const BANK_RATES = {
   'Ferrum DTI': { 3: 0.08, 6: 0.12, 9: 0.16, 12: 0.19 }
 };
 
+const BANK_LIST = [
+  'ABB Kredit',
+  'Birkart',
+  'Tamkart',
+  'Kapital Kredit 35',
+  'Ferrum Standart',
+  'Ferrum Fast',
+  'Ferrum DTI'
+];
+
+const MARKUP_RATES = {
+  'ABB Kredit': { 1: 0.0, 2: 0.079, 3: 0.09, 6: 0.119, 9: 0.1495, 12: 0.175, 18: 0.274, 24: 0.3735 },
+  'Birkart': { 2: 0.0925, 3: 0.105, 6: 0.142, 9: 0.175, 12: 0.216, 18: 0.274 },
+  'Tamkart': { 2: 0.09, 3: 0.1025, 6: 0.14, 9: 0.1725, 12: 0.213 },
+  'Kapital Kredit 35': { 2: 0.101, 3: 0.1159, 6: 0.148, 12: 0.222, 18: 0.312, 24: 0.3751, 35: 0.545 },
+  'Ferrum Standart': { 3: 0.177, 6: 0.246, 9: 0.308, 12: 0.3935 },
+  'Ferrum Fast': { 3: 0.29, 6: 0.36 },
+  'Ferrum DTI': { 3: 0.151, 6: 0.204, 9: 0.261, 12: 0.308 }
+};
+
 const getTodayLocalDate = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -81,6 +101,29 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [splitCredit, setSplitCredit] = useState('');
   const [splitCreditBank, setSplitCreditBank] = useState('Birkart');
   const [splitCreditMonths, setSplitCreditMonths] = useState(12);
+
+  // Zero-interest toggles per bank (e.g. { 'Birkart': true, 'Tamkart': false })
+  const [zeroInterestBanks, setZeroInterestBanks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('crm_zero_interest_banks');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const toggleZeroInterest = (bankName) => {
+    setZeroInterestBanks(prev => {
+      const next = { ...prev, [bankName]: !prev[bankName] };
+      try {
+        localStorage.setItem('crm_zero_interest_banks', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+  };
+
+  const isZeroInterest = paymentMethod === 'credit' && Boolean(zeroInterestBanks[selectedBank]);
+  const isSplitZeroInterest = paymentMethod === 'split' && Boolean(zeroInterestBanks[splitCreditBank]);
 
   useEffect(() => {
     if (!warehouseId) return;
@@ -657,6 +700,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   }, [finalTotal]);
 
   const getBankPercentForMonth = (m) => {
+    if (isZeroInterest) return 0;
     const setting = bankSettings.find(
       s => s.bank_name.toLowerCase() === selectedBank.toLowerCase() && s.months === m
     );
@@ -709,6 +753,10 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     bankPercent = siteCommission;
     taxPercent = 4.0;
     storePercent = 0;
+  } else if (isZeroInterest) {
+    bankPercent = 0;
+    taxPercent = 0;
+    storePercent = 0;
   } else {
     bankPercent = activeTariff ? Number(activeTariff.bank_percent) : ((BANK_RATES[selectedBank]?.[installmentMonths] || 0) * 100);
     taxPercent = activeTariff ? Number(activeTariff.tax_percent) : 4.0;
@@ -722,7 +770,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const dTax = taxPercent / 100;
   const dStore = storePercent / 100;
 
-  const isFeeDeductedFromGross = paymentMethod === 'credit' && (selectedBank.toLowerCase().includes('ferrum') || selectedBank.toLowerCase().includes('abb'));
+  const isFeeDeductedFromGross = paymentMethod === 'credit' && !isZeroInterest && (selectedBank.toLowerCase().includes('ferrum') || selectedBank.toLowerCase().includes('abb'));
 
   const denominator = isFeeDeductedFromGross
     ? (1 - dBank) * (1 - dTax - dStore)
@@ -730,100 +778,104 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   const rawGross = paymentMethod === 'birmarket'
     ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : (netAmount * 1.245))
-    : (denominator > 0 ? (netAmount / denominator) : netAmount);
+    : (isZeroInterest ? netAmount : (denominator > 0 ? (netAmount / denominator) : netAmount));
 
-  const MARKUP_RATES = {
-    'ABB Kredit': { 1: 0.0, 2: 0.079, 3: 0.09, 6: 0.119, 9: 0.1495, 12: 0.175, 18: 0.274, 24: 0.3735 },
-    'Birkart': { 2: 0.0925, 3: 0.105, 6: 0.142, 9: 0.175, 12: 0.216, 18: 0.274 },
-    'Tamkart': { 2: 0.09, 3: 0.1025, 6: 0.14, 9: 0.1725, 12: 0.213 },
-    'Kapital Kredit 35': { 2: 0.101, 3: 0.1159, 6: 0.148, 12: 0.222, 18: 0.312, 24: 0.3751, 35: 0.545 },
-    'Ferrum Standart': { 3: 0.177, 6: 0.246, 9: 0.308, 12: 0.3935 },
-    'Ferrum Fast': { 3: 0.29, 6: 0.36 },
-    'Ferrum DTI': { 3: 0.151, 6: 0.204, 9: 0.261, 12: 0.308 }
-  };
+  const exactMarkup = (paymentMethod === 'credit' && !isZeroInterest) ? MARKUP_RATES[selectedBank]?.[installmentMonths] : (isZeroInterest ? 0 : undefined);
 
-  const exactMarkup = paymentMethod === 'credit' ? MARKUP_RATES[selectedBank]?.[installmentMonths] : undefined;
+  const contractTotal = isZeroInterest 
+    ? Number(netAmount.toFixed(2))
+    : (exactMarkup !== undefined 
+      ? Number((netAmount * (1 + exactMarkup)).toFixed(2))
+      : (isFeeDeductedFromGross 
+        ? Math.ceil(rawGross)
+        : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross)));
 
-  const contractTotal = exactMarkup !== undefined 
-    ? Number((netAmount * (1 + exactMarkup)).toFixed(2))
-    : (isFeeDeductedFromGross 
-      ? Math.ceil(rawGross)
-      : (paymentMethod === 'credit' ? Math.ceil(rawGross) : rawGross));
+  const currentBankCommission = isZeroInterest ? 0 : dBank;
 
-  const currentBankCommission = dBank;
-
-  const kapital35KreditMebleg = Math.ceil(netAmount * 1.0575);
+  const kapital35KreditMebleg = isZeroInterest ? netAmount : Math.ceil(netAmount * 1.0575);
 
   const grossAmount = paymentMethod === 'credit'
-    ? (selectedBank === 'Kapital Kredit 35' 
-        ? kapital35KreditMebleg
-        : (selectedBank.toLowerCase() === 'birkart' || selectedBank.toLowerCase() === 'tamkart' 
-            ? Math.ceil(contractTotal) 
-            : Math.ceil(contractTotal) * (1 - currentBankCommission)))
+    ? (isZeroInterest 
+        ? netAmount
+        : (selectedBank === 'Kapital Kredit 35' 
+            ? kapital35KreditMebleg
+            : (selectedBank.toLowerCase() === 'birkart' || selectedBank.toLowerCase() === 'tamkart' 
+                ? Math.ceil(contractTotal) 
+                : Math.ceil(contractTotal) * (1 - currentBankCommission))))
     : contractTotal;
 
-  const calculatedNet = paymentMethod === 'credit'
-    ? grossAmount * (1 - dTax - dStore)
-    : contractTotal * (1 - currentBankCommission - dTax - dStore);
+  const calculatedNet = isZeroInterest 
+    ? netAmount 
+    : (paymentMethod === 'credit'
+        ? grossAmount * (1 - dTax - dStore)
+        : contractTotal * (1 - currentBankCommission - dTax - dStore));
 
-  const pureProfit = paymentMethod === 'credit'
-    ? netAmount
-    : ((paymentMethod === 'credit' || paymentMethod === 'birmarket') ? Math.max(netAmount, calculatedNet) : netAmount);
+  const pureProfit = netAmount;
 
   const monthlyPayment = installmentMonths > 0 
-    ? (paymentMethod === 'credit' ? Math.ceil(contractTotal) / installmentMonths : grossAmount / installmentMonths) 
+    ? (paymentMethod === 'credit' 
+        ? (isZeroInterest ? Number((netAmount / installmentMonths).toFixed(2)) : Math.ceil(contractTotal) / installmentMonths) 
+        : grossAmount / installmentMonths) 
     : grossAmount;
 
-  const commissionRateDisplay = exactMarkup !== undefined
-    ? exactMarkup * 100
-    : (netAmount > 0 ? (((contractTotal - netAmount) / netAmount) * 100) : 0);
+  const commissionRateDisplay = isZeroInterest 
+    ? 0 
+    : (exactMarkup !== undefined
+        ? exactMarkup * 100
+        : (netAmount > 0 ? (((contractTotal - netAmount) / netAmount) * 100) : 0));
 
   // Split credit calculation if part of split is credit (matching standard credit calculation logic)
   const splitBankTariff = bankSettings.find(s => 
     s.bank_name.toLowerCase() === splitCreditBank.toLowerCase() && 
     Number(s.months) === Number(splitCreditMonths)
   );
-  const splitBankPercent = splitBankTariff 
+  const splitBankPercent = isSplitZeroInterest ? 0 : (splitBankTariff 
     ? Number(splitBankTariff.bank_percent) 
-    : ((BANK_RATES[splitCreditBank]?.[splitCreditMonths] || 0) * 100);
-  const splitTaxPercent = splitBankTariff ? Number(splitBankTariff.tax_percent) : 4.0;
+    : ((BANK_RATES[splitCreditBank]?.[splitCreditMonths] || 0) * 100));
+  const splitTaxPercent = isSplitZeroInterest ? 0 : (splitBankTariff ? Number(splitBankTariff.tax_percent) : 4.0);
   const splitDefaultShop = splitCreditBank.toLowerCase().includes('ferrum') ? 1.65 : 1.5;
-  const splitStorePercent = splitBankTariff ? Number(splitBankTariff.store_percent) : splitDefaultShop;
+  const splitStorePercent = isSplitZeroInterest ? 0 : (splitBankTariff ? Number(splitBankTariff.store_percent) : splitDefaultShop);
 
   const dSplitBank = splitBankPercent / 100;
   const dSplitTax = splitTaxPercent / 100;
   const dSplitStore = splitStorePercent / 100;
 
-  const isSplitFeeDeductedFromGross = (splitCreditBank.toLowerCase().includes('ferrum') || splitCreditBank.toLowerCase().includes('abb'));
+  const isSplitFeeDeductedFromGross = !isSplitZeroInterest && (splitCreditBank.toLowerCase().includes('ferrum') || splitCreditBank.toLowerCase().includes('abb'));
 
   const splitDenominator = isSplitFeeDeductedFromGross
     ? (1 - dSplitBank) * (1 - dSplitTax - dSplitStore)
     : (1 - dSplitBank - dSplitTax - dSplitStore);
 
-  const rawSplitGross = splitDenominator > 0 ? (numSplitCredit / splitDenominator) : numSplitCredit;
+  const rawSplitGross = isSplitZeroInterest ? numSplitCredit : (splitDenominator > 0 ? (numSplitCredit / splitDenominator) : numSplitCredit);
 
-  const splitExactMarkup = MARKUP_RATES[splitCreditBank]?.[splitCreditMonths];
-  const splitCreditContract = splitExactMarkup !== undefined
-    ? Number((numSplitCredit * (1 + splitExactMarkup)).toFixed(2))
-    : (isSplitFeeDeductedFromGross ? Math.ceil(rawSplitGross) : Math.ceil(rawSplitGross));
+  const splitExactMarkup = isSplitZeroInterest ? 0 : MARKUP_RATES[splitCreditBank]?.[splitCreditMonths];
+  const splitCreditContract = isSplitZeroInterest
+    ? Number(numSplitCredit.toFixed(2))
+    : (splitExactMarkup !== undefined
+        ? Number((numSplitCredit * (1 + splitExactMarkup)).toFixed(2))
+        : (isSplitFeeDeductedFromGross ? Math.ceil(rawSplitGross) : Math.ceil(rawSplitGross)));
 
-  const splitKapital35KreditMebleg = Math.ceil(numSplitCredit * 1.0575);
+  const splitKapital35KreditMebleg = isSplitZeroInterest ? numSplitCredit : Math.ceil(numSplitCredit * 1.0575);
 
-  const splitGrossAmount = (splitCreditBank === 'Kapital Kredit 35'
-    ? splitKapital35KreditMebleg
-    : (splitCreditBank.toLowerCase() === 'birkart' || splitCreditBank.toLowerCase() === 'tamkart'
-        ? Math.ceil(splitCreditContract)
-        : Math.ceil(splitCreditContract) * (1 - dSplitBank)));
+  const splitGrossAmount = isSplitZeroInterest
+    ? numSplitCredit
+    : (splitCreditBank === 'Kapital Kredit 35'
+        ? splitKapital35KreditMebleg
+        : (splitCreditBank.toLowerCase() === 'birkart' || splitCreditBank.toLowerCase() === 'tamkart'
+            ? Math.ceil(splitCreditContract)
+            : Math.ceil(splitCreditContract) * (1 - dSplitBank)));
 
   const splitMonthlyPayment = splitCreditMonths > 0
-    ? (Math.ceil(splitCreditContract) / splitCreditMonths)
+    ? (isSplitZeroInterest ? Number((numSplitCredit / splitCreditMonths).toFixed(2)) : (Math.ceil(splitCreditContract) / splitCreditMonths))
     : splitCreditContract;
 
-  const splitCreditMonthly = splitMonthlyPayment;
+  const splitCommissionRateDisplay = isSplitZeroInterest
+    ? 0
+    : (splitExactMarkup !== undefined
+        ? splitExactMarkup * 100
+        : (numSplitCredit > 0 ? (((splitCreditContract - numSplitCredit) / numSplitCredit) * 100) : 0));
 
-  const splitCommissionRateDisplay = splitExactMarkup !== undefined
-    ? splitExactMarkup * 100
-    : (numSplitCredit > 0 ? (((splitCreditContract - numSplitCredit) / numSplitCredit) * 100) : 0);
+  const splitCreditMonthly = splitMonthlyPayment;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1544,23 +1596,30 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                           <div className="mt-2.5 p-3 rounded-xl bg-white border border-indigo-100 space-y-2">
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
-                                  {i18n.language === 'az' ? 'Bank' : 'Банк'}
-                                </label>
+                                <div className="flex items-center justify-between mb-1">
+                                  <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                    {i18n.language === 'az' ? 'Bank' : 'Банк'}
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleZeroInterest(splitCreditBank)}
+                                    className={`px-1.5 py-0.5 rounded text-[8.5px] font-bold transition-all ${
+                                      isSplitZeroInterest ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                    }`}
+                                    title={isSplitZeroInterest ? 'Faizsiz rejimi söndür' : '0% Faizsiz aktivləşdir'}
+                                  >
+                                    {isSplitZeroInterest ? '✓ 0% Faizsiz' : '0% et'}
+                                  </button>
+                                </div>
                                 <Dropdown
                                   value={splitCreditBank}
                                   onChange={(val) => setSplitCreditBank(val)}
                                   menuWidth={170}
                                   buttonClassName="w-full rounded-lg px-2.5 py-1.5 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-100 shadow-sm"
-                                  options={[
-                                    { value: 'ABB Kredit', label: 'ABB Kredit' },
-                                    { value: 'Birkart', label: 'Birkart' },
-                                    { value: 'Tamkart', label: 'Tamkart' },
-                                    { value: 'Kapital Kredit 35', label: 'Kapital Kredit 35' },
-                                    { value: 'Ferrum Standart', label: 'Ferrum Standart' },
-                                    { value: 'Ferrum Fast', label: 'Ferrum Fast' },
-                                    { value: 'Ferrum DTI', label: 'Ferrum DTI' }
-                                  ]}
+                                  options={BANK_LIST.map(b => ({
+                                    value: b,
+                                    label: `${b}${zeroInterestBanks[b] ? ' (0%)' : ''}`
+                                  }))}
                                 />
                               </div>
                               <div>
@@ -1588,8 +1647,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               </div>
                               <div className="flex justify-between items-center">
                                 <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
-                                <span className="text-orange-500 font-black text-xs">
-                                  <AnimatedNumber value={splitCommissionRateDisplay} format={v => v.toFixed(3).replace(/\.?0+$/, '')} />%
+                                <span className={`${isSplitZeroInterest ? 'text-emerald-600' : 'text-orange-500'} font-black text-xs`}>
+                                  {isSplitZeroInterest ? '0.00% (Faizsiz)' : <><AnimatedNumber value={splitCommissionRateDisplay} format={v => v.toFixed(3).replace(/\.?0+$/, '')} />%</>}
                                 </span>
                               </div>
                               <div className="flex justify-between items-center">
@@ -1707,23 +1766,95 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                          {i18n.language === 'az' ? 'Seçilən Bank' : 'Выбор Банка'}
-                        </label>
+                        <div className="flex items-center justify-between mb-1.5 px-1">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            {i18n.language === 'az' ? 'Seçilən Bank' : 'Выбор Банка'}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => toggleZeroInterest(selectedBank)}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all shadow-xs ${
+                              isZeroInterest
+                                ? 'bg-emerald-600 text-white ring-2 ring-emerald-300'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                            title={isZeroInterest ? 'Faizsiz rejimi söndür' : '0% Faizsiz aktivləşdir'}
+                          >
+                            <span>{isZeroInterest ? '✓ 0% Faizsiz' : '0% Faizsiz et'}</span>
+                            <span className={`w-6 h-3.5 flex items-center rounded-full p-0.5 transition-colors ${isZeroInterest ? 'bg-emerald-800 justify-end' : 'bg-gray-300 justify-start'}`}>
+                              <span className="w-2.5 h-2.5 rounded-full bg-white shadow-xs"></span>
+                            </span>
+                          </button>
+                        </div>
                         <Dropdown
                           value={selectedBank}
                           onChange={(val) => setSelectedBank(val)}
                           buttonClassName="w-full rounded-xl px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-100 hover:border-merkez-blue shadow-sm"
-                          options={[
-                            { value: 'ABB Kredit', label: 'ABB Kredit' },
-                            { value: 'Birkart', label: 'Birkart' },
-                            { value: 'Tamkart', label: 'Tamkart' },
-                            { value: 'Kapital Kredit 35', label: 'Kapital Kredit 35' },
-                            { value: 'Ferrum Standart', label: 'Ferrum Standart' },
-                            { value: 'Ferrum Fast', label: 'Ferrum Fast' },
-                            { value: 'Ferrum DTI', label: 'Ferrum DTI' }
-                          ]}
+                          options={BANK_LIST.map(b => ({
+                            value: b,
+                            label: `${b}${zeroInterestBanks[b] ? ' (0% Faizsiz)' : ''}`
+                          }))}
                         />
+                      </div>
+
+                      {/* Banklar üzrə 0% Faizsiz Aksiya Paneli (Hər bankın yanında переключатель) */}
+                      <div className="p-3 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 rounded-xl border border-blue-100/80 space-y-2">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-600 px-0.5">
+                          <span>{i18n.language === 'az' ? 'Banklar üzrə 0% Faizsiz Aksiya' : '0% Беспроцентная акция банков'}</span>
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            {Object.values(zeroInterestBanks).filter(Boolean).length} {i18n.language === 'az' ? 'bank faizsizdir' : 'банк(ов) 0%'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {BANK_LIST.map((bank) => {
+                            const isZero = Boolean(zeroInterestBanks[bank]);
+                            const isSelected = selectedBank === bank;
+                            return (
+                              <div
+                                key={bank}
+                                onClick={() => setSelectedBank(bank)}
+                                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? isZero 
+                                      ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-400' 
+                                      : 'bg-blue-50 border-blue-300 ring-1 ring-blue-400'
+                                    : isZero
+                                      ? 'bg-emerald-50/40 border-emerald-200/60 hover:bg-emerald-50/70'
+                                      : 'bg-white border-gray-100 hover:border-gray-200'
+                                }`}
+                              >
+                                <div className="flex items-center gap-1.5 min-w-0 pr-1">
+                                  <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+                                    {bank}
+                                  </span>
+                                  {isZero && (
+                                    <span className="shrink-0 text-[8.5px] font-black px-1.5 py-0.5 rounded-md bg-emerald-600 text-white leading-none">
+                                      0%
+                                    </span>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleZeroInterest(bank);
+                                  }}
+                                  className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                    isZero ? 'bg-emerald-500' : 'bg-gray-300'
+                                  }`}
+                                  title={`${bank}: ${isZero ? 'Faizsiz rejimi söndür' : '0% Faizsiz aktivləşdir'}`}
+                                >
+                                  <span
+                                    className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                      isZero ? 'translate-x-3' : 'translate-x-0'
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       <div>
@@ -1799,6 +1930,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
                       {/* Calculations Panel */}
                       <div className="bg-white/80 border border-blue-100/30 p-4 rounded-xl space-y-3 text-sm font-bold text-gray-500">
+                        {isZeroInterest && (
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold animate-fadeIn">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{i18n.language === 'az' ? '0% Faizsiz Kredit Aksiyası: Bank faizi və komissiya 0 ₼ hesablanır.' : '0% Беспроцентная акция: Комиссия и проценты банка 0 ₼.'}</span>
+                          </div>
+                        )}
                         {numDownpayment > 0 && (
                           <div className="flex justify-between items-center text-xs font-bold text-emerald-700 bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100">
                             <span>{i18n.language === 'az' ? 'İlkin ödəniş (Nağd/Kart):' : 'Первоначальный взнос:'}</span>
@@ -1811,7 +1948,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
-                          <span className="text-orange-500 font-black text-sm"><AnimatedNumber value={commissionRateDisplay} format={v => v.toFixed(3).replace(/\.?0+$/, '')} />%</span>
+                          <span className={`${isZeroInterest ? 'text-emerald-600' : 'text-orange-500'} font-black text-sm`}>
+                            {isZeroInterest ? '0.00% (Faizsiz)' : <><AnimatedNumber value={commissionRateDisplay} format={v => v.toFixed(3).replace(/\.?0+$/, '')} />%</>}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого (Цена + Процент):'}</span>
@@ -1819,7 +1958,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz məbləği (Manatla):' : 'Сумма процента (В манатах):'}</span>
-                          <span className="text-orange-500 font-black text-sm">₼<AnimatedNumber value={contractTotal - netAmount} /></span>
+                          <span className={`${isZeroInterest ? 'text-emerald-600' : 'text-orange-500'} font-black text-sm`}>
+                            ₼<AnimatedNumber value={contractTotal - netAmount} />
+                          </span>
                         </div>
                         {selectedBank === 'Kapital Kredit 35' ? (
                           <>
