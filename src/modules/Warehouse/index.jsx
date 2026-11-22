@@ -3326,7 +3326,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         ) : activeTab === 'stocktake' ? (
           <WarehouseStocktake warehouseId={currentWarehouseId} warehouses={warehouses} isRestaurantActive={isRestaurantActive} />
         ) : activeTab === 'reports' ? (
-          <WarehouseReports warehouseId={currentWarehouseId} isRestaurantActive={isRestaurantActive} refreshTrigger={reportsRefreshTrigger} />
+          <WarehouseReports
+            warehouseId={currentWarehouseId}
+            warehouses={warehouses}
+            warehouseName={warehouses.find(w => w.id === currentWarehouseId)?.name}
+            warehouseAddress={warehouses.find(w => w.id === currentWarehouseId)?.address}
+            isRestaurantActive={isRestaurantActive}
+            refreshTrigger={reportsRefreshTrigger}
+          />
         ) : (
           <div className="flex flex-1 gap-2 xl:gap-3 2xl:gap-5 overflow-hidden relative">
             {activeTab === 'finished' && (
@@ -4886,6 +4893,9 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         <DailySalesReportModal
           isOpen={showDailySalesReportModal}
           onClose={() => setShowDailySalesReportModal(false)}
+          warehouseId={currentWarehouseId}
+          warehouseName={warehouses.find(w => w.id === currentWarehouseId)?.name}
+          warehouseAddress={warehouses.find(w => w.id === currentWarehouseId)?.address}
         />
       )}
 

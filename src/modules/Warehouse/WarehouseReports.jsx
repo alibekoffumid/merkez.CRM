@@ -21,7 +21,14 @@ import WarehouseEfficiencyCharts from './WarehouseEfficiencyCharts';
 import { formatUnitName } from './SaleDetailModal';
 import DailySalesReportModal from '../../components/Reports/DailySalesReportModal';
 
-const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrigger = 0 }) => {
+const WarehouseReports = ({
+  warehouseId,
+  warehouses = [],
+  warehouseName = '',
+  warehouseAddress = '',
+  isRestaurantActive = false,
+  refreshTrigger = 0
+}) => {
   const { t, i18n } = useTranslation();
   const { profile, currentStaff } = useUser();
   const canSeeCostAndFactoryPrices = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
@@ -450,6 +457,9 @@ const WarehouseReports = ({ warehouseId, isRestaurantActive = false, refreshTrig
       <DailySalesReportModal
         isOpen={showDailyReportModal}
         onClose={() => setShowDailyReportModal(false)}
+        warehouseId={warehouseId}
+        warehouseName={warehouseName || warehouses?.find(w => w.id === warehouseId)?.name}
+        warehouseAddress={warehouseAddress || warehouses?.find(w => w.id === warehouseId)?.address}
       />
     </div>
   );

@@ -293,13 +293,32 @@ export const isCancelledOrDeleted = (record) => {
  * When currentStaff is provided and role is NOT Admin, cost/purchase prices and profit margins
  * are NEVER queried from Supabase and are stripped from the returned DTO to protect business margins.
  */
-export const fetchDailySalesReportData = async (supabase, userId, selectedDateInput, includeHidden = false, currentStaff = null) => {
+export const fetchDailySalesReportData = async (supabase, userId, selectedDateInput, includeHidden = false, currentStaff = null, warehouseId = null) => {
   if (!supabase || !userId) {
     throw new Error('Supabase client və İstifadəçi ID mütləqdir');
   }
 
   // RBAC Permission Check: Only Owner (!currentStaff) or Admin role can view cost prices & profits
   const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
+
+  // Resolve warehouse metadata if warehouseId is provided
+  let warehouseName = null;
+  let warehouseAddress = null;
+  if (warehouseId) {
+    try {
+      const { data: wh } = await supabase
+        .from('warehouses')
+        .select('id, name, address')
+        .eq('id', warehouseId)
+        .maybeSingle();
+      if (wh) {
+        warehouseName = wh.name || null;
+        warehouseAddress = wh.address || null;
+      }
+    } catch (whErr) {
+      console.warn('Could not fetch warehouse info for daily report:', whErr);
+    }
+  }
 
   // Determine target date YYYY-MM-DD
   let dateStr = '';
@@ -324,7 +343,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   let sHasMore = true;
 
   while (sHasMore) {
-    const salesQuery = supabase
+    let salesQuery = supabase
       .from('retail_sales')
       .select('*, retail_sale_items(*)')
       .eq('user_id', userId)
@@ -332,6 +351,10 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       .lte('created_at', endOfDay.toISOString())
       .order('created_at', { ascending: true })
       .range(sFrom, sFrom + sStep - 1);
+
+    if (warehouseId) {
+      salesQuery = salesQuery.or(`warehouse_id.eq.${warehouseId},warehouse_id.is.null`);
+    }
 
     const { data: salesChunk, error: salesError } = await salesQuery;
     if (salesError) {
@@ -470,7 +493,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     let dHasMore = true;
 
     while (dHasMore) {
-      const { data: dChunk, error: dErr } = await supabase
+      let dQuery = supabase
         .from('stock_dispatches')
         .select(`id, product_id, quantity, issued_at, notes, created_at, reason, warehouse_id, products(${productSelectFields})`)
         .eq('user_id', userId)
@@ -478,6 +501,12 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
         .lte('created_at', endOfDay.toISOString())
         .order('created_at', { ascending: true })
         .range(dFrom, dFrom + dStep - 1);
+
+      if (warehouseId) {
+        dQuery = dQuery.or(`warehouse_id.eq.${warehouseId},warehouse_id.is.null`);
+      }
+
+      const { data: dChunk, error: dErr } = await dQuery;
 
       if (dErr) {
         console.warn('Error fetching daily stock_dispatches in dailySalesReportService:', dErr);
@@ -1168,7 +1197,12 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
     cancelledItemsCount: Number(cancelledItemsCount.toFixed(2)),
     cancelledDiscounts: Number(cancelledDiscounts.toFixed(2)),
     cancelledTransactions: cancelledTransactionsList,
-    cancelledProducts: Array.from(cancelledProductMap.values()).sort((a, b) => b.quantity - a.quantity)
+    cancelledProducts: Array.from(cancelledProductMap.values()).sort((a, b) => b.quantity - a.quantity),
+
+    // Active Warehouse Context
+    warehouseId: warehouseId || null,
+    warehouseName: warehouseName || null,
+    warehouseAddress: warehouseAddress || null
   };
 };
 
@@ -1182,9 +1216,9 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
   const mergedOptions = { ...DEFAULT_REPORT_OPTIONS, ...options };
   const isProductsOnly = mergedOptions.mode === 'products_only' || mergedOptions.showPrices === false;
 
-  const companyName = businessInfo.businessName || businessInfo.company_name || 'Mərkəz CRM Satış Məntəqəsi';
+  const companyName = businessInfo.warehouseName || businessInfo.businessName || businessInfo.company_name || data.warehouseName || 'Anbar / Mağaza';
   const voen = businessInfo.voen ? `VÖEN: ${businessInfo.voen}` : '';
-  const address = businessInfo.address || '';
+  const address = (businessInfo.warehouseAddress || businessInfo.address || data.warehouseAddress || '').trim();
   const phone = businessInfo.phone ? `Tel: ${businessInfo.phone}` : '';
   const cashierName = businessInfo.cashierName || businessInfo.full_name || 'Kassir / Məsul Şəxs';
 
@@ -1621,7 +1655,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
                 <div class="logo-box">MƏRKƏZ <span>CRM</span></div>
                 <div class="company-name">${companyName}</div>
                 <div class="company-info">
-                  ${voen ? `${voen} • ` : ''}${address || 'Baş Filial'} ${phone ? ` • ${phone}` : ''}
+                  ${[voen, address ? `Ünvan: ${address}` : '', phone].filter(Boolean).join(' • ')}
                 </div>
               </td>
               <td class="report-badge" style="vertical-align: top; width: 45%;">
@@ -1912,7 +1946,7 @@ export const generateDailySalesReportHTML = (data, businessInfo = {}, format = '
               <div class="logo-box">MƏRKƏZ <span>CRM</span></div>
               <div class="company-name">${companyName}</div>
               <div class="company-info">
-                ${voen ? `${voen} • ` : ''}${address || 'Baş Filial'} ${phone ? ` • ${phone}` : ''}
+                ${[voen, address ? `Ünvan: ${address}` : '', phone].filter(Boolean).join(' • ')}
               </div>
             </td>
             <td class="report-badge" style="vertical-align: top; width: 40%;">
@@ -2229,9 +2263,9 @@ export const downloadDailySalesReportPDF = async (data, businessInfo = {}, optio
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'bold');
     doc.setFont('Roboto', 'normal');
 
-    const companyName = businessInfo.businessName || businessInfo.company_name || 'Mərkəz CRM Satış Məntəqəsi';
+    const companyName = businessInfo.warehouseName || businessInfo.businessName || businessInfo.company_name || data.warehouseName || 'Anbar / Mağaza';
     const voen = businessInfo.voen ? `VÖEN: ${businessInfo.voen}` : '';
-    const address = businessInfo.address || '';
+    const address = (businessInfo.warehouseAddress || businessInfo.address || data.warehouseAddress || '').trim();
     const cashierName = businessInfo.cashierName || businessInfo.full_name || 'Kassir / Məsul Şəxs';
 
     if (isProductsOnly) {
@@ -2710,9 +2744,9 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     wb.creator = 'Mərkəz CRM';
     wb.created = new Date();
 
-    const companyName = businessInfo.businessName || businessInfo.company_name || 'RAST MUSİC';
-    const address = businessInfo.address || 'ƏHMƏDLİ TELNOV KÜÇƏSİ 18A';
-    const cashierName = businessInfo.cashierName || businessInfo.full_name || 'Mətanət';
+    const companyName = businessInfo.warehouseName || businessInfo.businessName || businessInfo.company_name || data.warehouseName || 'Anbar / Mağaza';
+    const address = (businessInfo.warehouseAddress || businessInfo.address || data.warehouseAddress || '').trim();
+    const cashierName = businessInfo.cashierName || businessInfo.full_name || 'Məsul Şəxs';
     const dateFormatted = data.formattedDate || data.dateStr;
 
     const borderThin = {
@@ -2743,12 +2777,16 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       { key: 'saat', width: 13 } // Column for exact sale/expense time
     ];
 
-    // Row 1: Address (H1:J1 merged for ample room)
-    wsLedger.addRow(['', '', '', '', '', '', '', 'ÜNVAN: ' + address, '', '']);
-    wsLedger.mergeCells('H1:J1');
-    const cellH1 = wsLedger.getCell('H1');
-    cellH1.font = { name: 'Arial', size: 10, bold: true };
-    cellH1.alignment = { horizontal: 'right', vertical: 'middle' };
+    // Row 1: Address (H1:J1 merged for ample room, ONLY if warehouse/store address exists)
+    if (address) {
+      wsLedger.addRow(['', '', '', '', '', '', '', 'ÜNVAN: ' + address, '', '']);
+      wsLedger.mergeCells('H1:J1');
+      const cellH1 = wsLedger.getCell('H1');
+      cellH1.font = { name: 'Arial', size: 10, bold: true };
+      cellH1.alignment = { horizontal: 'right', vertical: 'middle' };
+    } else {
+      wsLedger.addRow(['', '', '', '', '', '', '', '', '', '']);
+    }
 
     // Row 2: Magaza (A2:F2 merged so "MAĞAZA:" is 100% visible and uncropped)
     wsLedger.addRow(['MAĞAZA: ' + companyName, '', '', '', '', '', '', '', '', '']);

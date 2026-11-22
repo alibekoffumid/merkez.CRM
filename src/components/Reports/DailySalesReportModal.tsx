@@ -53,12 +53,18 @@ interface DailySalesReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialDate?: string; // YYYY-MM-DD
+  warehouseId?: string | null;
+  warehouseName?: string;
+  warehouseAddress?: string;
 }
 
 const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
   isOpen,
   onClose,
-  initialDate
+  initialDate,
+  warehouseId,
+  warehouseName,
+  warehouseAddress
 }) => {
   const { profile, currentStaff } = useUser() as any;
   const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
@@ -164,28 +170,125 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
     };
   }, [reportMode, customSections]);
 
-  // Business info extracted from profile
+  // Active warehouse metadata (resolves warehouse name and address)
+  const [activeWarehouse, setActiveWarehouse] = useState<{ id?: string; name?: string; address?: string } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isMounted = true;
+    const resolveWarehouse = async () => {
+      // 1. Direct props
+      if (warehouseName) {
+        if (isMounted) {
+          setActiveWarehouse({
+            id: warehouseId || undefined,
+            name: warehouseName,
+            address: warehouseAddress || ''
+          });
+        }
+        return;
+      }
+
+      // 2. Target warehouse id (from prop or localStorage)
+      let targetId = warehouseId;
+      if (!targetId) {
+        try {
+          targetId = localStorage.getItem('warehouse_active_id');
+        } catch (e) {
+          targetId = null;
+        }
+      }
+
+      if (targetId) {
+        try {
+          const { data: wh } = await supabase
+            .from('warehouses')
+            .select('id, name, address')
+            .eq('id', targetId)
+            .maybeSingle();
+
+          if (isMounted && wh?.name) {
+            setActiveWarehouse({
+              id: wh.id,
+              name: wh.name,
+              address: wh.address || ''
+            });
+            return;
+          }
+        } catch (e) {
+          console.warn('Error resolving warehouse by ID in DailySalesReportModal:', e);
+        }
+      }
+
+      // 3. Fallback: User default warehouse
+      if (profile?.id) {
+        try {
+          const { data: defaultWh } = await supabase
+            .from('warehouses')
+            .select('id, name, address')
+            .eq('user_id', profile.id)
+            .order('is_default', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (isMounted && defaultWh?.name) {
+            setActiveWarehouse({
+              id: defaultWh.id,
+              name: defaultWh.name,
+              address: defaultWh.address || ''
+            });
+            return;
+          }
+        } catch (e) {
+          console.warn('Error resolving default warehouse:', e);
+        }
+      }
+
+      if (isMounted) {
+        setActiveWarehouse(null);
+      }
+    };
+
+    resolveWarehouse();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, warehouseId, warehouseName, warehouseAddress, profile?.id]);
+
+  // Business info extracted from active warehouse & user profile
   const businessInfo = useMemo(() => {
+    const whName = warehouseName || activeWarehouse?.name || reportData?.warehouseName || profile?.business_name || profile?.company_name || 'Anbar / Mağaza';
+    const rawAddress = (warehouseAddress !== undefined ? warehouseAddress : activeWarehouse?.address) || reportData?.warehouseAddress || profile?.address || '';
+    const whAddress = typeof rawAddress === 'string' ? rawAddress.trim() : '';
+
     return {
-      businessName: profile?.business_name || profile?.company_name || 'Mərkəz CRM Satış Məntəqəsi',
+      businessName: whName,
+      companyName: whName,
+      warehouseName: whName,
       voen: profile?.voen || profile?.tax_id || '',
-      address: profile?.address || 'Baş Filial',
+      address: whAddress,
+      warehouseAddress: whAddress,
       phone: profile?.phone || '',
       cashierName: profile?.full_name || profile?.name || 'Məsul Şəxs'
     };
-  }, [profile]);
+  }, [profile, warehouseName, warehouseAddress, activeWarehouse, reportData?.warehouseName, reportData?.warehouseAddress]);
 
   useEffect(() => {
     if (isOpen && profile?.id) {
       loadReport();
     }
-  }, [isOpen, selectedDate, profile?.id]);
+  }, [isOpen, selectedDate, profile?.id, warehouseId, activeWarehouse?.id]);
 
   const loadReport = async () => {
     if (!profile?.id) return;
     setLoading(true);
     try {
-      const data = await fetchDailySalesReportData(supabase, profile.id, selectedDate, false, currentStaff);
+      const targetWhId = warehouseId || activeWarehouse?.id || (() => {
+        try { return localStorage.getItem('warehouse_active_id'); } catch (e) { return null; }
+      })();
+      const data = await fetchDailySalesReportData(supabase, profile.id, selectedDate, false, currentStaff, targetWhId);
       setReportData(data);
     } catch (err: any) {
       console.error('Hesabat yüklənərkən xəta:', err);
@@ -293,7 +396,10 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                   </div>
                   <p className="text-xs text-slate-300 font-medium mt-0.5 flex items-center gap-2">
                     <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                    <span>{businessInfo.businessName}</span>
+                    <span className="font-semibold text-white">{businessInfo.businessName}</span>
+                    {businessInfo.address ? (
+                      <span className="text-slate-400 text-[11px] font-normal">• {businessInfo.address}</span>
+                    ) : null}
                   </p>
                 </div>
               </div>
