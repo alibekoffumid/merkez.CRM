@@ -343,7 +343,7 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
   let sHasMore = true;
 
   while (sHasMore) {
-    let salesQuery = supabase
+    const salesQuery = supabase
       .from('retail_sales')
       .select('*, retail_sale_items(*)')
       .eq('user_id', userId)
@@ -351,10 +351,6 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
       .lte('created_at', endOfDay.toISOString())
       .order('created_at', { ascending: true })
       .range(sFrom, sFrom + sStep - 1);
-
-    if (warehouseId) {
-      salesQuery = salesQuery.or(`warehouse_id.eq.${warehouseId},warehouse_id.is.null`);
-    }
 
     const { data: salesChunk, error: salesError } = await salesQuery;
     if (salesError) {
