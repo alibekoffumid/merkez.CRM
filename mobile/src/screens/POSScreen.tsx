@@ -45,6 +45,7 @@ import {
   KeyRound,
 } from 'lucide-react-native';
 import { POSCartItem } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { productService } from '../services/productService';
 import { salesService, POSPaymentMethod } from '../services/salesService';
 import { salesChannelService, DEFAULT_SALES_CHANNELS } from '../services/salesChannelService';
@@ -87,6 +88,34 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<POSPaymentMethod>('CASH');
   const [selectedBank, setSelectedBank] = useState<CreditBank>('ABB Kredit');
   const [installmentMonths, setInstallmentMonths] = useState<number>(12);
+  const [zeroInterestBanks, setZeroInterestBanks] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const loadZeroInterest = async () => {
+      try {
+        const raw = await AsyncStorage.getItem('crm_zero_interest_banks');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') {
+            setZeroInterestBanks(parsed);
+          }
+        }
+      } catch (e) {
+        console.warn('AsyncStorage load zeroInterestBanks error:', e);
+      }
+    };
+    loadZeroInterest();
+  }, []);
+
+  const toggleZeroInterest = async (bankName: string) => {
+    setZeroInterestBanks(prev => {
+      const updated = { ...prev, [bankName]: !prev[bankName] };
+      AsyncStorage.setItem('crm_zero_interest_banks', JSON.stringify(updated)).catch(e => {
+        console.warn('AsyncStorage save zeroInterestBanks error:', e);
+      });
+      return updated;
+    });
+  };
 
   // Split payment state
   const [splitCash, setSplitCash] = useState('');
@@ -95,6 +124,9 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [splitCredit, setSplitCredit] = useState('');
   const [splitCreditBank, setSplitCreditBank] = useState<CreditBank>('ABB Kredit');
   const [splitCreditMonths, setSplitCreditMonths] = useState<number>(12);
+
+  const isZeroInterest = Boolean(zeroInterestBanks[selectedBank]);
+  const isSplitZeroInterest = Boolean(zeroInterestBanks[splitCreditBank]);
 
   // Global Cart Discount State
   const [discountType, setDiscountType] = useState<'percent' | 'fixed'>('fixed');
@@ -367,8 +399,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
 
   // Credit calculator takes into account the discounted product value
   const creditResult = useMemo(() => {
-    return calculateCredit(discountedBase, selectedBank, installmentMonths);
-  }, [discountedBase, selectedBank, installmentMonths]);
+    return calculateCredit(discountedBase, selectedBank, installmentMonths, isZeroInterest);
+  }, [discountedBase, selectedBank, installmentMonths, isZeroInterest]);
 
   // Split calculations
   const numSplitCash = parseFloat(splitCash) || 0;
@@ -387,8 +419,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   }, [splitCreditBank, splitAvailableMonths]);
 
   const splitCreditResult = useMemo(() => {
-    return calculateCredit(numSplitCredit, splitCreditBank, splitCreditMonths);
-  }, [numSplitCredit, splitCreditBank, splitCreditMonths]);
+    return calculateCredit(numSplitCredit, splitCreditBank, splitCreditMonths, isSplitZeroInterest);
+  }, [numSplitCredit, splitCreditBank, splitCreditMonths, isSplitZeroInterest]);
 
   const fillRemainingSplit = (type: 'cash' | 'card' | 'terminal' | 'credit') => {
     const otherSum = (type !== 'cash' ? numSplitCash : 0) +
@@ -1013,25 +1045,51 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             {/* If CREDIT: Render live Credit Calculator */}
             {paymentMethod === 'CREDIT' && (
               <View style={styles.creditCalcBox}>
-                {/* Bank selector */}
-                <Text style={styles.creditSectionLabel}>Bank seçimi:</Text>
+                {/* Bank selector with 0% toggle */}
+                <View style={styles.creditHeaderWithToggle}>
+                  <Text style={styles.creditSectionLabel}>Bank seçimi:</Text>
+                  <TouchableOpacity
+                    style={[styles.zeroInterestBtn, isZeroInterest && styles.zeroInterestBtnActive]}
+                    onPress={() => toggleZeroInterest(selectedBank)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.zeroInterestBtnText, isZeroInterest && styles.zeroInterestBtnTextActive]}>
+                      {isZeroInterest ? '✓ 0% Faizsiz' : '0% Faizsiz et'}
+                    </Text>
+                    <View style={[styles.switchTrack, isZeroInterest && styles.switchTrackActive]}>
+                      <View style={[styles.switchThumb, isZeroInterest && styles.switchThumbActive]} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.chipsRow}
                   nestedScrollEnabled={true}
                 >
-                  {CREDIT_BANKS.map((b) => (
-                    <TouchableOpacity
-                      key={b}
-                      style={[styles.bankChip, selectedBank === b && styles.bankChipActive]}
-                      onPress={() => setSelectedBank(b)}
-                    >
-                      <Text style={[styles.bankChipText, selectedBank === b && styles.bankChipTextActive]}>
-                        {b}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {CREDIT_BANKS.map((b) => {
+                    const isZero = Boolean(zeroInterestBanks[b]);
+                    const isSel = selectedBank === b;
+                    return (
+                      <TouchableOpacity
+                        key={b}
+                        style={[
+                          styles.bankChip,
+                          isSel && styles.bankChipActive,
+                          !isSel && isZero && styles.bankChipZero
+                        ]}
+                        onPress={() => setSelectedBank(b)}
+                      >
+                        <Text style={[
+                          styles.bankChipText,
+                          isSel && styles.bankChipTextActive,
+                          !isSel && isZero && styles.bankChipTextZero
+                        ]}>
+                          {b}{isZero ? ' (0%)' : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </ScrollView>
 
                 {/* Months selector */}
@@ -1043,7 +1101,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   nestedScrollEnabled={true}
                 >
                   {availableMonths.map((m) => {
-                    const mRes = calculateCredit(discountedBase, selectedBank, m);
+                    const mRes = calculateCredit(discountedBase, selectedBank, m, isZeroInterest);
                     const isSelected = installmentMonths === m;
                     return (
                       <TouchableOpacity
@@ -1055,12 +1113,21 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                           {m} ay
                         </Text>
                         <Text style={[styles.monthSubText, isSelected && styles.monthSubTextActive]}>
-                          +{mRes.markupPercent.toFixed(1)}%
+                          {isZeroInterest ? '0% Faizsiz' : `+${mRes.markupPercent.toFixed(1)}%`}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
                 </ScrollView>
+
+                {/* 0% Faizsiz Aksiyası Banner */}
+                {isZeroInterest && (
+                  <View style={styles.zeroInterestBanner}>
+                    <Text style={styles.zeroInterestBannerText}>
+                      ✓ 0% Faizsiz Kredit Aksiyası: Bank faizi və komissiya 0 ₼ hesablanır.
+                    </Text>
+                  </View>
+                )}
 
                 {/* Live Calculation Summary Card */}
                 <View style={styles.creditMetricsCard}>
@@ -1084,8 +1151,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   </View>
                   <View style={styles.metricRow}>
                     <Text style={styles.metricLabel}>Faiz dərəcəsi:</Text>
-                    <Text style={styles.metricValOrange}>
-                      {creditResult.markupPercent.toFixed(1)}%
+                    <Text style={isZeroInterest ? styles.discountValGreen : styles.metricValOrange}>
+                      {isZeroInterest ? '0.00% (Faizsiz)' : `${creditResult.markupPercent.toFixed(1)}%`}
                     </Text>
                   </View>
                   <View style={styles.metricRow}>
@@ -1094,8 +1161,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   </View>
                   <View style={styles.metricRow}>
                     <Text style={styles.metricLabel}>Faiz məbləği (Manatla):</Text>
-                    <Text style={styles.metricValOrange}>
-                      +{creditResult.interestAmount.toFixed(2)} ₼
+                    <Text style={isZeroInterest ? styles.discountValGreen : styles.metricValOrange}>
+                      {isZeroInterest ? '0.00 ₼' : `+${creditResult.interestAmount.toFixed(2)} ₼`}
                     </Text>
                   </View>
                   <View style={styles.metricRow}>
@@ -1297,24 +1364,50 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 {/* If Kredit Payı > 0, show Bank selector, Months selector, and Full Details Panel */}
                 {numSplitCredit > 0 && (
                   <View style={styles.splitCreditSubBox}>
-                    <Text style={styles.creditSectionLabel}>Kredit Bankı:</Text>
+                    <View style={styles.creditHeaderWithToggle}>
+                      <Text style={styles.creditSectionLabel}>Kredit Bankı:</Text>
+                      <TouchableOpacity
+                        style={[styles.zeroInterestBtn, isSplitZeroInterest && styles.zeroInterestBtnActive]}
+                        onPress={() => toggleZeroInterest(splitCreditBank)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.zeroInterestBtnText, isSplitZeroInterest && styles.zeroInterestBtnTextActive]}>
+                          {isSplitZeroInterest ? '✓ 0% Faizsiz' : '0% Faizsiz et'}
+                        </Text>
+                        <View style={[styles.switchTrack, isSplitZeroInterest && styles.switchTrackActive]}>
+                          <View style={[styles.switchThumb, isSplitZeroInterest && styles.switchThumbActive]} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
                     <ScrollView
                       horizontal
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.chipsRow}
                       nestedScrollEnabled={true}
                     >
-                      {CREDIT_BANKS.map((b) => (
-                        <TouchableOpacity
-                          key={b}
-                          style={[styles.bankChip, splitCreditBank === b && styles.bankChipActive]}
-                          onPress={() => setSplitCreditBank(b)}
-                        >
-                          <Text style={[styles.bankChipText, splitCreditBank === b && styles.bankChipTextActive]}>
-                            {b}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                      {CREDIT_BANKS.map((b) => {
+                        const isZero = Boolean(zeroInterestBanks[b]);
+                        const isSel = splitCreditBank === b;
+                        return (
+                          <TouchableOpacity
+                            key={b}
+                            style={[
+                              styles.bankChip,
+                              isSel && styles.bankChipActive,
+                              !isSel && isZero && styles.bankChipZero
+                            ]}
+                            onPress={() => setSplitCreditBank(b)}
+                          >
+                            <Text style={[
+                              styles.bankChipText,
+                              isSel && styles.bankChipTextActive,
+                              !isSel && isZero && styles.bankChipTextZero
+                            ]}>
+                              {b}{isZero ? ' (0%)' : ''}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </ScrollView>
 
                     <Text style={styles.creditSectionLabel}>Müddət (Aylar):</Text>
@@ -1326,7 +1419,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     >
                       {splitAvailableMonths.map((m) => {
                         const isSel = splitCreditMonths === m;
-                        const mRes = calculateCredit(numSplitCredit, splitCreditBank, m);
+                        const mRes = calculateCredit(numSplitCredit, splitCreditBank, m, isSplitZeroInterest);
                         return (
                           <TouchableOpacity
                             key={m}
@@ -1337,12 +1430,20 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                               {m} ay
                             </Text>
                             <Text style={[styles.monthSubText, isSel && styles.monthSubTextActive]}>
-                              +{mRes.markupPercent.toFixed(1)}%
+                              {isSplitZeroInterest ? '0% Faizsiz' : `+${mRes.markupPercent.toFixed(1)}%`}
                             </Text>
                           </TouchableOpacity>
                         );
                       })}
                     </ScrollView>
+
+                    {isSplitZeroInterest && (
+                      <View style={styles.zeroInterestBanner}>
+                        <Text style={styles.zeroInterestBannerText}>
+                          ✓ 0% Faizsiz Kredit Aksiyası: Bank faizi və komissiya 0 ₼ hesablanır.
+                        </Text>
+                      </View>
+                    )}
 
                     {/* Detailed Credit Calculation Metrics for Split */}
                     <View style={styles.creditMetricsCard}>
@@ -1352,8 +1453,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       </View>
                       <View style={styles.metricRow}>
                         <Text style={styles.metricLabel}>Faiz dərəcəsi:</Text>
-                        <Text style={styles.metricValOrange}>
-                          {splitCreditResult.markupPercent.toFixed(1)}%
+                        <Text style={isSplitZeroInterest ? styles.discountValGreen : styles.metricValOrange}>
+                          {isSplitZeroInterest ? '0.00% (Faizsiz)' : `${splitCreditResult.markupPercent.toFixed(1)}%`}
                         </Text>
                       </View>
                       <View style={styles.metricRow}>
@@ -1362,8 +1463,8 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       </View>
                       <View style={styles.metricRow}>
                         <Text style={styles.metricLabel}>Faiz məbləği (Manatla):</Text>
-                        <Text style={styles.metricValOrange}>
-                          +{splitCreditResult.interestAmount.toFixed(2)} ₼
+                        <Text style={isSplitZeroInterest ? styles.discountValGreen : styles.metricValOrange}>
+                          {isSplitZeroInterest ? '0.00 ₼' : `+${splitCreditResult.interestAmount.toFixed(2)} ₼`}
                         </Text>
                       </View>
                       <View style={styles.metricRow}>
@@ -2405,6 +2506,71 @@ const styles = StyleSheet.create({
     color: '#334155',
     marginBottom: 4,
   },
+  creditHeaderWithToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  zeroInterestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  zeroInterestBtnActive: {
+    backgroundColor: '#059669',
+    borderColor: '#047857',
+  },
+  zeroInterestBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  zeroInterestBtnTextActive: {
+    color: '#FFFFFF',
+  },
+  switchTrack: {
+    width: 24,
+    height: 14,
+    borderRadius: 8,
+    backgroundColor: '#CBD5E1',
+    padding: 1.5,
+    justifyContent: 'center',
+  },
+  switchTrackActive: {
+    backgroundColor: '#064E3B',
+    alignItems: 'flex-end',
+  },
+  switchThumb: {
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  switchThumbActive: {
+    backgroundColor: '#FFFFFF',
+  },
+  zeroInterestBanner: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+  zeroInterestBannerText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#065F46',
+  },
   chipsRow: {
     flexDirection: 'row',
     gap: 7,
@@ -2430,6 +2596,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  bankChipZero: {
+    borderColor: '#10B981',
+    backgroundColor: '#ECFDF5',
+  },
   bankChipText: {
     fontSize: 13.5,
     fontWeight: '700',
@@ -2437,6 +2607,10 @@ const styles = StyleSheet.create({
   },
   bankChipTextActive: {
     color: '#fff',
+    fontWeight: '800',
+  },
+  bankChipTextZero: {
+    color: '#047857',
     fontWeight: '800',
   },
   monthChip: {

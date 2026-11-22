@@ -45,24 +45,29 @@ export interface CreditCalculationResult {
 export function calculateCredit(
   amount: number,
   bank: CreditBank,
-  months: number
+  months: number,
+  isZeroInterest: boolean = false
 ): CreditCalculationResult {
   const base = Math.max(0, amount);
-  const exactMarkup = MARKUP_RATES[bank]?.[months] ?? 0;
-  const contractTotal = Number((base * (1 + exactMarkup)).toFixed(2));
-  const interestAmount = Number((contractTotal - base).toFixed(2));
+  const exactMarkup = isZeroInterest ? 0 : (MARKUP_RATES[bank]?.[months] ?? 0);
+  const contractTotal = isZeroInterest ? base : Number((base * (1 + exactMarkup)).toFixed(2));
+  const interestAmount = isZeroInterest ? 0 : Number((contractTotal - base).toFixed(2));
   const markupPercent = exactMarkup * 100;
   const monthlyPayment = months > 0 ? Number((Math.ceil(contractTotal) / months).toFixed(2)) : contractTotal;
-  const bankSentAmount = bank === 'Kapital Kredit 35'
-    ? Math.ceil(base * 1.0575)
-    : Math.ceil(contractTotal);
+  const bankSentAmount = isZeroInterest
+    ? Math.ceil(contractTotal)
+    : (bank === 'Kapital Kredit 35'
+        ? Math.ceil(base * 1.0575)
+        : Math.ceil(contractTotal));
 
-  const dBank = BANK_RATES[bank]?.[months] || 0;
-  const grossAmount = bank === 'Kapital Kredit 35'
-    ? bankSentAmount
-    : (bank.toLowerCase() === 'birkart' || bank.toLowerCase() === 'tamkart'
-        ? Math.ceil(contractTotal)
-        : Math.ceil(contractTotal) * (1 - dBank));
+  const dBank = isZeroInterest ? 0 : (BANK_RATES[bank]?.[months] || 0);
+  const grossAmount = isZeroInterest
+    ? Math.ceil(contractTotal)
+    : (bank === 'Kapital Kredit 35'
+        ? bankSentAmount
+        : (bank.toLowerCase() === 'birkart' || bank.toLowerCase() === 'tamkart'
+            ? Math.ceil(contractTotal)
+            : Math.ceil(contractTotal) * (1 - dBank)));
   const alverAmount = base;
 
   return {
