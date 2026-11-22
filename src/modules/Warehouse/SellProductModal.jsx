@@ -1797,66 +1797,6 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         />
                       </div>
 
-                      {/* Banklar üzrə 0% Faizsiz Aksiya Paneli (Hər bankın yanında переключатель) */}
-                      <div className="p-3 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 rounded-xl border border-blue-100/80 space-y-2">
-                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-gray-600 px-0.5">
-                          <span>{i18n.language === 'az' ? 'Banklar üzrə 0% Faizsiz Aksiya' : '0% Беспроцентная акция банков'}</span>
-                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                            {Object.values(zeroInterestBanks).filter(Boolean).length} {i18n.language === 'az' ? 'bank faizsizdir' : 'банк(ов) 0%'}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                          {BANK_LIST.map((bank) => {
-                            const isZero = Boolean(zeroInterestBanks[bank]);
-                            const isSelected = selectedBank === bank;
-                            return (
-                              <div
-                                key={bank}
-                                onClick={() => setSelectedBank(bank)}
-                                className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
-                                  isSelected
-                                    ? isZero 
-                                      ? 'bg-emerald-50/90 border-emerald-300 ring-1 ring-emerald-400' 
-                                      : 'bg-blue-50 border-blue-300 ring-1 ring-blue-400'
-                                    : isZero
-                                      ? 'bg-emerald-50/40 border-emerald-200/60 hover:bg-emerald-50/70'
-                                      : 'bg-white border-gray-100 hover:border-gray-200'
-                                }`}
-                              >
-                                <div className="flex items-center gap-1.5 min-w-0 pr-1">
-                                  <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
-                                    {bank}
-                                  </span>
-                                  {isZero && (
-                                    <span className="shrink-0 text-[8.5px] font-black px-1.5 py-0.5 rounded-md bg-emerald-600 text-white leading-none">
-                                      0%
-                                    </span>
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleZeroInterest(bank);
-                                  }}
-                                  className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                    isZero ? 'bg-emerald-500' : 'bg-gray-300'
-                                  }`}
-                                  title={`${bank}: ${isZero ? 'Faizsiz rejimi söndür' : '0% Faizsiz aktivləşdir'}`}
-                                >
-                                  <span
-                                    className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                      isZero ? 'translate-x-3' : 'translate-x-0'
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
                       <div>
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
                           {i18n.language === 'az' ? 'Kredit müddəti' : 'Срок кредита'}
