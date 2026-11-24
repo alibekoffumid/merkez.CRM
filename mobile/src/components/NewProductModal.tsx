@@ -301,10 +301,6 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
                     placeholder="Məsələn: +994 50 123 45 67"
                   />
                 </View>
-
-                <Text style={styles.secondHandNote}>
-                  ℹ️ Alış qiyməti kassa xərclərinə (Çıxılan) əlavə ediləcək və Z-hesabatda əks olunacaq.
-                </Text>
               </View>
             ) : (
               <>

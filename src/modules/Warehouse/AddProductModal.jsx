@@ -490,11 +490,6 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                               />
                             </div>
                           </div>
-                          <p className="text-[11px] text-amber-700 font-medium">
-                            {i18n.language === 'az'
-                              ? 'ℹ️ Alış qiyməti avtomatik olaraq kassa xərclərinə (Çıxılan) əlavə ediləcək və Z-hesabatda əks olunacaq.'
-                              : 'ℹ️ Сумма покупки автоматически запишется в кассовые расходы (Çıxılan) и отобразится в Z-отчёте.'}
-                          </p>
                         </div>
                       </div>
                     ) : (
