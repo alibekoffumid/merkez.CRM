@@ -26,11 +26,16 @@ import {
   ShieldCheck,
   Receipt,
   RotateCcw,
-  ArrowLeftRight
+  ArrowLeftRight,
+  Edit2,
+  Percent,
+  Save,
+  Loader2
 } from 'lucide-react';
 import ModalPortal from '../../components/Common/ModalPortal';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
+import { supabase } from '../../supabaseClient';
 import { printThermalReceipt57mm } from './thermalReceiptService';
 
 export const formatUnitName = (rawUnit, lang = 'az') => {
@@ -421,30 +426,160 @@ const SaleDetailModal = ({
   onDelete, 
   canDelete = false,
   currentStaff,
-  onOpenReturnModal
+  onOpenReturnModal,
+  onUpdateSale
 }) => {
   const { t, i18n } = useTranslation();
   const [copiedField, setCopiedField] = useState(null);
+  const [currentSale, setCurrentSale] = useState(sale);
+  const [isEditingDiscount, setIsEditingDiscount] = useState(false);
+  const [discountType, setDiscountType] = useState('amount'); // 'amount' (₼) or 'percent' (%)
+  const [discountInput, setDiscountInput] = useState('');
+  const [savingDiscount, setSavingDiscount] = useState(false);
+
+  React.useEffect(() => {
+    setCurrentSale(sale);
+    setIsEditingDiscount(false);
+    setDiscountInput('');
+  }, [sale]);
 
   // Strictly Owner (!currentStaff) or Admin role can view cost prices & profits
   const isAdmin = !currentStaff || currentStaff?.role === 'Admin' || currentStaff?.role?.toLowerCase() === 'admin' || currentStaff?.role?.toLowerCase() === 'owner';
 
   if (!isOpen || !sale) return null;
 
-  const prod = sale.products;
-  const quantity = Math.abs(parseFloat(sale.quantity) || 1);
-  const saleInfo = parseSaleNote(sale.notes, prod, quantity, isAdmin);
+  const activeSale = currentSale || sale;
+  const prod = activeSale.products;
+  const quantity = Math.abs(parseFloat(activeSale.quantity) || 1);
+  const saleInfo = parseSaleNote(activeSale.notes, prod, quantity, isAdmin);
   const unitLabel = formatUnitName(prod?.unit, i18n.language);
   
   // Format Date and Time
-  const dateObj = new Date(sale.issued_at || sale.created_at || Date.now());
-  const timeObj = sale.created_at ? new Date(sale.created_at) : (sale.issued_at && sale.issued_at.includes('T') ? new Date(sale.issued_at) : dateObj);
+  const dateObj = new Date(activeSale.issued_at || activeSale.created_at || Date.now());
+  const timeObj = activeSale.created_at ? new Date(activeSale.created_at) : (activeSale.issued_at && activeSale.issued_at.includes('T') ? new Date(activeSale.issued_at) : dateObj);
   const formattedDate = dateObj.toLocaleDateString(i18n.language === 'az' ? 'az-AZ' : i18n.language === 'ru' ? 'ru-RU' : 'en-US', {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   });
   const formattedTime = timeObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  const originalGross = Number(saleInfo.originalGross) || (saleInfo.unitPrice * quantity);
+  let calculatedDiscountAmount = 0;
+  const numInput = parseFloat(discountInput) || 0;
+  if (discountType === 'percent') {
+    calculatedDiscountAmount = Number(((originalGross * numInput) / 100).toFixed(2));
+  } else {
+    calculatedDiscountAmount = Number(numInput.toFixed(2));
+  }
+  calculatedDiscountAmount = Math.max(0, Math.min(originalGross, calculatedDiscountAmount));
+  const previewNewTotal = Math.max(0, Number((originalGross - calculatedDiscountAmount).toFixed(2)));
+
+  const handleStartEditDiscount = () => {
+    setIsEditingDiscount(true);
+    setDiscountType('amount');
+    setDiscountInput(saleInfo.discount > 0 ? String(saleInfo.discount) : '');
+  };
+
+  const handleSaveDiscount = async () => {
+    if (calculatedDiscountAmount < 0 || isNaN(calculatedDiscountAmount)) {
+      toast.error('Düzgün endirim daxil edin');
+      return;
+    }
+
+    setSavingDiscount(true);
+    try {
+      const rawNotes = activeSale.notes || '';
+      let updatedNotes = rawNotes;
+
+      // 1. Update or insert [Endirim: ₼...] tag
+      if (calculatedDiscountAmount > 0) {
+        if (/\[(?:Endirim|Скидка|Discount):[^\]]+\]/i.test(updatedNotes)) {
+          updatedNotes = updatedNotes.replace(/\[(?:Endirim|Скидка|Discount):[^\]]+\]/gi, `[Endirim: ₼${calculatedDiscountAmount.toFixed(2)}]`);
+        } else if (updatedNotes.includes('[Qiymət:')) {
+          updatedNotes = updatedNotes.replace(/(\[Qiymət:[^\]]+\])/i, `$1 [Endirim: ₼${calculatedDiscountAmount.toFixed(2)}]`);
+        } else if (updatedNotes.includes('[Məbləğ:')) {
+          updatedNotes = updatedNotes.replace(/(\[Məbləğ:[^\]]+\])/i, `[Endirim: ₼${calculatedDiscountAmount.toFixed(2)}] $1`);
+        } else {
+          updatedNotes += ` [Endirim: ₼${calculatedDiscountAmount.toFixed(2)}]`;
+        }
+      } else {
+        // If 0 discount, remove any existing endirim tag
+        updatedNotes = updatedNotes.replace(/\s*\[(?:Endirim|Скидка|Discount):[^\]]+\]/gi, '');
+      }
+
+      // 2. Update [Məbləğ: ₼...] or [Cəmi: ₼...] tag
+      if (/\[Məbləğ:[^\]]+\]/i.test(updatedNotes)) {
+        updatedNotes = updatedNotes.replace(/\[Məbləğ:[^\]]+\]/gi, `[Məbləğ: ₼${previewNewTotal.toFixed(2)}]`);
+      } else if (/\[Cəmi:[^\]]+\]/i.test(updatedNotes)) {
+        updatedNotes = updatedNotes.replace(/\[Cəmi:[^\]]+\]/gi, `[Cəmi: ₼${previewNewTotal.toFixed(2)}]`);
+      } else {
+        updatedNotes += ` [Məbləğ: ₼${previewNewTotal.toFixed(2)}]`;
+      }
+
+      // 3. Update stock_dispatches WITHOUT altering issued_at or created_at
+      const { data: updatedRecord, error: dispError } = await supabase
+        .from('stock_dispatches')
+        .update({
+          notes: updatedNotes
+        })
+        .eq('id', activeSale.id)
+        .select('*, products(id, name, barcode, category_id, price, purchase_price, unit, image_url, stock_quantity)')
+        .single();
+
+      if (dispError) throw dispError;
+
+      // 4. Update linked retail_sales if present
+      const saleIdMatch = rawNotes.match(/\[SaleID:\s*([a-zA-Z0-9_-]+)\]/i);
+      const linkedSaleId = saleIdMatch ? saleIdMatch[1] : null;
+
+      if (linkedSaleId) {
+        try {
+          await supabase
+            .from('retail_sales')
+            .update({
+              total_amount: previewNewTotal,
+              discount_amount: calculatedDiscountAmount
+            })
+            .eq('id', linkedSaleId);
+
+          await supabase
+            .from('retail_sale_items')
+            .update({
+              total: previewNewTotal,
+              discount_amount: calculatedDiscountAmount,
+              price_at_sale: quantity > 0 ? (previewNewTotal / quantity) : previewNewTotal
+            })
+            .eq('sale_id', linkedSaleId)
+            .eq('product_id', activeSale.product_id);
+        } catch (rErr) {
+          console.warn('Could not update linked retail_sales:', rErr);
+        }
+      }
+
+      const refreshedSale = {
+        ...activeSale,
+        notes: updatedNotes,
+        ...(updatedRecord || {})
+      };
+      setCurrentSale(refreshedSale);
+      setIsEditingDiscount(false);
+      toast.success(
+        i18n.language === 'az' ? 'Endirim uğurla tətbiq edildi! Çek və hesabat məbləği yeniləndi.' :
+        i18n.language === 'ru' ? 'Скидка успешно обновлена! Чек и отчёты пересчитаны.' :
+        'Discount successfully updated!'
+      );
+
+      if (onUpdateSale) {
+        onUpdateSale(refreshedSale);
+      }
+    } catch (err) {
+      console.error('Error updating discount:', err);
+      toast.error(err.message || 'Xəta baş verdi');
+    } finally {
+      setSavingDiscount(false);
+    }
+  };
 
   const handleCopy = (text, fieldName) => {
     if (!text) return;
@@ -945,12 +1080,134 @@ const SaleDetailModal = ({
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-gray-200/60 flex items-center justify-between text-xs">
-                  <span className="font-black text-gray-700">{i18n.language === 'az' ? 'Yekun məbləğ:' : 'Общая сумма:'}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-gray-700">{i18n.language === 'az' ? 'Yekun məbləğ:' : 'Общая сумма:'}</span>
+                    {saleInfo.status !== 'refunded' && (
+                      <button
+                        type="button"
+                        onClick={handleStartEditDiscount}
+                        className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 transition-colors"
+                        title={i18n.language === 'az' ? 'Endirimi redaktə et' : 'Редактировать скидку'}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        <span>{saleInfo.discount > 0 ? (i18n.language === 'az' ? 'Endirimi dəyiş' : 'Изменить скидку') : (i18n.language === 'az' ? '+ Endirim əlavə et' : '+ Скидка')}</span>
+                      </button>
+                    )}
+                  </div>
                   <span className="font-black text-emerald-700 text-sm">₼{saleInfo.totalAmount.toFixed(2)}</span>
                 </div>
               </div>
 
             </div>
+
+            {/* Inline Discount Editor */}
+            {isEditingDiscount && (
+              <div className="bg-blue-50/80 border-2 border-blue-300 rounded-2xl p-4 space-y-3.5 shadow-sm animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between border-b border-blue-200/80 pb-2.5">
+                  <div className="flex items-center gap-2 text-blue-900 font-bold text-sm">
+                    <Tag className="w-4 h-4 text-blue-600" />
+                    <span>{i18n.language === 'az' ? 'Satış Endiriminin Redaktəsi' : 'Редактирование скидки по чеку'}</span>
+                  </div>
+                  <div className="flex items-center bg-white rounded-lg p-0.5 border border-blue-200">
+                    <button
+                      type="button"
+                      onClick={() => setDiscountType('amount')}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                        discountType === 'amount' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      ₼ Məbləğ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDiscountType('percent')}
+                      className={`px-2.5 py-1 text-xs font-bold rounded-md transition-all ${
+                        discountType === 'percent' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      % Faiz
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                  <div className="bg-white/80 p-3 rounded-xl border border-blue-100">
+                    <span className="block text-[11px] font-bold text-gray-400 uppercase mb-0.5">
+                      {i18n.language === 'az' ? 'İlkin Məbləğ' : 'Без скидки'}
+                    </span>
+                    <span className="text-sm font-black text-gray-800">
+                      ₼{originalGross.toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-blue-900 uppercase mb-1">
+                      {discountType === 'amount' 
+                        ? (i18n.language === 'az' ? 'Endirim məbləği (₼)' : 'Сумма скидки (₼)')
+                        : (i18n.language === 'az' ? 'Endirim faizi (%)' : 'Процент скидки (%)')}
+                    </label>
+                    <div className="flex items-center bg-white border-2 border-blue-300 rounded-xl px-3 py-2 shadow-xs focus-within:border-blue-600">
+                      <span className="text-xs font-black text-gray-400 mr-2 select-none">
+                        {discountType === 'amount' ? '₼' : '%'}
+                      </span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max={discountType === 'amount' ? originalGross : 100}
+                        autoFocus
+                        className="w-full bg-transparent text-sm font-bold text-gray-900 focus:outline-none"
+                        placeholder="0.00"
+                        value={discountInput}
+                        onChange={(e) => setDiscountInput(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-50/80 p-3 rounded-xl border border-emerald-200">
+                    <span className="block text-[11px] font-bold text-emerald-800 uppercase mb-0.5">
+                      {i18n.language === 'az' ? 'Yeni Yekun Məbləğ' : 'Новая сумма чека'}
+                    </span>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-base font-black text-emerald-700">
+                        ₼{previewNewTotal.toFixed(2)}
+                      </span>
+                      {calculatedDiscountAmount > 0 && (
+                        <span className="text-[11px] font-bold text-rose-600">
+                          (-₼{calculatedDiscountAmount.toFixed(2)})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2.5 border-t border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <p className="text-[11px] text-blue-800 font-medium leading-relaxed">
+                    {i18n.language === 'az'
+                      ? `ℹ️ Çekin tarixi (${formattedDate}, ${formattedTime}) dəyişməyəcək, hesabatlarda və kassada məbləğ avtomatik yenilənəcək.`
+                      : `ℹ️ Дата чека (${formattedDate}, ${formattedTime}) останется прежней, а отчёты и касса пересчитаются.`}
+                  </p>
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingDiscount(false)}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-200/60 transition-colors"
+                    >
+                      {i18n.language === 'az' ? 'Ləğv et' : 'Отмена'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingDiscount}
+                      onClick={handleSaveDiscount}
+                      className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 flex items-center gap-1.5 disabled:opacity-50"
+                    >
+                      {savingDiscount ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                      <span>{i18n.language === 'az' ? 'Yadda Saxla' : 'Сохранить'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* 4. Notes Section (if cleanNote exists) */}
             {saleInfo.cleanNote && (
@@ -992,6 +1249,17 @@ const SaleDetailModal = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {saleInfo.status !== 'refunded' && (
+                <button
+                  type="button"
+                  onClick={handleStartEditDiscount}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-blue-600" />
+                  <span>{i18n.language === 'az' ? 'Endirimi Redaktə Et' : i18n.language === 'ru' ? 'Редактировать скидку' : 'Edit Discount'}</span>
+                </button>
+              )}
+
               {saleInfo.status !== 'refunded' && saleInfo.status !== 'exchanged' && onOpenReturnModal && (
                 <button
                   type="button"

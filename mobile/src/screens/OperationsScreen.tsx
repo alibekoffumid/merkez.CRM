@@ -978,6 +978,7 @@ export const OperationsScreen: React.FC = () => {
           sale={selectedSaleDetail}
           onClose={() => setSelectedSaleDetail(null)}
           onDelete={(sale) => handleOpenDelete(sale, 'sale')}
+          onUpdateSale={() => { loadAllData(true); }}
           canDelete={canDeleteHistory}
           permissions={permissions}
         />

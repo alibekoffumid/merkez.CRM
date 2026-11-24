@@ -4921,6 +4921,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         canDelete={canDeleteHistory}
         currentStaff={currentStaff}
         onOpenReturnModal={(sale) => setSaleToReturn(sale)}
+        onUpdateSale={() => { fetchDispatches(); }}
       />
 
       <ProductReturnModal

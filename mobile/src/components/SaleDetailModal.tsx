@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import {
   X,
@@ -29,11 +30,14 @@ import {
   FileText,
   Trash2,
   Printer,
+  Edit2,
+  Check,
 } from 'lucide-react-native';
 import { StockSaleItem, StaffPermissions, Product } from '../types';
 import { productService } from '../services/productService';
 import { parseSaleNote, getChannelBadge } from '../utils/saleUtils';
 import { receiptService, SaleReceiptData } from '../services/receiptService';
+import { supabase } from '../config/supabase';
 
 interface SaleDetailModalProps {
   visible: boolean;
@@ -42,6 +46,7 @@ interface SaleDetailModalProps {
   onDelete?: (sale: StockSaleItem) => void;
   canDelete?: boolean;
   permissions: StaffPermissions;
+  onUpdateSale?: (sale: StockSaleItem) => void;
 }
 
 export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
@@ -51,16 +56,31 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
   onDelete,
   canDelete = false,
   permissions,
+  onUpdateSale,
 }) => {
   if (!sale) return null;
+
+  const [currentSale, setCurrentSale] = useState<StockSaleItem | null>(sale);
+  const [isEditingDiscount, setIsEditingDiscount] = useState(false);
+  const [discountType, setDiscountType] = useState<'amount' | 'percent'>('amount');
+  const [discountInput, setDiscountInput] = useState('');
+  const [savingDiscount, setSavingDiscount] = useState(false);
+
+  useEffect(() => {
+    setCurrentSale(sale);
+    setIsEditingDiscount(false);
+    setDiscountInput('');
+  }, [sale]);
+
+  const activeSale = currentSale || sale;
 
   // Resolve full product data
   const cachedProducts = productService.getCachedProducts() || [];
   const prod: Product | undefined =
-    sale.product || cachedProducts.find((p) => p.id === sale.product_id);
+    activeSale.product || cachedProducts.find((p) => p.id === activeSale.product_id);
 
-  const quantity = Math.abs(Number(sale.quantity) || 1);
-  const saleInfo = parseSaleNote(sale.notes, prod, quantity);
+  const quantity = Math.abs(Number(activeSale.quantity) || 1);
+  const saleInfo = parseSaleNote(activeSale.notes, prod, quantity);
   const unitLabel = prod?.unit || 'əd.';
   const channelBadge = getChannelBadge(saleInfo.channel);
 
@@ -71,22 +91,134 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
   const canViewStock = permissions.canViewStockStats;
 
   // Format date and time matching web exactly
-  const createdDate = sale.created_at ? new Date(sale.created_at) : null;
-  const issuedDate = sale.issued_at ? new Date(sale.issued_at) : null;
+  const createdDate = activeSale.created_at ? new Date(activeSale.created_at) : null;
+  const issuedDate = activeSale.issued_at ? new Date(activeSale.issued_at) : null;
   const primaryDate = createdDate && !isNaN(createdDate.getTime()) ? createdDate : (issuedDate || new Date());
 
   const dateStr = !isNaN(primaryDate.getTime())
     ? primaryDate.toLocaleDateString('ru-RU')
-    : (sale.issued_at || '—');
+    : (activeSale.issued_at || '—');
 
   const timeStr = createdDate && !isNaN(createdDate.getTime())
     ? createdDate.toLocaleTimeString('ru-RU', {
         hour: '2-digit',
         minute: '2-digit',
       })
-    : (issuedDate && !isNaN(issuedDate.getTime()) && (sale.issued_at?.includes('T') || sale.issued_at?.includes(':'))
+    : (issuedDate && !isNaN(issuedDate.getTime()) && (activeSale.issued_at?.includes('T') || activeSale.issued_at?.includes(':'))
         ? issuedDate.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
         : '');
+
+  const originalGross = Number(saleInfo.originalGross) || (saleInfo.unitPrice * quantity);
+  let calculatedDiscountAmount = 0;
+  const numInput = parseFloat(discountInput) || 0;
+  if (discountType === 'percent') {
+    calculatedDiscountAmount = Number(((originalGross * numInput) / 100).toFixed(2));
+  } else {
+    calculatedDiscountAmount = Number(numInput.toFixed(2));
+  }
+  calculatedDiscountAmount = Math.max(0, Math.min(originalGross, calculatedDiscountAmount));
+  const previewNewTotal = Math.max(0, Number((originalGross - calculatedDiscountAmount).toFixed(2)));
+
+  const handleStartEditDiscount = () => {
+    setIsEditingDiscount(true);
+    setDiscountType('amount');
+    setDiscountInput(saleInfo.discount > 0 ? String(saleInfo.discount) : '');
+  };
+
+  const handleSaveDiscount = async () => {
+    if (calculatedDiscountAmount < 0 || isNaN(calculatedDiscountAmount)) {
+      Alert.alert('Xəta', 'Düzgün endirim daxil edin');
+      return;
+    }
+
+    setSavingDiscount(true);
+    try {
+      const rawNotes = activeSale.notes || '';
+      let updatedNotes = rawNotes;
+
+      // 1. Update or insert [Endirim: ₼...] tag
+      if (calculatedDiscountAmount > 0) {
+        if (/\[(?:Endirim|Скидка|Discount):[^\]]+\]/i.test(updatedNotes)) {
+          updatedNotes = updatedNotes.replace(/\[(?:Endirim|Скидка|Discount):[^\]]+\]/gi, `[Endirim: ₼${calculatedDiscountAmount.toFixed(2)}]`);
+        } else if (updatedNotes.includes('[Qiymət:')) {
+          updatedNotes = updatedNotes.replace(/(\[Qiymət:[^\]]+\])/i, `$1 [Endirim: ₼${calculatedDiscountAmount.toFixed(2)}]`);
+        } else if (updatedNotes.includes('[Məbləğ:')) {
+          updatedNotes = updatedNotes.replace(/(\[Məbləğ:[^\]]+\])/i, `[Endirim: ₼${calculatedDiscountAmount.toFixed(2)}] $1`);
+        } else {
+          updatedNotes += ` [Endirim: ₼${calculatedDiscountAmount.toFixed(2)}]`;
+        }
+      } else {
+        updatedNotes = updatedNotes.replace(/\s*\[(?:Endirim|Скидка|Discount):[^\]]+\]/gi, '');
+      }
+
+      // 2. Update [Məbləğ: ₼...] or [Cəmi: ₼...] tag
+      if (/\[Məbləğ:[^\]]+\]/i.test(updatedNotes)) {
+        updatedNotes = updatedNotes.replace(/\[Məbləğ:[^\]]+\]/gi, `[Məbləğ: ₼${previewNewTotal.toFixed(2)}]`);
+      } else if (/\[Cəmi:[^\]]+\]/i.test(updatedNotes)) {
+        updatedNotes = updatedNotes.replace(/\[Cəmi:[^\]]+\]/gi, `[Cəmi: ₼${previewNewTotal.toFixed(2)}]`);
+      } else {
+        updatedNotes += ` [Məbləğ: ₼${previewNewTotal.toFixed(2)}]`;
+      }
+
+      // 3. Update stock_dispatches WITHOUT altering issued_at or created_at
+      const { data: updatedRecord, error: dispError } = await supabase
+        .from('stock_dispatches')
+        .update({
+          notes: updatedNotes
+        })
+        .eq('id', activeSale.id)
+        .select('*')
+        .single();
+
+      if (dispError) throw dispError;
+
+      // 4. Update linked retail_sales if present
+      const saleIdMatch = rawNotes.match(/\[SaleID:\s*([a-zA-Z0-9_-]+)\]/i);
+      const linkedSaleId = saleIdMatch ? saleIdMatch[1] : null;
+
+      if (linkedSaleId) {
+        try {
+          await supabase
+            .from('retail_sales')
+            .update({
+              total_amount: previewNewTotal,
+              discount_amount: calculatedDiscountAmount
+            })
+            .eq('id', linkedSaleId);
+
+          await supabase
+            .from('retail_sale_items')
+            .update({
+              total: previewNewTotal,
+              discount_amount: calculatedDiscountAmount,
+              price_at_sale: quantity > 0 ? (previewNewTotal / quantity) : previewNewTotal
+            })
+            .eq('sale_id', linkedSaleId)
+            .eq('product_id', activeSale.product_id);
+        } catch (rErr) {
+          console.warn('Could not update linked retail_sales:', rErr);
+        }
+      }
+
+      const refreshedSale: StockSaleItem = {
+        ...activeSale,
+        notes: updatedNotes,
+        ...(updatedRecord || {})
+      };
+      setCurrentSale(refreshedSale);
+      setIsEditingDiscount(false);
+      Alert.alert('Uğur', 'Endirim uğurla tətbiq edildi! Çek və hesabat məbləği yeniləndi.');
+
+      if (onUpdateSale) {
+        onUpdateSale(refreshedSale);
+      }
+    } catch (err: any) {
+      console.error('Error updating discount in mobile:', err);
+      Alert.alert('Xəta', err.message || 'Xəta baş verdi');
+    } finally {
+      setSavingDiscount(false);
+    }
+  };
 
   const handleCall = (phone: string) => {
     const cleanPhone = phone.replace(/[^\d+]/g, '');
@@ -419,7 +551,18 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
                 <View style={styles.divider} />
 
                 <View style={styles.dataRow}>
-                  <Text style={styles.totalLabel}>Yekun ödənən məbləğ:</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.totalLabel}>Yekun ödənən məbləğ:</Text>
+                    <TouchableOpacity
+                      onPress={handleStartEditDiscount}
+                      style={styles.editDiscountBtnMini}
+                    >
+                      <Edit2 size={10} color="#2563EB" />
+                      <Text style={styles.editDiscountBtnMiniText}>
+                        {saleInfo.discount > 0 ? 'Endirimi dəyiş' : '+ Endirim'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                   <Text style={styles.totalVal}>₼{saleInfo.totalAmount.toFixed(2)}</Text>
                 </View>
 
@@ -446,6 +589,93 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
                 ) : null}
               </View>
             </View>
+
+            {/* Inline Discount Editor */}
+            {isEditingDiscount ? (
+              <View style={styles.editDiscountCard}>
+                <View style={styles.editDiscountHeader}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Tag size={14} color="#1D4ED8" />
+                    <Text style={styles.editDiscountTitle}>Endirimi redaktə et</Text>
+                  </View>
+                  <View style={styles.toggleRow}>
+                    <TouchableOpacity
+                      onPress={() => setDiscountType('amount')}
+                      style={[styles.toggleBtn, discountType === 'amount' && styles.toggleBtnActive]}
+                    >
+                      <Text style={[styles.toggleBtnText, discountType === 'amount' && styles.toggleBtnTextActive]}>
+                        ₼ Məbləğ
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setDiscountType('percent')}
+                      style={[styles.toggleBtn, discountType === 'percent' && styles.toggleBtnActive]}
+                    >
+                      <Text style={[styles.toggleBtnText, discountType === 'percent' && styles.toggleBtnTextActive]}>
+                        % Faiz
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.editDiscountInputsRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.smallMetaLabel}>İlkin Məbləğ</Text>
+                    <Text style={styles.grossText}>₼{originalGross.toFixed(2)}</Text>
+                  </View>
+
+                  <View style={{ flex: 1.4 }}>
+                    <Text style={styles.smallMetaLabel}>
+                      {discountType === 'amount' ? 'Endirim (₼)' : 'Endirim (%)'}
+                    </Text>
+                    <View style={styles.discInputWrap}>
+                      <Text style={styles.discInputPrefix}>
+                        {discountType === 'amount' ? '₼' : '%'}
+                      </Text>
+                      <TextInput
+                        style={styles.discTextInput}
+                        value={discountInput}
+                        onChangeText={setDiscountInput}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00"
+                      />
+                    </View>
+                  </View>
+
+                  <View style={{ flex: 1.2, alignItems: 'flex-end' }}>
+                    <Text style={styles.smallMetaLabel}>Yeni Yekun</Text>
+                    <Text style={styles.newTotalText}>₼{previewNewTotal.toFixed(2)}</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.editDiscountNotice}>
+                  ℹ️ Çekin tarixi ({dateStr}, {timeStr}) dəyişməyəcək, hesabatlarda və kassada məbləğ yenilənəcək.
+                </Text>
+
+                <View style={styles.editDiscountActions}>
+                  <TouchableOpacity
+                    style={styles.cancelEditBtn}
+                    onPress={() => setIsEditingDiscount(false)}
+                  >
+                    <Text style={styles.cancelEditBtnText}>Ləğv et</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.saveEditBtn}
+                    onPress={handleSaveDiscount}
+                    disabled={savingDiscount}
+                  >
+                    {savingDiscount ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Check size={14} color="#fff" />
+                        <Text style={styles.saveEditBtnText}>Yadda saxla</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : null}
 
             {/* 5. Custom Notes */}
             {saleInfo.cleanNote ? (
@@ -485,7 +715,16 @@ export const SaleDetailModal: React.FC<SaleDetailModalProps> = ({
               <View />
             )}
 
-            <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <TouchableOpacity
+                style={styles.editDiscountBtn}
+                onPress={handleStartEditDiscount}
+                activeOpacity={0.8}
+              >
+                <Edit2 size={14} color="#2563EB" />
+                <Text style={styles.editDiscountBtnText}>Endirim</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.reprintBtn}
                 onPress={handleReprint}
@@ -999,5 +1238,165 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
+  },
+  editDiscountBtnMini: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  editDiscountBtnMiniText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#2563EB',
+  },
+  editDiscountBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+  editDiscountBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#2563EB',
+  },
+  editDiscountCard: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1.5,
+    borderColor: '#93C5FD',
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 12,
+    gap: 10,
+  },
+  editDiscountHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#BFDBFE',
+    paddingBottom: 8,
+  },
+  editDiscountTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1E40AF',
+    textTransform: 'uppercase',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    backgroundColor: '#DBEAFE',
+    borderRadius: 8,
+    padding: 2,
+  },
+  toggleBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  toggleBtnActive: {
+    backgroundColor: '#2563EB',
+  },
+  toggleBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1E40AF',
+  },
+  toggleBtnTextActive: {
+    color: '#FFFFFF',
+  },
+  editDiscountInputsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  smallMetaLabel: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
+  grossText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#374151',
+  },
+  discInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#93C5FD',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+  },
+  discInputPrefix: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#9CA3AF',
+    marginRight: 4,
+  },
+  discTextInput: {
+    flex: 1,
+    paddingVertical: 6,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  newTotalText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#059669',
+  },
+  editDiscountNotice: {
+    fontSize: 10,
+    color: '#1E40AF',
+    lineHeight: 14,
+    fontWeight: '500',
+  },
+  editDiscountActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#BFDBFE',
+    paddingTop: 8,
+  },
+  cancelEditBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
+  },
+  cancelEditBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#4B5563',
+  },
+  saveEditBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#2563EB',
+  },
+  saveEditBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
