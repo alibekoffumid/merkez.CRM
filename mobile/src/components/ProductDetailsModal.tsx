@@ -29,6 +29,7 @@ import { productService } from '../services/productService';
 import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
 import { CategoryPickerModal } from './CategoryPickerModal';
 import { parseProductAttributes, cleanAttributesForSave } from '../utils/productAttributes';
+import { formatCategoriesHierarchically } from '../utils/categoryUtils';
 
 interface ProductDetailsModalProps {
   product: Product | null;
@@ -124,6 +125,10 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     }
   }, [product, allCategories]);
 
+  const hierarchicalCategories = useMemo(() => {
+    return formatCategoriesHierarchically(allCategories);
+  }, [allCategories]);
+
   // Resolve exact current category name
   const currentCategoryName = useMemo(() => {
     if (selectedCategoryId) {
@@ -135,6 +140,14 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
     }
     return 'Kateqoriyasız';
   }, [selectedCategoryId, allCategories, product.category]);
+
+  const currentCategoryColor = useMemo(() => {
+    if (selectedCategoryId) {
+      const found = hierarchicalCategories.find((c) => c.id === selectedCategoryId);
+      if (found?.color) return found.color;
+    }
+    return '#10B981';
+  }, [selectedCategoryId, hierarchicalCategories]);
 
   const filteredCategories = useMemo(() => {
     if (!categorySearch.trim()) return allCategories;
@@ -386,6 +399,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
               <TouchableOpacity
                 style={[
                   styles.categoryPickerBtn,
+                  selectedCategoryId ? { borderColor: currentCategoryColor } : null,
                   !canManageProducts && { opacity: 0.7 },
                 ]}
                 onPress={() => {
@@ -398,7 +412,19 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                 activeOpacity={0.7}
               >
                 <View style={styles.categoryPickerLeft}>
-                  <Folder size={18} color="#059669" />
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      backgroundColor: selectedCategoryId ? `${currentCategoryColor}18` : '#F3F4F6',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginRight: 2,
+                    }}
+                  >
+                    <Folder size={17} color={selectedCategoryId ? currentCategoryColor : '#9CA3AF'} />
+                  </View>
                   <Text style={styles.categoryPickerValue} numberOfLines={1}>
                     {currentCategoryName}
                   </Text>

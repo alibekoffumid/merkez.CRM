@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Barcode, Sparkles, Check, Plus, RotateCcw, ChevronDown } from 'lucide-react-native';
+import { X, Barcode, Sparkles, Check, Plus, RotateCcw, ChevronDown, Folder } from 'lucide-react-native';
 import { Product, Category, ProductAttribute } from '../types';
 import { productService, getActiveUserId } from '../services/productService';
 import { supabase } from '../config/supabase';
 import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
+import { CategoryPickerModal } from './CategoryPickerModal';
+import { formatCategoriesHierarchically } from '../utils/categoryUtils';
 
 interface NewProductModalProps {
   visible: boolean;
@@ -48,8 +50,27 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   const [criticalStock, setCriticalStock] = useState('5');
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
+  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
   const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
   const [saving, setSaving] = useState(false);
+
+  const cachedProducts = useMemo(() => {
+    return productService.getCachedProducts() || [];
+  }, []);
+
+  const hierarchicalCategories = useMemo(() => {
+    return formatCategoriesHierarchically(categories);
+  }, [categories]);
+
+  const selectedCategoryObj = useMemo(() => {
+    return (
+      hierarchicalCategories.find((c) => c.id === selectedCategoryId) ||
+      categories.find((c) => c.id === selectedCategoryId)
+    );
+  }, [hierarchicalCategories, categories, selectedCategoryId]);
+
+  const categoryColor = (selectedCategoryObj as any)?.color || '#10B981';
+  const categoryName = selectedCategoryObj?.name || 'Kateqoriya seçin...';
 
   useEffect(() => {
     if (visible) {
@@ -225,35 +246,46 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
               </View>
             </View>
 
-            {/* Category selection */}
-            {categories.length > 0 && (
-              <View style={styles.group}>
+            {/* Category selection dropdown */}
+            <View style={styles.group}>
+              <View style={styles.categoryHeaderRow}>
                 <Text style={styles.label}>Kateqoriya</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
-                  {categories.map((c) => (
-                    <TouchableOpacity
-                      key={c.id}
-                      style={[
-                        styles.catPill,
-                        selectedCategoryId === c.id && styles.catPillActive,
-                      ]}
-                      onPress={() =>
-                        setSelectedCategoryId(selectedCategoryId === c.id ? '' : c.id)
-                      }
-                    >
-                      <Text
-                        style={[
-                          styles.catPillText,
-                          selectedCategoryId === c.id && styles.catPillTextActive,
-                        ]}
-                      >
-                        {c.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                {selectedCategoryId ? (
+                  <TouchableOpacity onPress={() => setSelectedCategoryId('')}>
+                    <Text style={styles.categoryClearText}>Təmizlə</Text>
+                  </TouchableOpacity>
+                ) : null}
               </View>
-            )}
+              <TouchableOpacity
+                style={[
+                  styles.categoryPickerBtn,
+                  selectedCategoryId ? { borderColor: categoryColor, backgroundColor: '#FFFFFF' } : null,
+                ]}
+                onPress={() => setCategoryPickerVisible(true)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.categoryPickerLeft}>
+                  <View
+                    style={[
+                      styles.categoryIconWrap,
+                      { backgroundColor: selectedCategoryId ? `${categoryColor}18` : '#F3F4F6' },
+                    ]}
+                  >
+                    <Folder size={18} color={selectedCategoryId ? categoryColor : '#9CA3AF'} />
+                  </View>
+                  <Text
+                    style={[
+                      styles.categoryPickerValue,
+                      !selectedCategoryId && { color: '#9CA3AF', fontWeight: '500' },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {categoryName}
+                  </Text>
+                </View>
+                <ChevronDown size={18} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
 
             {/* Prices */}
             {isSecondHand ? (
@@ -440,6 +472,19 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
             </View>
           </TouchableOpacity>
         </Modal>
+        {/* Category Selection Modal with Full Tree Hierarchy & Depth Colors */}
+        <CategoryPickerModal
+          visible={categoryPickerVisible}
+          onClose={() => setCategoryPickerVisible(false)}
+          categories={categories}
+          selectedCategoryId={selectedCategoryId}
+          onSelectCategory={(id) => {
+            setSelectedCategoryId(id || '');
+          }}
+          products={cachedProducts}
+          canViewStockStats={true}
+          hideAllOption={true}
+        />
       </View>
     </Modal>
   );
@@ -542,27 +587,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  catScroll: {
+  categoryHeaderRow: {
     flexDirection: 'row',
-    marginTop: 4,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
   },
-  catPill: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  catPillActive: {
-    backgroundColor: '#10B981',
-  },
-  catPillText: {
+  categoryClearText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4B5563',
+    color: '#EF4444',
   },
-  catPillTextActive: {
-    color: '#fff',
+  categoryPickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 50,
+  },
+  categoryPickerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  categoryIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  categoryPickerValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#111827',
+    flex: 1,
   },
   row: {
     flexDirection: 'row',
