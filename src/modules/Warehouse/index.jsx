@@ -2389,12 +2389,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                           )}
                         </>
                       )}
-
-                      {isAdmin && (
-                        <button id="tour-import-btn" onClick={() => setShowImport(true)} className="bg-white border text-gray-700 border-gray-200 px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors flex items-center shadow-sm">
-                          <Upload className="w-3.5 h-3.5 mr-1.5" /> {t('warehouse.import')}
-                        </button>
-                      )}
                     </>
                   )}
                 </div>
@@ -2707,7 +2701,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             }}
           />
         ) : activeTab === 'settings' ? (
-          <WarehouseSettings />
+          <WarehouseSettings onOpenImport={() => setShowImport(true)} />
         ) : activeTab === 'history' ? (
           <div className="flex-1 min-h-0 bg-white rounded-lg shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] border border-gray-50 flex flex-col overflow-hidden">
             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto">

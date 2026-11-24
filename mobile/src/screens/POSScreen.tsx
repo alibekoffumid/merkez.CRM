@@ -159,6 +159,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [advanceAmountInput, setAdvanceAmountInput] = useState('');
   const [advanceRecipientInput, setAdvanceRecipientInput] = useState('');
   const [birmarketCategory, setBirmarketCategory] = useState<'Alətlər' | 'Aksesuarlar'>('Alətlər');
+  const [birmarketNoCommission, setBirmarketNoCommission] = useState(false);
   const [processing, setProcessing] = useState(false);
 
   // Printer & Checkout Success Modals
@@ -457,6 +458,14 @@ export const POSScreen: React.FC<POSScreenProps> = ({
 
   const birmarketResult = useMemo(() => {
     const net = discountedBase;
+    if (birmarketNoCommission) {
+      return {
+        gross: Number(net.toFixed(2)),
+        profit: Number(net.toFixed(2)),
+        markupRate: 0,
+        siteCommissionRate: 0,
+      };
+    }
     const gross = birmarketCategory === 'Alətlər'
       ? Math.floor(net * 1.1751 * 100) / 100
       : Number((net * 1.245).toFixed(2));
@@ -468,7 +477,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
       markupRate,
       siteCommissionRate,
     };
-  }, [discountedBase, birmarketCategory]);
+  }, [discountedBase, birmarketCategory, birmarketNoCommission]);
 
   const total =
     paymentMethod === 'CREDIT'
@@ -573,6 +582,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             category: birmarketCategory,
             grossAmount: birmarketResult.gross,
             pureProfit: birmarketResult.profit,
+            noCommission: birmarketNoCommission,
           } : undefined,
         }
       );
@@ -654,6 +664,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                 category: birmarketCategory,
                 grossAmount: birmarketResult.gross,
                 pureProfit: birmarketResult.profit,
+                noCommission: birmarketNoCommission,
               }
             : undefined,
         clientName: formattedClient,
@@ -1611,17 +1622,32 @@ export const POSScreen: React.FC<POSScreenProps> = ({
             {/* If BIRMARKET: Render Category picker and breakdown */}
             {paymentMethod === 'BIRMARKET' && (
               <View style={styles.birmarketCalcBox}>
-                <Text style={styles.birmarketSectionLabel}>Birmarket Kateqoriyası:</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <Text style={styles.birmarketSectionLabel}>Birmarket Kateqoriyası:</Text>
+                  <TouchableOpacity
+                    style={[styles.zeroInterestBtn, birmarketNoCommission && styles.zeroInterestBtnActive]}
+                    onPress={() => setBirmarketNoCommission(!birmarketNoCommission)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.zeroInterestBtnText, birmarketNoCommission && styles.zeroInterestBtnTextActive]}>
+                      {birmarketNoCommission ? '✓ 0% Komissiyasız' : 'Komissiyasız et'}
+                    </Text>
+                    <View style={[styles.switchTrack, birmarketNoCommission && styles.switchTrackActive]}>
+                      <View style={[styles.switchThumb, birmarketNoCommission && styles.switchThumbActive]} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
                 <View style={styles.chipsRow}>
                   <TouchableOpacity
                     style={[styles.birmarketChip, birmarketCategory === 'Alətlər' && styles.birmarketChipActive]}
                     onPress={() => setBirmarketCategory('Alətlər')}
                   >
                     <Text style={[styles.birmarketChipText, birmarketCategory === 'Alətlər' && styles.birmarketChipTextActive]}>
-                      Alətlər (10% komissiya)
+                      {birmarketNoCommission ? 'Alətlər (0%)' : 'Alətlər (10% komissiya)'}
                     </Text>
                     <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Alətlər' && styles.birmarketChipSubTextActive]}>
-                      +17.51% artım
+                      {birmarketNoCommission ? '0% artım' : '+17.51% artım'}
                     </Text>
                   </TouchableOpacity>
 
@@ -1630,10 +1656,10 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     onPress={() => setBirmarketCategory('Aksesuarlar')}
                   >
                     <Text style={[styles.birmarketChipText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipTextActive]}>
-                      Aksesuarlar (15% komissiya)
+                      {birmarketNoCommission ? 'Aksesuarlar (0%)' : 'Aksesuarlar (15% komissiya)'}
                     </Text>
                     <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipSubTextActive]}>
-                      +24.5% artım
+                      {birmarketNoCommission ? '0% artım' : '+24.5% artım'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1646,11 +1672,13 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   </View>
                   <View style={styles.metricRow}>
                     <Text style={styles.metricLabel}>Sayt üçün artım (Markup):</Text>
-                    <Text style={[styles.metricVal, { color: '#E11D48', fontWeight: '700' }]}>+{birmarketResult.markupRate}%</Text>
+                    <Text style={[styles.metricVal, { color: birmarketNoCommission ? '#059669' : '#E11D48', fontWeight: '700' }]}>
+                      {birmarketNoCommission ? '0% (Komissiyasız)' : `+${birmarketResult.markupRate}%`}
+                    </Text>
                   </View>
                   <View style={styles.metricRow}>
                     <Text style={styles.metricLabel}>Saytda / Kassaya məbləğ:</Text>
-                    <Text style={[styles.metricVal, { color: '#E11D48', fontWeight: '900', fontSize: 13 }]}>
+                    <Text style={[styles.metricVal, { color: birmarketNoCommission ? '#059669' : '#E11D48', fontWeight: '900', fontSize: 13 }]}>
                       {birmarketResult.gross.toFixed(2)} ₼
                     </Text>
                   </View>

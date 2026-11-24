@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X, Shield, Lock, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X, Shield, Lock, KeyRound, Eye, EyeOff, Upload, FileSpreadsheet } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
 import Papa from 'papaparse';
 import { useUser } from '../../core/UserContext';
 
-const WarehouseSettings = () => {
+const WarehouseSettings = ({ onOpenImport }) => {
   const { t, i18n } = useTranslation();
   const { profile, refreshProfile } = useUser();
   const [exporting, setExporting] = useState(false);
@@ -336,6 +336,17 @@ const WarehouseSettings = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <button 
+            type="button"
+            onClick={onOpenImport}
+            className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-300 px-4 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto active:scale-95"
+            title={i18n.language === 'az' ? 'Məhsulları Excel/CSV faylı ilə bazaya yükləyin' : 'Импорт товаров через Excel/CSV'}
+          >
+            <Upload className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>{i18n.language === 'az' ? 'İmport (Excel / CSV)' : i18n.language === 'ru' ? 'Импорт (Excel / CSV)' : 'Import (Excel / CSV)'}</span>
+          </button>
+
+          <button 
+            type="button"
             onClick={exportBarcodes}
             disabled={exporting}
             className="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-bold hover:border-merkez-blue hover:text-merkez-blue transition-all flex items-center justify-center gap-2 shadow-sm w-full sm:w-auto"
@@ -349,6 +360,7 @@ const WarehouseSettings = () => {
           </button>
           
           <button 
+            type="button"
             onClick={() => {
               localStorage.setItem('merkez_warehouse_settings', JSON.stringify(settings));
               toast.success(t('common.success'));
@@ -681,6 +693,70 @@ const WarehouseSettings = () => {
               <p className="text-[11px] text-gray-500 leading-relaxed">{t('warehouse.autoGenerateBarcodeDesc') || 'Система сама придумает штрихкод при добавлении товара.'}</p>
             </div>
           </div>
+
+          {/* Data Import & Export Section */}
+          <div className="space-y-6">
+            <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+              <Upload className="w-4 h-4 text-emerald-600" />
+              {i18n.language === 'az' ? 'Məlumatların İdxalı və İxracı' : i18n.language === 'ru' ? 'Импорт и экспорт данных' : 'Data Import & Export'}
+            </h3>
+
+            <div className="bg-gray-50/70 border border-gray-200/80 rounded-xl p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                    {i18n.language === 'az' ? 'Məhsulların Excel / CSV İdxalı (İmport)' : i18n.language === 'ru' ? 'Импорт товаров из Excel / CSV' : 'Import Products (Excel / CSV)'}
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {i18n.language === 'az' 
+                      ? 'Excel (.xlsx) və ya CSV faylı vasitəsilə yeni məhsulları toplu şəkildə bazaya əlavə edin' 
+                      : i18n.language === 'ru'
+                      ? 'Массовая загрузка товаров на склад через Excel (.xlsx) или CSV файл'
+                      : 'Bulk import products to warehouse using Excel (.xlsx) or CSV file'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenImport}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  {i18n.language === 'az' ? 'İmport et' : i18n.language === 'ru' ? 'Импортировать' : 'Import'}
+                </button>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    <Barcode className="w-4 h-4 text-blue-600" />
+                    {i18n.language === 'az' ? 'Barkodların və Məhsulların İxracı (Export)' : i18n.language === 'ru' ? 'Экспорт штрих-кодов и товаров' : 'Export Barcodes & Products'}
+                  </h4>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {i18n.language === 'az'
+                      ? 'Bütün mövcud məhsulların barkod və qiymət siyahısını CSV faylında yükləyin'
+                      : i18n.language === 'ru'
+                      ? 'Скачать список штрих-кодов и цен всех товаров в формате CSV'
+                      : 'Download barcode and price list of all products as CSV'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={exportBarcodes}
+                  disabled={exporting}
+                  className="bg-white border border-gray-200 hover:border-merkez-blue text-gray-700 hover:text-merkez-blue px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm active:scale-95 whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  {exporting ? (
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-merkez-blue rounded-full animate-spin" />
+                  ) : (
+                    <Barcode className="w-4 h-4" />
+                  )}
+                  {i18n.language === 'az' ? 'CSV İxrac et' : i18n.language === 'ru' ? 'Экспорт CSV' : 'Export CSV'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Warehouse Management */}
           <div className="space-y-6">
             <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">{t('warehouse.management') || 'Управление складами'}</h3>

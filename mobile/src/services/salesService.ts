@@ -28,6 +28,7 @@ export interface BirmarketSaleDetails {
   category: 'Alətlər' | 'Aksesuarlar';
   grossAmount: number;
   pureProfit: number;
+  noCommission?: boolean;
 }
 
 export type POSPaymentMethod = 'CASH' | 'CARD' | 'TERMINAL' | 'TRANSFER' | 'CREDIT' | 'DEPOSIT' | 'SPLIT' | 'BIRMARKET';
@@ -158,7 +159,8 @@ export const salesService = {
       const cat = birmarketDetails?.category || 'Alətlər';
       const gross = birmarketDetails?.grossAmount ?? birmarketGross;
       const profit = birmarketDetails?.pureProfit ?? netSaleBase;
-      saleDetailsNote = `Satış (${cat}): Kassaya/Saytda: ₼${gross.toFixed(2)}, Mənfəət: ₼${profit.toFixed(2)}`;
+      const noComSuffix = birmarketDetails?.noCommission ? ' - Komissiyasız' : '';
+      saleDetailsNote = `Satış (${cat}${noComSuffix}): Kassaya/Saytda: ₼${gross.toFixed(2)}, Mənfəət: ₼${profit.toFixed(2)}`;
     } else if (paymentMethod === 'SPLIT' && splitDetails) {
       const spCredit = splitDetails.credit > 0
         ? `, Kredit: ₼${splitDetails.credit.toFixed(2)} (${splitDetails.creditBank} - ${splitDetails.creditMonths} ay, Müqavilə: ₼${(splitDetails.creditContract || 0).toFixed(2)})`

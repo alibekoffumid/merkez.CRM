@@ -86,6 +86,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const [bankSettings, setBankSettings] = useState([]);
   const [activeTariff, setActiveTariff] = useState(null);
   const [birmarketCategory, setBirmarketCategory] = useState('Alətlər'); // 'Alətlər' | 'Aksesuarlar'
+  const [birmarketNoCommission, setBirmarketNoCommission] = useState(false);
   const [salesChannel, setSalesChannel] = useState('Mağaza');
   const [completedSaleReceipt, setCompletedSaleReceipt] = useState(null);
   const [currentWarehouseName, setCurrentWarehouseName] = useState('Əsas Anbar / Mağaza');
@@ -749,9 +750,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   let storePercent = 0;
 
   if (paymentMethod === 'birmarket') {
-    const siteCommission = birmarketCategory === 'Alətlər' ? 10 : 15;
+    const siteCommission = birmarketNoCommission ? 0 : (birmarketCategory === 'Alətlər' ? 10 : 15);
     bankPercent = siteCommission;
-    taxPercent = 4.0;
+    taxPercent = birmarketNoCommission ? 0 : 4.0;
     storePercent = 0;
   } else if (isZeroInterest) {
     bankPercent = 0;
@@ -777,7 +778,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     : (1 - dBank - dTax - dStore);
 
   const rawGross = paymentMethod === 'birmarket'
-    ? (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : (netAmount * 1.245))
+    ? (birmarketNoCommission ? netAmount : (birmarketCategory === 'Alətlər' ? Math.floor(netAmount * 1.1751 * 100) / 100 : (netAmount * 1.245)))
     : (isZeroInterest ? netAmount : (denominator > 0 ? (netAmount / denominator) : netAmount));
 
   const exactMarkup = (paymentMethod === 'credit' && !isZeroInterest) ? MARKUP_RATES[selectedBank]?.[installmentMonths] : (isZeroInterest ? 0 : undefined);
@@ -1028,7 +1029,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         let dispatchNote = notes;
         if (!dispatchNote) {
           if (paymentMethod === 'birmarket') {
-            dispatchNote = `Satış (${birmarketCategory}): Kassaya/Saytda: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
+            const catLabel = birmarketCategory + (birmarketNoCommission ? ' - Komissiyasız' : '');
+            dispatchNote = `Satış (${catLabel}): Kassaya/Saytda: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
           } else if (paymentMethod === 'credit') {
             let crNote = isFerrum 
               ? `Kredit Satışı (${installmentMonths} ay): Müqavilə: ₼${contractTotal.toFixed(2)}, Aylıq: ₼${monthlyPayment.toFixed(2)}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`
@@ -1970,16 +1972,30 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                          {i18n.language === 'az' ? 'Məhsul Kateqoriyası' : 'Категория товара'}
-                        </label>
+                        <div className="flex items-center justify-between mb-1.5 px-1">
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            {i18n.language === 'az' ? 'Məhsul Kateqoriyası' : 'Категория товара'}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setBirmarketNoCommission(!birmarketNoCommission)}
+                            className={`text-xs font-bold px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 active:scale-95 ${
+                              birmarketNoCommission 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-sm' 
+                                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${birmarketNoCommission ? 'bg-emerald-500 animate-pulse' : 'bg-gray-300'}`} />
+                            {birmarketNoCommission ? '✓ 0% Komissiyasız' : 'Komissiyanı söndür (0%)'}
+                          </button>
+                        </div>
                         <Dropdown
                           value={birmarketCategory}
                           onChange={(val) => setBirmarketCategory(val)}
                           buttonClassName="w-full rounded-xl px-4 py-2.5 text-xs font-bold text-gray-700 bg-white border border-gray-100 hover:border-merkez-blue shadow-sm"
                           options={[
-                            { value: 'Alətlər', label: 'Alətlər (10%)' },
-                            { value: 'Aksesuarlar', label: 'Aksesuarlar (15%)' }
+                            { value: 'Alətlər', label: birmarketNoCommission ? 'Alətlər (0% komissiya)' : 'Alətlər (10%)' },
+                            { value: 'Aksesuarlar', label: birmarketNoCommission ? 'Aksesuarlar (0% komissiya)' : 'Aksesuarlar (15%)' }
                           ]}
                         />
                       </div>
@@ -1992,7 +2008,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Faiz dərəcəsi:' : 'Процентная ставка:'}</span>
-                          <span className="text-orange-500 font-black text-sm">{birmarketCategory === 'Alətlər' ? '17.51%' : '24.5%'}</span>
+                          <span className="text-orange-500 font-black text-sm">{birmarketNoCommission ? '0% (Komissiyasız)' : (birmarketCategory === 'Alətlər' ? '17.51%' : '24.5%')}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span>{i18n.language === 'az' ? 'Cəmi:' : 'Итого:'}</span>

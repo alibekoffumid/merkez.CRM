@@ -282,6 +282,7 @@ export interface SaleReceiptData {
     category: 'Alətlər' | 'Aksesuarlar';
     grossAmount: number;
     pureProfit: number;
+    noCommission?: boolean;
   };
   clientName?: string;
   clientPhone?: string;
