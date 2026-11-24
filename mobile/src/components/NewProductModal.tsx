@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Barcode, Sparkles, Check, Plus, RotateCcw } from 'lucide-react-native';
+import { X, Barcode, Sparkles, Check, Plus, RotateCcw, ChevronDown } from 'lucide-react-native';
 import { Product, Category, ProductAttribute } from '../types';
 import { productService, getActiveUserId } from '../services/productService';
 import { supabase } from '../config/supabase';
@@ -40,6 +40,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   const [purchasePrice, setPurchasePrice] = useState('');
   const [factoryPrice, setFactoryPrice] = useState('');
   const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN' | 'TRY'>('USD');
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
   const [isSecondHand, setIsSecondHand] = useState(false);
   const [sellerName, setSellerName] = useState('');
   const [sellerPhone, setSellerPhone] = useState('');
@@ -305,38 +306,28 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
             ) : (
               <>
                 <View style={styles.row}>
-                  <View style={[styles.group, { flex: 1.1 }]}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <Text style={styles.label}>Zavod qiyməti</Text>
-                      <View style={{ flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2 }}>
-                        {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
-                          const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
-                          const isSel = factoryCurrency === curr;
-                          return (
-                            <TouchableOpacity
-                              key={curr}
-                              onPress={() => setFactoryCurrency(curr)}
-                              style={{
-                                paddingHorizontal: 4,
-                                paddingVertical: 2,
-                                borderRadius: 4,
-                                backgroundColor: isSel ? '#FFFFFF' : 'transparent',
-                              }}
-                            >
-                              <Text style={{ fontSize: 9, fontWeight: '700', color: isSel ? '#4F46E5' : '#6B7280' }}>
-                                {sym} {curr}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
+                  <View style={[styles.group, { flex: 1 }]}>
+                    <Text style={styles.label}>Zavod qiyməti</Text>
+                    <View style={styles.currencyInputContainer}>
+                      <TouchableOpacity
+                        style={styles.currencyDropdownBtn}
+                        onPress={() => setCurrencyPickerOpen(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.currencySymbolText}>
+                          {factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}
+                        </Text>
+                        <ChevronDown size={13} color="#6B7280" />
+                      </TouchableOpacity>
+                      <TextInput
+                        style={styles.currencyTextInput}
+                        value={factoryPrice}
+                        onChangeText={setFactoryPrice}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00"
+                        placeholderTextColor="#9CA3AF"
+                      />
                     </View>
-                    <TextInput
-                      style={styles.input}
-                      value={factoryPrice}
-                      onChangeText={setFactoryPrice}
-                      placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}25.00`}
-                    />
                   </View>
                   <View style={[styles.group, { flex: 1 }]}>
                     <Text style={styles.label}>Maya qiyməti (₼)</Text>
@@ -346,6 +337,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
                       onChangeText={setPurchasePrice}
                       keyboardType="decimal-pad"
                       placeholder="0.00"
+                      placeholderTextColor="#9CA3AF"
                     />
                   </View>
                 </View>
@@ -409,6 +401,45 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
             </TouchableOpacity>
           </ScrollView>
         </View>
+
+        {/* Currency Dropdown Picker Modal (Symbols Only) */}
+        <Modal
+          visible={currencyPickerOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setCurrencyPickerOpen(false)}
+        >
+          <TouchableOpacity
+            style={styles.currencyModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setCurrencyPickerOpen(false)}
+          >
+            <View style={styles.currencyModalCard}>
+              <Text style={styles.currencyModalTitle}>Valyuta seçin</Text>
+              <View style={styles.currencySymbolsRow}>
+                {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
+                  const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
+                  const isSel = factoryCurrency === curr;
+                  return (
+                    <TouchableOpacity
+                      key={curr}
+                      style={[styles.currencySymbolTile, isSel && styles.currencySymbolTileActive]}
+                      onPress={() => {
+                        setFactoryCurrency(curr);
+                        setCurrencyPickerOpen(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.currencySymbolLarge, isSel && styles.currencySymbolLargeActive]}>
+                        {sym}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
     </Modal>
   );
@@ -595,5 +626,91 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#B45309',
     lineHeight: 15,
+  },
+  currencyInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  currencyDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    backgroundColor: '#F3F4F6',
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+  },
+  currencySymbolText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  currencyTextInput: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#111827',
+    fontWeight: '600',
+  },
+  currencyModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  currencyModalCard: {
+    width: '100%',
+    maxWidth: 300,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  currencyModalTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  currencySymbolsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  currencySymbolTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  currencySymbolTileActive: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#4F46E5',
+  },
+  currencySymbolLarge: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#374151',
+  },
+  currencySymbolLargeActive: {
+    color: '#4F46E5',
   },
 });

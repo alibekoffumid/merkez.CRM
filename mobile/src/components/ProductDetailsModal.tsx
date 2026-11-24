@@ -72,6 +72,7 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
   const [costInput, setCostInput] = useState(String(product.purchase_price ?? 0));
   const [factoryPriceInput, setFactoryPriceInput] = useState(String(product.factory_price ?? ''));
   const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN' | 'TRY'>('USD');
+  const [currencyPickerOpen, setCurrencyPickerOpen] = useState(false);
   const [attributes, setAttributes] = useState<ProductAttribute[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(product.category_id || null);
   const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
@@ -321,14 +322,28 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                   {/* 1. Zavod Qiyməti */}
                   <View style={styles.priceInputBox}>
                     <Text style={styles.inputLabel}>Zavod qiyməti</Text>
-                    <TextInput
-                      style={styles.textInput}
-                      value={factoryPriceInput}
-                      onChangeText={setFactoryPriceInput}
-                      keyboardType="decimal-pad"
-                      placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}26.71`}
-                      editable={canManageProducts}
-                    />
+                    <View style={styles.currencyInputContainer}>
+                      <TouchableOpacity
+                        style={styles.currencyDropdownBtn}
+                        onPress={() => setCurrencyPickerOpen(true)}
+                        disabled={!canManageProducts}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.currencySymbolText}>
+                          {factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}
+                        </Text>
+                        <ChevronDown size={13} color="#6B7280" />
+                      </TouchableOpacity>
+                      <TextInput
+                        style={styles.currencyTextInput}
+                        value={factoryPriceInput}
+                        onChangeText={setFactoryPriceInput}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00"
+                        placeholderTextColor="#9CA3AF"
+                        editable={canManageProducts}
+                      />
+                    </View>
                   </View>
 
                   {/* 2. Maya Qiyməti */}
@@ -343,36 +358,6 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
                       editable={canManageProducts}
                     />
                   </View>
-                </View>
-
-                {/* Currency Switcher: Full width under the price row so all 4 currencies are 100% visible */}
-                <View style={styles.currencySwitcherRow}>
-                  {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
-                    const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
-                    const isSel = factoryCurrency === curr;
-                    return (
-                      <TouchableOpacity
-                        key={curr}
-                        disabled={!canManageProducts}
-                        onPress={() => setFactoryCurrency(curr)}
-                        style={[
-                          styles.currencyPill,
-                          isSel && styles.currencyPillActive,
-                        ]}
-                        activeOpacity={0.7}
-                      >
-                        <Text
-                          style={[
-                            styles.currencyPillText,
-                            isSel && styles.currencyPillTextActive,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {sym} {curr}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
                 </View>
               </View>
             )}
@@ -500,6 +485,45 @@ export const ProductDetailsModal: React.FC<ProductDetailsModalProps> = ({
         canViewStockStats={canViewCostPrices}
         hideAllOption={true}
       />
+
+      {/* Currency Dropdown Picker Modal (Symbols Only) */}
+      <Modal
+        visible={currencyPickerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCurrencyPickerOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.currencyModalBackdrop}
+          activeOpacity={1}
+          onPress={() => setCurrencyPickerOpen(false)}
+        >
+          <View style={styles.currencyModalCard}>
+            <Text style={styles.currencyModalTitle}>Valyuta seçin</Text>
+            <View style={styles.currencySymbolsRow}>
+              {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
+                const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
+                const isSel = factoryCurrency === curr;
+                return (
+                  <TouchableOpacity
+                    key={curr}
+                    style={[styles.currencySymbolTile, isSel && styles.currencySymbolTileActive]}
+                    onPress={() => {
+                      setFactoryCurrency(curr);
+                      setCurrencyPickerOpen(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.currencySymbolLarge, isSel && styles.currencySymbolLargeActive]}>
+                      {sym}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </Modal>
   );
 };
@@ -1009,5 +1033,91 @@ const styles = StyleSheet.create({
   catItemTextActive: {
     fontWeight: '800',
     color: '#059669',
+  },
+  currencyInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  currencyDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: '#F3F4F6',
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+  },
+  currencySymbolText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#111827',
+  },
+  currencyTextInput: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '700',
+  },
+  currencyModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  currencyModalCard: {
+    width: '100%',
+    maxWidth: 300,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  currencyModalTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  currencySymbolsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  currencySymbolTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  currencySymbolTileActive: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#4F46E5',
+  },
+  currencySymbolLarge: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#374151',
+  },
+  currencySymbolLargeActive: {
+    color: '#4F46E5',
   },
 });
