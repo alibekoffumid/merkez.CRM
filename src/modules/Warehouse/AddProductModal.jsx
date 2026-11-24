@@ -415,11 +415,11 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                     {isSecondHand ? (
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
-                          {/* Alış qiyməti (AZN) */}
+                          {/* Alış qiyməti */}
                           <div>
                             <div className="flex items-center rounded-xl bg-amber-50/60 border border-amber-300 hover:border-amber-500 focus-within:border-amber-500 focus-within:bg-white transition-all shadow-xs overflow-hidden">
                               <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-amber-700 border-r border-amber-200 bg-amber-100/60 select-none">
-                                ₼ AZN
+                                ₼
                               </span>
                               <input
                                 type="number"

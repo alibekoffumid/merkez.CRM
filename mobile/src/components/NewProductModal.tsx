@@ -260,7 +260,7 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
                 <Text style={styles.secondHandBoxTitle}>İkinci əl məhsul qeydiyyatı</Text>
                 <View style={styles.row}>
                   <View style={[styles.group, { flex: 1 }]}>
-                    <Text style={styles.label}>Alış qiyməti (₼ AZN) *</Text>
+                    <Text style={styles.label}>Alış qiyməti (₼) *</Text>
                     <TextInput
                       style={[styles.input, { borderColor: '#F59E0B', backgroundColor: '#FEF3C7' }]}
                       value={purchasePrice}
