@@ -160,10 +160,10 @@ function parseSaleNote(note = '', product: any = null, quantity = 1, isAdmin = t
     const lower = raw.toLowerCase();
     if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
       info.paymentMethod = 'Nağd';
-    } else if (lower.includes('terminal')) {
-      info.paymentMethod = 'Terminal';
+    } else if (lower.includes('terminal') || lower.includes('pos')) {
+      info.paymentMethod = 'POS Terminal';
     } else if (lower.includes('kart') || lower.includes('card')) {
-      info.paymentMethod = 'Kart';
+      info.paymentMethod = 'Kartdan karta';
     } else if (lower.includes('qarışıq') || lower.includes('bölünmüş') || lower.includes('split')) {
       info.paymentMethod = 'Qarışıq (Bölünmüş)';
     } else if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) {
@@ -189,10 +189,10 @@ function parseSaleNote(note = '', product: any = null, quantity = 1, isAdmin = t
     info.paymentMethod = 'Kredit';
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
-  } else if (/terminal/i.test(note)) {
-    info.paymentMethod = 'Terminal';
-  } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kart';
+  } else if (/terminal|pos/i.test(note)) {
+    info.paymentMethod = 'POS Terminal';
+  } else if (/kart|card/i.test(note)) {
+    info.paymentMethod = 'Kartdan karta';
   } else {
     info.paymentMethod = 'Nağd';
   }
@@ -567,8 +567,8 @@ export const ReportsScreen: React.FC = () => {
       if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
         return 'Nağd';
       }
-      if (lower.includes('terminal')) return 'Terminal';
-      if (lower.includes('kart') || lower.includes('card')) return 'Kart';
+      if (lower.includes('terminal') || lower.includes('pos')) return 'POS Terminal';
+      if (lower.includes('kart') || lower.includes('card')) return 'Kartdan karta';
       if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) return 'Köçürmə';
       if (lower.includes('kredit') || lower.includes('birmarket')) return 'Kredit';
       if (lower.includes('nisyə') || lower.includes('nisye') || lower.includes('borc')) return 'Nisyə';
@@ -581,8 +581,8 @@ export const ReportsScreen: React.FC = () => {
       payMap.set(pay, (payMap.get(pay) || 0) + s.totalAmount);
 
       if (pay === 'Nağd') paymentBreakdown.cash += s.totalAmount;
-      else if (pay === 'Kart') paymentBreakdown.card += s.totalAmount;
-      else if (pay === 'Terminal') paymentBreakdown.terminal += s.totalAmount;
+      else if (pay === 'Kart' || pay === 'Kartdan karta') paymentBreakdown.card += s.totalAmount;
+      else if (pay === 'Terminal' || pay === 'POS Terminal') paymentBreakdown.terminal += s.totalAmount;
       else if (pay === 'Kredit') paymentBreakdown.credit += s.totalAmount;
       else if (pay === 'Köçürmə') paymentBreakdown.transfer += s.totalAmount;
       else if (pay === 'Nisyə') paymentBreakdown.debt += s.totalAmount;

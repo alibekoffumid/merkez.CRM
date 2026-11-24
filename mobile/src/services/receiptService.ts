@@ -581,8 +581,8 @@ export const receiptService = {
     let payTitle = 'Nağd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
     if (lowerPay.includes('split') || lowerPay.includes('qarışıq') || lowerPay.includes('bölünmüş')) payTitle = 'Qarışıq (Bölünmüş)';
-    else if (lowerPay.includes('terminal')) payTitle = 'Terminal';
-    else if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kart';
+    else if (lowerPay.includes('terminal') || lowerPay.includes('pos')) payTitle = 'POS Terminal';
+    else if (lowerPay.includes('card') || lowerPay.includes('kart')) payTitle = 'Kartdan karta';
     else if (lowerPay.includes('transfer') || lowerPay.includes('köçürmə')) payTitle = 'Köçürmə';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
     else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';
@@ -671,10 +671,10 @@ export const receiptService = {
         lines.push(padRow('Nağd:', `${Number(data.splitDetails.cash).toFixed(2)} ₼`, width));
       }
       if (data.splitDetails.card > 0) {
-        lines.push(padRow('Kart:', `${Number(data.splitDetails.card).toFixed(2)} ₼`, width));
+        lines.push(padRow('Kartdan karta:', `${Number(data.splitDetails.card).toFixed(2)} ₼`, width));
       }
       if (data.splitDetails.terminal > 0) {
-        lines.push(padRow('Terminal:', `${Number(data.splitDetails.terminal).toFixed(2)} ₼`, width));
+        lines.push(padRow('POS Terminal:', `${Number(data.splitDetails.terminal).toFixed(2)} ₼`, width));
       }
       if (data.splitDetails.credit > 0) {
         lines.push(padRow('Kredit payı:', `${Number(data.splitDetails.credit).toFixed(2)} ₼`, width));
@@ -794,12 +794,12 @@ export const receiptService = {
     if (lowerMethod.includes('split') || lowerMethod.includes('qarışıq') || lowerMethod.includes('bölünmüş')) {
       paymentTitle = 'Qarışıq (Bölünmüş)';
       paidLabel = 'qarışıq';
-    } else if (lowerMethod.includes('terminal')) {
-      paymentTitle = 'Terminal';
-      paidLabel = 'terminal';
-    } else if (lowerMethod.includes('card') || lowerMethod.includes('kart') || lowerMethod.includes('pos')) {
-      paymentTitle = 'Kart';
-      paidLabel = 'kart';
+    } else if (lowerMethod.includes('terminal') || lowerMethod.includes('pos')) {
+      paymentTitle = 'POS Terminal';
+      paidLabel = 'pos terminal';
+    } else if (lowerMethod.includes('card') || lowerMethod.includes('kart')) {
+      paymentTitle = 'Kartdan karta';
+      paidLabel = 'kartdan karta';
     } else if (lowerMethod.includes('deposit') || lowerMethod.includes('beh') || lowerMethod.includes('avans')) {
       paymentTitle = 'Beh (Avans)';
       paidLabel = 'avans';
@@ -1281,8 +1281,8 @@ export const receiptService = {
 
     let payTitle = 'Nagd';
     const lowerPay = (data.paymentMethod || '').toLowerCase();
-    if (lowerPay.includes('terminal')) payTitle = 'Terminal';
-    else if (lowerPay.includes('card') || lowerPay.includes('kart') || lowerPay.includes('pos')) payTitle = 'Kart';
+    if (lowerPay.includes('terminal') || lowerPay.includes('pos')) payTitle = 'POS Terminal';
+    else if (lowerPay.includes('card') || lowerPay.includes('kart')) payTitle = 'Kartdan karta';
     else if (lowerPay.includes('transfer') || lowerPay.includes('kocurme')) payTitle = 'Kocurme';
     else if (lowerPay.includes('credit') || lowerPay.includes('kredit')) payTitle = 'Kredit';
     else if (lowerPay.includes('deposit') || lowerPay.includes('beh') || lowerPay.includes('avans')) payTitle = 'Beh (Avans)';

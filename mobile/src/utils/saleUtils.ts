@@ -113,10 +113,10 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
     const rawPay = payMatch[1].trim();
     if (/split|qarışıq|bölünmüş/i.test(rawPay)) {
       info.paymentMethod = 'Qarışıq (Bölünmüş)';
-    } else if (/terminal/i.test(rawPay)) {
-      info.paymentMethod = 'Terminal';
-    } else if (/kart/i.test(rawPay)) {
-      info.paymentMethod = 'Kart';
+    } else if (/terminal|pos/i.test(rawPay)) {
+      info.paymentMethod = 'POS Terminal';
+    } else if (/kart|card/i.test(rawPay)) {
+      info.paymentMethod = 'Kartdan karta';
     } else if (/beh|avans/i.test(rawPay)) {
       info.paymentMethod = 'Beh (Avans)';
     } else {
@@ -132,10 +132,10 @@ export const parseSaleNote = (note = '', product?: Partial<Product> | null, quan
     info.paymentMethod = 'Beh (Avans)';
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
-  } else if (/terminal/i.test(note)) {
-    info.paymentMethod = 'Terminal';
-  } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kart';
+  } else if (/terminal|pos/i.test(note)) {
+    info.paymentMethod = 'POS Terminal';
+  } else if (/kart|card/i.test(note)) {
+    info.paymentMethod = 'Kartdan karta';
   } else if (/nəqd/i.test(note)) {
     info.paymentMethod = 'Nəqd';
   }

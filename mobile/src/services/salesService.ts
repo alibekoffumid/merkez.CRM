@@ -163,7 +163,7 @@ export const salesService = {
       const spCredit = splitDetails.credit > 0
         ? `, Kredit: ₼${splitDetails.credit.toFixed(2)} (${splitDetails.creditBank} - ${splitDetails.creditMonths} ay, Müqavilə: ₼${(splitDetails.creditContract || 0).toFixed(2)})`
         : '';
-      saleDetailsNote = `POS Satış #${saleId} [Qarışıq: Nağd: ₼${splitDetails.cash.toFixed(2)}, Kart: ₼${splitDetails.card.toFixed(2)}, Terminal: ₼${splitDetails.terminal.toFixed(2)}${spCredit}]`;
+      saleDetailsNote = `POS Satış #${saleId} [Qarışıq: Nağd: ₼${splitDetails.cash.toFixed(2)}, Kartdan karta: ₼${splitDetails.card.toFixed(2)}, POS Terminal: ₼${splitDetails.terminal.toFixed(2)}${spCredit}]`;
       if (splitDetails.credit > 0 && splitDetails.creditBank) {
         channelPrefix = `[Kanal: Kredit - ${splitDetails.creditBank}] `;
       } else {
@@ -178,7 +178,7 @@ export const salesService = {
         saleDetailsNote += ` [Avans Alan: ${depositDetails.advanceRecipient}]`;
       }
     } else {
-      const methodLabel = paymentMethod === 'CASH' ? 'Nağd' : paymentMethod === 'CARD' ? 'Kart' : paymentMethod === 'TERMINAL' ? 'Terminal' : 'Köçürmə';
+      const methodLabel = paymentMethod === 'CASH' ? 'Nağd' : paymentMethod === 'CARD' ? 'Kartdan karta' : paymentMethod === 'TERMINAL' ? 'POS Terminal' : 'Köçürmə';
       saleDetailsNote = `POS Satış #${saleId} (Ödəniş: ${methodLabel})`;
     }
 

@@ -89,10 +89,14 @@ export const translatePaymentMethodAz = (method) => {
       return 'Nağd';
     case 'card':
     case 'kart':
-      return 'Kart';
+    case 'kartdan karta':
+    case 'kartdan_karta':
+      return 'Kartdan karta';
     case 'pos':
     case 'terminal':
-      return 'Terminal';
+    case 'pos terminal':
+    case 'pos_terminal':
+      return 'POS Terminal';
     case 'split':
       return 'Qarışıq (Bölünmüş)';
     case 'credit':
@@ -186,10 +190,10 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     const lower = raw.toLowerCase();
     if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
       paymentMethod = 'Nağd';
-    } else if (lower.includes('terminal')) {
-      paymentMethod = 'Terminal';
+    } else if (lower.includes('terminal') || lower.includes('pos')) {
+      paymentMethod = 'POS Terminal';
     } else if (lower.includes('kart') || lower.includes('card')) {
-      paymentMethod = 'Kart';
+      paymentMethod = 'Kartdan karta';
     } else if (lower.includes('qarışıq') || lower.includes('bölünmüş') || lower.includes('split')) {
       paymentMethod = 'Qarışıq (Bölünmüş)';
     } else if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) {
@@ -215,10 +219,10 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     paymentMethod = 'Kredit';
   } else if (/nisyə|borc/i.test(note)) {
     paymentMethod = 'Nisyə';
-  } else if (/terminal/i.test(note)) {
-    paymentMethod = 'Terminal';
-  } else if (/kart/i.test(note)) {
-    paymentMethod = 'Kart';
+  } else if (/terminal|pos/i.test(note)) {
+    paymentMethod = 'POS Terminal';
+  } else if (/kart|card/i.test(note)) {
+    paymentMethod = 'Kartdan karta';
   } else {
     paymentMethod = 'Nağd';
   }
@@ -229,8 +233,8 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
   const splitMatch = note.match(/\[Qarışıq:\s*([^\]]+)\]/i);
   if (splitMatch) {
     const cashM = splitMatch[1].match(/Nağd:\s*₼?([0-9.,]+)/i);
-    const cardM = splitMatch[1].match(/Kart:\s*₼?([0-9.,]+)/i);
-    const termM = splitMatch[1].match(/Terminal:\s*₼?([0-9.,]+)/i);
+    const cardM = splitMatch[1].match(/(?:Kart(?:dan\s*karta)?|Card):\s*₼?([0-9.,]+)/i);
+    const termM = splitMatch[1].match(/(?:POS\s*)?Terminal:\s*₼?([0-9.,]+)/i);
     const credM = splitMatch[1].match(/Kredit:\s*₼?([0-9.,]+)/i);
     if (cashM) splitCash = parseFloat(cashM[1].replace(',', '.'));
     if (cardM) splitCard += parseFloat(cardM[1].replace(',', '.'));
@@ -788,8 +792,8 @@ export const fetchDailySalesReportData = async (supabase, userId, selectedDateIn
         const splitMatch = notesRaw.match(/\[Qarışıq:\s*([^\]]+)\]/i);
         if (splitMatch) {
           const cashM = splitMatch[1].match(/Nağd:\s*₼?([0-9.,]+)/i);
-          const cardM = splitMatch[1].match(/Kart:\s*₼?([0-9.,]+)/i);
-          const termM = splitMatch[1].match(/Terminal:\s*₼?([0-9.,]+)/i);
+          const cardM = splitMatch[1].match(/(?:Kart(?:dan\s*karta)?|Card):\s*₼?([0-9.,]+)/i);
+          const termM = splitMatch[1].match(/(?:POS\s*)?Terminal:\s*₼?([0-9.,]+)/i);
           const credM = splitMatch[1].match(/Kredit:\s*₼?([0-9.,]+)/i);
           if (cashM) sCash = parseFloat(cashM[1].replace(',', '.'));
           if (cardM) sCard += parseFloat(cardM[1].replace(',', '.'));

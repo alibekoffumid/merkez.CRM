@@ -1018,8 +1018,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         }
 
         const payName = paymentMethod === 'cash' ? 'Nağd' :
-          paymentMethod === 'card' ? 'Kart' :
-          paymentMethod === 'terminal' ? 'Terminal' :
+          paymentMethod === 'card' ? 'Kartdan karta' :
+          paymentMethod === 'terminal' ? 'POS Terminal' :
           paymentMethod === 'split' ? 'Qarışıq' :
           paymentMethod === 'debt' ? 'Nisyə' :
           paymentMethod === 'deposit' ? 'Beh' :
@@ -1034,12 +1034,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               ? `Kredit Satışı (${installmentMonths} ay): Müqavilə: ₼${contractTotal.toFixed(2)}, Aylıq: ₼${monthlyPayment.toFixed(2)}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`
               : `Kredit Satışı (${installmentMonths} ay): Müqavilə: ₼${contractTotal.toFixed(2)}, Aylıq: ₼${monthlyPayment.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}`;
             if (numDownpayment > 0) {
-              const downLabel = downpaymentMethod === 'card' ? 'Kart' : downpaymentMethod === 'terminal' ? 'Terminal' : 'Nağd';
+              const downLabel = downpaymentMethod === 'card' ? 'Kartdan karta' : downpaymentMethod === 'terminal' ? 'POS Terminal' : 'Nağd';
               crNote += ` [İlkin ödəniş: ₼${numDownpayment.toFixed(2)} (${downLabel})] [Kreditə qalan: ₼${netAmount.toFixed(2)}]`;
             }
             dispatchNote = crNote;
           } else if (paymentMethod === 'split') {
-            let spText = `[Qarışıq: Nağd: ₼${numSplitCash.toFixed(2)}, Kart: ₼${numSplitCard.toFixed(2)}, Terminal: ₼${numSplitTerminal.toFixed(2)}`;
+            let spText = `[Qarışıq: Nağd: ₼${numSplitCash.toFixed(2)}, Kartdan karta: ₼${numSplitCard.toFixed(2)}, POS Terminal: ₼${numSplitTerminal.toFixed(2)}`;
             if (numSplitCredit > 0) {
               spText += `, Kredit: ₼${numSplitCredit.toFixed(2)} (${splitCreditBank} - ${splitCreditMonths} ay, Müqavilə: ₼${splitCreditContract.toFixed(2)})`;
             }
@@ -1136,7 +1136,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
             ? `Kredit (${selectedBank} - ${installmentMonths} ay) [${productNames}]: Müqavilə: ₼${contractTotal}, Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`
             : `Kredit (${selectedBank} - ${installmentMonths} ay) [${productNames}]: Kassaya: ₼${grossAmount.toFixed(2)}, Mənfəət: ₼${pureProfit.toFixed(2)}, Faiz: ${commissionRateDisplay.toFixed(3).replace(/\.?0+$/, '')}%`;
           if (numDownpayment > 0) {
-            const downLabel = downpaymentMethod === 'card' ? 'Kart' : downpaymentMethod === 'terminal' ? 'Terminal' : 'Nağd';
+            const downLabel = downpaymentMethod === 'card' ? 'Kartdan karta' : downpaymentMethod === 'terminal' ? 'POS Terminal' : 'Nağd';
             descriptionText += ` (İlkin ödəniş: ₼${numDownpayment.toFixed(2)} [${downLabel}], Qalıq kredit: ₼${netAmount.toFixed(2)})`;
           }
         } else if (paymentMethod === 'split') {
@@ -1264,7 +1264,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
         } : null,
         downpaymentDetails: (paymentMethod === 'credit' && numDownpayment > 0) ? {
           amount: numDownpayment,
-          method: downpaymentMethod === 'card' ? 'Kart' : downpaymentMethod === 'terminal' ? 'Terminal' : 'Nağd',
+          method: downpaymentMethod === 'card' ? 'Kartdan karta' : downpaymentMethod === 'terminal' ? 'POS Terminal' : 'Nağd',
           financedAmount: netAmount
         } : null,
         notes: notes || '',
@@ -1295,8 +1295,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   const paymentMethods = [
     { value: 'cash', label: i18n.language === 'az' ? 'Nağd' : i18n.language === 'ru' ? 'Наличные' : 'Cash' },
-    { value: 'card', label: i18n.language === 'az' ? 'Kart' : i18n.language === 'ru' ? 'Карта' : 'Card' },
-    { value: 'terminal', label: i18n.language === 'az' ? 'Terminal' : i18n.language === 'ru' ? 'Терминал' : 'Terminal' },
+    { value: 'card', label: i18n.language === 'az' ? 'Kartdan karta' : i18n.language === 'ru' ? 'С карты на карту' : 'Card to card' },
+    { value: 'terminal', label: i18n.language === 'az' ? 'POS Terminal' : i18n.language === 'ru' ? 'POS Терминал' : 'POS Terminal' },
     { value: 'split', label: i18n.language === 'az' ? 'Qarışıq (Bölünmüş)' : i18n.language === 'ru' ? 'Разделение платежа' : 'Split Payment' },
     { value: 'credit', label: i18n.language === 'az' ? 'Kredit (Hissə-hissə)' : i18n.language === 'ru' ? 'В кредит (Рассрочка)' : 'Credit (Installments)' },
     { value: 'birmarket', label: 'Birmarket' }
@@ -1500,12 +1500,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         </div>
                       </div>
 
-                      {/* 2. Kart */}
+                      {/* 2. Kartdan karta */}
                       <div>
                         <div className="flex items-center justify-between mb-1 px-1">
                           <label className="text-[11px] font-black text-gray-700 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            {i18n.language === 'az' ? 'Kart' : 'Карта'}
+                            {i18n.language === 'az' ? 'Kartdan karta' : 'С карты на карту'}
                           </label>
                           {remainingSplit > 0 && numSplitCard === 0 && (
                             <button
@@ -1531,12 +1531,12 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         </div>
                       </div>
 
-                      {/* 3. Terminal */}
+                      {/* 3. POS Terminal */}
                       <div>
                         <div className="flex items-center justify-between mb-1 px-1">
                           <label className="text-[11px] font-black text-gray-700 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-cyan-500" />
-                            Terminal
+                            {i18n.language === 'az' ? 'POS Terminal' : 'POS Терминал'}
                           </label>
                           {remainingSplit > 0 && numSplitTerminal === 0 && (
                             <button
@@ -1849,8 +1849,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                               buttonClassName="w-full rounded-xl px-3 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-100 hover:border-merkez-blue shadow-sm"
                               options={[
                                 { value: 'cash', label: i18n.language === 'az' ? 'Nağd' : 'Наличные' },
-                                { value: 'card', label: i18n.language === 'az' ? 'Kart' : 'Карта' },
-                                { value: 'terminal', label: i18n.language === 'az' ? 'Terminal' : 'Терминал' }
+                                { value: 'card', label: i18n.language === 'az' ? 'Kartdan karta' : 'С карты на карту' },
+                                { value: 'terminal', label: i18n.language === 'az' ? 'POS Terminal' : 'POS Терминал' }
                               ]}
                             />
                           </div>
@@ -1879,7 +1879,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                         {numDownpayment > 0 && (
                           <div className="flex justify-between items-center text-xs font-bold text-emerald-700 bg-emerald-50/80 p-2.5 rounded-xl border border-emerald-100">
                             <span>{i18n.language === 'az' ? 'İlkin ödəniş (Nağd/Kart):' : 'Первоначальный взнос:'}</span>
-                            <span className="font-black text-sm">₼{numDownpayment.toFixed(2)} ({downpaymentMethod === 'card' ? 'Kart' : downpaymentMethod === 'terminal' ? 'Terminal' : 'Nağd'})</span>
+                            <span className="font-black text-sm">₼{numDownpayment.toFixed(2)} ({downpaymentMethod === 'card' ? 'Kartdan karta' : downpaymentMethod === 'terminal' ? 'POS Terminal' : 'Nağd'})</span>
                           </div>
                         )}
                         <div className="flex justify-between items-center">
@@ -2500,8 +2500,8 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                 <span>{i18n.language === 'az' ? 'Ödəniş:' : 'Оплата:'}</span>
                 <span className="font-bold text-gray-900">
                   {completedSaleReceipt.paymentMethod === 'cash' ? (i18n.language === 'az' ? 'Nağd' : 'Наличные')
-                    : completedSaleReceipt.paymentMethod === 'card' ? (i18n.language === 'az' ? 'Kart' : 'Карта')
-                    : completedSaleReceipt.paymentMethod === 'terminal' ? (i18n.language === 'az' ? 'Terminal' : 'Терминал')
+                    : completedSaleReceipt.paymentMethod === 'card' ? (i18n.language === 'az' ? 'Kartdan karta' : 'С карты на карту')
+                    : completedSaleReceipt.paymentMethod === 'terminal' ? (i18n.language === 'az' ? 'POS Terminal' : 'POS Терминал')
                     : completedSaleReceipt.paymentMethod === 'split' ? (i18n.language === 'az' ? 'Qarışıq (Bölünmüş)' : 'Разделение')
                     : completedSaleReceipt.paymentMethod === 'credit' ? (i18n.language === 'az' ? 'Kredit' : 'Кредит')
                     : completedSaleReceipt.paymentMethod === 'debt' ? (i18n.language === 'az' ? 'Nisyə' : 'В долг')
@@ -2520,13 +2520,13 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                   )}
                   {completedSaleReceipt.splitDetails.card > 0 && (
                     <div className="flex justify-between">
-                      <span>• {i18n.language === 'az' ? 'Kart' : 'Карта'}:</span>
+                      <span>• {i18n.language === 'az' ? 'Kartdan karta' : 'С карты на карту'}:</span>
                       <span className="font-bold">₼{completedSaleReceipt.splitDetails.card.toFixed(2)}</span>
                     </div>
                   )}
                   {completedSaleReceipt.splitDetails.terminal > 0 && (
                     <div className="flex justify-between">
-                      <span>• Terminal:</span>
+                      <span>• {i18n.language === 'az' ? 'POS Terminal' : 'POS Терминал'}:</span>
                       <span className="font-bold">₼{completedSaleReceipt.splitDetails.terminal.toFixed(2)}</span>
                     </div>
                   )}

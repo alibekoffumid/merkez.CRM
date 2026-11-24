@@ -581,9 +581,9 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         paymentMethod === 'CASH'
           ? 'Nağd'
           : paymentMethod === 'CARD'
-          ? 'Kart'
+          ? 'Kartdan karta'
           : paymentMethod === 'TERMINAL'
-          ? 'Terminal'
+          ? 'POS Terminal'
           : paymentMethod === 'SPLIT'
           ? 'Qarışıq (Bölünmüş)'
           : paymentMethod === 'CREDIT'
@@ -963,7 +963,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       paymentMethod === 'CARD' && styles.methodTabTextActive,
                     ]}
                   >
-                    Kart
+                    Kartdan karta
                   </Text>
                 </TouchableOpacity>
 
@@ -978,7 +978,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       paymentMethod === 'TERMINAL' && styles.methodTabTextActive,
                     ]}
                   >
-                    Terminal
+                    POS Terminal
                   </Text>
                 </TouchableOpacity>
 
@@ -1281,12 +1281,12 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                       </View>
                     </View>
 
-                    {/* 2. Kart */}
+                    {/* 2. Kartdan karta */}
                     <View style={styles.splitGridCol}>
                       <View style={styles.splitInputHeader}>
                         <View style={styles.splitLabelWithDot}>
                           <View style={[styles.splitColorDot, { backgroundColor: '#3B82F6' }]} />
-                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Kart</Text>
+                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Kartdan karta</Text>
                         </View>
                         {remainingSplit > 0 && numSplitCard === 0 && (
                           <TouchableOpacity
@@ -1314,14 +1314,14 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                     </View>
                   </View>
 
-                  {/* Row 2: Terminal & Kredit */}
+                  {/* Row 2: POS Terminal & Kredit */}
                   <View style={styles.splitGridRow}>
-                    {/* 3. Terminal */}
+                    {/* 3. POS Terminal */}
                     <View style={styles.splitGridCol}>
                       <View style={styles.splitInputHeader}>
                         <View style={styles.splitLabelWithDot}>
                           <View style={[styles.splitColorDot, { backgroundColor: '#06B6D4' }]} />
-                          <Text style={styles.splitFieldLabel} numberOfLines={1}>Terminal</Text>
+                          <Text style={styles.splitFieldLabel} numberOfLines={1}>POS Terminal</Text>
                         </View>
                         {remainingSplit > 0 && numSplitTerminal === 0 && (
                           <TouchableOpacity

@@ -175,10 +175,10 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     const lower = raw.toLowerCase();
     if (lower === 'nəqd' || lower === 'nağd' || lower === 'cash' || lower === 'neqd' || lower === 'nagd') {
       info.paymentMethod = 'Nağd';
-    } else if (lower.includes('terminal')) {
-      info.paymentMethod = 'Terminal';
+    } else if (lower.includes('terminal') || lower.includes('pos')) {
+      info.paymentMethod = 'POS Terminal';
     } else if (lower.includes('kart') || lower.includes('card')) {
-      info.paymentMethod = 'Kart';
+      info.paymentMethod = 'Kartdan karta';
     } else if (lower.includes('qarışıq') || lower.includes('bölünmüş') || lower.includes('split')) {
       info.paymentMethod = 'Qarışıq (Bölünmüş)';
     } else if (lower.includes('köçürmə') || lower.includes('kocurme') || lower.includes('transfer')) {
@@ -204,10 +204,10 @@ export const parseSaleNote = (note = '', product = null, quantity = 1, isAdmin =
     info.paymentMethod = 'Kredit';
   } else if (/nisyə|borc/i.test(note)) {
     info.paymentMethod = 'Nisyə';
-  } else if (/terminal/i.test(note)) {
-    info.paymentMethod = 'Terminal';
-  } else if (/kart/i.test(note)) {
-    info.paymentMethod = 'Kart';
+  } else if (/terminal|pos/i.test(note)) {
+    info.paymentMethod = 'POS Terminal';
+  } else if (/kart|card/i.test(note)) {
+    info.paymentMethod = 'Kartdan karta';
   } else {
     info.paymentMethod = 'Nağd';
   }

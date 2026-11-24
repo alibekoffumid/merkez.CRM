@@ -2575,13 +2575,6 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
               {currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && activeTab === 'finished' && (
                 <>
                   <button
-                    onClick={() => setShowSellProduct(true)}
-                    className="btn-gradient-primary px-3.5 py-2 h-[38px] rounded-lg text-xs font-bold flex items-center justify-center whitespace-nowrap uppercase active:scale-95 shadow-sm"
-                  >
-                    <DollarSign className="w-3.5 h-3.5 mr-1.5 shrink-0" /> {i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}
-                  </button>
-
-                  <button
                     onClick={() => setShowCashboxModal(true)}
                     className="bg-white border-2 border-amber-500 hover:border-amber-600 text-amber-600 hover:text-amber-700 hover:bg-amber-50/70 px-3.5 py-2 h-[38px] rounded-lg text-xs font-black flex items-center justify-center whitespace-nowrap shadow-sm active:scale-95 group uppercase transition-all tracking-wider"
                     title={i18n.language === 'az' ? 'Kassa və Mağaza Xərcləri' : 'Касса и расходы магазина'}
