@@ -1176,6 +1176,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
             const patch = resultMap.get(p.id);
             return patch ? { ...p, ...patch } : p;
           }));
+
+          // Propagate bulk price updates across other warehouses
+          try {
+            for (const item of results) {
+              const origProd = selectedProducts.find(sp => sp.id === item.id);
+              const bc = (origProd?.barcode || '').trim();
+              if (bc && profile?.id) {
+                await supabase
+                  .from('products')
+                  .update({ ...item.patch, updated_at: new Date().toISOString() })
+                  .eq('barcode', bc)
+                  .eq('user_id', profile.id)
+                  .neq('warehouse_id', currentWarehouseId);
+              }
+            }
+          } catch (bSyncErr) {
+            console.warn('Could not propagate bulk prices across warehouses:', bSyncErr);
+          }
         }
 
         toast.success(
@@ -1260,6 +1278,24 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
           const patch = resultMap.get(p.id);
           return patch ? { ...p, ...patch } : p;
         }));
+
+        // Propagate bulk relative price updates across other warehouses
+        try {
+          for (const item of results) {
+            const origProd = selectedProducts.find(sp => sp.id === item.id);
+            const bc = (origProd?.barcode || '').trim();
+            if (bc && profile?.id) {
+              await supabase
+                .from('products')
+                .update({ ...item.patch, updated_at: new Date().toISOString() })
+                .eq('barcode', bc)
+                .eq('user_id', profile.id)
+                .neq('warehouse_id', currentWarehouseId);
+            }
+          }
+        } catch (bSyncErr) {
+          console.warn('Could not propagate bulk prices across warehouses:', bSyncErr);
+        }
 
         toast.success(
           i18n.language === 'az'

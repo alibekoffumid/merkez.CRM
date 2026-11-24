@@ -223,7 +223,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
           const otherPayloads = otherWhs.map(ow => ({
             ...productPayload,
             warehouse_id: ow.id,
-            stock_quantity: 0
+            stock_quantity: 10000
           }));
           await supabase.from('products').insert(otherPayloads);
         }

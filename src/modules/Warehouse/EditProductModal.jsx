@@ -268,6 +268,75 @@ const EditProductModal = ({ isOpen, onClose, product, categories, suppliers = []
       toast.success(t('warehouse.productUpdated') || 'Товар обновлен');
     }
 
+    // Auto-propagate changes to all other warehouses of the user
+    try {
+      const { data: allWhs } = await supabase
+        .from('warehouses')
+        .select('id')
+        .eq('user_id', profile?.id);
+
+      const currentWhId = product.warehouse_id;
+      const otherWhs = (allWhs || []).filter(w => w.id && w.id !== currentWhId);
+
+      if (otherWhs.length > 0) {
+        const syncPayload = {
+          name: updatePayload.name,
+          price: updatePayload.price,
+          barcode: updatePayload.barcode || null,
+          category_id: updatePayload.category_id || null,
+          description: updatePayload.description || null,
+          image_url: updatePayload.image_url || null,
+          supplier_id: updatePayload.supplier_id || null,
+          unit: updatePayload.unit || 'əd.',
+          color: updatePayload.color || null,
+          updated_at: new Date().toISOString()
+        };
+        if (updatePayload.purchase_price !== undefined) {
+          syncPayload.purchase_price = updatePayload.purchase_price;
+        }
+        if (updatePayload.attributes !== undefined) {
+          syncPayload.attributes = updatePayload.attributes;
+        }
+
+        const bc = (updatePayload.barcode || product.barcode || '').trim();
+        const origName = (product.name || '').trim();
+
+        for (const ow of otherWhs) {
+          let matchQuery = supabase
+            .from('products')
+            .select('id')
+            .eq('warehouse_id', ow.id)
+            .eq('is_deleted', false);
+
+          if (bc) {
+            matchQuery = matchQuery.eq('barcode', bc);
+          } else if (origName) {
+            matchQuery = matchQuery.ilike('name', origName);
+          }
+
+          const { data: matched } = await matchQuery;
+          if (matched && matched.length > 0) {
+            for (const m of matched) {
+              await supabase.from('products').update(syncPayload).eq('id', m.id);
+            }
+          } else {
+            // Missing in this warehouse: replicate with 10,000 stock
+            await supabase.from('products').insert([{
+              ...syncPayload,
+              warehouse_id: ow.id,
+              user_id: profile.id,
+              stock_quantity: 10000,
+              critical_stock: parseFloat(formData.critical_stock || 5),
+              is_deleted: false,
+              created_at: new Date().toISOString()
+            }]);
+          }
+        }
+      }
+    } catch (propErr) {
+      console.warn('Could not propagate product updates to other warehouses:', propErr);
+    }
+
     setLoading(false);
     onProductUpdated();
     onClose();

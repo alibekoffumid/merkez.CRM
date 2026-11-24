@@ -453,6 +453,75 @@ export const productService = {
           p.id === product.id ? { ...p, ...savedProd } : p
         );
       }
+
+      // Propagate changes to all other warehouses of the user
+      try {
+        const { data: allWhs } = await supabase
+          .from('warehouses')
+          .select('id')
+          .eq('user_id', userId);
+
+        const otherWhs = (allWhs || []).filter((w) => w.id !== currentWarehouseId);
+        if (otherWhs.length > 0) {
+          const syncPayload: any = {
+            name: payload.name,
+            price: payload.price,
+            purchase_price: payload.purchase_price,
+            barcode: payload.barcode || null,
+            category_id: payload.category_id || null,
+            supplier_id: payload.supplier_id || null,
+            unit: payload.unit || 'pcs',
+            description: payload.description || null,
+            updated_at: new Date().toISOString(),
+          };
+          if (payload.image_url !== undefined) syncPayload.image_url = payload.image_url;
+          if (payload.color !== undefined) syncPayload.color = payload.color;
+          if (cleanAttrs.length > 0) syncPayload.attributes = cleanAttrs;
+
+          const bc = (payload.barcode || product.barcode || '').trim();
+          const origName = (product.name || '').trim();
+
+          for (const ow of otherWhs) {
+            let matchQuery = supabase
+              .from('products')
+              .select('id')
+              .eq('warehouse_id', ow.id)
+              .eq('user_id', userId)
+              .eq('is_deleted', false);
+
+            if (bc) {
+              matchQuery = matchQuery.eq('barcode', bc);
+            } else if (origName) {
+              matchQuery = matchQuery.ilike('name', origName);
+            }
+
+            const { data: matched } = await matchQuery;
+            if (matched && matched.length > 0) {
+              for (const m of matched) {
+                await supabase
+                  .from('products')
+                  .update(syncPayload)
+                  .eq('id', m.id);
+              }
+            } else {
+              // Missing in this warehouse: insert with stock 10000
+              await supabase.from('products').insert([
+                {
+                  ...syncPayload,
+                  warehouse_id: ow.id,
+                  user_id: userId,
+                  stock_quantity: 10000,
+                  critical_stock: payload.critical_stock ?? 5,
+                  is_deleted: false,
+                  created_at: new Date().toISOString(),
+                },
+              ]);
+            }
+          }
+        }
+      } catch (propErr) {
+        console.warn('Could not propagate product updates in mobile:', propErr);
+      }
     } else {
       payload.created_at = new Date().toISOString();
       const { data, error } = await runWithSchemaCacheFallback(() =>
@@ -488,7 +557,7 @@ export const productService = {
           const otherPayloads = otherWhs.map(ow => ({
             ...payload,
             warehouse_id: ow.id,
-            stock_quantity: 0,
+            stock_quantity: 10000,
             created_at: new Date().toISOString()
           }));
           await supabase.from('products').insert(otherPayloads);
