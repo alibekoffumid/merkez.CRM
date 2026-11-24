@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, Save, Image as ImageIcon, Upload, Loader2, ChevronDown } from 'lucide-react';
+import { X, Plus, Save, Image as ImageIcon, Upload, Loader2, ChevronDown, RotateCcw, UserCheck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useUser } from '../../core/UserContext';
 import { supabase } from '../../supabaseClient';
@@ -31,6 +31,9 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
   const [settings, setSettings] = useState(null);
   const [availableUnits, setAvailableUnits] = useState(['pcs', 'kg', 'liter', 'g', 'ml', 'pack', 'bottle', 'm', 'm2']);
   const [factoryCurrency, setFactoryCurrency] = useState('USD');
+  const [isSecondHand, setIsSecondHand] = useState(false);
+  const [sellerName, setSellerName] = useState('');
+  const [sellerPhone, setSellerPhone] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     price: '',
@@ -47,6 +50,9 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
   React.useEffect(() => {
     if (isOpen) {
+      setIsSecondHand(false);
+      setSellerName('');
+      setSellerPhone('');
       const saved = localStorage.getItem('merkez_warehouse_settings');
       let parsed = null;
       if (saved) {
@@ -79,6 +85,9 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
       });
       setAttributes([]);
       setFactoryCurrency('USD');
+      setIsSecondHand(false);
+      setSellerName('');
+      setSellerPhone('');
     }
   }, [isOpen, initialCategoryId]);
 
@@ -160,7 +169,11 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
 
     const cleanAttrs = cleanAttributesForSave(attributes);
     let desc = '';
-    if (canSeeCostAndFactoryPrices && formData.factory_price && formData.factory_price.trim()) {
+    if (isSecondHand) {
+      desc += 'İkinci əl məhsul\n';
+      if (sellerName.trim()) desc += 'Satan şəxs: ' + sellerName.trim() + '\n';
+      if (sellerPhone.trim()) desc += 'Əlaqə nömrəsi: ' + sellerPhone.trim() + '\n';
+    } else if (canSeeCostAndFactoryPrices && formData.factory_price && formData.factory_price.trim()) {
       const cleanNum = formData.factory_price.trim().replace(/[₼$￥¥€₺\s]/g, '');
       const sym = getCurrencySymbol(factoryCurrency);
       const valToSave = cleanNum ? `${sym}${cleanNum}` : formData.factory_price.trim();
@@ -174,7 +187,7 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
     const productPayload = {
       name: formData.name,
       price: parseFloat(formData.price),
-      purchase_price: canSeeCostAndFactoryPrices ? parseFloat(formData.purchase_price || 0) : 0,
+      purchase_price: isSecondHand ? (parseFloat(formData.purchase_price) || 0) : (canSeeCostAndFactoryPrices ? parseFloat(formData.purchase_price || 0) : 0),
       barcode: finalBarcode,
       category_id: formData.category_id || null,
       stock_quantity: parseFloat(formData.stock_quantity || 0),
@@ -231,11 +244,39 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
         console.warn('Could not auto-replicate product to other warehouses:', replicaErr);
       }
 
+      // Record expense in cashbox / business_expenses if second-hand product was purchased
+      if (isSecondHand) {
+        const expenseAmount = parseFloat(formData.purchase_price || 0);
+        if (expenseAmount > 0) {
+          try {
+            const todayStr = new Date().toISOString().split('T')[0];
+            let sellerInfo = '';
+            if (sellerName.trim()) sellerInfo += ` [Satan: ${sellerName.trim()}]`;
+            if (sellerPhone.trim()) sellerInfo += ` [Tel: ${sellerPhone.trim()}]`;
+            const staffName = currentStaff?.name || profile?.full_name || 'Kassir';
+            const fullExpDesc = `İkinci əl: ${formData.name.trim()}${sellerInfo} [Xərcləyən: ${sellerName.trim() || staffName}] [Mənbə: Kassa]`;
+
+            await supabase.from('business_expenses').insert([{
+              user_id: profile?.id,
+              category: 'İkinci əl alış',
+              description: fullExpDesc,
+              amount: expenseAmount,
+              expense_date: todayStr
+            }]);
+          } catch (expErr) {
+            console.warn('Could not record second hand purchase expense:', expErr);
+          }
+        }
+      }
+
       onProductAdded(data[0]);
       onClose();
       setImageFile(null);
       setImagePreview(null);
       setAttributes([]);
+      setIsSecondHand(false);
+      setSellerName('');
+      setSellerPhone('');
     }
   };
 
@@ -262,6 +303,18 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => setIsSecondHand(!isSecondHand)}
+                className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all border flex items-center gap-1.5 ${
+                  isSecondHand
+                    ? 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/20'
+                    : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200'
+                }`}
+              >
+                <RotateCcw className="w-4 h-4" />
+                {i18n.language === 'az' ? 'İkinci əl məhsul' : 'Б/У товар'}
+              </button>
               <button
                 type="button"
                 onClick={onClose}
@@ -346,87 +399,182 @@ const AddProductModal = ({ isOpen, onClose, categories = [], suppliers = [], onP
                     </div>
                   </div>
 
-                  {/* Pricing (Factory, Purchase, Retail) */}
+                  {/* Pricing (Factory, Purchase, Retail OR Second-hand mode) */}
                   <div>
-                    <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">
-                      {i18n.language === 'az' ? 'QİYMƏTLƏR' : 'ЦЕНЫ'}
-                    </label>
-                    <div className={`grid ${canSeeCostAndFactoryPrices ? 'grid-cols-3' : 'grid-cols-1'} gap-3`}>
-                      {canSeeCostAndFactoryPrices && (
-                        <>
-                          <div>
-                            <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
-                              <Dropdown
-                                value={factoryCurrency}
-                                onChange={(val) => setFactoryCurrency(val)}
-                                menuWidth={130}
-                                trigger={
-                                  <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors select-none cursor-pointer">
-                                    <span className="text-xs font-black text-gray-800">
-                                      {getCurrencySymbol(factoryCurrency)} {factoryCurrency}
-                                    </span>
-                                    <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
-                                  </div>
-                                }
-                                options={CURRENCY_OPTIONS.map((c) => ({
-                                  value: c.code,
-                                  label: `${c.symbol} ${c.code}`
-                                }))}
-                              />
-                              <input
-                                type="text"
-                                placeholder={t('warehouse.thFactoryPrice') || "Zavod"}
-                                className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
-                                value={formData.factory_price}
-                                onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
-                              />
-                            </div>
-                            <span className="text-[10px] text-gray-400 font-bold ml-1 mt-1 block uppercase">
-                              {t('warehouse.thFactoryPrice') || 'Zavod'}
-                            </span>
-                          </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-xs font-black text-gray-400 uppercase tracking-widest">
+                        {i18n.language === 'az' ? 'QİYMƏTLƏR' : 'ЦЕНЫ'}
+                      </label>
+                      {isSecondHand && (
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                          {i18n.language === 'az' ? 'İkinci əl rejimi aktivdir' : 'Режим Б/У товара активен'}
+                        </span>
+                      )}
+                    </div>
 
+                    {isSecondHand ? (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          {/* Alış qiyməti (AZN) */}
                           <div>
-                            <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
-                              <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-gray-400 border-r border-gray-200/70 bg-gray-100/50 select-none">
-                                ₼
+                            <div className="flex items-center rounded-xl bg-amber-50/60 border border-amber-300 hover:border-amber-500 focus-within:border-amber-500 focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                              <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-amber-700 border-r border-amber-200 bg-amber-100/60 select-none">
+                                ₼ AZN
                               </span>
                               <input
                                 type="number"
                                 step="0.01"
+                                required
                                 placeholder="0.00"
                                 className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
                                 value={formData.purchase_price}
                                 onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
                               />
                             </div>
-                            <span className="text-[10px] text-gray-400 font-bold ml-1 mt-1 block uppercase">
-                              {t('warehouse.thPurchasePrice')}
+                            <span className="text-[10px] text-amber-700 font-bold ml-1 mt-1 block uppercase">
+                              {i18n.language === 'az' ? 'Alış qiyməti' : 'Цена покупки'} <span className="text-red-500">*</span>
                             </span>
                           </div>
-                        </>
-                      )}
 
-                      <div>
-                        <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
-                          <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-merkez-blue border-r border-gray-200/70 bg-gray-100/50 select-none">
-                            ₼
-                          </span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            required
-                            placeholder="0.00"
-                            className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-merkez-blue"
-                            value={formData.price}
-                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                          />
+                          {/* Satış qiyməti */}
+                          <div>
+                            <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                              <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-merkez-blue border-r border-gray-200/70 bg-gray-100/50 select-none">
+                                ₼
+                              </span>
+                              <input
+                                type="number"
+                                step="0.01"
+                                required
+                                placeholder="0.00"
+                                className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-merkez-blue"
+                                value={formData.price}
+                                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                              />
+                            </div>
+                            <span className="text-[10px] text-merkez-blue font-bold ml-1 mt-1 block uppercase">
+                              {t('warehouse.thPrice')} <span className="text-red-500">*</span>
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-[10px] text-merkez-blue font-bold ml-1 mt-1 block uppercase">
-                          {t('warehouse.thPrice')} <span className="text-red-500">*</span>
-                        </span>
+
+                        {/* Seller details */}
+                        <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl space-y-2.5">
+                          <div className="flex items-center gap-1.5 text-amber-800 text-xs font-bold uppercase tracking-wider">
+                            <UserCheck className="w-3.5 h-3.5 text-amber-600" />
+                            {i18n.language === 'az' ? 'Məhsulu satan şəxs (Müştəri)' : 'Информация о продавце (клиенте)'}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
+                                {i18n.language === 'az' ? 'Ad, Soyad' : 'Имя, Фамилия'}
+                              </label>
+                              <input
+                                type="text"
+                                placeholder={i18n.language === 'az' ? 'Məsələn: Əli Məmmədov' : 'Например: Али Мамедов'}
+                                className="w-full px-3 py-2 bg-white border border-amber-200 rounded-xl text-sm font-semibold text-gray-900 focus:outline-none focus:border-amber-500 shadow-xs"
+                                value={sellerName}
+                                onChange={(e) => setSellerName(e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
+                                {i18n.language === 'az' ? 'Əlaqə nömrəsi' : 'Номер телефона'}
+                              </label>
+                              <input
+                                type="tel"
+                                placeholder={i18n.language === 'az' ? 'Məsələn: +994 50 123 45 67' : 'Например: +994 50 123 45 67'}
+                                className="w-full px-3 py-2 bg-white border border-amber-200 rounded-xl text-sm font-semibold text-gray-900 focus:outline-none focus:border-amber-500 shadow-xs"
+                                value={sellerPhone}
+                                onChange={(e) => setSellerPhone(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-amber-700 font-medium">
+                            {i18n.language === 'az'
+                              ? 'ℹ️ Alış qiyməti avtomatik olaraq kassa xərclərinə (Çıxılan) əlavə ediləcək və Z-hesabatda əks olunacaq.'
+                              : 'ℹ️ Сумма покупки автоматически запишется в кассовые расходы (Çıxılan) и отобразится в Z-отчёте.'}
+                          </p>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className={`grid ${canSeeCostAndFactoryPrices ? 'grid-cols-3' : 'grid-cols-1'} gap-3`}>
+                        {canSeeCostAndFactoryPrices && (
+                          <>
+                            <div>
+                              <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                                <Dropdown
+                                  value={factoryCurrency}
+                                  onChange={(val) => setFactoryCurrency(val)}
+                                  menuWidth={130}
+                                  trigger={
+                                    <div className="flex items-center gap-1.5 px-3 py-3 bg-gray-100/80 hover:bg-gray-200/70 border-r border-gray-200 transition-colors select-none cursor-pointer">
+                                      <span className="text-xs font-black text-gray-800">
+                                        {getCurrencySymbol(factoryCurrency)} {factoryCurrency}
+                                      </span>
+                                      <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+                                    </div>
+                                  }
+                                  options={CURRENCY_OPTIONS.map((c) => ({
+                                    value: c.code,
+                                    label: `${c.symbol} ${c.code}`
+                                  }))}
+                                />
+                                <input
+                                  type="text"
+                                  placeholder={t('warehouse.thFactoryPrice') || "Zavod"}
+                                  className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
+                                  value={formData.factory_price}
+                                  onChange={(e) => setFormData({ ...formData, factory_price: e.target.value })}
+                                />
+                              </div>
+                              <span className="text-[10px] text-gray-400 font-bold ml-1 mt-1 block uppercase">
+                                {t('warehouse.thFactoryPrice') || 'Zavod'}
+                              </span>
+                            </div>
+
+                            <div>
+                              <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                                <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-gray-400 border-r border-gray-200/70 bg-gray-100/50 select-none">
+                                  ₼
+                                </span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="0.00"
+                                  className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-gray-900"
+                                  value={formData.purchase_price}
+                                  onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                                />
+                              </div>
+                              <span className="text-[10px] text-gray-400 font-bold ml-1 mt-1 block uppercase">
+                                {t('warehouse.thPurchasePrice')}
+                              </span>
+                            </div>
+                          </>
+                        )}
+
+                        <div>
+                          <div className="flex items-center rounded-xl bg-gray-50 border border-gray-100 hover:border-merkez-blue focus-within:border-merkez-blue focus-within:bg-white transition-all shadow-xs overflow-hidden">
+                            <span className="flex items-center justify-center px-3 py-3 text-xs font-black text-merkez-blue border-r border-gray-200/70 bg-gray-100/50 select-none">
+                              ₼
+                            </span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              required
+                              placeholder="0.00"
+                              className="w-full px-2.5 py-3 bg-transparent text-sm focus:outline-none font-bold text-merkez-blue"
+                              value={formData.price}
+                              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            />
+                          </div>
+                          <span className="text-[10px] text-merkez-blue font-bold ml-1 mt-1 block uppercase">
+                            {t('warehouse.thPrice')} <span className="text-red-500">*</span>
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Stocks */}

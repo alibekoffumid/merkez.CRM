@@ -10,9 +10,10 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Barcode, Sparkles, Check, Plus } from 'lucide-react-native';
+import { X, Barcode, Sparkles, Check, Plus, RotateCcw } from 'lucide-react-native';
 import { Product, Category, ProductAttribute } from '../types';
-import { productService } from '../services/productService';
+import { productService, getActiveUserId } from '../services/productService';
+import { supabase } from '../config/supabase';
 import { ProductCharacteristicsSection } from './ProductCharacteristicsSection';
 
 interface NewProductModalProps {
@@ -39,6 +40,9 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   const [purchasePrice, setPurchasePrice] = useState('');
   const [factoryPrice, setFactoryPrice] = useState('');
   const [factoryCurrency, setFactoryCurrency] = useState<'AZN' | 'USD' | 'UAN' | 'TRY'>('USD');
+  const [isSecondHand, setIsSecondHand] = useState(false);
+  const [sellerName, setSellerName] = useState('');
+  const [sellerPhone, setSellerPhone] = useState('');
   const [stockQuantity, setStockQuantity] = useState('0');
   const [criticalStock, setCriticalStock] = useState('5');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -49,6 +53,9 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
   useEffect(() => {
     if (visible) {
       if (initialBarcode) setBarcode(initialBarcode);
+      setIsSecondHand(false);
+      setSellerName('');
+      setSellerPhone('');
       loadCategories();
     }
   }, [visible, initialBarcode]);
@@ -73,11 +80,20 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
     try {
       setSaving(true);
       let formattedFactoryPrice = factoryPrice.trim();
-      if (formattedFactoryPrice) {
+      if (!isSecondHand && formattedFactoryPrice) {
         const cleanNum = formattedFactoryPrice.replace(/[₼$￥¥€₺\s]/g, '');
         const sym = factoryCurrency === 'USD' ? '$' : factoryCurrency === 'UAN' ? '¥' : factoryCurrency === 'TRY' ? '₺' : '₼';
         formattedFactoryPrice = cleanNum ? `${sym}${cleanNum}` : formattedFactoryPrice;
       }
+
+      let extraDesc = '';
+      if (isSecondHand) {
+        extraDesc = 'İkinci əl məhsul\n';
+        if (sellerName.trim()) extraDesc += `Satan: ${sellerName.trim()}\n`;
+        if (sellerPhone.trim()) extraDesc += `Tel: ${sellerPhone.trim()}\n`;
+      }
+
+      const cleanAttrs = attributes.filter(a => a.name.trim() || a.value.trim());
 
       const newProd = await productService.saveProduct({
         name: name.trim(),
@@ -86,12 +102,38 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
         category_id: selectedCategoryId || undefined,
         sale_price: parseFloat(salePrice) || 0,
         purchase_price: parseFloat(purchasePrice) || 0,
-        factory_price: formattedFactoryPrice || undefined,
+        factory_price: isSecondHand ? undefined : (formattedFactoryPrice || undefined),
         stock_quantity: parseFloat(stockQuantity) || 0,
         critical_stock: parseFloat(criticalStock) || 5,
         unit: 'əd.',
-        attributes: attributes.filter(a => a.name.trim() || a.value.trim()),
+        description: extraDesc.trim() || undefined,
+        attributes: cleanAttrs,
       });
+
+      // Record second-hand purchase expense in cashbox
+      if (isSecondHand) {
+        const expenseAmt = parseFloat(purchasePrice) || 0;
+        if (expenseAmt > 0) {
+          try {
+            const userId = await getActiveUserId();
+            const todayStr = new Date().toISOString().split('T')[0];
+            let sellerInfo = '';
+            if (sellerName.trim()) sellerInfo += ` [Satan: ${sellerName.trim()}]`;
+            if (sellerPhone.trim()) sellerInfo += ` [Tel: ${sellerPhone.trim()}]`;
+            const fullDesc = `İkinci əl: ${name.trim()}${sellerInfo} [Xərcləyən: ${sellerName.trim() || 'Müştəri'}] [Mənbə: Kassa]`;
+
+            await supabase.from('business_expenses').insert([{
+              user_id: userId,
+              category: 'İkinci əl alış',
+              description: fullDesc,
+              amount: expenseAmt,
+              expense_date: todayStr
+            }]);
+          } catch (expErr) {
+            console.warn('Could not record mobile second hand expense:', expErr);
+          }
+        }
+      }
 
       Alert.alert('Uğur', 'Məhsul uğurla əlavə edildi!');
       onCreated(newProd);
@@ -105,6 +147,9 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
       setFactoryPrice('');
       setStockQuantity('0');
       setAttributes([]);
+      setIsSecondHand(false);
+      setSellerName('');
+      setSellerPhone('');
     } catch (e: any) {
       Alert.alert('Xəta', e.message);
     } finally {
@@ -123,9 +168,23 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
               </View>
               <Text style={styles.title}>Yeni məhsul</Text>
             </View>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <X size={20} color="#6B7280" />
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                style={[
+                  styles.secondHandBtn,
+                  isSecondHand && styles.secondHandBtnActive
+                ]}
+                onPress={() => setIsSecondHand(!isSecondHand)}
+              >
+                <RotateCcw size={13} color={isSecondHand ? '#FFFFFF' : '#B45309'} />
+                <Text style={[styles.secondHandBtnText, isSecondHand && styles.secondHandBtnTextActive]}>
+                  İkinci əl
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+                <X size={20} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
@@ -196,62 +255,117 @@ export const NewProductModal: React.FC<NewProductModalProps> = ({
             )}
 
             {/* Prices */}
-            <View style={styles.row}>
-              <View style={[styles.group, { flex: 1.1 }]}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <Text style={styles.label}>Zavod qiyməti</Text>
-                  <View style={{ flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2 }}>
-                    {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
-                      const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
-                      const isSel = factoryCurrency === curr;
-                      return (
-                        <TouchableOpacity
-                          key={curr}
-                          onPress={() => setFactoryCurrency(curr)}
-                          style={{
-                            paddingHorizontal: 4,
-                            paddingVertical: 2,
-                            borderRadius: 4,
-                            backgroundColor: isSel ? '#FFFFFF' : 'transparent',
-                          }}
-                        >
-                          <Text style={{ fontSize: 9, fontWeight: '700', color: isSel ? '#4F46E5' : '#6B7280' }}>
-                            {sym} {curr}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
+            {isSecondHand ? (
+              <View style={styles.secondHandBox}>
+                <Text style={styles.secondHandBoxTitle}>İkinci əl məhsul qeydiyyatı</Text>
+                <View style={styles.row}>
+                  <View style={[styles.group, { flex: 1 }]}>
+                    <Text style={styles.label}>Alış qiyməti (₼ AZN) *</Text>
+                    <TextInput
+                      style={[styles.input, { borderColor: '#F59E0B', backgroundColor: '#FEF3C7' }]}
+                      value={purchasePrice}
+                      onChangeText={setPurchasePrice}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                    />
+                  </View>
+                  <View style={[styles.group, { flex: 1 }]}>
+                    <Text style={styles.label}>Satış qiyməti (₼) *</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={salePrice}
+                      onChangeText={setSalePrice}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                    />
                   </View>
                 </View>
-                <TextInput
-                  style={styles.input}
-                  value={factoryPrice}
-                  onChangeText={setFactoryPrice}
-                  placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}25.00`}
-                />
-              </View>
-              <View style={[styles.group, { flex: 1 }]}>
-                <Text style={styles.label}>Maya qiyməti (₼)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={purchasePrice}
-                  onChangeText={setPurchasePrice}
-                  keyboardType="decimal-pad"
-                  placeholder="0.00"
-                />
-              </View>
-            </View>
 
-            <View style={styles.group}>
-              <Text style={styles.label}>Satış qiyməti (₼) *</Text>
-              <TextInput
-                style={styles.input}
-                value={salePrice}
-                onChangeText={setSalePrice}
-                keyboardType="decimal-pad"
-                placeholder="0.00"
-              />
-            </View>
+                {/* Seller info */}
+                <View style={styles.group}>
+                  <Text style={styles.label}>Satan şəxs (Ad, Soyad)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={sellerName}
+                    onChangeText={setSellerName}
+                    placeholder="Məsələn: Əli Məmmədov"
+                  />
+                </View>
+                <View style={styles.group}>
+                  <Text style={styles.label}>Əlaqə nömrəsi</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={sellerPhone}
+                    onChangeText={setSellerPhone}
+                    keyboardType="phone-pad"
+                    placeholder="Məsələn: +994 50 123 45 67"
+                  />
+                </View>
+
+                <Text style={styles.secondHandNote}>
+                  ℹ️ Alış qiyməti kassa xərclərinə (Çıxılan) əlavə ediləcək və Z-hesabatda əks olunacaq.
+                </Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.row}>
+                  <View style={[styles.group, { flex: 1.1 }]}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <Text style={styles.label}>Zavod qiyməti</Text>
+                      <View style={{ flexDirection: 'row', backgroundColor: '#F3F4F6', borderRadius: 6, padding: 2 }}>
+                        {(['AZN', 'USD', 'UAN', 'TRY'] as const).map((curr) => {
+                          const sym = curr === 'AZN' ? '₼' : curr === 'USD' ? '$' : curr === 'TRY' ? '₺' : '¥';
+                          const isSel = factoryCurrency === curr;
+                          return (
+                            <TouchableOpacity
+                              key={curr}
+                              onPress={() => setFactoryCurrency(curr)}
+                              style={{
+                                paddingHorizontal: 4,
+                                paddingVertical: 2,
+                                borderRadius: 4,
+                                backgroundColor: isSel ? '#FFFFFF' : 'transparent',
+                              }}
+                            >
+                              <Text style={{ fontSize: 9, fontWeight: '700', color: isSel ? '#4F46E5' : '#6B7280' }}>
+                                {sym} {curr}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    </View>
+                    <TextInput
+                      style={styles.input}
+                      value={factoryPrice}
+                      onChangeText={setFactoryPrice}
+                      placeholder={`məs. ${factoryCurrency === 'AZN' ? '₼' : factoryCurrency === 'USD' ? '$' : factoryCurrency === 'TRY' ? '₺' : '¥'}25.00`}
+                    />
+                  </View>
+                  <View style={[styles.group, { flex: 1 }]}>
+                    <Text style={styles.label}>Maya qiyməti (₼)</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={purchasePrice}
+                      onChangeText={setPurchasePrice}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.group}>
+                  <Text style={styles.label}>Satış qiyməti (₼) *</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={salePrice}
+                    onChangeText={setSalePrice}
+                    keyboardType="decimal-pad"
+                    placeholder="0.00"
+                  />
+                </View>
+              </>
+            )}
 
             {/* Stock */}
             <View style={styles.row}>
@@ -442,5 +556,48 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  secondHandBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  secondHandBtnActive: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#D97706',
+  },
+  secondHandBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#B45309',
+  },
+  secondHandBtnTextActive: {
+    color: '#FFFFFF',
+  },
+  secondHandBox: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 14,
+    padding: 12,
+    gap: 10,
+    marginBottom: 14,
+  },
+  secondHandBoxTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400E',
+    textTransform: 'uppercase',
+  },
+  secondHandNote: {
+    fontSize: 11,
+    color: '#B45309',
+    lineHeight: 15,
   },
 });
