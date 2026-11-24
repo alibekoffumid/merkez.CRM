@@ -725,15 +725,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-              <Text style={styles.title}>Kassa / Satış</Text>
-              <View style={styles.storeBadge}>
-                <Store size={11} color="#2563EB" />
-                <Text style={styles.storeBadgeText} numberOfLines={1}>
-                  {currentWarehouseName}
-                </Text>
-              </View>
-            </View>
+            <Text style={styles.title}>Kassa / Satış</Text>
             <Text style={styles.sub}>Cari çekdə {cart.length} məhsul</Text>
           </View>
           <View style={styles.headerActions}>
