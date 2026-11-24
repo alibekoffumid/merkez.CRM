@@ -1,3 +1,4 @@
+import { getActiveUserId, productService } from './productService';
 import { supabase } from '../config/supabase';
 import { POSCartItem } from '../types';
 import { movementService } from './movementService';
@@ -113,11 +114,37 @@ export const salesService = {
         ? birmarketGross
         : netSaleBase;
 
+    const activeWarehouseId = await productService.getActiveWarehouseId();
     // 2. Decrement stock using movementService with reason 'sale'
-    const dispatchItems = items.map((i) => ({
-      productId: i.product.id,
-      quantity: i.quantity,
-      warehouseId: (i.product as any).warehouse_id,
+    // Ensure dispatch items are strictly tied to the active store/warehouse
+    const dispatchItems = await Promise.all(items.map(async (i) => {
+      let targetProductId = i.product.id;
+      // If the product was added from another warehouse context, map to the active warehouse product by barcode
+      if (activeWarehouseId && (i.product as any).warehouse_id && (i.product as any).warehouse_id !== activeWarehouseId) {
+        const bc = (i.product.barcode || '').trim();
+        if (bc && userId) {
+          try {
+            const { data: matchingProd } = await supabase
+              .from('products')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('warehouse_id', activeWarehouseId)
+              .eq('barcode', bc)
+              .eq('is_deleted', false)
+              .maybeSingle();
+            if (matchingProd?.id) {
+              targetProductId = matchingProd.id;
+            }
+          } catch (e) {
+            console.warn('Could not map product to active warehouse:', e);
+          }
+        }
+      }
+      return {
+        productId: targetProductId,
+        quantity: i.quantity,
+        warehouseId: activeWarehouseId,
+      };
     }));
 
     let channelPrefix = `[Kanal: ${salesChannel}] `;
@@ -200,7 +227,7 @@ export const salesService = {
       dispatchItems,
       'sale',
       fullNote,
-      undefined,
+      activeWarehouseId,
       discountAmount,
       discountType,
       total

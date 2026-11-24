@@ -279,31 +279,56 @@ export const productService = {
     return activeFetchPromise;
   },
 
-  async lookupByBarcode(barcode: string): Promise<Product | null> {
+  async lookupByBarcode(barcode: string, targetWarehouseId?: string): Promise<Product | null> {
     const cleanBarcode = barcode.trim();
     if (!cleanBarcode) return null;
+    const activeWId = targetWarehouseId || (await productService.getActiveWarehouseId());
 
     if (cachedProducts) {
       const match = cachedProducts.find(
-        (p) => p.barcode === cleanBarcode || p.article_number === cleanBarcode
+        (p) =>
+          (p.barcode === cleanBarcode || p.article_number === cleanBarcode) &&
+          (!activeWId || p.warehouse_id === activeWId)
       );
       if (match) return match;
+
+      const anyMatch = cachedProducts.find(
+        (p) => p.barcode === cleanBarcode || p.article_number === cleanBarcode
+      );
+      if (anyMatch && !activeWId) return anyMatch;
     }
 
     const userId = await getActiveUserId();
     const [cats, prodRes] = await Promise.all([
       productService.getCategories(),
-      supabase
+      (() => {
+        let q = supabase
+          .from('products')
+          .select('*, suppliers(name)')
+          .eq('user_id', userId)
+          .eq('is_deleted', false)
+          .eq('barcode', cleanBarcode);
+        if (activeWId) {
+          q = q.eq('warehouse_id', activeWId);
+        }
+        return q.limit(1).maybeSingle();
+      })(),
+    ]);
+
+    let data = prodRes.data;
+    if (!data && activeWId) {
+      const fallbackRes = await supabase
         .from('products')
         .select('*, suppliers(name)')
         .eq('user_id', userId)
         .eq('is_deleted', false)
         .eq('barcode', cleanBarcode)
         .limit(1)
-        .maybeSingle(),
-    ]);
+        .maybeSingle();
+      data = fallbackRes.data;
+    }
 
-    const { data, error } = prodRes;
+    const error = prodRes.error;
     if (error || !data) return null;
 
     const catMap = new Map(cats.map((c) => [c.id, c.name]));

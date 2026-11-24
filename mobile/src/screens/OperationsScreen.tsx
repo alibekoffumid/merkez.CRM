@@ -28,13 +28,18 @@ import {
   Calendar as CalendarIcon,
   RotateCcw,
   X,
+  Store,
+  ChevronDown,
 } from 'lucide-react-native';
 import {
   StockReceiptItem,
   StockSaleItem,
   StockDispatchItem,
   StockTransferItem,
+  Warehouse,
 } from '../types';
+import { productService } from '../services/productService';
+import { WarehousePickerModal } from '../components/WarehousePickerModal';
 import { movementService } from '../services/movementService';
 import { useAuth } from '../context/AuthContext';
 import { DeleteHistoryModal, HistoryItemToDelete } from '../components/DeleteHistoryModal';
@@ -175,20 +180,45 @@ export const OperationsScreen: React.FC = () => {
     loadAllData(true);
   };
 
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [activeWarehouseId, setActiveWarehouseId] = useState<string>('');
+  const [warehousePickerVisible, setWarehousePickerVisible] = useState(false);
+
   useEffect(() => {
-    loadAllData();
+    let isMounted = true;
+    const init = async () => {
+      try {
+        const [whs, activeWId] = await Promise.all([
+          productService.getWarehouses(),
+          productService.getActiveWarehouseId(),
+        ]);
+        if (isMounted) {
+          setWarehouses(whs || []);
+          const targetId = activeWId || (whs?.[0]?.id || '');
+          setActiveWarehouseId(targetId);
+          loadAllData(false, targetId);
+        }
+      } catch (err) {
+        console.warn('init in OperationsScreen error:', err);
+      }
+    };
+    init();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const loadAllData = async (forceRefresh = false) => {
+  const loadAllData = async (forceRefresh = false, targetWId?: string) => {
     try {
+      const wId = targetWId || activeWarehouseId || (await productService.getActiveWarehouseId());
       const hasCached = !!movementService.getCachedData().receipts;
       if (!hasCached || forceRefresh) {
         setLoading(true);
       }
       const [receiptsData, dispatchesData, transfersData] = await Promise.all([
-        movementService.getReceipts(forceRefresh),
-        movementService.getDispatchesAndSales(forceRefresh),
-        movementService.getTransfers(forceRefresh),
+        movementService.getReceipts(forceRefresh, wId),
+        movementService.getDispatchesAndSales(forceRefresh, wId),
+        movementService.getTransfers(forceRefresh, wId),
       ]);
 
       setReceipts(receiptsData || []);
@@ -200,6 +230,14 @@ export const OperationsScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelectWarehouse = async (wId: string) => {
+    setActiveWarehouseId(wId);
+    await productService.setActiveWarehouseId(wId);
+    setWarehousePickerVisible(false);
+    movementService.invalidateCache();
+    await loadAllData(true, wId);
   };
 
   const handleRefresh = async () => {
@@ -663,11 +701,30 @@ export const OperationsScreen: React.FC = () => {
   return (
     <View style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Header */}
+        {/* Top Header with Warehouse Selector */}
         <View style={styles.header}>
-          <Text style={styles.title}>Əməliyyat tarixçəsi</Text>
+          <View style={styles.headerTopRow}>
+            <TouchableOpacity
+              style={styles.warehouseDropdownBtn}
+              onPress={() => setWarehousePickerVisible(true)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.warehouseDropdownLeft}>
+                <Store size={15} color="#2563EB" />
+                <Text style={styles.warehouseDropdownText} numberOfLines={1}>
+                  {warehouses.find((w) => w.id === activeWarehouseId)?.name || 'DÜKKAN - ƏHMƏDLİ'}
+                </Text>
+              </View>
+              <ChevronDown size={14} color="#2563EB" />
+            </TouchableOpacity>
+
+            <View style={styles.historyBadge}>
+              <Clock size={12} color="#059669" />
+              <Text style={styles.historyBadgeText}>Tarixçə</Text>
+            </View>
+          </View>
           <Text style={styles.sub}>
-            Qəbullar, satışlar, silinmələr və yerdəyişmələr
+            {warehouses.find((w) => w.id === activeWarehouseId)?.name || 'Cari anbar'} üçün qəbullar, satışlar və silinmələr
           </Text>
         </View>
 
@@ -901,6 +958,14 @@ export const OperationsScreen: React.FC = () => {
           renderCurrentList()
         )}
 
+        <WarehousePickerModal
+          visible={warehousePickerVisible}
+          warehouses={warehouses}
+          activeWarehouseId={activeWarehouseId}
+          onSelectWarehouse={handleSelectWarehouse}
+          onClose={() => setWarehousePickerVisible(false)}
+        />
+
         <DeleteHistoryModal
           visible={deleteModalVisible}
           item={itemToDelete}
@@ -943,6 +1008,52 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 4,
     paddingBottom: 6,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  warehouseDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1.5,
+    borderColor: '#BFDBFE',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    maxWidth: '75%',
+    gap: 8,
+  },
+  warehouseDropdownLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  warehouseDropdownText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1E40AF',
+  },
+  historyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  historyBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#065F46',
   },
   title: {
     fontSize: 22,

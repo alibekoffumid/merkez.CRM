@@ -89,6 +89,27 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [selectedBank, setSelectedBank] = useState<CreditBank>('ABB Kredit');
   const [installmentMonths, setInstallmentMonths] = useState<number>(12);
   const [zeroInterestBanks, setZeroInterestBanks] = useState<Record<string, boolean>>({});
+  const [currentWarehouseName, setCurrentWarehouseName] = useState<string>('DÜKKAN - ƏHMƏDLİ');
+
+  useEffect(() => {
+    let isMounted = true;
+    const resolveWh = async () => {
+      try {
+        const [whs, activeId] = await Promise.all([
+          productService.getWarehouses(),
+          productService.getActiveWarehouseId(),
+        ]);
+        const found = (whs || []).find((w) => w.id === activeId);
+        if (isMounted && found?.name) {
+          setCurrentWarehouseName(found.name);
+        }
+      } catch (e) {
+        console.warn('resolveWh in POSScreen error:', e);
+      }
+    };
+    resolveWh();
+    return () => { isMounted = false; };
+  }, [cart]);
 
   useEffect(() => {
     const loadZeroInterest = async () => {
@@ -704,7 +725,15 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>Kassa / Satış</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <Text style={styles.title}>Kassa / Satış</Text>
+              <View style={styles.storeBadge}>
+                <Store size={11} color="#2563EB" />
+                <Text style={styles.storeBadgeText} numberOfLines={1}>
+                  {currentWarehouseName}
+                </Text>
+              </View>
+            </View>
             <Text style={styles.sub}>Cari çekdə {cart.length} məhsul</Text>
           </View>
           <View style={styles.headerActions}>
@@ -2006,6 +2035,22 @@ export const POSScreen: React.FC<POSScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
+  storeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  storeBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#1E40AF',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#F9FAFB',

@@ -3,8 +3,11 @@ import { StockMovement } from '../types';
 import { getActiveUserId, productService } from './productService';
 
 let cachedReceipts: any[] | null = null;
+let cachedReceiptsWarehouseId: string | null = null;
 let cachedDispatchesSales: { sales: any[]; dispatches: any[] } | null = null;
+let cachedDispatchesWarehouseId: string | null = null;
 let cachedTransfers: any[] | null = null;
+let cachedTransfersWarehouseId: string | null = null;
 let cachedDefaultWarehouseId: string | null = null;
 
 export async function getDefaultWarehouseId(): Promise<string | null> {
@@ -32,8 +35,11 @@ export async function getDefaultWarehouseId(): Promise<string | null> {
 export const movementService = {
   invalidateCache(): void {
     cachedReceipts = null;
+    cachedReceiptsWarehouseId = null;
     cachedDispatchesSales = null;
+    cachedDispatchesWarehouseId = null;
     cachedTransfers = null;
+    cachedTransfersWarehouseId = null;
   },
 
   getCachedData(): {
@@ -56,7 +62,8 @@ export const movementService = {
   ): Promise<void> {
     movementService.invalidateCache();
     const userId = await getActiveUserId();
-    const fallbackWarehouseId = warehouseId || (await getDefaultWarehouseId());
+    const activeWId = await productService.getActiveWarehouseId();
+    const fallbackWarehouseId = warehouseId || activeWId || (await getDefaultWarehouseId());
 
     for (const item of items) {
       const itemWarehouseId = item.warehouseId || fallbackWarehouseId;
@@ -184,18 +191,25 @@ export const movementService = {
     }
   },
 
-  async getReceipts(forceRefresh = false): Promise<any[]> {
-    if (!forceRefresh && cachedReceipts) {
+  async getReceipts(forceRefresh = false, targetWarehouseId?: string): Promise<any[]> {
+    const wId = targetWarehouseId !== undefined ? targetWarehouseId : (await productService.getActiveWarehouseId());
+    if (!forceRefresh && cachedReceipts && cachedReceiptsWarehouseId === wId) {
       return cachedReceipts;
     }
 
     try {
       const userId = await getActiveUserId();
-      const { data, error } = await supabase
+      let query = supabase
         .from('stock_receipts')
         .select('*, products(name, barcode), suppliers(name)')
         .eq('user_id', userId)
         .order('received_at', { ascending: false });
+
+      if (wId && wId !== 'ALL') {
+        query = query.eq('warehouse_id', wId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('getReceipts error:', error);
@@ -215,6 +229,7 @@ export const movementService = {
       }));
 
       cachedReceipts = res;
+      cachedReceiptsWarehouseId = wId;
       return res;
     } catch (e) {
       console.error('getReceipts exception:', e);
@@ -222,8 +237,9 @@ export const movementService = {
     }
   },
 
-  async getDispatchesAndSales(forceRefresh = false): Promise<{ sales: any[]; dispatches: any[] }> {
-    if (!forceRefresh && cachedDispatchesSales) {
+  async getDispatchesAndSales(forceRefresh = false, targetWarehouseId?: string): Promise<{ sales: any[]; dispatches: any[] }> {
+    const wId = targetWarehouseId !== undefined ? targetWarehouseId : (await productService.getActiveWarehouseId());
+    if (!forceRefresh && cachedDispatchesSales && cachedDispatchesWarehouseId === wId) {
       return cachedDispatchesSales;
     }
 
@@ -231,20 +247,32 @@ export const movementService = {
       const userId = await getActiveUserId();
       let records: any[] = [];
 
-      // 1. Try join with products table using existing valid columns
-      const { data, error } = await supabase
+      // 1. Try join with products table filtered by warehouse
+      let joinQuery = supabase
         .from('stock_dispatches')
         .select('*, products(id, name, barcode, category_id, price, purchase_price, unit, image_url, stock_quantity)')
         .eq('user_id', userId)
         .order('issued_at', { ascending: false });
 
+      if (wId && wId !== 'ALL') {
+        joinQuery = joinQuery.eq('warehouse_id', wId);
+      }
+
+      const { data, error } = await joinQuery;
+
       if (error) {
         console.warn('getDispatchesAndSales join error, falling back to raw select:', error);
-        const { data: rawData, error: rawError } = await supabase
+        let rawQuery = supabase
           .from('stock_dispatches')
           .select('*')
           .eq('user_id', userId)
           .order('issued_at', { ascending: false });
+
+        if (wId && wId !== 'ALL') {
+          rawQuery = rawQuery.eq('warehouse_id', wId);
+        }
+
+        const { data: rawData, error: rawError } = await rawQuery;
 
         if (rawError) {
           console.error('getDispatchesAndSales raw error:', rawError);
@@ -310,6 +338,7 @@ export const movementService = {
 
       const res = { sales, dispatches };
       cachedDispatchesSales = res;
+      cachedDispatchesWarehouseId = wId;
       return res;
     } catch (e) {
       console.error('getDispatchesAndSales exception:', e);
@@ -317,18 +346,25 @@ export const movementService = {
     }
   },
 
-  async getTransfers(forceRefresh = false): Promise<any[]> {
-    if (!forceRefresh && cachedTransfers) {
+  async getTransfers(forceRefresh = false, targetWarehouseId?: string): Promise<any[]> {
+    const wId = targetWarehouseId !== undefined ? targetWarehouseId : (await productService.getActiveWarehouseId());
+    if (!forceRefresh && cachedTransfers && cachedTransfersWarehouseId === wId) {
       return cachedTransfers;
     }
 
     try {
       const userId = await getActiveUserId();
-      const { data, error } = await supabase
+      let query = supabase
         .from('stock_transfers')
         .select('*, stock_transfer_items(*, products(name, barcode))')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
+
+      if (wId && wId !== 'ALL') {
+        query = query.or(`from_warehouse_id.eq.${wId},to_warehouse_id.eq.${wId}`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('getTransfers error:', error);
@@ -349,6 +385,7 @@ export const movementService = {
       }));
 
       cachedTransfers = res;
+      cachedTransfersWarehouseId = wId;
       return res;
     } catch (e) {
       console.error('getTransfers exception:', e);
