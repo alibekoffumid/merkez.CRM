@@ -2756,8 +2756,39 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     // 1. PRIMARY SHEET: Kassa Satış Cədvəli (Exact Template from Image)
     // ==============================================================
     const wsLedger = wb.addWorksheet('Kassa Satış Cədvəli', {
-      views: [{ showGridLines: true }]
+      views: [{ showGridLines: true }],
+      pageSetup: {
+        orientation: 'landscape',
+        paperSize: 9, // A4
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
+        margins: {
+          left: 0.3,
+          right: 0.3,
+          top: 0.4,
+          bottom: 0.4,
+          header: 0.2,
+          footer: 0.2
+        }
+      }
     });
+
+    wsLedger.pageSetup = {
+      orientation: 'landscape',
+      paperSize: 9, // A4
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      margins: {
+        left: 0.3,
+        right: 0.3,
+        top: 0.4,
+        bottom: 0.4,
+        header: 0.2,
+        footer: 0.2
+      }
+    };
 
     // 10 Columns: №, MALIN ADI, NAĞD, terminal, KREDİT, kart, BORC USTA, ÇIXILAN, SATICI, SAAT
     wsLedger.columns = [
@@ -3055,8 +3086,39 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
     // ==============================================================
     const canShowProfit = data.isAdmin !== false && mergedOptions.showProfit !== false && data.totalCostPrice != null;
     const wsProducts = wb.addWorksheet('Satılan Məhsullar', {
-      views: [{ showGridLines: true }]
+      views: [{ showGridLines: true }],
+      pageSetup: {
+        orientation: 'landscape',
+        paperSize: 9, // A4
+        fitToPage: true,
+        fitToWidth: 1,
+        fitToHeight: 0,
+        margins: {
+          left: 0.3,
+          right: 0.3,
+          top: 0.4,
+          bottom: 0.4,
+          header: 0.2,
+          footer: 0.2
+        }
+      }
     });
+
+    wsProducts.pageSetup = {
+      orientation: 'landscape',
+      paperSize: 9, // A4
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+      margins: {
+        left: 0.3,
+        right: 0.3,
+        top: 0.4,
+        bottom: 0.4,
+        header: 0.2,
+        footer: 0.2
+      }
+    };
 
     const pCols = [
       { key: 'p_no', width: 6 },
