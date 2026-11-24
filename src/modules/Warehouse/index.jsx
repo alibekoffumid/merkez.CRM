@@ -536,7 +536,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     try {
       const { data, error } = await supabase
         .from('warehouse_repairs')
-        .select('product_id, quantity, item_name, status')
+        .select('product_id, item_name, status')
         .eq('user_id', profile.id)
         .in('status', ['SENT_TO_WORKSHOP', 'BEING_REPAIRED', 'SENT_TO_MASTER', 'RECEIVED_FROM_CUSTOMER'])
         .not('product_id', 'is', null);

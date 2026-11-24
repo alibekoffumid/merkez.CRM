@@ -1,6 +1,8 @@
 import { supabase } from '../supabaseClient';
 
 const STORAGE_CACHE_KEY = 'merkez_warehouse_rentals_cache_v1';
+// Dedicated table warehouse_rentals does not exist in DB schema; rentals are stored in stock_dispatches (reason = 'RENTAL')
+let hasDedicatedTable = false;
 
 function getLocalCache() {
   try {
@@ -58,29 +60,31 @@ export const rentalService = {
     let cloudList = [];
     let hasTable = true;
 
-    // 1. Try querying dedicated warehouse_rentals table
-    try {
-      const query = supabase
-        .from('warehouse_rentals')
-        .select('*')
-        .order('created_at', { ascending: false });
+    // 1. If dedicated warehouse_rentals table exists, query it
+    if (hasDedicatedTable) {
+      try {
+        const query = supabase
+          .from('warehouse_rentals')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (warehouseId) {
-        query.eq('warehouse_id', warehouseId);
-      }
+        if (warehouseId) {
+          query.eq('warehouse_id', warehouseId);
+        }
 
-      const { data, error } = await query;
-      if (!error && data) {
-        cloudList = data;
-      } else {
-        hasTable = false;
+        const { data, error } = await query;
+        if (!error && data) {
+          cloudList = data;
+        } else {
+          hasDedicatedTable = false;
+        }
+      } catch (e) {
+        hasDedicatedTable = false;
       }
-    } catch (e) {
-      hasTable = false;
     }
 
-    // 2. Query dispatches fallback if table doesn't exist
-    if (!hasTable || cloudList.length === 0) {
+    // 2. Query dispatches fallback (where rentals are stored with reason = 'RENTAL')
+    if (!hasDedicatedTable || cloudList.length === 0) {
       try {
         const dQuery = supabase
           .from('stock_dispatches')
@@ -236,21 +240,25 @@ export const rentalService = {
       updated_at: nowIso,
     };
 
-    // 1. Try insert into warehouse_rentals table
+    // 1. Try insert into warehouse_rentals table if it exists
     let savedToTable = false;
-    try {
-      const { data, error } = await supabase
-        .from('warehouse_rentals')
-        .insert([record])
-        .select()
-        .single();
+    if (hasDedicatedTable) {
+      try {
+        const { data, error } = await supabase
+          .from('warehouse_rentals')
+          .insert([record])
+          .select()
+          .single();
 
-      if (!error && data) {
-        record.id = data.id;
-        savedToTable = true;
+        if (!error && data) {
+          record.id = data.id;
+          savedToTable = true;
+        } else {
+          hasDedicatedTable = false;
+        }
+      } catch (e) {
+        hasDedicatedTable = false;
       }
-    } catch (e) {
-      savedToTable = false;
     }
 
     // 2. Also log to stock_dispatches (decreases available stock and keeps audit trail)
@@ -336,14 +344,16 @@ export const rentalService = {
       updated_at: nowIso,
     };
 
-    // 1. Try update warehouse_rentals table
-    try {
-      await supabase
-        .from('warehouse_rentals')
-        .update(updates)
-        .eq('id', rentalId);
-    } catch (e) {
-      console.warn('Update warehouse_rentals failed:', e);
+    // 1. Try update warehouse_rentals table if it exists
+    if (hasDedicatedTable) {
+      try {
+        await supabase
+          .from('warehouse_rentals')
+          .update(updates)
+          .eq('id', rentalId);
+      } catch (e) {
+        hasDedicatedTable = false;
+      }
     }
 
     // 2. Also log to stock_receipts (return back to warehouse)
@@ -393,9 +403,13 @@ export const rentalService = {
    * Cancel or Delete rental
    */
   async deleteRental(rentalId, productId, quantity, warehouseId) {
-    try {
-      await supabase.from('warehouse_rentals').delete().eq('id', rentalId);
-    } catch (e) {}
+    if (hasDedicatedTable) {
+      try {
+        await supabase.from('warehouse_rentals').delete().eq('id', rentalId);
+      } catch (e) {
+        hasDedicatedTable = false;
+      }
+    }
 
     // Restore stock if active
     if (productId) {
