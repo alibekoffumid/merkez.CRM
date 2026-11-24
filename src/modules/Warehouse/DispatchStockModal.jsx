@@ -319,28 +319,28 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={onClose}>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex flex-col overflow-hidden" onClick={onClose}>
         <div 
-          className="bg-white w-screen h-screen overflow-hidden animate-in fade-in flex flex-col"
+          className="bg-white w-full h-full max-w-full max-h-full flex-1 flex flex-col overflow-hidden animate-in fade-in"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-red-100 text-merkez-red flex items-center justify-center">
-                <Minus className="w-6 h-6" />
+          <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 bg-gray-50/50 shrink-0">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-red-100 text-merkez-red flex items-center justify-center shrink-0">
+                <Minus className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">{t('warehouse.dispatchStock') || 'Отгрузка/Списание'}</h3>
-                <p className="text-xs text-gray-500 font-medium">{t('warehouse.dispatchStockDesc') || 'Оформите выдачу или списание товаров со склада'}</p>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 leading-tight">{t('warehouse.dispatchStock') || 'Отгрузка/Списание'}</h3>
+                <p className="text-[11px] sm:text-xs text-gray-500 font-medium">{t('warehouse.dispatchStockDesc') || 'Оформите выдачу или списание товаров со склада'}</p>
               </div>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-6">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 lg:p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Sidebar Info */}
               <div className="lg:col-span-1 space-y-6">
@@ -557,20 +557,20 @@ const DispatchStockModal = ({ isOpen, onClose, onStockDispatched, type = 'produc
           </div>
 
           {/* Footer */}
-          <div className="p-4 md:p-8 border-t border-gray-100 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 shrink-0 bg-gray-50/30">
+          <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 border-t border-gray-100 flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4 shrink-0 bg-gray-50/30">
             <button 
               type="button" 
               onClick={onClose} 
-              className="flex-1 py-4 text-sm font-bold text-gray-500 bg-white border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all"
+              className="flex-1 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm"
             >
               {t('common.cancel')}
             </button>
             <button 
               onClick={handleSubmit}
               disabled={loading || items.length === 0} 
-              className="flex-[2] py-4 bg-gray-900 text-white rounded-2xl font-black shadow-lg shadow-gray-900/20 hover:bg-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-[2] py-2.5 sm:py-3 bg-gray-900 text-white rounded-xl text-xs sm:text-sm font-black shadow-lg shadow-gray-900/20 hover:bg-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {t('warehouse.completeDispatch') || 'Подтвердить списание'}
             </button>
           </div>

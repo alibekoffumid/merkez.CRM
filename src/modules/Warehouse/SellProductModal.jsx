@@ -1313,32 +1313,32 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={handleModalClose}>
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex flex-col overflow-hidden" onClick={handleModalClose}>
         <div 
-          className="bg-white w-screen h-screen overflow-hidden animate-in fade-in flex flex-col"
+          className="bg-white w-full h-full max-w-full max-h-full flex-1 flex flex-col overflow-hidden animate-in fade-in"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 shrink-0">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-merkez-blue flex items-center justify-center">
-                <DollarSign className="w-6 h-6" />
+          <div className="flex justify-between items-center px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 bg-gray-50/50 shrink-0">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-100 text-merkez-blue flex items-center justify-center shrink-0">
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">{i18n.language === 'az' ? 'Məhsul Satışı' : i18n.language === 'ru' ? 'Продажа товара' : 'Sell Product'}</h3>
-                <p className="text-xs text-gray-500 font-medium">{i18n.language === 'az' ? 'Məhsul satışını rəsmiləşdirin və anbardan çıxarın' : i18n.language === 'ru' ? 'Оформите продажу товаров со склада' : 'Register warehouse product sale'}</p>
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 leading-tight">{i18n.language === 'az' ? 'Məhsul Satışı' : i18n.language === 'ru' ? 'Продажа товара' : 'Sell Product'}</h3>
+                <p className="text-[11px] sm:text-xs text-gray-500 font-medium">{i18n.language === 'az' ? 'Məhsul satışını rəsmiləşdirin və anbardan çıxarın' : i18n.language === 'ru' ? 'Оформите продажу товаров со склада' : 'Register warehouse product sale'}</p>
               </div>
             </div>
             <button onClick={handleModalClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-xl hover:bg-gray-100">
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto lg:overflow-hidden p-4 lg:p-8 pt-6 flex flex-col">
-            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 lg:p-6 flex flex-col">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:gap-6 flex-1 min-h-0">
               {/* Sidebar Info (Sale Parameters) */}
-              <div className="lg:col-span-5 space-y-6 lg:overflow-y-auto pr-2 pb-6 lg:max-h-full shrink-0 lg:shrink">
-                <div className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100 space-y-4">
+              <div className="lg:col-span-5 space-y-4 lg:overflow-y-auto pr-1 pb-4 lg:max-h-full shrink-0 lg:shrink">
+                <div className="bg-gray-50/50 p-4 sm:p-5 rounded-2xl border border-gray-100 space-y-3.5">
                   <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">{i18n.language === 'az' ? 'Satış Parametrləri' : i18n.language === 'ru' ? 'Параметры продажи' : 'Sale Parameters'}</h4>
                   
                   <DatePicker 
@@ -2054,9 +2054,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               </div>
 
               {/* Cart / Products Panel */}
-              <div className="lg:col-span-7 space-y-6 flex flex-col lg:h-full lg:overflow-hidden mt-6 lg:mt-0">
+              <div className="lg:col-span-7 space-y-4 flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden mt-4 lg:mt-0">
                 {/* Add Item Form */}
-                <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-6">
+                <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-4 sm:p-5 shrink-0">
                   <div className="flex justify-between items-center mb-4 border-b border-gray-50 pb-2">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{i18n.language === 'az' ? 'Məhsul əlavə edin' : i18n.language === 'ru' ? 'Добавьте товар в корзину' : 'Add product to sale'}</span>
                     <div className="flex items-center gap-2">
@@ -2381,9 +2381,9 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
           </div>
 
           {/* Footer actions */}
-          <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4">
+          <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 border-t border-gray-100 bg-gray-50/50 shrink-0 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 sm:gap-4">
             {/* Live total display */}
-            <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-2 shadow-sm">
+            <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 shadow-sm">
               <div className="flex flex-col">
                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   {i18n.language === 'az' ? 'Yekun Məbləğ' : i18n.language === 'ru' ? 'Итого к оплате' : 'Total'}
@@ -2394,14 +2394,14 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                       ₼{grossCartTotal.toFixed(2)}
                     </span>
                   )}
-                  <span className="text-lg sm:text-xl font-black text-merkez-blue">
+                  <span className="text-base sm:text-xl font-black text-merkez-blue">
                     ₼{finalTotal.toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap sm:flex-nowrap items-center justify-end gap-3 sm:gap-4 ml-auto">
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-end gap-2.5 sm:gap-4 ml-auto">
               {/* Discount Input with Fixed/Percent Switcher */}
               <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
                 <div className="flex items-center gap-1 pl-2">
@@ -2445,7 +2445,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
               <button 
                 type="button" 
                 onClick={onClose}
-                className="px-5 py-3 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-sm shadow-sm"
+                className="px-4 sm:px-5 py-2.5 sm:py-3 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all text-xs sm:text-sm shadow-sm"
               >
                 {t('common.cancel')}
               </button>
@@ -2453,7 +2453,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                 type="button" 
                 disabled={loading || cart.length === 0}
                 onClick={handleSubmit}
-                className="px-6 sm:px-8 py-3 btn-gradient-primary rounded-xl font-bold disabled:opacity-50 text-sm flex items-center justify-center gap-2"
+                className="px-5 sm:px-8 py-2.5 sm:py-3 btn-gradient-primary rounded-xl font-bold disabled:opacity-50 text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>

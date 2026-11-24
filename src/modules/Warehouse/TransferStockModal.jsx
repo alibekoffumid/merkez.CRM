@@ -252,27 +252,27 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex items-center justify-center" onClick={onClose}>
-        <div 
-          className="bg-white w-screen h-screen overflow-hidden animate-in fade-in flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-merkez-blue/10 flex items-center justify-center">
-              <ArrowRightLeft className="w-6 h-6 text-merkez-blue" />
+    <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[9999] flex flex-col overflow-hidden" onClick={onClose}>
+      <div 
+        className="bg-white w-full h-full max-w-full max-h-full flex-1 flex flex-col overflow-hidden animate-in fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-merkez-blue/10 flex items-center justify-center shrink-0">
+              <ArrowRightLeft className="w-5 h-5 sm:w-6 sm:h-6 text-merkez-blue" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-gray-900 tracking-tight">{t('warehouse.transferStock') || 'Перемещение товара'}</h2>
-              <p className="text-sm text-gray-500 font-medium">{t('warehouse.transferStockDesc') || 'Перемещение позиций между вашими складами'}</p>
+              <h2 className="text-base sm:text-lg lg:text-xl font-black text-gray-900 tracking-tight leading-tight">{t('warehouse.transferStock') || 'Перемещение товара'}</h2>
+              <p className="text-[11px] sm:text-xs text-gray-500 font-medium">{t('warehouse.transferStockDesc') || 'Перемещение позиций между вашими складами'}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-            <X className="w-6 h-6 text-gray-400" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 custom-scrollbar">
           {/* Warehouse Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-blue-50/30 rounded-2xl border border-blue-100/50">
             <div className="space-y-2">
@@ -464,17 +464,17 @@ const TransferStockModal = ({ isOpen, onClose, products, warehouses, onStockTran
           </div>
         </div>
 
-        <div className="px-4 md:px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+        <div className="px-4 py-2.5 sm:px-6 sm:py-3.5 bg-gray-50/50 border-t border-gray-100 flex flex-col-reverse sm:flex-row gap-2.5 sm:gap-4 shrink-0">
           <button 
             onClick={onClose}
-            className="flex-1 py-4 bg-white border border-gray-200 text-gray-500 rounded-2xl font-black hover:bg-gray-50 transition-all shadow-sm"
+            className="flex-1 py-2.5 sm:py-3 bg-white border border-gray-200 text-gray-500 rounded-xl text-xs sm:text-sm font-black hover:bg-gray-50 transition-all shadow-sm"
           >
             {t('common.cancel')}
           </button>
           <button 
             onClick={handleTransfer}
             disabled={loading}
-            className="flex-1 py-4 bg-merkez-blue text-white rounded-2xl font-black shadow-lg shadow-blue-600/20 hover:bg-blue-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 py-2.5 sm:py-3 bg-merkez-blue text-white rounded-xl text-xs sm:text-sm font-black shadow-lg shadow-blue-600/20 hover:bg-blue-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {loading ? (
               <>

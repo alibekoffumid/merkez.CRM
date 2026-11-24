@@ -1261,7 +1261,7 @@ const WarehouseFiles = () => {
           <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-2 sm:p-4" onClick={handleClosePreview}>
             <div 
               className={`bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 border border-gray-200 transition-all ${
-                isFullscreen ? 'w-screen h-screen rounded-none' : 'w-[98vw] max-w-[1500px] h-[92vh]'
+                isFullscreen ? 'w-full h-full max-w-full max-h-full rounded-none' : 'w-[98vw] max-w-[1500px] h-[92vh]'
               }`} 
               onClick={e => e.stopPropagation()}
             >
