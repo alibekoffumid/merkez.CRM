@@ -31,6 +31,7 @@ import {
   Square,
   KeyRound,
   Store,
+  Calculator,
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { Product, Category, Warehouse } from '../types';
@@ -44,6 +45,7 @@ import { LabelPrintModal } from '../components/LabelPrintModal';
 import { RentProductModal } from '../components/RentProductModal';
 import { RentalsListModal } from '../components/RentalsListModal';
 import { WarehousePickerModal } from '../components/WarehousePickerModal';
+import { CreditCalculatorModal } from '../components/CreditCalculatorModal';
 import { rentalService } from '../services/rentalService';
 import { buildCategoryDescendantMap } from '../utils/categoryUtils';
 
@@ -84,6 +86,7 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
   const [rentModalProducts, setRentModalProducts] = useState<Product[]>([]);
   const [rentalsListVisible, setRentalsListVisible] = useState(false);
   const [overdueRentalsCount, setOverdueRentalsCount] = useState(0);
+  const [creditCalculatorVisible, setCreditCalculatorVisible] = useState(false);
 
   // Warehouse selection state
   const [warehouses, setWarehouses] = useState<Warehouse[]>(() => productService.getCachedWarehouses() || []);
@@ -348,6 +351,14 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           </TouchableOpacity>
 
           <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.calculatorHeaderBtn}
+              onPress={() => setCreditCalculatorVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Calculator size={18} color="#4F46E5" />
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.switchStaffBtn}
               onPress={lockStaff}
@@ -633,6 +644,12 @@ export const WarehouseScreen: React.FC<WarehouseScreenProps> = ({
           }}
         />
 
+        {/* Credit Calculator Modal */}
+        <CreditCalculatorModal
+          visible={creditCalculatorVisible}
+          onClose={() => setCreditCalculatorVisible(false)}
+        />
+
         {/* Floating Selection Bar */}
         {selectionMode && (
           <View style={styles.selectionBar}>
@@ -735,6 +752,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  calculatorHeaderBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1.5,
+    borderColor: '#C7D2FE',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scanHeaderBtn: {
     flexDirection: 'row',
