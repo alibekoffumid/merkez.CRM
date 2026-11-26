@@ -47,6 +47,7 @@ export interface ProcessSaleOptions {
   };
   splitDetails?: SplitSaleDetails;
   birmarketDetails?: BirmarketSaleDetails;
+  sellerName?: string;
 }
 
 export const salesService = {
@@ -78,6 +79,7 @@ export const salesService = {
     let depositDetails: { advanceAmount: number; advanceRecipient?: string } | undefined;
     let splitDetails: SplitSaleDetails | undefined;
     let birmarketDetails: BirmarketSaleDetails | undefined;
+    let sellerName: string | undefined;
     let salesChannel = 'Mağaza';
 
     if (typeof discountOrOptions === 'object' && discountOrOptions !== null) {
@@ -89,6 +91,7 @@ export const salesService = {
       depositDetails = discountOrOptions.depositDetails;
       splitDetails = discountOrOptions.splitDetails;
       birmarketDetails = discountOrOptions.birmarketDetails;
+      sellerName = discountOrOptions.sellerName;
       salesChannel = discountOrOptions.salesChannel || 'Mağaza';
     } else {
       discountAmount = Number(discountOrOptions) || 0;
@@ -222,6 +225,10 @@ export const salesService = {
         .map((g) => `${g.product.name} (x${g.quantity}, Dəyəri: ₼${(g.originalPrice ?? g.product.sale_price ?? g.product.price ?? 0).toFixed(2)})`)
         .join(', ');
       fullNote += ` [🎁 HƏDİYYƏ: ${giftNames}]`;
+    }
+
+    if (sellerName && sellerName.trim()) {
+      fullNote += ` [Satıcı: ${sellerName.trim()}]`;
     }
 
     // Call recordDispatch with reason='sale' and discount fields

@@ -100,6 +100,7 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
   // Report Mode: 'products_only' vs 'detailed'
   const [reportMode, setReportMode] = useState<'detailed' | 'products_only'>('detailed');
   const [showSettingsDrawer, setShowSettingsDrawer] = useState<boolean>(false);
+  const [customCashierName, setCustomCashierName] = useState<string>('');
 
   // Granular section options (showProfit forced to false if not admin)
   const [customSections, setCustomSections] = useState({
@@ -262,6 +263,8 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
     const whName = warehouseName || activeWarehouse?.name || reportData?.warehouseName || profile?.business_name || profile?.company_name || 'Anbar / Mağaza';
     const rawAddress = (warehouseAddress !== undefined ? warehouseAddress : activeWarehouse?.address) || reportData?.warehouseAddress || profile?.address || '';
     const whAddress = typeof rawAddress === 'string' ? rawAddress.trim() : '';
+    const defaultCashier = (currentStaff && currentStaff !== 'owner' ? (currentStaff.name || currentStaff.username) : '') || profile?.full_name || profile?.name || 'Məsul Şəxs';
+    const finalCashier = (customCashierName && customCashierName.trim()) ? customCashierName.trim() : defaultCashier;
 
     return {
       businessName: whName,
@@ -271,9 +274,9 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
       address: whAddress,
       warehouseAddress: whAddress,
       phone: profile?.phone || '',
-      cashierName: profile?.full_name || profile?.name || 'Məsul Şəxs'
+      cashierName: finalCashier
     };
-  }, [profile, warehouseName, warehouseAddress, activeWarehouse, reportData?.warehouseName, reportData?.warehouseAddress]);
+  }, [profile, currentStaff, customCashierName, warehouseName, warehouseAddress, activeWarehouse, reportData?.warehouseName, reportData?.warehouseAddress]);
 
   useEffect(() => {
     if (isOpen && profile?.id) {
@@ -786,10 +789,14 @@ const DailySalesReportModal: React.FC<DailySalesReportModalProps> = ({
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Məsul Şəxs</div>
-                      <div className="text-xs font-black text-gray-800 leading-none">
-                        {businessInfo.cashierName}
-                      </div>
+                      <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Məsul Şəxs (Satıcı)</div>
+                      <input
+                        type="text"
+                        value={customCashierName !== '' ? customCashierName : businessInfo.cashierName}
+                        onChange={(e) => setCustomCashierName(e.target.value)}
+                        placeholder="Satıcı adı"
+                        className="text-xs font-black text-gray-800 leading-none bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 focus:bg-white focus:border-merkez-blue focus:outline-none transition-all shadow-xs"
+                      />
                     </div>
                   </div>
                 </div>

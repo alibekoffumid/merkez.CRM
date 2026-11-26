@@ -60,6 +60,7 @@ import {
 import { PrinterSettingsModal } from '../components/PrinterSettingsModal';
 import { SaleSuccessModal } from '../components/SaleSuccessModal';
 import { receiptService, SaleReceiptData } from '../services/receiptService';
+import { useAuth } from '../context/AuthContext';
 
 interface POSScreenProps {
   cart: POSCartItem[];
@@ -85,6 +86,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   onUpdateItemPrice,
   onToggleItemGift,
 }) => {
+  const { profile, currentStaff } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState<POSPaymentMethod>('CASH');
   const [selectedBank, setSelectedBank] = useState<CreditBank>('ABB Kredit');
   const [installmentMonths, setInstallmentMonths] = useState<number>(12);
@@ -554,6 +556,10 @@ export const POSScreen: React.FC<POSScreenProps> = ({
         ? `${clientName.trim()} (${clientPhone.trim()})`
         : clientName.trim() || undefined;
 
+      const currentSeller = currentStaff === 'owner'
+        ? (profile?.full_name || 'Sahib')
+        : (currentStaff ? currentStaff.name : (profile?.full_name || 'Kassir'));
+
       const res = await salesService.processSale(
         cart,
         paymentMethod,
@@ -564,6 +570,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
           clientName: formattedClient,
           clientPhone: clientPhone.trim() || undefined,
           salesChannel,
+          sellerName: currentSeller,
           creditDetails,
           depositDetails: paymentMethod === 'DEPOSIT' ? {
             advanceAmount: parseFloat(advanceAmountInput) || 0,
