@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound, Send, Calculator } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound, Send, Calculator, GripVertical } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -157,6 +157,119 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
     return saved ? parseInt(saved, 10) : null;
   });
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  // Draggable floating bottom action bar for selected items
+  const [floatingBarPos, setFloatingBarPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('warehouse_floating_bar_pos');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const floatingBarRef = useRef(null);
+  const dragStartRef = useRef(null);
+  const isDraggingBarRef = useRef(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setFloatingBarPos(prev => {
+        if (!prev) return null;
+        const el = floatingBarRef.current;
+        const barWidth = el?.offsetWidth || 340;
+        const barHeight = el?.offsetHeight || 50;
+        const maxX = window.innerWidth - barWidth - 8;
+        const maxY = window.innerHeight - barHeight - 8;
+        if (prev.x > maxX || prev.y > maxY) {
+          const clamped = {
+            x: Math.max(8, Math.min(maxX, prev.x)),
+            y: Math.max(8, Math.min(maxY, prev.y))
+          };
+          try {
+            localStorage.setItem('warehouse_floating_bar_pos', JSON.stringify(clamped));
+          } catch (e) {}
+          return clamped;
+        }
+        return prev;
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handlePointerDownFloatingBar = (e) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (e.target.closest('button') || e.target.closest('input')) return;
+
+    const el = floatingBarRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    dragStartRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initialLeft: rect.left,
+      initialTop: rect.top,
+      hasMoved: false
+    };
+
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch (err) {}
+
+    const onPointerMove = (moveEvt) => {
+      if (!dragStartRef.current) return;
+      const dx = moveEvt.clientX - dragStartRef.current.startX;
+      const dy = moveEvt.clientY - dragStartRef.current.startY;
+      if (!dragStartRef.current.hasMoved && Math.hypot(dx, dy) < 4) return;
+      
+      dragStartRef.current.hasMoved = true;
+      isDraggingBarRef.current = true;
+
+      const barWidth = el.offsetWidth || 340;
+      const barHeight = el.offsetHeight || 50;
+
+      let newX = dragStartRef.current.initialLeft + dx;
+      let newY = dragStartRef.current.initialTop + dy;
+
+      const minX = 8;
+      const maxX = window.innerWidth - barWidth - 8;
+      const minY = 8;
+      const maxY = window.innerHeight - barHeight - 8;
+
+      newX = Math.max(minX, Math.min(maxX, newX));
+      newY = Math.max(minY, Math.min(maxY, newY));
+
+      setFloatingBarPos({ x: newX, y: newY });
+    };
+
+    const onPointerUp = (upEvt) => {
+      try {
+        el.releasePointerCapture(upEvt.pointerId);
+      } catch (err) {}
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+
+      if (dragStartRef.current?.hasMoved) {
+        setFloatingBarPos(current => {
+          if (current) {
+            try {
+              localStorage.setItem('warehouse_floating_bar_pos', JSON.stringify(current));
+            } catch (err) {}
+          }
+          return current;
+        });
+      }
+
+      setTimeout(() => {
+        isDraggingBarRef.current = false;
+        dragStartRef.current = null;
+      }, 50);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+  };
 
   const getTodayDateString = () => {
     const now = new Date();
@@ -5433,10 +5546,34 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         />
       )}
 
-      {/* FLOATING BOTTOM ACTION BAR FOR SELECTED PRODUCTS (İcarəyə Ver & Məhsul Sat) */}
+      {/* FLOATING BOTTOM ACTION BAR FOR SELECTED PRODUCTS (İcarəyə Ver & Məhsul Sat) - DRAGGABLE */}
       {selectedItems.length > 0 && activeTab === 'finished' && currentStaff?.role !== 'Storeman' && currentStaff?.role?.toLowerCase() !== 'master' && (
-        <div className="fixed bottom-12 sm:bottom-16 right-6 md:right-[75px] z-[60] bg-slate-900/95 text-white backdrop-blur-md px-5 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
-          <div className="flex items-center gap-2 pr-3 border-r border-slate-700 text-xs font-semibold text-slate-300">
+        <div
+          ref={floatingBarRef}
+          onPointerDown={handlePointerDownFloatingBar}
+          style={floatingBarPos ? {
+            position: 'fixed',
+            left: `${floatingBarPos.x}px`,
+            top: `${floatingBarPos.y}px`,
+            bottom: 'auto',
+            right: 'auto',
+            touchAction: 'none',
+            userSelect: 'none'
+          } : {
+            touchAction: 'none',
+            userSelect: 'none'
+          }}
+          className={`fixed bottom-12 sm:bottom-16 right-6 md:right-[75px] z-[60] bg-slate-900/95 text-white backdrop-blur-md pl-2.5 pr-4 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-2.5 cursor-grab active:cursor-grabbing select-none ${floatingBarPos ? '' : 'animate-in slide-in-from-bottom-5 duration-200'}`}
+        >
+          {/* Drag Handle */}
+          <div 
+            className="flex items-center text-slate-500 hover:text-slate-300 transition-colors p-1 cursor-grab active:cursor-grabbing shrink-0"
+            title={i18n.language === 'az' ? 'İstənilən yerə sürükləyə bilərsiniz' : i18n.language === 'ru' ? 'Перетащите в любое место на экране' : 'Drag to move anywhere'}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+
+          <div className="flex items-center gap-2 pr-3 border-r border-slate-700 text-xs font-semibold text-slate-300 cursor-grab active:cursor-grabbing">
             <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xs">
               {selectedItems.length}
             </span>
@@ -5447,8 +5584,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           {/* İcarəyə Ver */}
           <button
-            onClick={() => setShowRentProduct(true)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 active:scale-95 transition-all uppercase tracking-wide"
+            type="button"
+            onClick={() => {
+              if (isDraggingBarRef.current) return;
+              setShowRentProduct(true);
+            }}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-indigo-600/30 active:scale-95 transition-all uppercase tracking-wide cursor-pointer select-none"
           >
             <KeyRound className="w-4 h-4 shrink-0" />
             <span>{i18n.language === 'az' ? 'İcarəyə Ver' : i18n.language === 'ru' ? 'В аренду' : 'Rent'}</span>
@@ -5459,8 +5600,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           {/* Məhsul Sat */}
           <button
-            onClick={() => setShowSellProduct(true)}
-            className="btn-gradient-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all uppercase tracking-wide"
+            type="button"
+            onClick={() => {
+              if (isDraggingBarRef.current) return;
+              setShowSellProduct(true);
+            }}
+            className="btn-gradient-primary text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all uppercase tracking-wide cursor-pointer select-none"
           >
             <DollarSign className="w-4 h-4 shrink-0" />
             <span>{i18n.language === 'az' ? 'Məhsul Sat' : i18n.language === 'ru' ? 'Продать товар' : 'Sell Product'}</span>
@@ -5471,8 +5616,12 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
 
           {/* Deselect / Cancel */}
           <button
-            onClick={() => setSelectedItems([])}
-            className="w-7 h-7 rounded-xl bg-red-500 hover:bg-red-600 active:scale-90 text-white flex items-center justify-center transition-all shadow-md shadow-red-500/30 ml-1 shrink-0"
+            type="button"
+            onClick={() => {
+              if (isDraggingBarRef.current) return;
+              setSelectedItems([]);
+            }}
+            className="w-7 h-7 rounded-xl bg-red-500 hover:bg-red-600 active:scale-90 text-white flex items-center justify-center transition-all shadow-md shadow-red-500/30 ml-1 shrink-0 cursor-pointer select-none"
             title={i18n.language === 'az' ? 'Seçimi ləğv et' : 'Снять выделение'}
           >
             <X className="w-4 h-4 stroke-[2.5]" />
