@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound, Send } from 'lucide-react';
+import { Package, Search, Plus, Filter, AlertTriangle, CheckCircle2, FolderTree, Folder, FolderOpen, MoreVertical, Loader2, Pencil, Trash2, Image as ImageIcon, Truck, Upload, CheckSquare, Square, CornerDownRight, Settings, ChevronRight, ChevronDown, ArrowRightLeft, Minus, Menu, X, HelpCircle, DollarSign, TrendingUp, Printer, Camera, Sparkles, ChevronLeft, ChevronsLeft, ChevronsRight, Percent, Tag, Type, Eye, RotateCw, Receipt, User, RotateCcw, ArrowLeftRight, Wallet, KeyRound, Send, Calculator } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 import ProductStickerTemplate from './ProductStickerTemplate';
 import AddProductModal from './AddProductModal';
@@ -30,6 +30,7 @@ import WarehouseReports from './WarehouseReports';
 import WarehouseSkeleton from './WarehouseSkeleton';
 import WarehouseFiles from './WarehouseFiles';
 import DailySalesReportModal from '../../components/Reports/DailySalesReportModal';
+import CreditCalculatorModal from './CreditCalculatorModal';
 
 import SellProductModal from './SellProductModal';
 import SaleDetailModal, { parseSaleNote, formatUnitName, getChannelBadge } from './SaleDetailModal';
@@ -258,6 +259,7 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
   const [showSellProduct, setShowSellProduct] = useState(false);
   const [showRentProduct, setShowRentProduct] = useState(false);
   const [showCashboxModal, setShowCashboxModal] = useState(false);
+  const [showCreditCalculator, setShowCreditCalculator] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingIngredient, setEditingIngredient] = useState(null);
@@ -2576,6 +2578,14 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
                     <Wallet className="w-3.5 h-3.5 mr-1.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" />
                     <span>{i18n.language === 'az' ? 'KASSA' : 'КАССА'}</span>
                   </button>
+
+                  <button
+                    onClick={() => setShowCreditCalculator(true)}
+                    className="bg-white border-2 border-indigo-500 hover:border-indigo-600 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50/70 w-[38px] h-[38px] rounded-lg flex items-center justify-center shrink-0 shadow-sm active:scale-95 group transition-all"
+                    title={i18n.language === 'az' ? 'Kredit Kalkulyatoru' : i18n.language === 'ru' ? 'Кредитный калькулятор' : 'Credit Calculator'}
+                  >
+                    <Calculator className="w-4 h-4 text-indigo-500 group-hover:scale-110 transition-transform shrink-0" />
+                  </button>
                 </>
               )}
 
@@ -4820,6 +4830,11 @@ const WarehouseModule = ({ activeTab: propActiveTab, setActiveTab: propSetActive
         onClose={() => setShowCashboxModal(false)}
         warehouseId={currentWarehouseId}
         warehouseName={warehouses.find(w => w.id === currentWarehouseId)?.name || 'Əsas Mağaza'}
+      />
+
+      <CreditCalculatorModal
+        isOpen={showCreditCalculator}
+        onClose={() => setShowCreditCalculator(false)}
       />
       {confirmDelete && (
         <ModalPortal>
