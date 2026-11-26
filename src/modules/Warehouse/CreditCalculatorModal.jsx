@@ -94,9 +94,7 @@ export function computeCreditDetails({
   const monthlyPayment = months > 0
     ? (isZeroInterest
       ? Number((netAmount / months).toFixed(2))
-      : (bank === 'Kapital Kredit 35'
-        ? Number((Math.ceil(netAmount * 1.0575) / months).toFixed(2))
-        : Number((Math.ceil(contractTotal) / months).toFixed(2))))
+      : Number((Math.ceil(contractTotal) / months).toFixed(2)))
     : 0;
 
   const interestAmount = Math.max(0, contractTotal - netAmount);
