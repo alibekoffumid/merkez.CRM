@@ -206,8 +206,6 @@ const CreditCalculatorModal = ({ isOpen, onClose, initialPrice = 500 }) => {
 
   if (!isOpen) return null;
 
-  const quickPresets = [100, 250, 500, 1000, 1500, 2000];
-
   return (
     <ModalPortal>
       <div
@@ -247,10 +245,10 @@ const CreditCalculatorModal = ({ isOpen, onClose, initialPrice = 500 }) => {
 
           {/* Modal Body */}
           <div className="p-4 sm:p-6 overflow-y-auto space-y-5 custom-scrollbar flex-1">
-            {/* Price & Presets */}
-            <div className="bg-gray-50/70 border border-gray-200/80 rounded-2xl p-4 sm:p-5 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
+            {/* Price & Downpayment */}
+            <div className="bg-gray-50/70 border border-gray-200/80 rounded-2xl p-4 sm:p-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
                   <label className="block text-[11px] font-black text-gray-500 uppercase tracking-wider mb-1.5">
                     {i18n.language === 'az' ? 'Məhsulun qiyməti' : 'Стоимость товара'} *
                   </label>
@@ -285,27 +283,6 @@ const CreditCalculatorModal = ({ isOpen, onClose, initialPrice = 500 }) => {
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Quick Preset Buttons */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mr-1">
-                  {i18n.language === 'az' ? 'Sürətli seçimlər:' : 'Быстрый выбор:'}
-                </span>
-                {quickPresets.map(preset => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setPriceInput(String(preset))}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                      Number(priceInput) === preset
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
-                    }`}
-                  >
-                    ₼{preset}
-                  </button>
-                ))}
               </div>
             </div>
 
