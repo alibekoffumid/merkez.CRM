@@ -719,7 +719,7 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
     ? Array.from(new Set(splitBankSettings.map(s => s.months))).sort((a, b) => a - b)
     : Object.keys(BANK_RATES[splitCreditBank] || {}).map(Number).sort((a, b) => a - b);
 
-  const rawBasePrice = (Number(basePriceInput) || 0) + (Number(extraMarkup) || 0);
+  const rawBasePrice = (Number(basePriceInput) || 0) + ((paymentMethod === 'birmarket' && birmarketNoCommission) ? 0 : (Number(extraMarkup) || 0));
   const numDownpayment = (paymentMethod === 'credit' && downpaymentAmount) ? (parseFloat(downpaymentAmount) || 0) : 0;
   // If downpayment is provided, credit is financed on the remaining principal
   const netAmount = Math.max(0, rawBasePrice - numDownpayment);
@@ -1738,9 +1738,18 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                   {paymentMethod === 'credit' && (
                     <div className="bg-blue-50/40 border border-blue-100/50 p-4 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-2">
                       <div className="grid grid-cols-2 gap-3 items-end">
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                            {i18n.language === 'az' ? 'Məhsulun ana dəyəri' : 'Базовая цена'}
+                        <div className={birmarketNoCommission ? 'col-span-2' : ''}>
+                          <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 px-1 flex items-center justify-between">
+                            <span className={birmarketNoCommission ? 'text-emerald-700' : 'text-gray-400'}>
+                              {birmarketNoCommission
+                                ? (i18n.language === 'az' ? 'Satış qiyməti (Birmarket)' : 'Цена продажи (Birmarket)')
+                                : (i18n.language === 'az' ? 'Məhsulun ana dəyəri' : 'Базовая цена')}
+                            </span>
+                            {birmarketNoCommission && (
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                {i18n.language === 'az' ? 'Əl ilə daxil edilir' : 'Вручную'}
+                              </span>
+                            )}
                           </label>
                           <input
                             type="number"
@@ -1748,23 +1757,29 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                             value={basePriceInput}
                             onChange={(e) => setBasePriceInput(e.target.value)}
                             onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setBasePriceInput(''); }}
-                            className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
+                            className={`w-full px-3 py-2 bg-white border rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm ${
+                              birmarketNoCommission 
+                                ? 'border-emerald-300 ring-2 ring-emerald-100/70 text-emerald-900 font-black text-sm' 
+                                : 'border-gray-100'
+                            }`}
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                            {i18n.language === 'az' ? 'Əlavə qiymət' : 'Доп. наценка'}
-                          </label>
-                          <input
-                            type="number"
-                            step="any"
-                            value={extraMarkup}
-                            onChange={(e) => setExtraMarkup(e.target.value)}
-                            onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setExtraMarkup(''); }}
-                            className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
-                          />
-                        </div>
+                        {!birmarketNoCommission && (
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                              {i18n.language === 'az' ? 'Əlavə qiymət' : 'Доп. наценка'}
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={extraMarkup}
+                              onChange={(e) => setExtraMarkup(e.target.value)}
+                              onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setExtraMarkup(''); }}
+                              className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -1942,9 +1957,18 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                   {paymentMethod === 'birmarket' && (
                     <div className="bg-blue-50/40 border border-blue-100/50 p-4 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-2">
                       <div className="grid grid-cols-2 gap-3 items-end">
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                            {i18n.language === 'az' ? 'Məhsulun ana dəyəri' : 'Базовая цена'}
+                        <div className={birmarketNoCommission ? 'col-span-2' : ''}>
+                          <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 px-1 flex items-center justify-between">
+                            <span className={birmarketNoCommission ? 'text-emerald-700' : 'text-gray-400'}>
+                              {birmarketNoCommission
+                                ? (i18n.language === 'az' ? 'Satış qiyməti (Birmarket)' : 'Цена продажи (Birmarket)')
+                                : (i18n.language === 'az' ? 'Məhsulun ana dəyəri' : 'Базовая цена')}
+                            </span>
+                            {birmarketNoCommission && (
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                {i18n.language === 'az' ? 'Əl ilə daxil edilir' : 'Вручную'}
+                              </span>
+                            )}
                           </label>
                           <input
                             type="number"
@@ -1952,23 +1976,29 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
                             value={basePriceInput}
                             onChange={(e) => setBasePriceInput(e.target.value)}
                             onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setBasePriceInput(''); }}
-                            className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
+                            className={`w-full px-3 py-2 bg-white border rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm ${
+                              birmarketNoCommission 
+                                ? 'border-emerald-300 ring-2 ring-emerald-100/70 text-emerald-900 font-black text-sm' 
+                                : 'border-gray-100'
+                            }`}
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
-                            {i18n.language === 'az' ? 'Əlavə qiymət' : 'Доп. наценка'}
-                          </label>
-                          <input
-                            type="number"
-                            step="any"
-                            value={extraMarkup}
-                            onChange={(e) => setExtraMarkup(e.target.value)}
-                            onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setExtraMarkup(''); }}
-                            className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
-                          />
-                        </div>
+                        {!birmarketNoCommission && (
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-1">
+                              {i18n.language === 'az' ? 'Əlavə qiymət' : 'Доп. наценка'}
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={extraMarkup}
+                              onChange={(e) => setExtraMarkup(e.target.value)}
+                              onFocus={e => { if (e.target.value === '0' || e.target.value === 0) setExtraMarkup(''); }}
+                              className="w-full px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold focus:outline-none focus:border-merkez-blue shadow-sm"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div>

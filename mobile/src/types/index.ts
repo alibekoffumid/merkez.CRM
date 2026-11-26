@@ -217,12 +217,14 @@ export interface StaffPermissions {
   canManageProducts: boolean;
   canPerformMovements: boolean;
   canDeleteHistory: boolean;
+  canViewHistory: boolean;
   canViewSupplier: boolean;
   canViewStockStats: boolean;
   isOwnerOrAdmin: boolean;
   isManager: boolean;
   isStoreman: boolean;
   isCashier: boolean;
+  isHeadCashier: boolean;
   isMaster: boolean;
 }
 

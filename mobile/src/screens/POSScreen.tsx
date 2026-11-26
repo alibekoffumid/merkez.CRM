@@ -160,6 +160,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const [advanceRecipientInput, setAdvanceRecipientInput] = useState('');
   const [birmarketCategory, setBirmarketCategory] = useState<'Alətlər' | 'Aksesuarlar'>('Alətlər');
   const [birmarketNoCommission, setBirmarketNoCommission] = useState(false);
+  const [birmarketCustomPrice, setBirmarketCustomPrice] = useState<string>('');
   const [processing, setProcessing] = useState(false);
 
   // Printer & Checkout Success Modals
@@ -459,9 +460,11 @@ export const POSScreen: React.FC<POSScreenProps> = ({
   const birmarketResult = useMemo(() => {
     const net = discountedBase;
     if (birmarketNoCommission) {
+      const parsedCustom = parseFloat(birmarketCustomPrice);
+      const effectiveGross = !isNaN(parsedCustom) && parsedCustom >= 0 ? parsedCustom : Number(net.toFixed(2));
       return {
-        gross: Number(net.toFixed(2)),
-        profit: Number(net.toFixed(2)),
+        gross: Number(effectiveGross.toFixed(2)),
+        profit: Number(effectiveGross.toFixed(2)),
         markupRate: 0,
         siteCommissionRate: 0,
       };
@@ -477,7 +480,7 @@ export const POSScreen: React.FC<POSScreenProps> = ({
       markupRate,
       siteCommissionRate,
     };
-  }, [discountedBase, birmarketCategory, birmarketNoCommission]);
+  }, [discountedBase, birmarketCategory, birmarketNoCommission, birmarketCustomPrice]);
 
   const total =
     paymentMethod === 'CREDIT'
@@ -1626,7 +1629,13 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   <Text style={styles.birmarketSectionLabel}>Birmarket Kateqoriyası:</Text>
                   <TouchableOpacity
                     style={[styles.zeroInterestBtn, birmarketNoCommission && styles.zeroInterestBtnActive]}
-                    onPress={() => setBirmarketNoCommission(!birmarketNoCommission)}
+                    onPress={() => {
+                      const next = !birmarketNoCommission;
+                      setBirmarketNoCommission(next);
+                      if (next && (!birmarketCustomPrice || birmarketCustomPrice === '0')) {
+                        setBirmarketCustomPrice(discountedBase > 0 ? discountedBase.toFixed(2) : '');
+                      }
+                    }}
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.zeroInterestBtnText, birmarketNoCommission && styles.zeroInterestBtnTextActive]}>
@@ -1638,31 +1647,63 @@ export const POSScreen: React.FC<POSScreenProps> = ({
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.chipsRow}>
-                  <TouchableOpacity
-                    style={[styles.birmarketChip, birmarketCategory === 'Alətlər' && styles.birmarketChipActive]}
-                    onPress={() => setBirmarketCategory('Alətlər')}
-                  >
-                    <Text style={[styles.birmarketChipText, birmarketCategory === 'Alətlər' && styles.birmarketChipTextActive]}>
-                      {birmarketNoCommission ? 'Alətlər (0%)' : 'Alətlər (10% komissiya)'}
-                    </Text>
-                    <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Alətlər' && styles.birmarketChipSubTextActive]}>
-                      {birmarketNoCommission ? '0% artım' : '+17.51% artım'}
-                    </Text>
-                  </TouchableOpacity>
+                {birmarketNoCommission ? (
+                  <View style={styles.birmarketManualPriceBox}>
+                    <View style={styles.birmarketManualHeader}>
+                      <Text style={styles.birmarketManualLabel}>
+                        Satış qiyməti (Saytda / Kassada məbləğ) *
+                      </Text>
+                      <Text style={styles.birmarketManualHint}>Əl ilə daxil edilir</Text>
+                    </View>
+                    <View style={styles.birmarketManualInputRow}>
+                      <Text style={styles.birmarketManualCurrency}>₼</Text>
+                      <TextInput
+                        style={styles.birmarketManualInput}
+                        value={birmarketCustomPrice}
+                        onChangeText={setBirmarketCustomPrice}
+                        placeholder={discountedBase > 0 ? discountedBase.toFixed(2) : '0.00'}
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="decimal-pad"
+                        selectTextOnFocus
+                      />
+                      {parseFloat(birmarketCustomPrice) !== discountedBase && discountedBase > 0 && (
+                        <TouchableOpacity
+                          style={styles.birmarketResetPriceBtn}
+                          onPress={() => setBirmarketCustomPrice(discountedBase.toFixed(2))}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Text style={styles.birmarketResetPriceText}>Sıfırla</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.chipsRow}>
+                    <TouchableOpacity
+                      style={[styles.birmarketChip, birmarketCategory === 'Alətlər' && styles.birmarketChipActive]}
+                      onPress={() => setBirmarketCategory('Alətlər')}
+                    >
+                      <Text style={[styles.birmarketChipText, birmarketCategory === 'Alətlər' && styles.birmarketChipTextActive]}>
+                        Alətlər (10% komissiya)
+                      </Text>
+                      <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Alətlər' && styles.birmarketChipSubTextActive]}>
+                        +17.51% artım
+                      </Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={[styles.birmarketChip, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipActive]}
-                    onPress={() => setBirmarketCategory('Aksesuarlar')}
-                  >
-                    <Text style={[styles.birmarketChipText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipTextActive]}>
-                      {birmarketNoCommission ? 'Aksesuarlar (0%)' : 'Aksesuarlar (15% komissiya)'}
-                    </Text>
-                    <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipSubTextActive]}>
-                      {birmarketNoCommission ? '0% artım' : '+24.5% artım'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+                    <TouchableOpacity
+                      style={[styles.birmarketChip, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipActive]}
+                      onPress={() => setBirmarketCategory('Aksesuarlar')}
+                    >
+                      <Text style={[styles.birmarketChipText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipTextActive]}>
+                        Aksesuarlar (15% komissiya)
+                      </Text>
+                      <Text style={[styles.birmarketChipSubText, birmarketCategory === 'Aksesuarlar' && styles.birmarketChipSubTextActive]}>
+                        +24.5% artım
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
 
                 {/* Calculation breakdown */}
                 <View style={styles.birmarketSummaryBox}>
@@ -2533,6 +2574,73 @@ const styles = StyleSheet.create({
     borderColor: '#FECDD3',
     marginTop: 6,
     gap: 4,
+  },
+  birmarketManualPriceBox: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginBottom: 6,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  birmarketManualHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  birmarketManualLabel: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#065F46',
+  },
+  birmarketManualHint: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#10B981',
+    textTransform: 'uppercase',
+  },
+  birmarketManualInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    height: 42,
+  },
+  birmarketManualCurrency: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#059669',
+    marginRight: 6,
+  },
+  birmarketManualInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#065F46',
+    paddingVertical: 0,
+  },
+  birmarketResetPriceBtn: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+  },
+  birmarketResetPriceText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#166534',
   },
   depositCalcBox: {
     backgroundColor: '#FFFBEB',

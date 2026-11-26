@@ -79,12 +79,12 @@ function MainApp() {
   React.useEffect(() => {
     if (permissions.isMaster) {
       handleTabPress('repairs');
-    } else if (permissions.isCashier && (currentTab === 'operations' || currentTab === 'reports')) {
+    } else if (!permissions.canViewHistory && (currentTab === 'operations' || currentTab === 'reports')) {
       handleTabPress('pos');
     } else if (currentStaff !== 'owner' && currentTab === 'reports') {
       handleTabPress('warehouse');
     }
-  }, [permissions.isMaster, permissions.isCashier, currentStaff, currentTab]);
+  }, [permissions.isMaster, permissions.canViewHistory, currentStaff, currentTab]);
 
   // Global POS Cart
   const [cart, setCart] = useState<POSCartItem[]>([]);
@@ -327,8 +327,8 @@ function MainApp() {
           </TouchableOpacity>
         )}
 
-        {/* Tab 2: Operations (Tarixçə) - Hidden for Cashier and Master */}
-        {!permissions.isCashier && !permissions.isMaster && (
+        {/* Tab 2: Operations (Tarixçə) - Visible for all staff with canViewHistory (including Baş Kassir) */}
+        {permissions.canViewHistory && (
           <TouchableOpacity
             style={styles.navItem}
             onPress={() => handleTabPress('operations')}

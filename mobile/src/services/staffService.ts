@@ -42,12 +42,14 @@ export const staffService = {
         canManageProducts: true,
         canPerformMovements: true,
         canDeleteHistory: true,
+        canViewHistory: true,
         canViewSupplier: true,
         canViewStockStats: true,
         isOwnerOrAdmin: true,
         isManager: true,
         isStoreman: false,
         isCashier: false,
+        isHeadCashier: false,
         isMaster: false,
       };
     }
@@ -65,20 +67,24 @@ export const staffService = {
     const canDeleteHistory = role === 'Admin' || role === 'Owner' || role === 'Direktor' || role === 'Adminstrator';
     const isManager = role === 'Manager' || role === 'Baş menecer' || role === 'Mağaza müdiri' || role === 'Direktor';
     const isStoreman = role === 'Storeman';
-    const isCashier = role === 'Cashier' || role === 'Baş Kassir' || role === 'Kreditor';
+    const isHeadCashier = role === 'Baş Kassir';
+    const isCashier = role === 'Cashier' || role === 'Kreditor';
     const isMaster = role === 'Master';
+    const canViewHistory = !isMaster && (!isCashier || isHeadCashier);
 
     return {
       canViewCostPrices: isOwnerOrAdmin, // Maya and Zavod prices strictly for Owner/Admin/Manager
       canManageProducts: isOwnerOrAdmin, // Add, edit or delete products
       canPerformMovements: isOwnerOrAdmin || isStoreman, // Warehouse receipts (Qəbul) and dispatches (Silinmə)
       canDeleteHistory,
+      canViewHistory,
       canViewSupplier: isOwnerOrAdmin, // Təchizatçı only visible to Admin/Owner/Manager
       canViewStockStats: isOwnerOrAdmin, // Total goods and low stock items only visible to Admin/Owner/Manager
       isOwnerOrAdmin,
       isManager,
       isStoreman,
       isCashier,
+      isHeadCashier,
       isMaster,
     };
   },
