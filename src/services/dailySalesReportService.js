@@ -2766,7 +2766,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
         paperSize: 9, // A4
         fitToPage: true,
         fitToWidth: 1,
-        fitToHeight: 0,
+        fitToHeight: 1,
         margins: {
           left: 0.3,
           right: 0.3,
@@ -2783,7 +2783,7 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       paperSize: 9, // A4
       fitToPage: true,
       fitToWidth: 1,
-      fitToHeight: 0,
+      fitToHeight: 1,
       margins: {
         left: 0.3,
         right: 0.3,
@@ -2996,19 +2996,15 @@ export const downloadDailySalesReportExcel = async (data, businessInfo = {}, opt
       });
     });
 
-    // 3. Pad with empty numbered rows up to at least 32 rows matching template
-    const minRows = Math.max(32, rowSequence);
-    for (let r = rowSequence + 1; r <= minRows; r++) {
-      const emptyRow = wsLedger.addRow([r, '', null, null, null, null, null, null, '', '']);
-      emptyRow.height = 19;
-      const isOdd = (r - 1) % 2 === 1;
+    // 3. No empty row padding: number of rows matches exact transactions count
+    if (rowSequence === 0) {
+      const emptyRow = wsLedger.addRow([1, 'Günün satışı qeydə alınmayıb', null, null, null, null, null, null, '-', '']);
+      emptyRow.height = 20;
       emptyRow.eachCell({ includeEmpty: true }, (cell, colNum) => {
         cell.border = borderThin;
-        cell.font = { name: 'Arial', size: 9.5, color: { argb: 'FF94A3B8' } };
-        if (isOdd) {
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-        }
-        if (colNum === 1 || colNum === 9 || colNum === 10) cell.alignment = { horizontal: 'center' };
+        cell.font = { name: 'Arial', size: 9.5, italic: true, color: { argb: 'FF94A3B8' } };
+        if (colNum === 1 || colNum === 9 || colNum === 10) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        else if (colNum === 2) cell.alignment = { horizontal: 'left', vertical: 'middle' };
       });
     }
 
