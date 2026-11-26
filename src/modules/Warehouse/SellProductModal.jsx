@@ -12,6 +12,7 @@ import AnimatedNumber from '../../components/Common/AnimatedNumber';
 import CameraScannerModal from '../../components/Common/CameraScannerModal';
 import { formatCategoriesHierarchically } from './categoryUtils';
 import { printThermalReceipt57mm } from './thermalReceiptService';
+import { createWarehousePrintJob } from '../../services/printJobService';
 
 const BANK_RATES = {
   'ABB Kredit': { 1: 0.0, 2: 0.02, 3: 0.03, 6: 0.055, 9: 0.08, 12: 0.10, 18: 0.17, 24: 0.23 },
@@ -126,14 +127,27 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
   const isZeroInterest = paymentMethod === 'credit' && Boolean(zeroInterestBanks[selectedBank]);
   const isSplitZeroInterest = paymentMethod === 'split' && Boolean(zeroInterestBanks[splitCreditBank]);
 
+  const [warehouseAutoSend, setWarehouseAutoSend] = useState(true);
+
   useEffect(() => {
     if (!warehouseId) return;
     const fetchWh = async () => {
       try {
-        const { data } = await supabase.from('warehouses').select('name').eq('id', warehouseId).maybeSingle();
+        const { data } = await supabase.from('warehouses').select('*').eq('id', warehouseId).maybeSingle();
         if (data?.name) setCurrentWarehouseName(data.name);
+        let autoSend = data?.auto_send_order;
+        if (autoSend === undefined || autoSend === null) {
+          try {
+            const cached = localStorage.getItem(`merkez_auto_send_order_${warehouseId}`);
+            if (cached !== null) autoSend = cached === 'true';
+            else autoSend = true;
+          } catch (e) {
+            autoSend = true;
+          }
+        }
+        setWarehouseAutoSend(autoSend !== false);
       } catch (e) {
-        // fallback
+        setWarehouseAutoSend(true);
       }
     };
     fetchWh();
@@ -1280,6 +1294,42 @@ const SellProductModal = ({ isOpen, onClose, onSaleComplete, warehouseId, active
 
       toast.success(t('retail.saleSuccess') || 'Satış uğurla başa çatdı');
       onSaleComplete();
+
+      // Auto send to warehouse order / assembly queue if enabled for this store/warehouse
+      if (warehouseAutoSend) {
+        try {
+          const orderItems = cart.map((item) => {
+            const itemPrice = Number(item.price) || 0;
+            const itemGross = itemPrice * Number(item.quantity || 1);
+            const itemDisc = (discountAmount > 0 && grossCartTotal > 0) ? (itemGross / grossCartTotal) * discountAmount : 0;
+            const itemFinal = Math.max(0, itemGross - itemDisc);
+            return {
+              product_id: item.product_id,
+              name: item.name || item.productName || 'Məhsul',
+              barcode: item.barcode || item.article_number || '',
+              article: item.article_number || item.barcode || '',
+              quantity: Number(item.quantity || 1),
+              unit: item.unit || 'əd',
+              price: itemPrice,
+              total: item.isGift ? 0 : itemFinal,
+              channel: paymentMethod === 'credit' ? `Kredit - ${selectedBank}` : paymentMethod === 'birmarket' ? 'Birmarket' : salesChannel,
+              saleRef: createdSaleId ? `#SALE-${createdSaleId}` : '',
+              sellerName: currentStaff?.name || currentStaff?.username || profile?.full_name || 'Kassir',
+              date: new Date()
+            };
+          });
+
+          createWarehousePrintJob({
+            warehouseId,
+            warehouseName: currentWarehouseName || 'Anbar',
+            staffName: currentStaff?.name || currentStaff?.username || profile?.full_name || 'Kassir',
+            items: orderItems,
+            userId: profile?.id
+          }).catch(err => console.warn('Auto warehouse print job background err:', err));
+        } catch (jobErr) {
+          console.warn('Could not queue warehouse print job:', jobErr);
+        }
+      }
 
       try {
         printThermalReceipt57mm(receiptData);

@@ -2,6 +2,7 @@ import { getActiveUserId, productService } from './productService';
 import { supabase } from '../config/supabase';
 import { POSCartItem } from '../types';
 import { movementService } from './movementService';
+import { createWarehousePrintJob, WarehouseOrderItem } from './warehousePrintService';
 
 export interface CreditSaleDetails {
   bank: string;
@@ -414,6 +415,42 @@ export const salesService = {
       }
     } catch (e) {
       console.warn('scanner_cart_events optional write error:', e);
+    }
+
+    // 5. Auto-send to warehouse print queue if enabled for active warehouse
+    try {
+      const warehouses = await productService.getWarehouses();
+      const currentWh = (warehouses || []).find((w: any) => w.id === activeWarehouseId);
+      const isAutoSend = (currentWh as any)?.auto_send_order !== false;
+      if (isAutoSend && activeWarehouseId) {
+        const orderItems: WarehouseOrderItem[] = items.map((item) => {
+          const itemPrice = item.customPrice ?? item.product.sale_price ?? item.product.price ?? 0;
+          return {
+            product_id: item.product.id,
+            name: item.product.name,
+            barcode: item.product.barcode || item.product.article_number || '',
+            article: item.product.article_number || item.product.barcode || '',
+            quantity: item.quantity,
+            unit: item.product.unit || 'əd',
+            price: itemPrice,
+            total: item.isGift ? 0 : itemPrice * item.quantity,
+            channel: salesChannel || 'Mağaza',
+            saleRef: saleId ? `#SALE-${saleId}` : '',
+            sellerName: sellerName || '',
+            date: new Date(),
+          };
+        });
+
+        await createWarehousePrintJob({
+          warehouseId: activeWarehouseId,
+          warehouseName: currentWh?.name || 'Anbar',
+          staffName: sellerName || 'Kassir',
+          items: orderItems,
+          userId: userId,
+        });
+      }
+    } catch (whErr) {
+      console.warn('Auto warehouse print job optional error:', whErr);
     }
 
     const transactionId =

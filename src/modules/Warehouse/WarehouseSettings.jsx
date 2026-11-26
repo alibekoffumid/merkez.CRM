@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X, Shield, Lock, KeyRound, Eye, EyeOff, Upload, FileSpreadsheet } from 'lucide-react';
+import { Save, Settings2, DollarSign, Scale, BellRing, Barcode, Plus, Trash2, Pencil, Check, X, Shield, Lock, KeyRound, Eye, EyeOff, Upload, FileSpreadsheet, Send, Printer } from 'lucide-react';
 import Dropdown from '../../components/Common/Dropdown';
 import { toast } from 'react-hot-toast';
 import { supabase } from '../../supabaseClient';
@@ -163,28 +163,69 @@ const WarehouseSettings = ({ onOpenImport }) => {
       .select('*')
       .eq('user_id', profile.id)
       .order('created_at', { ascending: true });
-    if (data) setWarehouses(data);
+    if (data) {
+      const enriched = data.map(w => {
+        let autoSend = w.auto_send_order;
+        if (autoSend === undefined || autoSend === null) {
+          try {
+            const cached = localStorage.getItem(`merkez_auto_send_order_${w.id}`);
+            if (cached !== null) autoSend = cached === 'true';
+            else autoSend = true;
+          } catch (e) {
+            autoSend = true;
+          }
+        }
+        return { ...w, auto_send_order: autoSend !== false };
+      });
+      setWarehouses(enriched);
+    }
     setLoadingWarehouses(false);
   };
 
   const addWarehouse = async () => {
     if (!newWarehouse.name || !profile?.id) return;
+    const autoSendVal = newWarehouse.auto_send_order !== false;
     const { data, error } = await supabase
       .from('warehouses')
       .insert({ 
         name: newWarehouse.name, 
         address: newWarehouse.address,
         user_id: profile.id,
-        is_default: warehouses.length === 0
+        is_default: warehouses.length === 0,
+        auto_send_order: autoSendVal
       })
       .select()
       .single();
 
     if (error) {
-      toast.error(error.message);
+      // Fallback if column does not exist yet
+      const fallbackInsert = await supabase
+        .from('warehouses')
+        .insert({ 
+          name: newWarehouse.name, 
+          address: newWarehouse.address,
+          user_id: profile.id,
+          is_default: warehouses.length === 0
+        })
+        .select()
+        .single();
+      if (fallbackInsert.error) {
+        toast.error(fallbackInsert.error.message);
+        return;
+      }
+      try {
+        localStorage.setItem(`merkez_auto_send_order_${fallbackInsert.data.id}`, String(autoSendVal));
+      } catch (e) {}
+      setWarehouses([...warehouses, { ...fallbackInsert.data, auto_send_order: autoSendVal }]);
+      setNewWarehouse({ name: '', address: '', auto_send_order: true });
+      setShowAddWarehouse(false);
+      toast.success(t('common.success'));
     } else {
-      setWarehouses([...warehouses, data]);
-      setNewWarehouse({ name: '', address: '' });
+      try {
+        localStorage.setItem(`merkez_auto_send_order_${data.id}`, String(autoSendVal));
+      } catch (e) {}
+      setWarehouses([...warehouses, { ...data, auto_send_order: autoSendVal }]);
+      setNewWarehouse({ name: '', address: '', auto_send_order: true });
       setShowAddWarehouse(false);
       toast.success(t('common.success'));
     }
@@ -205,14 +246,28 @@ const WarehouseSettings = ({ onOpenImport }) => {
   };
 
   const updateWarehouse = async (id, updates) => {
+    try {
+      if (updates.auto_send_order !== undefined) {
+        localStorage.setItem(`merkez_auto_send_order_${id}`, String(updates.auto_send_order));
+      }
+    } catch (e) {}
     const { error } = await supabase.from('warehouses').update(updates).eq('id', id);
     if (error) {
-      toast.error(error.message);
+      // If error (e.g. column missing), still apply locally & to state
+      console.warn('Could not update warehouse in Supabase, keeping local state:', error);
+      setWarehouses(warehouses.map(w => w.id === id ? { ...w, ...updates } : w));
+      setEditingWarehouseId(null);
+      toast.success(t('common.success'));
     } else {
       setWarehouses(warehouses.map(w => w.id === id ? { ...w, ...updates } : w));
       setEditingWarehouseId(null);
       toast.success(t('common.success'));
     }
+  };
+
+  const toggleAutoSendOrder = async (id, currentVal) => {
+    const nextVal = currentVal === false ? true : false;
+    await updateWarehouse(id, { auto_send_order: nextVal });
   };
 
   const setAsDefault = async (id) => {
@@ -781,6 +836,26 @@ const WarehouseSettings = ({ onOpenImport }) => {
                             onChange={e => setWarehouses(warehouses.map(item => item.id === w.id ? {...item, address: e.target.value} : item))}
                           />
                         </div>
+
+                        {/* Edit Mode Auto-send Toggle */}
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <Send className="w-3.5 h-3.5 text-blue-600" />
+                            <span className="text-xs font-bold text-gray-700">
+                              {i18n.language === 'az' ? 'Anbara avtomatik göndər' : i18n.language === 'ru' ? 'Авто-отправка на склад' : 'Auto-send to warehouse'}
+                            </span>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input 
+                              type="checkbox" 
+                              className="sr-only peer"
+                              checked={w.auto_send_order !== false}
+                              onChange={e => setWarehouses(warehouses.map(item => item.id === w.id ? {...item, auto_send_order: e.target.checked} : item))}
+                            />
+                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
+                        </div>
+
                         <div className="flex gap-2 justify-end">
                           <button 
                             onClick={() => setEditingWarehouseId(null)}
@@ -789,7 +864,7 @@ const WarehouseSettings = ({ onOpenImport }) => {
                             {t('common.cancel')}
                           </button>
                           <button 
-                            onClick={() => updateWarehouse(w.id, { name: w.name, address: w.address })}
+                            onClick={() => updateWarehouse(w.id, { name: w.name, address: w.address, auto_send_order: w.auto_send_order !== false })}
                             className="px-6 py-2 bg-gray-900 text-white rounded-lg text-xs font-bold hover:bg-black transition-all"
                           >
                             {t('common.save')}
@@ -797,39 +872,74 @@ const WarehouseSettings = ({ onOpenImport }) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h5 className="text-sm font-bold text-gray-900">{w.name}</h5>
-                            {w.is_default && (
-                              <span className="bg-blue-50 text-merkez-blue text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
-                                {t('common.default') || 'По умолчанию'}
-                              </span>
-                            )}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h5 className="text-sm font-bold text-gray-900">{w.name}</h5>
+                              {w.is_default && (
+                                <span className="bg-blue-50 text-merkez-blue text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                                  {t('common.default') || 'По умолчанию'}
+                                </span>
+                              )}
+                            </div>
+                            {w.address && <p className="text-[11px] text-gray-400 mt-0.5">{w.address}</p>}
                           </div>
-                          {w.address && <p className="text-[11px] text-gray-400 mt-0.5">{w.address}</p>}
-                        </div>
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => setEditingWarehouseId(w.id)}
-                            className="p-1.5 text-gray-400 hover:text-merkez-blue transition-colors"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          {!w.is_default && (
+                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button 
-                              onClick={() => setAsDefault(w.id)}
-                              className="text-[10px] font-bold text-gray-400 hover:text-merkez-blue uppercase tracking-widest px-2 py-1"
+                              onClick={() => setEditingWarehouseId(w.id)}
+                              className="p-1.5 text-gray-400 hover:text-merkez-blue transition-colors"
                             >
-                              {t('common.makeDefault') || 'Сделать основным'}
+                              <Pencil className="w-4 h-4" />
                             </button>
-                          )}
-                          <button 
-                            onClick={() => deleteWarehouse(w.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                            {!w.is_default && (
+                              <button 
+                                onClick={() => setAsDefault(w.id)}
+                                className="text-[10px] font-bold text-gray-400 hover:text-merkez-blue uppercase tracking-widest px-2 py-1"
+                              >
+                                {t('common.makeDefault') || 'Сделать основным'}
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => deleteWarehouse(w.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Auto-send order toggle for this warehouse */}
+                        <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2">
+                            <Send className={`w-3.5 h-3.5 shrink-0 ${w.auto_send_order !== false ? 'text-blue-600' : 'text-gray-400'}`} />
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-gray-800">
+                                  {i18n.language === 'az' ? 'Anbara avtomatik göndər' : i18n.language === 'ru' ? 'Авто-отправка на склад' : 'Auto-send to warehouse'}
+                                </span>
+                                <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${w.auto_send_order !== false ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500'}`}>
+                                  {w.auto_send_order !== false ? (i18n.language === 'az' ? 'Aktiv' : 'Вкл') : (i18n.language === 'az' ? 'Deaktiv' : 'Выкл')}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-gray-400 mt-0.5">
+                                {i18n.language === 'az' 
+                                  ? 'Bu mağazada hər satış bitdikdə çek/sifariş avtomatik anbar çapına göndərilir' 
+                                  : i18n.language === 'ru'
+                                  ? 'При каждой продаже с этого склада чек автоматически отправляется на печать склада'
+                                  : 'Automatically queues an assembly sheet to the warehouse printer on every sale'}
+                              </p>
+                            </div>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input 
+                              type="checkbox" 
+                              className="sr-only peer"
+                              checked={w.auto_send_order !== false}
+                              onChange={() => toggleAutoSendOrder(w.id, w.auto_send_order)}
+                            />
+                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                          </label>
                         </div>
                       </div>
                     )}
@@ -854,6 +964,23 @@ const WarehouseSettings = ({ onOpenImport }) => {
                       value={newWarehouse.address}
                       onChange={e => setNewWarehouse({...newWarehouse, address: e.target.value})}
                     />
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Send className="w-3.5 h-3.5 text-blue-600" />
+                        <span className="text-xs font-bold text-gray-700">
+                          {i18n.language === 'az' ? 'Anbara avtomatik göndər' : i18n.language === 'ru' ? 'Авто-отправка на склад' : 'Auto-send to warehouse'}
+                        </span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer"
+                          checked={newWarehouse.auto_send_order !== false}
+                          onChange={e => setNewWarehouse({...newWarehouse, auto_send_order: e.target.checked})}
+                        />
+                        <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button 
